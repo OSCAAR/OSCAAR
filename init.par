@@ -1,0 +1,21 @@
+## INPUT FILES ##
+darkLoc [enter path here]		## Path to dark frame(s)
+flatLoc [enter path here] 		## Path to flat frame(s)
+imagLoc [enter path here]		## Path to the data images
+regsLoc [enter path here] 		## Path to regions file
+
+## STAR TRACKING OPTIONS ##
+track on	## Perform star tracking algorithm
+estsig 2	## Initial estimate of radial star widths (pxls)
+trackplot off	## Plot gaussian fits with data
+
+## APERTURE PHOTOMETRY OPTIONS ##
+aper on		## Perform aperture photometry algorithm
+aprad 5.5	## Aperture radius. Default: 5.5
+satur 60000 	## Saturation limit for each CCD pixel bin
+Kccd 0.7799 	## CCD Gain (e-/ADU)
+aperplot off 	## Aperture photometry plots
+
+## DIFFERENTIAL PHOTOMETRY OPTIONS ##
+diff on		## Perform differential photometry algorithm
+diffgui on	## Run built in GUI

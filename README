@@ -1,0 +1,18 @@
+************************************************
+OSCAAR: Open Source Differential Photometry Code 
+        for Amateur Astronomical Research
+************************************************
+
+For updates, documentation and more, visit:
+http://code.google.com/p/oscaar/
+
+Version: 1.1.0
+Documentation: draft1.pdf
+Initial Parameters file: init.par
+Main file to execute: photom15.py
+
+
+Copyright 2011 Brett Morris
+See NOTICE for the open source license. 
+
+Prepared 9/17/11
