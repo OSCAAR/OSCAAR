@@ -15,7 +15,7 @@ def aper11(infile, est_x, est_y, hww, xcenter_fit, ycenter_fit, sigma_fit, aprad
        plots will be shown."""
 
     ## *******<from gauss4.py>**********
-    ## hi guys blah bloiajkslkdfah blah
+
     rad = aprad*sigma_fit                           ## Factor of sigma out radially
                                                     ## considered for the source radius
     irad = aprad*sigma_fit                          ## (same as above) ...inner radius
