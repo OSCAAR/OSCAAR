@@ -1,5 +1,5 @@
-## ds9parser4.py for oscaar1.1.0
-
+##ds9parser.py
+##  Called by photom6.py
 ##  Extracts (x,y,r) coords from the centers
 ##   of circles in a regions file to use as
 ##   the initial coordinates of stars of interest
@@ -27,3 +27,5 @@ for i in range(0,len(circle_data)):
     init_y_list.append(float(xydata[0]))
     init_x_list.append(float(xydata[1]))
     hww_list.append(float(xyhdata))
+    
+print "ds9parser printing hww_list:", hww_list

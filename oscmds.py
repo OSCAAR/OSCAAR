@@ -1,5 +1,3 @@
-## Basic system commands for oscaar
-
 def mkdir(a, b=None):
     """Make new directory with name a where a
        is a string inside of single quotes"""
@@ -24,3 +22,13 @@ def cp(a, b):
        strings inside of single quotes"""
     command = 'cp '+str(a)+' '+str(b)
     os.system(command)
+
+def overcheck(filename, checkfiles, varcheck):
+    overcheck = None
+    for i in range(0, len(checkfiles)):
+        if checkfiles[i]== filename and varcheck == 'on':
+            overcheck = raw_input('WARNING: Overwrite /' + filename + '/ ? (Y/n): ')
+            break
+    if overcheck == '' or overcheck == 'Y' or overcheck == 'y':
+        os.system('rm -r ' + filename)
+        mkdir(filename)

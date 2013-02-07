@@ -1,21 +1,18 @@
-## INPUT FILES ##
-darkLoc [enter path here]		## Path to dark frame(s)
-flatLoc [enter path here] 		## Path to flat frame(s)
-imagLoc [enter path here]		## Path to the data images
-regsLoc [enter path here] 		## Path to regions file
-
-## STAR TRACKING OPTIONS ##
-track on	## Perform star tracking algorithm
-estsig 2	## Initial estimate of radial star widths (pxls)
-trackplot off	## Plot gaussian fits with data
-
-## APERTURE PHOTOMETRY OPTIONS ##
-aper on		## Perform aperture photometry algorithm
-aprad 5.5	## Aperture radius. Default: 5.5
-satur 60000 	## Saturation limit for each CCD pixel bin
-Kccd 0.7799 	## CCD Gain (e-/ADU)
-aperplot off 	## Aperture photometry plots
-
-## DIFFERENTIAL PHOTOMETRY OPTIONS ##
-diff on		## Perform differential photometry algorithm
-diffgui on	## Run built in GUI
+Path to Dark Frames: /home/dan/Downloads/20120616forSUMO/tres1-???d.fit
+Path to data images: /home/dan/Downloads/20120616forSUMO/tres1-???.fit
+Path to Flat Frames: /home/dan/Downloads/correctedFlat.fits
+Path to regions file: /home/dan/Downloads/20120616forSUMO/rad4Stars2simplified/stars2.reg
+Star Tracking: on
+Radial Star Width: 0
+Trackplot: off
+Smoothing Constant: 3
+Aper: on
+CCD Saturation Limit: 60000
+CCD Gain: 1
+Radius: 4
+Show Plots: off
+Perform Differential Photometry: off
+Star Tracking: on
+GUI: off
+Ingress: 2012-6-17;02:59:00
+Egress: 2012-6-17;05:29:00

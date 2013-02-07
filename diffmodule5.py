@@ -16,22 +16,30 @@ class starObj:
                 flags = True
         self.aperflx = aperflx
         self.apererr = apererr
-        self.flag = flags
+
         
         trackout = open('track_out/star'+str(self.num)+'_coord.log').read().splitlines()
         trackx = np.zeros([len(trackout),1])
         tracky = np.zeros([len(trackout),1])
+        sigma = np.zeros([len(trackout),1])
         for i in range(0,len(trackout)):
             trackx[i] = float(trackout[i].split()[0])
             tracky[i] = float(trackout[i].split()[1])
+            sigma[i] = float(trackout[i].split()[2])
+            try:
+                if trackout[i].split()[3] == '*':
+                    flags = True
+            except: pass
         self.x = trackx
         self.y = tracky
+        self.sig = sigma
 
         timeout = open('time_out/time.log').read().splitlines()
         times = []
-        for i in range(0,len(trackout)):
+        for i in range(0,len(timeout)):
             times.append(float(timeout[i]))
         self.times = times
+        self.flag = flags
 
     def time(self):
         '''Returns JD of each observation from FITS header'''
@@ -54,6 +62,10 @@ class starObj:
     def tracky(self):
         '''Returns this star object's y pixel position '''
         return self.y
+
+    def sigma(self):
+        '''Returns this star object's sigma fit parameter '''
+        return self.sig    
     
     def flags(self):
         '''Returns True if the star has an asterisk (*)
@@ -84,11 +96,12 @@ class fluxArr:
            flux array'''
         self.starcount += 1.0
         self.fluxarr = (self.arr()*(self.starcount-1) + starobj.flux()) / float(self.starcount)
-        fluxerr = abs((2.5*starobj.err())/(starobj.flux()*np.log(10)))
+
+        ##fluxerr = abs((2.5*starobj.err())/(starobj.flux()*np.log(10)))
         if self.starcount == 1:
-            self.fluxerr = fluxerr
+            self.fluxerr = starobj.err()
         else:
-            self.fluxerr = (self.err()**2 + (fluxerr)**2)**0.5
+            self.fluxerr = np.sqrt(self.err()**2 + starobj.err()**2)
         
     def starCount(self):
         '''Returns the number of stars that have been averaged
@@ -101,7 +114,7 @@ class fluxArr:
         return 2.5*np.log10(self.arr())
 
     def err(self):
-        return self.fluxerr
+        return 2.5*self.fluxerr/(np.log(10)*self.arr())
 
 class diffArr:
     def __init__(self,inarray,Err):
