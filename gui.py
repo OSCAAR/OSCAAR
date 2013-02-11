@@ -33,8 +33,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
         self.menuDefaults = fileMenu.Append(-1, 'Set Defaults', 'Set Defaults')
         self.Bind(wx.EVT_MENU, self.setDefaults, self.menuDefaults)
-        
-        
+        self.linkToPredictions = fileMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
+        self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)        
         
         self.sizer = wx.GridBagSizer(7, 3)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,-10), size = (144, 72))
@@ -87,8 +87,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
         self.addTextCtrl(9,0, self.radialStarWidth, wx.StaticText(self, -1, 'Radial star width: '))
         self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
-        self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress: '))
-        self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress: '))
+        self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT): '))
+        self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT): '))
         self.sizer.Add(self.ds9Button, (5,4), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
 
@@ -132,6 +132,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         self.run = wx.Button(self, -1, 'Run')
         self.help = wx.Button(self, -1, 'Help')
+
         self.sizer.Add(self.help, (12, 3), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(self.run, (12,4), wx.DefaultSpan, wx.TOP, 7)
 
@@ -194,7 +195,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens the webpage for the documentation when help is pressed#####
     def helpFunc(self, event):
-        webbrowser.open_new_tab("http://www.astro.umd.edu/") ##Change to documentation
+        webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR/") ##Change to documentation
 
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
@@ -317,6 +318,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+
+    #####Opens the webpage for transit time predictions from Czech Astronomical Society#####
+    def predictions(self, event):
+        webbrowser.open_new_tab("http://var2.astro.cz/ETD/predictions.php") ##Change to documentation
 
     def guiOverwcheck(self,fileDict):
         filesOverwritten = fileDict.keys()
