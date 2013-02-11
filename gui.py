@@ -37,7 +37,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)        
         
         self.sizer = wx.GridBagSizer(7, 3)        
-        self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,-10), size = (144, 72))
+        self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         self.logo = wx.Image('OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
