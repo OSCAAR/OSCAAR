@@ -189,8 +189,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
         ds9Loc = os.getcwd() + '/ds9'
-        cd()
-        regionsName = os.getcwd() + '/tres1-020.fit'
+        regionsName = os.getcwd() + '/testFits.fit'
         subprocess.Popen([ds9Loc, regionsName])
 
     #####Opens the webpage for the documentation when help is pressed#####
