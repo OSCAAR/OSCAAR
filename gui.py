@@ -35,15 +35,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.setDefaults, self.menuDefaults)
         
         
-        ##Control Buttons Var Declarations:
-        self.sizer = wx.GridBagSizer(7, 3)
         
+        self.sizer = wx.GridBagSizer(7, 3)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,-10), size = (144, 72))
         self.logo = wx.Image('OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-
-        
+        ####CONTROL BUTTON DECLARATIONS####
         self.radioTrackingOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP) ##On is always set to default, can be changed
         self.radioTrackingOff = wx.RadioButton(self, label = "Off")
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
@@ -69,33 +67,32 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.showPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
         self.showPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.DatePickerCtrl(self)
-        self.ingressTime = TimeCtrl(self)
-        self.egressDate = wx.DatePickerCtrl(self)
-        self.egressTime = TimeCtrl(self)
+        self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
+        self.egressDate = wx.DatePickerCtrl(self) ##DatePicker to pick the egress date
+        self.egressTime = TimeCtrl(self, fmt24hr = True) ##TimeCtrl to pick the egress time
+        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30)) ##Button to open ds9
 
-        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30))
-
-        ##Add items to sizer for organization
-        self.createPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames')
-        self.createPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames')
-        self.createPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images')
-        self.createPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions Img: '), 'Choose Path to Regions Img')
-        self.createButtonPair(6, 2, self.radioTrackingOn, self.radioTrackingOff, wx.StaticText(self, -1, 'Star Tracking Algorithm: '))
-        self.createButtonPair(7, 2, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Plot Gaussian Fits: '))
-        self.createButtonPair(8, 2, self.radioAperOn, self.radioAperOff, wx.StaticText(self, -1, 'Aperture Photomentry: '))
-        self.createButtonPair(9, 2, self.diffPhotomOn, self.diffPhotomOff, wx.StaticText(self, -1, 'Differential Photometry:'))
-        self.createButtonPair(10, 2, self.showPlotsOn, self.showPlotsOff, wx.StaticText(self, -1, 'Show Plots: '))
-        self.createTextCtrl(6,0, self.ccdSatTxt, wx.StaticText(self, -1, 'CCD Saturation: '))
-        self.createTextCtrl(7,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
-        self.createTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
-        self.createTextCtrl(9,0, self.radialStarWidth, wx.StaticText(self, -1, 'Radial star width: '))
-        self.createTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
-        self.createDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress: '))
-        self.createDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress: '))
+        #####Add items to sizer for organization#####
+        self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
+        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False)
+        self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False)
+        self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions Img: '), 'Choose Path to Regions Img', True)
+        self.addButtonPair(6, 2, self.radioTrackingOn, self.radioTrackingOff, wx.StaticText(self, -1, 'Star Tracking Algorithm: '))
+        self.addButtonPair(7, 2, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Plot Gaussian Fits: '))
+        self.addButtonPair(8, 2, self.radioAperOn, self.radioAperOff, wx.StaticText(self, -1, 'Aperture Photomentry: '))
+        self.addButtonPair(9, 2, self.diffPhotomOn, self.diffPhotomOff, wx.StaticText(self, -1, 'Differential Photometry:'))
+        self.addButtonPair(10, 2, self.showPlotsOn, self.showPlotsOff, wx.StaticText(self, -1, 'Show Plots: '))
+        self.addTextCtrl(6,0, self.ccdSatTxt, wx.StaticText(self, -1, 'CCD Saturation: '))
+        self.addTextCtrl(7,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
+        self.addTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
+        self.addTextCtrl(9,0, self.radialStarWidth, wx.StaticText(self, -1, 'Radial star width: '))
+        self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
+        self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress: '))
+        self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress: '))
         self.sizer.Add(self.ds9Button, (5,4), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
 
-        #Set Default Values
+        ###Set Default Values Initially###
         init = open('init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
@@ -137,7 +134,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.help = wx.Button(self, -1, 'Help')
         self.sizer.Add(self.help, (12, 3), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(self.run, (12,4), wx.DefaultSpan, wx.TOP, 7)
-        #self.run.SetDimensions(x = 
 
         self.help.Bind(wx.EVT_BUTTON, self.helpFunc)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
@@ -153,26 +149,26 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def OnQuit(self, e): ##defined for quitting using the file menu
         self.Close()
 
-    def createButtonPair(self, row, colStart, button1, button2, label): ##defined for neater creation of control items
+    def addButtonPair(self, row, colStart, button1, button2, label): ##defined for neater creation of control items
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##border of 8 pixels on the top and left
         self.sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
-    def createTextCtrl(self, row, colStart, textCtrl, label):
+    def addTextCtrl(self, row, colStart, textCtrl, label):
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
-    def createPathChoice(self, row, textCtrl, button, label, message):
+    def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
         self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, 1), (1,2), wx.TOP, 7)
         self.sizer.Add(button, (row, 3), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
-        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl))
+        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
-    def createDateCtrl(self, row, colStart, dateCtrl, timeCtrl, label):
+    def addDateCtrl(self, row, colStart, dateCtrl, timeCtrl, label):
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(dateCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(timeCtrl, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
@@ -180,24 +176,31 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def updateColor(event,ctrl):
         ctrl.SetForegroundColour(wx.Colour(0,0,0))
 
-    ##Functions for event handling
-    def browseButtonEvent(self, event, message, textControl):
-        dlg = wx.DirDialog(self, message = message,  style = wx.OPEN)
+    #####Functions for event handling#####
+    def browseButtonEvent(self, event, message, textControl, fileDialog):
+        if fileDialog:
+            dlg = wx.FileDialog(self, message = message, style = wx.OPEN)
+        else: dlg = wx.DirDialog(self, message = message,  style = wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             textControl.Clear()
-            textControl.WriteText(dlg.GetPath())
+            textControl.WriteText(dlg.GetPath()+"*.fit*")
         dlg.Destroy()
 
+    #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
         ds9Loc = os.getcwd() + '/ds9'
         cd()
         regionsName = os.getcwd() + '/tres1-020.fit'
         subprocess.Popen([ds9Loc, regionsName])
 
+    #####Opens the webpage for the documentation when help is pressed#####
     def helpFunc(self, event):
         webbrowser.open_new_tab("http://www.astro.umd.edu/") ##Change to documentation
 
+    #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
+        global worker
+        worker = None
         init = open('init.par', 'w')
         #Write to init.par
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
@@ -244,59 +247,143 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
         overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
         self.Destroy()
-        guiOverwcheck(overwcheckDict)
-       
+        if not worker:
+            worker = WorkerThread()
+        self.guiOverwcheck(overwcheckDict)
+
+    def validityCheck(self):
+        darkFrames = glob.glob(darkPathTxt.GetValue())
+        imageFiles = glob.glob(imagPathTxt.GetValue())
+        regionsFile = glob.glob(regPathTxt.GetValue())
+        flatFrames = glob.glob(flatPathTxt.GetValue())
+        if not darkFrames:
+            InvalidDarks(None)
+        containsFit = False
+        for dark in darkFrames:
+           if str(dark).endswith('.fit') or str(dark).endswith('.fits'):
+               containsFit = True
+        if not containsFit:
+            InvalidDarks(None)
+                
+
+    #####Used to radiobutton values to init more easily#####
     def checkRB(self, button, text, filename):
         if button.GetValue() == True:
             filename.write(text + 'on\n')
         else:
             filename.write(text + 'off\n')
 
-    def parseTime(self, date, time, text, filename):
-        fullTime = (str(date) +  ' ' + str(time)).split()
+    def parseTime(self, date, time, text, filename):  ##Converts datePicker and timeCtrl to string form for init.par
+        dateArr = str(date).split()
         d = dict((v,k) for k,v in enumerate(calendar.month_abbr))
-        result = str(fullTime[3]) + '-' + str(d.get(fullTime[2])) + '-' + str(fullTime[1])   + ';'
-        result += strftime('%H:%M:%S', strptime((fullTime[7]+fullTime[8]), '%I:%M:%S%p'))
+        result = str(dateArr[3]) + '-' + str(d.get(dateArr[2])) + '-' + str(dateArr[1]) + ';'
+        result += str(time)
         filename.write(text + result + '\n')
 
-    def setDefaults(self, event):
-        init = open('init.par', 'r').read().splitlines()
-        for i in range(0, len(init)):
-            if len(init[i].split()) > 1 and init[i][0] != '#':
-                inline = init[i].split(":")
-                inline[0] = inline[0].strip()
-                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Star Tracking':    
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioTrackingOn.SetValue(False)
-                        self.radioTrackingOff.SetValue(True)
-                if inline[0] == 'Aper':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioAperOn.SetValue(False)
-                        self.radioAperOff.SetValue(True)
-                if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'CCD Saturation Limit':   self.ccdSatTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Show Plots':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.showPlotsOn.SetValue(False)
-                        self.showPlotsOff.SetValue(True)
-                if inline[0] == 'Perform Differential Photometry': 
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.diffPhotomOn.SetValue(False)
-                        self.diffPhotomOff.SetValue(True)
-                if inline[0] == 'Trackplot':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioTrackPlotOn.SetValue(False)
-                        self.radioTrackPlotOff.SetValue(True)
-                if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#    def setDefaults(self, event): ####Sets default values to the values currently written to init.par####
+#        init = open('init.par', 'r').read().splitlines()
+#        for i in range(0, len(init)):
+#            if len(init[i].split()) > 1 and init[i][0] != '#':
+#                inline = init[i].split(":")
+#                inline[0] = inline[0].strip()
+#                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'Star Tracking':    
+#                    IF INLINE[1].SPLIT('#')[0].STRIP() == 'OFF': 
+#                        SELF.RADIOTRACKINGON.SETVALUE(FALSE)
+#                        self.radioTrackingOff.SetValue(True)
+#                if inline[0] == 'Aper':
+#                    if inline[1].split('#')[0].strip() == 'off': 
+#                        self.radioAperOn.SetValue(False)
+#                        self.radioAperOff.SetValue(True)
+#                if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'CCD Saturation Limit':   self.ccdSatTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+#                if inline[0] == 'Show Plots':
+#                    if inline[1].split('#')[0].strip() == 'off': 
+#                        self.showPlotsOn.SetValue(False)
+#                        self.showPlotsOff.SetValue(True)
+#                if inline[0] == 'Perform Differential Photometry': 
+#                    if inline[1].split('#')[0].strip() == 'off': 
+#                        self.diffPhotomOn.SetValue(False)
+#                        self.diffPhotomOff.SetValue(True)
+#                if inline[0] == 'Trackplot':
+#                    if inline[1].split('#')[0].strip() == 'off': 
+#                        self.radioTrackPlotOn.SetValue(False)
+#                        self.radioTrackPlotOff.SetValue(True)
+#                if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+
+    def guiOverwcheck(self,fileDict):
+        filesOverwritten = fileDict.keys()
+        files = glob.glob('*')
+        index = 0
+        worker = None
+        while (filesOverwritten[index] not in files or fileDict.get(filesOverwritten[index]) != 'on') and index < len(filesOverwritten)-1:
+            index = index + 1
+        if index < len(filesOverwritten) - 1:
+            Overwcheck(parent = None, fileDict = fileDict, index = index)
+        else:
+            #ResultsFrame(None, -1)
+            if not worker:
+                worker = WorkerThread()
+                worker.join()
+                GraphFrame(None)
+
+    
+
+class InvalidDarks(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        super(Overwcheck, self).__init__(*args, **kwargs)
+        self.Centre()
+        self.Show()
+        
+
+
+
+class LoadingFrame(wx.Frame):
+    def __init__(self, parent, id):
+        wx.Frame.__init__(self, parent, id, 'Oscaar')
+        self.loadingText = wx.StaticText(self, -1, 'Oscaar is currently running, please wait...')
+        self.loadingText.Centre()
+        
+        self.SetSize((275,75))
+        self.Centre()
+        self.Show(True)
+        
+class WorkerThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.start()
+
+    def run(self):
+        file1 = open('file1.txt', 'w')
+        file1.close()
+        file1 = open('file1.txt', 'r')
+        while(file1.read(4) == ''):
+            time.sleep(1)
+        file1.close()
+        execfile('photom16irSimplified.py')
+        file2 = open('file2.txt', 'w')
+        file2.close()
+        file2 = open('file2.txt', 'r')
+        while(file2.read(4) == ''):
+            time.sleep(1)
+        file2.close()
+        wx.CallAfter(doneThreading)
+
+def doneThreading():
+    GraphFrame(None)
+    loading.Close()
+    os.system('rm file1.txt')
+    os.system('rm file2.txt')
+
+def updateLoading():
+    var = false
 
 class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
     def __init__(self, fileDict, index,  *args, **kwargs):
-        self.worker = None
         fileList = fileDict.keys()
         super(Overwcheck, self).__init__(*args, **kwargs)
         sizer = wx.GridBagSizer(4,4)
@@ -311,10 +398,8 @@ class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
         self.Centre()
         self.SetSize((305, 100))
         self.Show(True)
-
+        
     def yesCheck(self, event, fileDict, filenum):
-        global worker
-        worker = None
         fileList = fileDict.keys()
         os.system('rm -r ' +  fileList[filenum])
         self.Close()
@@ -325,61 +410,15 @@ class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
                 index = index + 1
             Overwcheck(parent = None, fileDict = fileDict, index = index)
         else:
-            results = ResultsFrame(None, -1)
-            global doneThread
-            doneThread = None
-            if not worker:
-                worker = WorkerThread()
-                #while not doneThread:
-                #    time.sleep(1)
-                worker.join()
-                results.Close()
-                GraphFrame(None)
+            global loading
+            loading = LoadingFrame(None, -1)
+            file1 = open('file1.txt', 'w')
+            file1.write("done")
+            file1.close()
                 
-
     def noCheck(self, event, fileDict, filenum):
-        fileList = fileDict.keys()
-        index = filenum + 1
         self.Destroy()
-        while (filesList[index] not in files or fileDict.get(fileList[index]) != 'on') and index < len(fileList)-1:
-            index = index + 1
-        if index < len(fileList):
-            Overwcheck(parent = None, fileDict = fileDict, index = index)
-        else:
-            #ResultsFrame(None, -1)
-            if not worker:
-                worker = WorkerThread()
-                worker.join()
-                GraphFrame(None)
-
-    def validityCheck(self, event):
-        var = False
-        ##Implement to make sure fields are filled out in a valid manner
-
-    
-
-class ResultsFrame(wx.Frame):
-    def __init__(self, parent, id):
-        wx.Frame.__init__(self, parent, id, 'Oscaar')
-        self.loading = wx.StaticText(self, -1, 'Oscaar is currently running, please wait...')
-        self.loading.Centre()
-
-        self.SetSize((825,625))
-        self.Centre()
-        self.Show(True)
-        
-class WorkerThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.start()
-
-    def run(self):
-        execfile('photom16irSimplified.py')
-        wx.CallAfter(doneThreading)
-
-def doneThreading():
-    print "done threading"
-    doneThread = True
+        OscaarFrame(None)
 
 class GraphFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -396,10 +435,9 @@ class GraphFrame(wx.Frame):
         self.prevButton = wx.Button(parent = self, label = 'Prev Graph', pos = (5, 585), size = (90, 35))
         self.Bind(wx.EVT_BUTTON, self.prevGraph, self.prevButton)
         self.prevButton.Hide()
-
         self.SetBackgroundColour('White')
-        self.Centre()
         self.SetSize((850, 625))
+        self.Centre()
         self.Show(True)
 
     def nextGraph(self, event):
@@ -426,28 +464,8 @@ class GraphFrame(wx.Frame):
         self.staticBitmap.SetBitmap(self.bitmap)
         
 
-def createGraphFrame():
-    GraphFrame(None)
 
-def guiOverwcheck(fileDict):
-    filesOverwritten = fileDict.keys()
-    files = glob.glob('*')
-    index = 0
-    worker = None
-    while (filesOverwritten[index] not in files or fileDict.get(filesOverwritten[index]) != 'on') and index < len(filesOverwritten)-1:
-        index = index + 1
-    if index < len(filesOverwritten) - 1:
-        Overwcheck(parent = None, fileDict = fileDict, index = index)
-    else:
-        #ResultsFrame(None, -1)
-        if not worker:
-            worker = WorkerThread()
-            worker.join()
-            GraphFrame(None)
 
 app = wx.App(False)
 OscaarFrame(None) ##Run the GUI
 app.MainLoop()
-
-
-
