@@ -199,6 +199,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
+        global join
+        join = None
         global worker
         worker = None
         init = open('init.par', 'w')
@@ -249,6 +251,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Destroy()
         if not worker:
             worker = WorkerThread()
+        if not join:
+            join = JoinThread(worker)
         self.guiOverwcheck(overwcheckDict)
 
     def validityCheck(self):
@@ -280,40 +284,40 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         result += str(time)
         filename.write(text + result + '\n')
 
-#    def setDefaults(self, event): ####Sets default values to the values currently written to init.par####
-#        init = open('init.par', 'r').read().splitlines()
-#        for i in range(0, len(init)):
-#            if len(init[i].split()) > 1 and init[i][0] != '#':
-#                inline = init[i].split(":")
-#                inline[0] = inline[0].strip()
-#                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'Star Tracking':    
-#                    IF INLINE[1].SPLIT('#')[0].STRIP() == 'OFF': 
-#                        SELF.RADIOTRACKINGON.SETVALUE(FALSE)
-#                        self.radioTrackingOff.SetValue(True)
-#                if inline[0] == 'Aper':
-#                    if inline[1].split('#')[0].strip() == 'off': 
-#                        self.radioAperOn.SetValue(False)
-#                        self.radioAperOff.SetValue(True)
-#                if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'CCD Saturation Limit':   self.ccdSatTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-#                if inline[0] == 'Show Plots':
-#                    if inline[1].split('#')[0].strip() == 'off': 
-#                        self.showPlotsOn.SetValue(False)
-#                        self.showPlotsOff.SetValue(True)
-#                if inline[0] == 'Perform Differential Photometry': 
-#                    if inline[1].split('#')[0].strip() == 'off': 
-#                        self.diffPhotomOn.SetValue(False)
-#                        self.diffPhotomOff.SetValue(True)
-#                if inline[0] == 'Trackplot':
-#                    if inline[1].split('#')[0].strip() == 'off': 
-#                        self.radioTrackPlotOn.SetValue(False)
-#                        self.radioTrackPlotOff.SetValue(True)
-#                if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+    def setDefaults(self, event): ####Sets default values to the values currently written to init.par####
+        init = open('init.par', 'r').read().splitlines()
+        for i in range(0, len(init)):
+            if len(init[i].split()) > 1 and init[i][0] != '#':
+                inline = init[i].split(":")
+                inline[0] = inline[0].strip()
+                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Star Tracking':    
+                    if inline[1].split('#')[0].strip() == 'off': 
+                        self.radioTrackingOn.SetValue(False)
+                        self.radioTrackingOff.SetValue(True)
+                if inline[0] == 'Aper':
+                    if inline[1].split('#')[0].strip() == 'off': 
+                        self.radioAperOn.SetValue(False)
+                        self.radioAperOff.SetValue(True)
+                if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'CCD Saturation Limit':   self.ccdSatTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Show Plots':
+                    if inline[1].split('#')[0].strip() == 'off': 
+                        self.showPlotsOn.SetValue(False)
+                        self.showPlotsOff.SetValue(True)
+                if inline[0] == 'Perform Differential Photometry': 
+                    if inline[1].split('#')[0].strip() == 'off': 
+                        self.diffPhotomOn.SetValue(False)
+                        self.diffPhotomOff.SetValue(True)
+                if inline[0] == 'Trackplot':
+                    if inline[1].split('#')[0].strip() == 'off': 
+                        self.radioTrackPlotOn.SetValue(False)
+                        self.radioTrackPlotOff.SetValue(True)
+                if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
 
     def guiOverwcheck(self,fileDict):
         filesOverwritten = fileDict.keys()
@@ -325,23 +329,19 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if index < len(filesOverwritten) - 1:
             Overwcheck(parent = None, fileDict = fileDict, index = index)
         else:
+            global loading
+            loading = LoadingFrame(None, -1)
+            file1 = open('file1.txt', 'w')
+            file1.write("done")
+            file1.close()
             #ResultsFrame(None, -1)
-            if not worker:
-                worker = WorkerThread()
-                worker.join()
-                GraphFrame(None)
-
-    
-
+            
 class InvalidDarks(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(Overwcheck, self).__init__(*args, **kwargs)
         self.Centre()
         self.Show()
         
-
-
-
 class LoadingFrame(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, 'Oscaar')
@@ -365,12 +365,22 @@ class WorkerThread(threading.Thread):
             time.sleep(1)
         file1.close()
         execfile('photom16irSimplified.py')
-        file2 = open('file2.txt', 'w')
-        file2.close()
-        file2 = open('file2.txt', 'r')
-        while(file2.read(4) == ''):
-            time.sleep(1)
-        file2.close()
+        #file2 = open('file2.txt', 'w')
+        #file2.close()
+        #file2 = open('file2.txt', 'r')
+        #while(file2.read(4) == ''):
+        #    time.sleep(1)
+        #file2.close()
+        #wx.CallAfter(doneThreading)
+
+class JoinThread(threading.Thread):
+    def __init__(self, toJoin):
+        threading.Thread.__init__(self)
+        self.toJoin = toJoin
+        self.start()
+
+    def run(self):
+        self.toJoin.join()
         wx.CallAfter(doneThreading)
 
 def doneThreading():
@@ -379,8 +389,6 @@ def doneThreading():
     os.system('rm file1.txt')
     os.system('rm file2.txt')
 
-def updateLoading():
-    var = false
 
 class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
     def __init__(self, fileDict, index,  *args, **kwargs):
@@ -469,3 +477,4 @@ class GraphFrame(wx.Frame):
 app = wx.App(False)
 OscaarFrame(None) ##Run the GUI
 app.MainLoop()
+
