@@ -79,11 +79,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True)
-        self.addButtonPair(6, 3, self.radioTrackingOn, self.radioTrackingOff, wx.StaticText(self, -1, 'Star Tracking Algorithm: '))
-        self.addButtonPair(7, 3, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Plot Gaussian Fits: '))
-        self.addButtonPair(8, 3, self.radioAperOn, self.radioAperOff, wx.StaticText(self, -1, 'Aperture Photomentry: '))
-        self.addButtonPair(9, 3, self.diffPhotomOn, self.diffPhotomOff, wx.StaticText(self, -1, 'Differential Photometry:'))
-        self.addButtonPair(10, 3, self.showPlotsOn, self.showPlotsOff, wx.StaticText(self, -1, 'Show Plots: '))
+        self.addButtonPair(6, 4, self.radioTrackingOn, self.radioTrackingOff, wx.StaticText(self, -1, 'Star-Tracking Algorithm: '))
+        self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Plot Gaussian Fits: '))
+        self.addButtonPair(8, 4, self.radioAperOn, self.radioAperOff, wx.StaticText(self, -1, 'Photometry Algorithm: '))
+        self.addButtonPair(9, 4, self.diffPhotomOn, self.diffPhotomOff, wx.StaticText(self, -1, 'Differential Photometry:'))
+        self.addButtonPair(10, 4, self.showPlotsOn, self.showPlotsOff, wx.StaticText(self, -1, 'Display Plots (wxPython): '))
         self.addTextCtrl(6,0, self.ccdSatTxt, wx.StaticText(self, -1, 'CCD Saturation: '))
         self.addTextCtrl(7,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
         self.addTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
@@ -91,7 +91,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
         self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT): '))
         self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT): '))
-        self.sizer.Add(self.ds9Button, (5,4), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
+        #self.sizer.Add(self.ds9Button,(5,4), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
+        self.sizer.Add(self.ds9Button,(5,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
 
         ###Set Default Values Initially###
@@ -135,8 +136,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.run = wx.Button(self, -1, 'Run')
         self.help = wx.Button(self, -1, 'Help')
 
-        self.sizer.Add(self.help, (12,4), wx.DefaultSpan, wx.TOP, 7)
-        self.sizer.Add(self.run, (12,5), wx.DefaultSpan, wx.TOP, 7)
+        self.sizer.Add(self.help, (12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        #self.sizer.Add(self.help, (12,4), wx.DefaultSpan, wx.TOP, 7)
+        #self.sizer.Add(self.run, (12,5), wx.DefaultSpan, wx.TOP, 7)
 
         self.help.Bind(wx.EVT_BUTTON, self.helpFunc)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
@@ -145,8 +148,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetSizer(self.sizer)
         #self.SetSize((660, 535))
         #self.SetMinSize((660, 535))
-        self.SetSize((1100, 550))
-        self.SetMinSize((1100, 550))
+        setSize = (900, 500)
+        self.SetSize(setSize)
+        self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
         self.Centre()
         self.Show(True)
@@ -160,21 +164,23 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     def addTextCtrl(self, row, colStart, textCtrl, label):
-        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)#wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
         self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,2), wx.TOP, 7)
-        self.sizer.Add(button, (row, 3), (1,1), wx.TOP, 7)
+        #self.sizer.Add(textCtrl, (row, 1), (1,2), wx.TOP, 7)
+        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
+        #self.sizer.Add(button, (row, 3), (1,1), wx.TOP, 7)
+        self.sizer.Add(button, (row, 5), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addDateCtrl(self, row, colStart, dateCtrl, timeCtrl, label):
-        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.ALIGN_RIGHT | wx.TOP, 7)
         self.sizer.Add(dateCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(timeCtrl, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
