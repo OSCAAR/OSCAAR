@@ -72,9 +72,5 @@ plt.close()
 print "Pre-ingress standard devation:",ingSigma
 print "Post-egress standard devation:",egrSigma
 print "Out-of-transit standard devation:",ootSigma
-if initGui == 'on':
-    filename = open('file2.txt', 'w')
-    filename.write('done')
-    filename.close()
 exit()
 a = raw_input('')

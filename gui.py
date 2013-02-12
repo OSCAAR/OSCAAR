@@ -194,7 +194,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         else: dlg = wx.DirDialog(self, message = message,  style = wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             textControl.Clear()
-            textControl.WriteText(dlg.GetPath()+"*.fit*")
+            if fileDialog == False:
+                textControl.WriteText(dlg.GetPath()+"*.fit*")
+            else: textControl.WriteText(dlg.GetPath())
         dlg.Destroy()
 
     #####Opens DS9 to create a regions file when button is pressed#####
@@ -206,9 +208,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Opens the webpage for the documentation when help is pressed#####
     def helpFunc(self, event):
         webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR/") ##Change to documentation
-
+        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
+        if 'file1.txt' in glob.glob('*'):
+            os.system('rm file1.txt')
         global join
         join = None
         global worker
@@ -264,7 +268,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if not join:
             join = JoinThread(worker)
         self.guiOverwcheck(overwcheckDict)
-
+        
+    ##Not yet implemented
     def validityCheck(self):
         darkFrames = glob.glob(darkPathTxt.GetValue())
         imageFiles = glob.glob(imagPathTxt.GetValue())
@@ -277,8 +282,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
            if str(dark).endswith('.fit') or str(dark).endswith('.fits'):
                containsFit = True
         if not containsFit:
-            InvalidDarks(None)
-                
+            InvalidDarks(None)                
 
     #####Used to radiobutton values to init more easily#####
     def checkRB(self, button, text, filename):
@@ -401,7 +405,6 @@ def doneThreading():
     GraphFrame(None)
     loading.Close()
     os.system('rm file1.txt')
-    os.system('rm file2.txt')
 
 
 class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
