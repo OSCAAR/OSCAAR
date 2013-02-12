@@ -27,5 +27,3 @@ for i in range(0,len(circle_data)):
     init_y_list.append(float(xydata[0]))
     init_x_list.append(float(xydata[1]))
     hww_list.append(float(xyhdata))
-    
-print "ds9parser printing hww_list:", hww_list
