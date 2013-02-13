@@ -202,7 +202,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
         ds9Loc = os.getcwd() + '/ds9'
-        regionsName = os.getcwd() + '/testFits.fit'
+        regionsName = os.getcwd() + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
 
     #####Opens the webpage for the documentation when help is pressed#####
@@ -211,8 +211,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-        if 'file1.txt' in glob.glob('*'):
-            os.system('rm file1.txt')
         global join
         join = None
         global worker
@@ -263,10 +261,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
         overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
         self.Destroy()
-        if not worker:
-            worker = WorkerThread()
-        if not join:
-            join = JoinThread(worker)
         self.guiOverwcheck(overwcheckDict)
         
     ##Not yet implemented
@@ -341,6 +335,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         filesOverwritten = fileDict.keys()
         files = glob.glob('*')
         index = 0
+        join = None
         worker = None
         while (filesOverwritten[index] not in files or fileDict.get(filesOverwritten[index]) != 'on') and index < len(filesOverwritten)-1:
             index = index + 1
@@ -349,10 +344,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         else:
             global loading
             loading = LoadingFrame(None, -1)
-            file1 = open('file1.txt', 'w')
-            file1.write("done")
-            file1.close()
-            #ResultsFrame(None, -1)
+            if not worker:
+                worker = WorkerThread()
+            if not join:
+                join = JoinThread(worker)
             
 class InvalidDarks(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -376,20 +371,7 @@ class WorkerThread(threading.Thread):
         self.start()
 
     def run(self):
-        file1 = open('file1.txt', 'w')
-        file1.close()
-        file1 = open('file1.txt', 'r')
-        while(file1.read(4) == ''):
-            time.sleep(1)
-        file1.close()
         execfile('photom16irSimplified.py')
-        #file2 = open('file2.txt', 'w')
-        #file2.close()
-        #file2 = open('file2.txt', 'r')
-        #while(file2.read(4) == ''):
-        #    time.sleep(1)
-        #file2.close()
-        #wx.CallAfter(doneThreading)
 
 class JoinThread(threading.Thread):
     def __init__(self, toJoin):
@@ -404,7 +386,6 @@ class JoinThread(threading.Thread):
 def doneThreading():
     GraphFrame(None)
     loading.Close()
-    os.system('rm file1.txt')
 
 
 class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
@@ -425,6 +406,8 @@ class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
         self.Show(True)
         
     def yesCheck(self, event, fileDict, filenum):
+        worker = None
+        join = None
         fileList = fileDict.keys()
         os.system('rm -r ' +  fileList[filenum])
         self.Close()
@@ -437,9 +420,10 @@ class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
         else:
             global loading
             loading = LoadingFrame(None, -1)
-            file1 = open('file1.txt', 'w')
-            file1.write("done")
-            file1.close()
+            if not worker:
+                worker = WorkerThread()
+            if not join:
+                join = JoinThread(worker)
                 
     def noCheck(self, event, fileDict, filenum):
         self.Destroy()
