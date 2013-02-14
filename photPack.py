@@ -180,10 +180,6 @@ def trackSmooth(scidata,xPos,yPos,smoothConst,aprad,plots=False):
     return [xCenter,yCenter,averageRadius]
 
 def masterFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
-    flatImagesPath = glob('/Users/bmorris/Desktop/Exoplanets/20120616/flats/flatSky-???.fit')
-    flatDarkImagesPath = glob('/Users/bmorris/Desktop/Exoplanets/20120616/flats/flatSky-???d.fit')
-    masterFlatSavePath = '/Users/bmorris/Desktop/Exoplanets/20120616/flats/tmpMasterFlat'
-    plots = True
 
     ## Create zero array with the dimensions of the first image for the flat field
     [dim1, dim2] = np.shape(pyfitsOpen(flatImagesPath[0])[0].data)
