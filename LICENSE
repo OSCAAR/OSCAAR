@@ -1,4 +1,4 @@
-OSCAAR is...
+OSCAAR is Open Source Software. The python code in OSCAAR is provided under the MIT License, included below. It can be found at http://opensource.org/licenses/MIT. We have, for your convenience, included compiled versions of SAO Image DS9 for several common operating systems, from http://hea-www.harvard.edu/RD/ds9/site/Home.html. DS9 and all of its components are released under the GPL, which can be found at http://www.gnu.org/licenses/gpl.html. 
 
 Copyright (c) 2012 Brett Morris, Dan Galdi, Samuel Gross, Jacob Endres, Et al.
 
