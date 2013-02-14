@@ -1,5 +1,7 @@
 Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without much mess. 
 
+For your convenience, we've also written some code to make a combined flats file, as well as including a recent version of SAO Image DS9.
+
 Within the Docs folder, Licensing can be found in the LICENSE file and some documentation can be found in the pdf (very out of date right now).
 
 OSCAAR 2.0 is under active development. Code may change rapidly. While we may not be able to include them in version 2.0, we welcome your input and suggestions. Please submit them through the Issue tracker on our GitHub page.
