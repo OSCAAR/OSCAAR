@@ -96,7 +96,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
 
         ###Set Default Values Initially###
-        init = open('init.par', 'r').read().splitlines()
+        init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
                 inline = init[i].split(":")
@@ -243,7 +243,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 inline = init[i].split(":")
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames': darkLoc = str(inline[1].split('#')[0].strip()) ##Everything after # on a line in init.par is ignored
-                if inline[0] == 'Path to Flat Frames': flatLoc = str(inline[1].split('#')[0].strip())
+                if inline[0] == 'Path to Master-Flat Frame': flatLoc = str(inline[1].split('#')[0].strip())
                 if inline[0] == 'Path to data images':  imagLoc = str(inline[1].split('#')[0].strip())
                 if inline[0] == 'Path to regions file': regsLoc = str(inline[1].split('#')[0].strip())
                 if inline[0] == 'Star Tracking':    track = inline[1].split('#')[0].strip()
