@@ -12,6 +12,12 @@ import shutil
 from glob import glob
 from re import split
 
+def paddedStr(num,pad):
+    '''Return the number num padded with zero-padding of length pad'''
+    strlen = len(str(num))
+    lenpad = pad-strlen
+    return str((lenpad*'0')+str(num))
+
 def cd(a=None):
     """Change to directory a where a is a 
        string inside of single quotes. If a
@@ -53,6 +59,8 @@ def parseRegionsFile(regsPath):
     '''Parse the DS9 regions file (written in .txt format) which contains
        the initial guesses for the stellar centroids, in the following format:
              "circle(<y-center>,<x-center>,<radius>)"
+       The reversed x,y order comes from the different directions that FITS files
+       are read-in with DS9 and PyFits.
     '''
     regionsData = open(regsPath,'r').read().splitlines()
     init_x_list = []
@@ -65,8 +73,9 @@ def parseRegionsFile(regsPath):
     return init_x_list,init_y_list
 
 def quadraticFit(derivative,ext):
-    '''Find an extremum in the data, use it and the points on either side to fit
-       to a quadratic function, and return the x-position of the apex. 
+    '''Find an extremum in the data and use it and the points on either side, fit
+       a quadratic function to the three points, and return the x-position of the 
+       apex of the best-fit parabola. 
        
        Called by oscaar.trackSmooth()
     '''
@@ -212,6 +221,7 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
     yCenter = est_y-zoom+axisAcenter
     
     if plots:
+        plt.clf()
         def format_coord(x, y):
             '''Function to also give data value on mouse over with imshow.'''
             col = int(x+0.5)
@@ -221,15 +231,15 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
             except:
                 return 'x=%1.4f, y=%1.4f' % (x, y)
             
-        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w', \
-            edgecolor='k')
-        fig.subplots_adjust(wspace = 0.5)
+#        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w', \
+#            edgecolor='k')
+#        fig.subplots_adjust(wspace = 0.5)
         
         dimx,dimy = target.shape
         med = np.median(target)
         dsig = np.std(target)
         
-        ax = fig.add_subplot(131)
+        ax = fig.add_subplot(subplotsDimensions+1)
         ax.imshow(target_orig, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
         ax.set_title('Star Center')
         rcos = lambda theta: axisAcenter+averageRadius*np.cos(theta)
@@ -244,7 +254,7 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
         ax.set_ylabel('Y')
         ax.format_coord = format_coord 
         
-        ax2 = fig.add_subplot(132)
+        ax2 = fig.add_subplot(subplotsDimensions+2)
         ax2.set_title('Smoothed Intensity Profile')
         ax2.plot(axisB,'-r')
         ax2.plot(axisB_orig,'-r', alpha=0.33)
@@ -254,7 +264,7 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
         ax2.set_xlabel('X')
         ax2.set_ylabel('Counts')
 
-        ax3 = fig.add_subplot(133)
+        ax3 = fig.add_subplot(subplotsDimensions+3)
         ax3.plot(axisA,'-b')
         ax3.plot(axisA_orig,'-b', alpha=0.33)
         ax3.set_title('Smoothed Intensity Profile')
@@ -263,7 +273,8 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
         ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=2)
         ax3.set_xlabel('Y')
         ax3.set_ylabel('Counts')
-        plt.show()
+        plt.draw()
+        #plt.show()
     return [xCenter,yCenter,averageRadius]
     
 def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, ccdGain=1, plots=False):
@@ -318,12 +329,13 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
                 return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
             except:
                 return 'x=%1.4f, y=%1.4f' % (x, y)
-        fig = plt.figure(num=None, facecolor='w', edgecolor='k')
-        fig.subplots_adjust(wspace = 0.5)
+        #fig = plt.figure(num=None, facecolor='w', edgecolor='k')
+        #fig.subplots_adjust(wspace = 0.5)
         
         med = np.median(imageCrop)
         dsig = np.std(imageCrop)
-        ax = fig.add_subplot(111)
+        
+        ax = fig.add_subplot(subplotsDimensions+photSubplotsOffset+1)
         ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
        
         theta = np.arange(0,360)*(np.pi/180)
@@ -336,5 +348,59 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
         ax.set_xlim([-.5,dimx-.5])
         ax.set_ylim([-.5,dimy-.5])
         ax.format_coord = format_coord 
-        plt.show()
+        plt.draw()
+        #plt.show()
     return [rawFlux, rawError]
+
+def setFigureSettings(trackPlots,photPlots):
+    global fig, subplotsDimensions, photSubplotsOffset
+    if trackPlots or photPlots: plt.ion()
+    if trackPlots and photPlots:
+        fig = plt.figure(num=None, figsize=(18, 3), facecolor='w',edgecolor='k')
+        fig.subplots_adjust(wspace = 0.5)
+        subplotsDimensions = 140
+        photSubplotsOffset = 3
+    elif photPlots and not trackPlots:
+        fig = plt.figure(num=None, figsize=(5, 5), facecolor='w',edgecolor='k')
+        fig.subplots_adjust(wspace = 0.5)
+        subplotsDimensions = 110
+        photSubplotsOffset = 0
+    elif trackPlots and not photPlots:
+        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w',edgecolor='k')
+        fig.subplots_adjust(wspace = 0.5)
+        subplotsDimensions = 130
+        photSubplotsOffset = 0
+
+class dataBank:
+    '''
+        Methods for storing information from each star in Python dictionaries.
+    '''
+    def __init__(self,imagesPath,darksPath,flatPath,regsPath):
+        '''Run oscaar.parseRegionsFile() to get the inital guesses for the 
+           initial centroids of the stars from the DS9 regions file, create
+           dictionaries for each star, with x and y position lists'''
+        self.imagesPaths = glob(imagesPath)
+        self.darksPaths = glob(darksPath)
+        self.masterFlat = pyfits.open(flatPath)[0].data
+
+        self.allStarsDict = {}
+        init_x_list,init_y_list = parseRegionsFile(regsPath)
+        zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
+        for i in range(0,len(init_x_list)):
+            self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
+                            'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray)}
+            self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
+            self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
+       # self.starDict['init_x_list'] = np.array(init_x_list,type=np.float32)
+        #self.starDict['init_y_list'] = np.array(init_y_list,type=np.float32)        
+    def returnDict(self):
+        return self.allStarsDict
+    def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
+        self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
+        self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
+    
+    def storeFlux(self,star,rawFlux,rawError):
+        self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
+        self.allStarsDict[star]['rawError'][exposureNumber] = rawError
+    def paths(self):
+        return self.imagesPaths
