@@ -336,67 +336,37 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plots=False, precut=False, 
         plt.show()
     return [xCenter,yCenter,averageRadius]
     
-def phot(image, x, y, apertureRadius, Kccd=1, plots=False):
-    ## *******<from gauss4.py>**********
+def phot(image, xCentroid, yCentroid, apertureRadius, ccdGain=1, plots=False):
+    '''Runs in about 0.13x the runtime of photOld'''
+    annulusRadiusInner = apertureRadius 
+    annulusRadiusOuter = 1.5*apertureRadius
 
-    rad = apertureRadius
-    annulusRadiusInner = apertureRadius                         ## (same as above) ...inner radius
-    annulusRadiusOuter = 1.5*apertureRadius                      ##                 ...outer radius
+    imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
+    [dimx,dimy] = imageCrop.shape
+    XX, YY = np.meshgrid(np.arange(dimx),np.arange(dimy))
+    x = (XX - annulusRadiusOuter)**2
+    y = (YY - annulusRadiusOuter)**2
+    sourceIndices = x + y <= apertureRadius**2
+    skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
+    rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
+    rawError = np.sum(np.sqrt(imageCrop[sourceIndices]*ccdGain))
 
-    row = x
-    col = y
-    imagecrop = image[row-annulusRadiusOuter+1:row+annulusRadiusOuter+2,col-annulusRadiusOuter+1:col+annulusRadiusOuter+2]
-    [dimx,dimy] = imagecrop.shape
-
-    rowcrop = colcrop = annulusRadiusOuter                    ## Expected center of the star
-                                                    ## in the cropped coordinates
-    [dimx,dimy] = imagecrop.shape 
-
-    ixsrc = np.zeros([dimx,dimy])                   ## Pull out array of pixels
-    ixsrc_vals = []                                 ## in the 'source' region
-    for a in range(0,dimy):                         ## (where the star is)
-        for b in range(0,dimx):
-            if ((a-colcrop)**2 + (b-rowcrop)**2) <= rad**2:
-                ixsrc[b,a] = 1
-                ixsrc_vals.append(imagecrop[b,a])
-
-    ixsky = np.zeros([dimx,dimy])                   ## Pull out array of pixels
-    ixsky_vals = []                                 ## in the 'sky' region
-    for a in range(0,dimy):                         ## (background sky, no stars)
-        for b in range(0,dimx):
-            if ((a-colcrop)**2 + (b-rowcrop)**2) <= annulusRadiusOuter**2 and (
-                (a-colcrop)**2 + (b-rowcrop)**2) >= annulusRadiusInner**2:
-                ixsky[b,a] = 1
-                ixsky_vals.append(imagecrop[b,a])
-    maxval = max(ixsrc_vals)
-    sky = np.median(ixsky_vals)                     ## Take the source-background 
-    pix = np.array(ixsrc_vals) - sky                ## sum and divide by CCD gain
-    sig = np.sqrt(np.abs(np.array(ixsrc_vals))/Kccd)**2        ## to get ADU counts
-    sig = math.sqrt(np.sum(sig))
-    ssig = np.std(np.array(ixsky_vals)/Kccd)*math.sqrt(len(ixsky_vals))
-    flx = np.sum(pix)/Kccd
-    err = math.sqrt(sig**2 + ssig**2)
-    if math.isnan(flx) == True:
-        flx = 1.0
-    if math.isnan(err) == True:
-        err = 1.0
     if plots:
         def format_coord(x, y):
             """ Function to also give data value on mouse over with imshow. """
             col = int(x+0.5)
             row = int(y+0.5)
             try:
-                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imagecrop[row,col])
+                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
             except:
                 return 'x=%1.4f, y=%1.4f' % (x, y)
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
         
-        dimx,dimy = imagecrop.shape
-        med = np.median(imagecrop)
-        dsig = np.std(imagecrop)
+        med = np.median(imageCrop)
+        dsig = np.std(imageCrop)
         ax = fig.add_subplot(111)
-        ax.imshow(imagecrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
+        ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
        
         theta = np.arange(0,360)*(np.pi/180)
         rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)#col+annulusRadiusInner*math.cos(theta)       ## Plot inner radius circle
@@ -408,72 +378,46 @@ def phot(image, x, y, apertureRadius, Kccd=1, plots=False):
         ax.set_xlim([-.5,dimx-.5])
         ax.set_ylim([-.5,dimy-.5])
         ax.format_coord = format_coord 
-
         plt.show()
-    return [flx, err, maxval]
+    return [rawFlux, rawError]
 
-    
 def photOld(image, x, y, apertureRadius, Kccd=1, plots=False):
-    ## *******<from gauss4.py>**********
-
-    rad = apertureRadius
+    '''Runs in about 0.75x the runtime of aper12'''
     annulusRadiusInner = apertureRadius                         ## (same as above) ...inner radius
     annulusRadiusOuter = 1.5*apertureRadius                      ##                 ...outer radius
 
-    row = x
-    col = y
-    imagecrop = image[row-annulusRadiusOuter+1:row+annulusRadiusOuter+2,col-annulusRadiusOuter+1:col+annulusRadiusOuter+2]
-    [dimx,dimy] = imagecrop.shape
+    imageCrop = image[x-annulusRadiusOuter+1:x+annulusRadiusOuter+2,y-annulusRadiusOuter+1:y+annulusRadiusOuter+2]
+    [dimx,dimy] = imageCrop.shape
+    sourceFlux = []
+    backgroundFlux = []
+    for YY in range(0,dimy):
+        for XX in range(0,dimx):
+            if ((XX-annulusRadiusOuter)**2 + (YY-annulusRadiusOuter)**2) <= annulusRadiusOuter**2 and (
+                (XX-annulusRadiusOuter)**2 + (YY-annulusRadiusOuter)**2) > annulusRadiusInner**2:
+                backgroundFlux.append(imageCrop[XX,YY])
+            elif ((XX-annulusRadiusOuter)**2 + (YY-annulusRadiusOuter)**2) <= apertureRadius**2:
+                sourceFlux.append(imageCrop[XX,YY])
 
-    rowcrop = colcrop = annulusRadiusOuter                    ## Expected center of the star
-                                                    ## in the cropped coordinates
-    [dimx,dimy] = imagecrop.shape 
-
-    ixsrc = np.zeros([dimx,dimy])                   ## Pull out array of pixels
-    ixsrc_vals = []                                 ## in the 'source' region
-    for a in range(0,dimy):                         ## (where the star is)
-        for b in range(0,dimx):
-            if ((a-colcrop)**2 + (b-rowcrop)**2) <= rad**2:
-                ixsrc[b,a] = 1
-                ixsrc_vals.append(imagecrop[b,a])
-
-    ixsky = np.zeros([dimx,dimy])                   ## Pull out array of pixels
-    ixsky_vals = []                                 ## in the 'sky' region
-    for a in range(0,dimy):                         ## (background sky, no stars)
-        for b in range(0,dimx):
-            if ((a-colcrop)**2 + (b-rowcrop)**2) <= annulusRadiusOuter**2 and (
-                (a-colcrop)**2 + (b-rowcrop)**2) >= annulusRadiusInner**2:
-                ixsky[b,a] = 1
-                ixsky_vals.append(imagecrop[b,a])
-    maxval = max(ixsrc_vals)
-    sky = np.median(ixsky_vals)                     ## Take the source-background 
-    pix = np.array(ixsrc_vals) - sky                ## sum and divide by CCD gain
-    sig = np.sqrt(np.abs(np.array(ixsrc_vals))/Kccd)**2        ## to get ADU counts
-    sig = math.sqrt(np.sum(sig))
-    ssig = np.std(np.array(ixsky_vals)/Kccd)*math.sqrt(len(ixsky_vals))
-    flx = np.sum(pix)/Kccd
-    err = math.sqrt(sig**2 + ssig**2)
-    if math.isnan(flx) == True:
-        flx = 1.0
-    if math.isnan(err) == True:
-        err = 1.0
+    fluxes = np.array(sourceFlux) - np.median(backgroundFlux)
+    rawFlux = np.sum(fluxes)
+    rawError = np.sum(np.sqrt(fluxes))
     if plots:
         def format_coord(x, y):
             """ Function to also give data value on mouse over with imshow. """
             col = int(x+0.5)
             row = int(y+0.5)
             try:
-                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imagecrop[row,col])
+                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
             except:
                 return 'x=%1.4f, y=%1.4f' % (x, y)
         fig = plt.figure(num=None, facecolor='w', edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
         
-        dimx,dimy = imagecrop.shape
-        med = np.median(imagecrop)
-        dsig = np.std(imagecrop)
+        dimx,dimy = imageCrop.shape
+        med = np.median(imageCrop)
+        dsig = np.std(imageCrop)
         ax = fig.add_subplot(111)
-        ax.imshow(imagecrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
+        ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
        
         theta = np.arange(0,360)*(np.pi/180)
         rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)#col+annulusRadiusInner*math.cos(theta)       ## Plot inner radius circle
@@ -485,6 +429,6 @@ def photOld(image, x, y, apertureRadius, Kccd=1, plots=False):
         ax.set_xlim([-.5,dimx-.5])
         ax.set_ylim([-.5,dimy-.5])
         ax.format_coord = format_coord 
-
         plt.show()
-    return [flx, err, maxval]
+    return [rawFlux, rawError]
+    
