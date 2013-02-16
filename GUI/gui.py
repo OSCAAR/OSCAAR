@@ -215,7 +215,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         join = None
         global worker
         worker = None
-        init = open('init.par', 'w')
+        init = open('../Code/init.par', 'w')
         #Write to init.par
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
@@ -237,7 +237,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', init)
         init.write('Init GUI: on')
         init.close()
-        init = open('init.par', 'r').read().splitlines()
+        init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
                 inline = init[i].split(":")
@@ -293,7 +293,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         filename.write(text + result + '\n')
 
     def setDefaults(self, event): ####Sets default values to the values currently written to init.par####
-        init = open('init.par', 'r').read().splitlines()
+        init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
                 inline = init[i].split(":")
