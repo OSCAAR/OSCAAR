@@ -1,29 +1,16 @@
-'''
-Created on Jan 22, 2013
-Classes and methods for photometry with oscaar2.0
-Created by Brett Morris.
-'''
+'''oscaar v2.0 Module
+   Developed by Brett Morris, 2011-2013'''
 import numpy as np
 from numpy import linalg as LA
 import pyfits
-import math
 from matplotlib import pyplot as plt
+import matplotlib.cm as cm
 from scipy import ndimage, optimize
 from time import sleep
 from os import system
+import shutil
 from glob import glob
-import re
-import pyfits 
-import matplotlib.cm as cm
-def mkdir(a, b=None):
-    """Make new directory with name a where a
-       is a string inside of single quotes"""
-    if b is None:
-        c = ''
-    else:
-        c = ' '+str(b)
-    command = 'mkdir '+str(a)+str(c)
-    system(command)
+from re import split
 
 def cd(a=None):
     """Change to directory a where a is a 
@@ -47,8 +34,8 @@ def overWriteCheck(filename, checkfiles, varcheck):
             overcheck = raw_input('WARNING: Overwrite /' + filename + '/ ? (Y/n): ')
             break
     if overcheck == '' or overcheck == 'Y' or overcheck == 'y':
-        system('rm -r ' + filename)
-        mkdir(filename)
+        shutil.rmtree(filename)
+        os.mkdir(filename)
 
 def meanDarkFrame(darksPath):
     '''Return the mean dark frame calculated from each dark frame in darksPath'''
@@ -76,11 +63,11 @@ def parseRegionsFile(regsPath):
     hww_list = []
     for i in range(0,len(regdata)):
         if regdata[i][0:6] == 'circle':
-            circle_data.append(re.split("\(",regdata[i])[1])
+            circle_data.append(split("\(",regdata[i])[1])
 
     for i in range(0,len(circle_data)):
-        xydata = re.split("\,",circle_data[i])
-        xyhdata = re.split("\)",xydata[2])[0]
+        xydata = split("\,",circle_data[i])
+        xyhdata = split("\)",xydata[2])[0]
         init_y_list.append(float(xydata[0]))
         init_x_list.append(float(xydata[1]))
         hww_list.append(float(xyhdata))
@@ -108,7 +95,6 @@ def quadraticFit(derivative,ext):
     return extremum
 
 def masterFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
-
     ## Create zero array with the dimensions of the first image for the flat field
     [dim1, dim2] = np.shape(pyfits.open(flatImagesPath[0])[0].data)
     flatSum = np.zeros([dim1, dim2])
@@ -143,36 +129,57 @@ def masterFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=F
     pyfits.writeto(masterFlatSavePath+'.fits',masterFlat)
 
 
-def trackSmooth(image, est_x, est_y, smoothingConst, plots=False, precut=False, zoom=1.0):
-    '''Track the centroid coordinate of the star in the image located naer
-       (est_x,est_y). Smooth out the intensity profile using a Gaussian filter from SciPy.
-       Set the aperture radius through which to track the star to aprad.'''
+def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0, plots=False):
+    '''Method for tracking stellar centroids. 
+    
+       INPUTS: image - Numpy array image
        
-    """ You can have an interpolated grid as input. If smoothingConst is then 
-        small, it won't have any effect. So it has to be increased by the
+               est_x - Inital estimate for the x-centroid of the star
+
+               est_y - Inital estimate for the y-centroid of the star
+
+               smoothingConstant - Controls the degree to which the raw stellar intensity
+                                   profile will be smoothed by a Gaussian filter 
+                                   (0 = no smoothing)
+
+               preCropped - If preCropped=False, image is assumed to be a raw image, if
+                            preCropped=True, image is assumed to be only the portion of the
+                            image near the star
+
+               zoom - How many pixels in each direction away from the estimated centroid 
+                      to consider when tracking the centroid. Be sure to choose a large 
+                      enough zoom value the stellar centroid in the next exposure will fit
+                      within the zoom
+
+               plots - If plots=True, display stellar intensity profile in two axes
+                       and the centroid solution
+                                   
+        RETURNS: xCenter - the best-fit x-centroid of the star
+        
+                 yCenter - the best-fit y-centroid of the star
+                 
+                 averageRadius - average radius of the SMOOTHED star in pixels
+                            
+        Core developer: Brett Morris
+        Modifications by: Luuk Visser, 2-12-2013
+        '''
+    '''If you have an interpolated grid as input, small inputs for smoothingConst
+        it won't have any effect. Thus it has to be increased by the
         zoom factor you used to sub-pixel interpolate. 
         
-        e seems to give nice smoothing results
-        
-        Core developer: Brett Morris.
-        Modifications by Luuk Visser, Leiden University & Delft University 
-        of Technology - 2-12-2013"""
-    smoothingConst = zoom*np.e
-    
-    """ If frame is already cut out, you can set precut to True, so the script
-        won't cut a frame out again. """
-    if precut == False:
-        hww = zoom*20
-        target = image[est_x-hww:est_x+hww,est_y-hww:est_y+hww]   ## Cropped image of just the target star
-    else:
-        hww = 0
+        np.e seems to give nice smoothing results if frame is already cut out, you can 
+        set preCropped to True, so the script won't cut a frame out again. '''
+    if preCropped:
+        zoom = image.shape[0]/2
         est_x, est_y = 0,0
-        target = image ## Use pre-cropped image of the star
+        target = image ## Assume image is pre-cropped image of the star
+    else:
+        smoothingConst *= zoom/20 
+        target = image[est_x-zoom:est_x+zoom,est_y-zoom:est_y+zoom]   ## Crop image of just the target star
         
-    """  Save original (unsmoothed) data for plotting purposses """
+    #Save original (unsmoothed) data for plotting purposses
     if plots:
         target_orig = target.copy()
-        ## Sum columns of original data
         axisA_orig = np.sum(target,axis=0)   ## Take the sums of all values in each column,
         axisB_orig = np.sum(target,axis=1)   ## then repeat for each row
     
@@ -195,7 +202,6 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plots=False, precut=False, 
 
     derivMaxAind = np.where(axisADeriv == max(axisADeriv[0:lenaxisADeriv_2]))[0][0] ## Maximum in the derivative
     derivMaxBind = np.where(axisBDeriv == max(axisBDeriv[0:lenaxisBDeriv_2]))[0][0] ## of the intensity plot
-#    indMax = np.argmax(axisADeriv)
 
     extremumA = quadraticFit(axisADeriv,ext="max")
     extremumB = quadraticFit(axisADeriv,ext="min")
@@ -207,12 +213,12 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plots=False, precut=False, 
     axisAcenter = (extremumA+extremumB)/2.
     axisBcenter = (extremumC+extremumD)/2.
     
-    xCenter = est_x-hww+axisBcenter
-    yCenter = est_y-hww+axisAcenter
+    xCenter = est_x-zoom+axisBcenter
+    yCenter = est_y-zoom+axisAcenter
     
     if plots:
         def format_coord(x, y):
-            """ Function to also give data value on mouse over with imshow. """
+            '''Function to also give data value on mouse over with imshow.'''
             col = int(x+0.5)
             row = int(y+0.5)
             try:
@@ -249,7 +255,7 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plots=False, precut=False, 
         ax2.plot(axisB_orig,'-r', alpha=0.33)
         ax2.axvline(x=extremumC,ymin=0,ymax=1,color='r',linestyle=':',linewidth=1)
         ax2.axvline(x=extremumD,ymin=0,ymax=1,color='r',linestyle=':',linewidth=1)
-        ax2.axvline(x=axisBcenter,ymin=0,ymax=1,color='r',linewidth=1)
+        ax2.axvline(x=axisBcenter,ymin=0,ymax=1,color='r',linewidth=2)
         ax2.set_xlabel('X')
         ax2.set_ylabel('Counts')
 
@@ -259,16 +265,44 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plots=False, precut=False, 
         ax3.set_title('Smoothed Intensity Profile')
         ax3.axvline(x=extremumA,ymin=0,ymax=1,color='b',linestyle=':',linewidth=1)
         ax3.axvline(x=extremumB,ymin=0,ymax=1,color='b',linestyle=':',linewidth=1)
-        ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=1)
+        ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=2)
         ax3.set_xlabel('Y')
         ax3.set_ylabel('Counts')
         plt.show()
     return [xCenter,yCenter,averageRadius]
     
-def phot(image, xCentroid, yCentroid, apertureRadius, ccdGain=1, plots=False):
-    '''Runs in about 0.13x the runtime of photOld'''
+def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, ccdGain=1, plots=False):
+    '''Method for aperture photometry. 
+    
+       INPUTS: image - numpy array image
+       
+               xCentroid - stellar centroid along the x-axis 
+                           (determined by trackSmooth or equivalent)
+                           
+               xCentroid - stellar centroid along the y-axis 
+                           (determined by trackSmooth or equivalent)
+                           
+               apertureRadius - radius in pixels from centroid to use 
+                                for source aperture
+                                
+               annulusRadiusFactor - measure the background for sky background 
+                                     subtraction fron an annulus a factor of 
+                                     annulusRadiusFactor bigger than the apertureRadius
+                                     
+               ccdGain - gain of your detector, used to calculate the photon noise
+               
+               plots - If plots=True, display plots showing the aperture radius and 
+                       annulus radii overplotted on the image of the star
+                       
+        RETURNS: rawFlux - the background-subtracted flux measured within the aperture
+        
+                 rawError - the photon noise (limiting statistical) uncertainty on the 
+                            measurement of rawFlux
+                            
+        Core developer: Brett Morris
+    '''
     annulusRadiusInner = apertureRadius 
-    annulusRadiusOuter = 1.5*apertureRadius
+    annulusRadiusOuter = annulusRadiusFactor*apertureRadius
 
     imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
     [dimx,dimy] = imageCrop.shape
@@ -282,7 +316,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, ccdGain=1, plots=False):
 
     if plots:
         def format_coord(x, y):
-            """ Function to also give data value on mouse over with imshow. """
+            ''' Function to also give data value on mouse over with imshow. '''
             col = int(x+0.5)
             row = int(y+0.5)
             try:
@@ -298,8 +332,8 @@ def phot(image, xCentroid, yCentroid, apertureRadius, ccdGain=1, plots=False):
         ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
        
         theta = np.arange(0,360)*(np.pi/180)
-        rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)#col+annulusRadiusInner*math.cos(theta)       ## Plot inner radius circle
-        rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)#row+annulusRadiusInner*math.sin(theta)
+        rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)
+        rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)
         ax.plot(rcos(annulusRadiusInner,theta),rsin(annulusRadiusInner,theta),'r',linewidth=4)
         ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
         ax.set_xlabel('X')
@@ -309,124 +343,3 @@ def phot(image, xCentroid, yCentroid, apertureRadius, ccdGain=1, plots=False):
         ax.format_coord = format_coord 
         plt.show()
     return [rawFlux, rawError]
-
-def photOld(image, x, y, apertureRadius, Kccd=1, plots=False):
-    '''Runs in about 0.75x the runtime of aper12'''
-    annulusRadiusInner = apertureRadius                         ## (same as above) ...inner radius
-    annulusRadiusOuter = 1.5*apertureRadius                      ##                 ...outer radius
-
-    imageCrop = image[x-annulusRadiusOuter+1:x+annulusRadiusOuter+2,y-annulusRadiusOuter+1:y+annulusRadiusOuter+2]
-    [dimx,dimy] = imageCrop.shape
-    sourceFlux = []
-    backgroundFlux = []
-    for YY in range(0,dimy):
-        for XX in range(0,dimx):
-            if ((XX-annulusRadiusOuter)**2 + (YY-annulusRadiusOuter)**2) <= annulusRadiusOuter**2 and (
-                (XX-annulusRadiusOuter)**2 + (YY-annulusRadiusOuter)**2) > annulusRadiusInner**2:
-                backgroundFlux.append(imageCrop[XX,YY])
-            elif ((XX-annulusRadiusOuter)**2 + (YY-annulusRadiusOuter)**2) <= apertureRadius**2:
-                sourceFlux.append(imageCrop[XX,YY])
-
-    fluxes = np.array(sourceFlux) - np.median(backgroundFlux)
-    rawFlux = np.sum(fluxes)
-    rawError = np.sum(np.sqrt(fluxes))
-    if plots:
-        def format_coord(x, y):
-            """ Function to also give data value on mouse over with imshow. """
-            col = int(x+0.5)
-            row = int(y+0.5)
-            try:
-                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
-            except:
-                return 'x=%1.4f, y=%1.4f' % (x, y)
-        fig = plt.figure(num=None, facecolor='w', edgecolor='k')
-        fig.subplots_adjust(wspace = 0.5)
-        
-        dimx,dimy = imageCrop.shape
-        med = np.median(imageCrop)
-        dsig = np.std(imageCrop)
-        ax = fig.add_subplot(111)
-        ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
-       
-        theta = np.arange(0,360)*(np.pi/180)
-        rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)#col+annulusRadiusInner*math.cos(theta)       ## Plot inner radius circle
-        rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)#row+annulusRadiusInner*math.sin(theta)
-        ax.plot(rcos(annulusRadiusInner,theta),rsin(annulusRadiusInner,theta),'r',linewidth=4)
-        ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_xlim([-.5,dimx-.5])
-        ax.set_ylim([-.5,dimy-.5])
-        ax.format_coord = format_coord 
-        plt.show()
-    return [rawFlux, rawError]
-
-def trackSmoothOld(scidata,xPos,yPos,smoothConst,aprad,plots=False):
-    '''Track the centroid coordinate of the star in the cropped image scidata located naer
-       (init_x,init_y). Smooth out the intensity profile using a Gaussian filter from SciPy.
-       Set the aperture radius through which to track the star to aprad.'''
-    hww = 8
-    #hww = 8
-
-    target = scidata[xPos-hww:xPos+hww,yPos-hww:yPos+hww]   ## Cropped image of just the target star
-    target = ndimage.gaussian_filter(target, sigma=smoothConst,order=0)
-    ## Sum columns
-    axisA = np.sum(target,axis=0)   ## Take the sums of all values in each column,
-    axisB = np.sum(target,axis=1)   ## then repeat for each row
-
-    axisADeriv = np.diff(axisA)     ## Find the differences between each pixel intensity and
-    axisBDeriv = np.diff(axisB)     ## the neighboring pixel (derivative of intensity profile)
-
-    derivMinAind = np.where(axisADeriv == min(axisADeriv[len(axisADeriv)/2:len(axisADeriv)]))[0][0] ## Minimum in the derivative
-    derivMinBind = np.where(axisBDeriv == min(axisBDeriv[len(axisBDeriv)/2:len(axisBDeriv)]))[0][0] ## of the intensity plot
-
-    derivMaxAind = np.where(axisADeriv == max(axisADeriv[0:len(axisADeriv)/2]))[0][0] ## Maximum in the derivative
-    derivMaxBind = np.where(axisBDeriv == max(axisBDeriv[0:len(axisBDeriv)/2]))[0][0] ## of the intensity plot
-    indMax = np.argmax(axisADeriv)
-
-    
-    extremumA = quadraticFit(axisADeriv,ext="max")
-    extremumB = quadraticFit(axisADeriv,ext="min")
-    extremumC = quadraticFit(axisBDeriv,ext="max")
-    extremumD = quadraticFit(axisBDeriv,ext="min")
-
-    averageRadius = (abs(derivMinAind-derivMaxAind)+abs(derivMinBind-derivMaxBind))/4. ## Average diameter / 2
-    axisAcenter = (extremumA+extremumB)/2.0
-    axisBcenter = (extremumC+extremumD)/2.0
-    xCenter = xPos-hww+axisBcenter
-    yCenter = yPos-hww+axisAcenter
-
-    if plots:
-        plt.clf()
-        plt.subplot(121)
-        img = plt.imshow(target)
-        img.set_interpolation('nearest')
-        rcos = lambda a: axisAcenter+aprad*np.cos(a)       ## Plot inner radius circle
-        rsin = lambda a: axisBcenter+aprad*np.sin(a)
-        p = np.arange(0,360)*(np.pi/180)
-        plt.plot(rcos(p),rsin(p),'w',linewidth=2)
-        plt.xlim([0,hww*2.])
-        plt.ylim([hww*2.,0])
-        plt.subplot(121).get_xaxis().set_ticks([])
-        plt.subplot(121).get_yaxis().set_ticks([])
-        plt.title('Smoothed Intensity')
-
-        plt.subplot(122)
-        plt.plot(axisA,'-b')
-        plt.plot(axisB,'-r')
-        plt.title('Smoothed Intensity Profile')
-        plt.axvline(x=extremumA,ymin=0,ymax=1,color='b',
-                linestyle=':',linewidth=1)
-        plt.axvline(x=extremumB,ymin=0,ymax=1,color='b',
-                linestyle=':',linewidth=1)
-                
-        plt.axvline(x=extremumC,ymin=0,ymax=1,color='r',
-                linestyle=':',linewidth=1)
-        plt.axvline(x=extremumD,ymin=0,ymax=1,color='r',
-                linestyle=':',linewidth=1)
-        plt.subplots_adjust(wspace = 0.5)
-        plt.xlabel('Pixels')
-        plt.ylabel('Counts')
-        plt.draw()
-
-    return [xCenter,yCenter,averageRadius]
