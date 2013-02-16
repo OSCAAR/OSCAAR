@@ -50,31 +50,26 @@ def meanDarkFrame(darksPath):
     return np.mean(darks,axis=0)
 
 def parseRegionsFile(regsPath):
-    '''Parse the DS9 regions file (.txt format) which contains
-       the initial guesses for the stellar centroids'''
-    system("ls "+regsPath+"> filelists/reglist.txt")
-
-    regfile = open('filelists/reglist.txt','r').read().splitlines()[0]
-    regdata = open(regfile,'r').read().splitlines()
-
-    circle_data = []
+    '''Parse the DS9 regions file (written in .txt format) which contains
+       the initial guesses for the stellar centroids, in the following format:
+             "circle(<y-center>,<x-center>,<radius>)"
+    '''
+    regionsData = open(regsPath,'r').read().splitlines()
     init_x_list = []
     init_y_list = []
-    hww_list = []
-    for i in range(0,len(regdata)):
-        if regdata[i][0:6] == 'circle':
-            circle_data.append(split("\(",regdata[i])[1])
-
-    for i in range(0,len(circle_data)):
-        xydata = split("\,",circle_data[i])
-        xyhdata = split("\)",xydata[2])[0]
-        init_y_list.append(float(xydata[0]))
-        init_x_list.append(float(xydata[1]))
-        hww_list.append(float(xyhdata))
-
-    return init_x_list,init_y_list, hww_list
+    for i in range(0,len(regionsData)):
+        if regionsData[i][0:6] == 'circle':
+            y,x = split("\,",split("\(",regionsData[i])[1])[0:2]
+            init_y_list.append(float(y))
+            init_x_list.append(float(x))
+    return init_x_list,init_y_list
 
 def quadraticFit(derivative,ext):
+    '''Find an extremum in the data, use it and the points on either side to fit
+       to a quadratic function, and return the x-position of the apex. 
+       
+       Called by oscaar.trackSmooth()
+    '''
     rangeOfFit = 1
     lenDer = len(derivative)/2
     if ext == "max":
