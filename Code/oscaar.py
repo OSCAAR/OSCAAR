@@ -422,18 +422,49 @@ def plottingSettings(trackPlots,photPlots):
         fig.subplots_adjust(wspace = 0.5)
         subplotsDimensions = 140
         photSubplotsOffset = 3
+        fig.canvas.set_window_title('oscaar2.0') 
     elif photPlots and not trackPlots:
         fig = plt.figure(num=None, figsize=(5, 5), facecolor='w',edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
         subplotsDimensions = 110
         photSubplotsOffset = 0
+        fig.canvas.set_window_title('oscaar2.0') 
     elif trackPlots and not photPlots:
         fig = plt.figure(num=None, figsize=(14, 4), facecolor='w',edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
         subplotsDimensions = 130
         photSubplotsOffset = 0
-    fig.canvas.set_window_title('oscaar2.0') 
+        fig.canvas.set_window_title('oscaar2.0') 
 
+def regressionScale(comparisonFlux,targetFlux,time,ingress,egress):
+	'''
+    Use a least-squares regression to stretch and offset a comparison star fluxes
+    to scale them to the relative intensity of the target star. Only do this regression
+    considering the out-of-transit portions of the light curve.
+    
+    INPUTS: comparisonFlux - Flux of a comparison star
+    
+            targetFlux - Flux of the target star
+            
+            time - List of times for each flux measurement in JD
+            
+            ingress - Time of ingress (JD, assuming time list is in JD)
+            
+            egress - Time of egress (JD, assuming time list is in JD)
+            
+    RETURNS: scaledVector - rescaled version of the comparisonFlux vector using the
+                            above described process
+    '''
+	outOfTransit = (time < ingress) + (time > egress)
+	regressMatrix = np.vstack([comparisonFlux[outOfTransit], np.ones_like(targetFlux[outOfTransit])]).T
+	m,c = LA.lstsq(regressMatrix,targetFlux[outOfTransit])[0]
+	scaledVector = m*comparisonFlux + c
+	return scaledVector
+
+def chiSquared(vector1,vector2):
+    '''Return chi-squared of two vectors'''
+    return np.sum(np.power(vector1-vector2,2))
+    
 
 class dataBank:
     '''
@@ -467,12 +498,12 @@ class dataBank:
         for i in range(0,len(init_x_list)):
             self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
                             'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
-                            'scaledFlux':np.copy(zeroArray)}
+                            'scaledFlux':np.copy(zeroArray), 'chisq':0}
             self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
             self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
             self.keys.append(paddedStr(i,3))    
         
-    def returnDict(self):
+    def getDict(self):
         '''Return master dictionary of all star data'''
         return self.allStarsDict
         
@@ -506,7 +537,7 @@ class dataBank:
         '''Return the paths to the raw images used'''
         return self.imagesPaths
         
-    def returnFluxes(self,star):
+    def getFluxes(self,star):
         '''Return the fluxes for one star, where the star parameter is the key for the
               star of interest.'''
         return self.allStarsDict[star]['rawFlux']
@@ -542,3 +573,47 @@ class dataBank:
     def getKeys(self):
         '''Return the keys for all of the stars'''
         return self.keys
+        
+    def scaleFluxes(self):
+        '''
+        When all fluxes have been collected, run this to re-scale the fluxes of each
+        comparison star to the flux of the target star. 
+        '''
+        for star in self.allStarsDict:
+            self.allStarsDict[star]['scaledFlux'] = regressionScale(self.getFluxes(star),self.getFluxes('000'),self.getTimes(),self.ingress,self.egress)
+
+    def getScaledFluxes(self,star):
+        '''Return the scaled fluxes for one star, where the star parameter is the 
+           key for the star of interest.'''
+        return self.allStarsDict[star]['scaledFlux']
+        
+    def calcChiSq(self):
+        for star in self.allStarsDict:
+            self.allStarsDict[star]['chisq'] = calcChiSq(self.getFluxes['000'],self.getFluxes[star])
+    
+    def getAllChiSq(self):
+        '''Return chi-squared's for all stars'''
+        chisq = []
+        for star in self.allStarsDict:
+            chisq.append(self.allStarsDict[star]['chisq'])
+        return chisq
+
+    def outOfTransit(self):
+        return self.getTimes()[(self.getTimes() < ingress) + (self.getTimes() > egress)]
+    
+    def calcMeanComparison(self):
+        '''
+        Take the regression-weighted mean of all of the comparison stars
+        to produce one comparison star flux to compare to the target to
+        produce a light curve.
+        '''
+        
+        optimize.leastsq()
+        
+        for star in self.allStarsDict:
+            chisq.append(self.allStarsDict[star]['chisq'])
+        return chisq
+        
+        #oot = self.outOfTransit()
+        
+        
