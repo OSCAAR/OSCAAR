@@ -4,27 +4,28 @@ import numpy as np
 from matplotlib import pyplot as plt
 from time import time
 
-image = pyfits.open('wasp35z.fits')[0].data
-est_x,est_y = [468,692]
-
 ## Inputs to paths, to be replaced with init.par parser
 regsPath = '../Extras/Examples/20120616/stars2.reg'
 imagesPath = '../Extras/Examples/20120616/tres1-???.fit'
 darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
 flatPath = '../Extras/Examples/20120616/masterFlat.fits'
 trackPlots = False#True
-photPlots = False
+photPlots = True#False
 
-ingress = '2012-06-17;02:59:00'
-egress = '2012-06-17;05:29:00'
+ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
+egress = oscaar.ut2jd('2012-06-17;05:29:00')
 
 data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.returnDict()               ## Store initialized dictionary
 
+## Prepare systematic corrections: dark frame, flat field
+meanDarkFrame = oscaar.meanDarkFrame(darksPath)
+masterFlat = pyfits.open(flatPath)[0].data
+
 oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
-    image = pyfits.open(data.getPaths()[expNumber])[0].data     ## Open image from FITS file
+    image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
     for star in allStars:
         if expNumber == 0:
@@ -45,6 +46,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
 
 times = data.getTimes()
 print data.getAllFlags()
+
 for key in data.getKeys():
     plt.plot(times,data.returnFluxes(key))
 plt.show()

@@ -19,8 +19,15 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
 
-def ut2jd(utshut):
-    [date, Time] = utshut.split(';')
+def ut2jd(ut):
+    '''
+    Convert times from Universal Time (UT) to Julian Date (JD)
+    
+    INPUTS: ut - Time in Universial Time (UT)
+    
+    RETURNS: jd - Julian Date (JD)
+    '''
+    [date, Time] = ut.split(';')
     [year, month, day] = date.split('-')
     [hour, min, sec] = Time.split(':')
     year = int(year); month = int(month); day = int(day)
@@ -83,6 +90,13 @@ def parseRegionsFile(regsPath):
              "circle(<y-center>,<x-center>,<radius>)"
        The reversed x,y order comes from the different directions that FITS files
        are read-in with DS9 and PyFits.
+       
+       INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords
+       
+       RETURNS: init_x_list - Inital estimates of the x-centroids
+       
+                init_y_list - Inital estimates of the y-centroids
+       
     '''
     regionsData = open(regsPath,'r').read().splitlines()
     init_x_list = []
@@ -100,6 +114,14 @@ def quadraticFit(derivative,ext):
        apex of the best-fit parabola. 
        
        Called by oscaar.trackSmooth()
+       
+       INPUTS: derivative - The first derivative of the series of points, usually 
+                            calculated by np.diff()
+                            
+               ext = Extremum to look find: "max" or "min"
+        
+       RETURNS: extremum - the (non-integer) index where the extremum was found
+       
     '''
     rangeOfFit = 1
     lenDer = len(derivative)/2
@@ -121,6 +143,16 @@ def quadraticFit(derivative,ext):
     return extremum
 
 def masterFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
+    '''Make a master flat by taking a median of a group of flat fields
+    
+    INPUTS: flatImagesPath - Path to the flat field exposures
+    
+            flatDarkImagesPath - Path to the flat field darks
+            
+            masterFlatSavePath - Where to save the master flat that is created
+            
+            plots - Plot the master flat on completion when plots=True
+    '''
     ## Create zero array with the dimensions of the first image for the flat field
     [dim1, dim2] = np.shape(pyfits.open(flatImagesPath[0])[0].data)
     flatSum = np.zeros([dim1, dim2])
@@ -257,10 +289,6 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
                     return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, target[row,col])
                 except:
                     return 'x=%1.4f, y=%1.4f' % (x, y)
-                
-    #        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w', \
-    #            edgecolor='k')
-    #        fig.subplots_adjust(wspace = 0.5)
             
             dimx,dimy = target.shape
             med = np.median(target)
@@ -301,7 +329,6 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
             ax3.set_xlabel('Y')
             ax3.set_ylabel('Counts')
             plt.draw()
-            #plt.show()
         return [xCenter,yCenter,averageRadius, False]
     except Exception:    ## If an error occurs:
         print "An error has occured in oscaar.trackSmooth(), \n\treturning inital (x,y) estimate"
@@ -364,9 +391,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
                     return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
                 except:
                     return 'x=%1.4f, y=%1.4f' % (x, y)
-            #fig = plt.figure(num=None, facecolor='w', edgecolor='k')
-            #fig.subplots_adjust(wspace = 0.5)
-            
+           
             med = np.median(imageCrop)
             dsig = np.std(imageCrop)
             
@@ -384,7 +409,6 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
             ax.set_ylim([-.5,dimy-.5])
             ax.format_coord = format_coord 
             plt.draw()
-            #plt.show()
         return [rawFlux, rawError, False]
     except Exception:    ## If an error occurs:
         print "An error has occured in oscaar.phot(), \n\tReturning flux = 1"
@@ -408,6 +432,8 @@ def plottingSettings(trackPlots,photPlots):
         fig.subplots_adjust(wspace = 0.5)
         subplotsDimensions = 130
         photSubplotsOffset = 0
+    fig.canvas.set_window_title('oscaar2.0') 
+
 
 class dataBank:
     '''
@@ -416,14 +442,23 @@ class dataBank:
         Core Developer: Brett Morris
     '''
     def __init__(self,imagesPath,darksPath,flatPath,regsPath,ingress,egress):
-        '''Run oscaar.parseRegionsFile() to get the inital guesses for the 
-           initial centroids of the stars from the DS9 regions file, create
-           dictionaries for each star, with x and y position lists'''
+        '''
+        Run oscaar.parseRegionsFile() to get the inital guesses for the 
+        initial centroids of the stars from the DS9 regions file, create
+        dictionaries in which to store all of the data collected
+        for each star. Allocate the memory for these arrays wherever possible.
+        INPUTS: imagesPath - 
+                darksPath - 
+                flatPath - 
+                regsPath - 
+                ingress - Time of ingress in JD
+                egress - Time of egress in JD
+        '''
         self.imagesPaths = glob(imagesPath)
         self.darksPaths = glob(darksPath)
         self.masterFlat = pyfits.open(flatPath)[0].data
-        self.ingress = ut2jd(ingress)
-        self.egress = ut2jd(egress)
+        self.ingress = ingress
+        self.egress = egress
         self.allStarsDict = {}
         init_x_list,init_y_list = parseRegionsFile(regsPath)
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
@@ -443,7 +478,7 @@ class dataBank:
         
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
         '''Store the centroid data collected by oscaar.trackSmooth()
-           Inputs: star - Key for the star for which the centroid has been measured
+           INPUTS: star - Key for the star for which the centroid has been measured
            
                    exposureNumber - Index of exposure being considered
                    
@@ -456,7 +491,7 @@ class dataBank:
         
     def storeFlux(self,star,exposureNumber,rawFlux,rawError):
         '''Store the flux and error data collected by oscaar.phot()
-           Inputs: star - Key for the star for which the centroid has been measured
+           INPUTS: star - Key for the star for which the centroid has been measured
            
                    exposureNumber - Index of exposure being considered
                    
@@ -478,7 +513,7 @@ class dataBank:
         
     def storeTime(self,expNumber,time):
         '''Store the time in JD from the FITS header.
-           Inputs: exposureNumber - Index of exposure being considered
+           INPUTS: exposureNumber - Index of exposure being considered
            
                    time - Time as read-in from the FITS header
         '''
