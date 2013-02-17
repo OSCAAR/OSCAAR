@@ -405,6 +405,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
             ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
+            ax.set_title('Aperture')
             ax.set_xlim([-.5,dimx-.5])
             ax.set_ylim([-.5,dimy-.5])
             ax.format_coord = format_coord 
@@ -552,6 +553,11 @@ class dataBank:
         '''Return the fluxes for one star, where the star parameter is the key for the
               star of interest.'''
         return self.allStarsDict[star]['rawFlux']
+
+    def getErrors(self,star):
+        '''Return the errors for one star, where the star parameter is the key for the
+              star of interest.'''
+        return self.allStarsDict[star]['rawError']
         
     def storeTime(self,expNumber,time):
         '''Store the time in JD from the FITS header.
@@ -623,18 +629,20 @@ class dataBank:
         target = self.getScaledFluxes('000')[self.outOfTransit()]
         compStars = np.zeros([targetFullLength,numCompStars])
         compStarsOOT = np.zeros([len(target),numCompStars])
+        compErrors = np.copy(compStars)
         columnCounter = 0
         for star in self.allStarsDict:
             if star != '000':
                 compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
+                compErrors[:,columnCounter] = self.getErrors(star).astype(np.float64)
                 columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
         def errfunc(p,target): ## Find only positive coefficients
             if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target
             #return np.dot(p,compStarsOOT.T) - target
 
-        bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float64).eps)[0]
+        bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
-        return np.dot(bestFitP,compStars.T)
+        return np.dot(bestFitP,compStars.T), np.sqrt(np.dot(bestFitP**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
         

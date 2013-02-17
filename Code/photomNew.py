@@ -36,13 +36,17 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
             est_y = allStars[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
 
         ## Track and store the stellar centroid
-        x, y, radius, trackFlag = oscaar.trackSmooth(image, est_x, est_y, 3, zoom=10, plots=trackPlots)
+        x, y, radius, trackFlag = oscaar.trackSmooth(image, est_x, est_y, 3, zoom=10,plots=trackPlots)
         data.storeCentroid(star,expNumber,x,y)
 
         ## Tracl and store the flux and uncertainty
-        flux, error, photFlag = oscaar.phot(image, x, y, 4, plots=photPlots)
+        #apertureRadius = 4; rms out-of-transit scatter: 0.012478066561
+        #apertureRadius = 4.5; rms out-of-transit scatter: 0.00831816981609 << best aperture
+        #apertureRadius = 5; rms out-of-transit scatter: 0.00919495508291
+        #apertureRadius = 6; rms out-of-transit scatter: 0.00961801849049
+        flux, error, photFlag = oscaar.phot(image, x, y, 4.5, ccdGain = 0.77999997138977051, plots=photPlots)
         data.storeFlux(star,expNumber,flux,error)
-        if trackFlag or photFlag and (not data.getFlag()): data.setFlag(False) ## Store error flags
+        if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
 
 times = data.getTimes()
 
@@ -54,12 +58,16 @@ data.scaleFluxes()
 data.calcChiSq()
 chisq = data.getAllChiSq()
 
-meanComp = data.calcMeanComparison()
+meanComp, meanError = data.calcMeanComparison()
 target = data.getScaledFluxes('000')
 lightCurve = target/meanComp
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
+print np.std(lightCurve[data.outOfTransit()])
+print meanError.shape, meanComp.shape
+photonNoise = meanError*lightCurve
 
 plt.plot(times,lightCurve,'k.')
+plt.plot(times,photonNoise,'b',linewidth=2)
 plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
 plt.axvline(ymin=0,ymax=1,x=ingress,color='k',ls=':')
 plt.axvline(ymin=0,ymax=1,x=egress,color='k',ls=':')
