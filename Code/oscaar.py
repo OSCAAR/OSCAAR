@@ -589,7 +589,7 @@ class dataBank:
         
     def calcChiSq(self):
         for star in self.allStarsDict:
-            self.allStarsDict[star]['chisq'] = calcChiSq(self.getFluxes['000'],self.getFluxes[star])
+            self.allStarsDict[star]['chisq'] = chiSquared(self.getFluxes('000'),self.getFluxes(star))
     
     def getAllChiSq(self):
         '''Return chi-squared's for all stars'''
@@ -608,7 +608,7 @@ class dataBank:
         produce a light curve.
         '''
         
-        optimize.leastsq()
+        bestFitP = optimize.leastsq()[0]
         
         for star in self.allStarsDict:
             chisq.append(self.allStarsDict[star]['chisq'])
