@@ -1,4 +1,5 @@
-'''oscaar v2.0 Module
+'''oscaar v2.0 
+   Module for differential photometry
    Developed by Brett Morris, 2011-2013'''
 import numpy as np
 from numpy import linalg as LA
@@ -173,110 +174,114 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
         
         np.e seems to give nice smoothing results if frame is already cut out, you can 
         set preCropped to True, so the script won't cut a frame out again. '''
-    if preCropped:
-        zoom = image.shape[0]/2
-        est_x, est_y = 0,0
-        target = image ## Assume image is pre-cropped image of the star
-    else:
-        smoothingConst *= zoom/20 
-        target = image[est_x-zoom:est_x+zoom,est_y-zoom:est_y+zoom]   ## Crop image of just the target star
-        
-    #Save original (unsmoothed) data for plotting purposses
-    if plots:
-        target_orig = target.copy()
-        axisA_orig = np.sum(target,axis=0)   ## Take the sums of all values in each column,
-        axisB_orig = np.sum(target,axis=1)   ## then repeat for each row
-    
-    target = ndimage.gaussian_filter(target, sigma=smoothingConst,order=0)
-    
-    ## Sum columns
-    axisA = np.sum(target,axis=0)   ## Take the sums of all values in each column,
-    axisB = np.sum(target,axis=1)   ## then repeat for each row
-
-    axisADeriv = np.diff(axisA)     ## Find the differences between each pixel intensity and
-    axisBDeriv = np.diff(axisB)     ## the neighboring pixel (derivative of intensity profile)
-
-    lenaxisADeriv = len(axisADeriv)
-    lenaxisADeriv_2 = lenaxisADeriv/2
-    lenaxisBDeriv = len(axisBDeriv)
-    lenaxisBDeriv_2 = lenaxisBDeriv/2
-    
-    derivMinAind = np.where(axisADeriv == min(axisADeriv[lenaxisADeriv_2:lenaxisADeriv]))[0][0] ## Minimum in the derivative
-    derivMinBind = np.where(axisBDeriv == min(axisBDeriv[lenaxisBDeriv_2:lenaxisBDeriv]))[0][0] ## of the intensity plot
-
-    derivMaxAind = np.where(axisADeriv == max(axisADeriv[0:lenaxisADeriv_2]))[0][0] ## Maximum in the derivative
-    derivMaxBind = np.where(axisBDeriv == max(axisBDeriv[0:lenaxisBDeriv_2]))[0][0] ## of the intensity plot
-
-    extremumA = quadraticFit(axisADeriv,ext="max")
-    extremumB = quadraticFit(axisADeriv,ext="min")
-    extremumC = quadraticFit(axisBDeriv,ext="max")
-    extremumD = quadraticFit(axisBDeriv,ext="min")
-
-    averageRadius = (abs(derivMinAind-derivMaxAind)+ \
-        abs(derivMinBind-derivMaxBind))/4. ## Average diameter / 2
-    axisAcenter = (extremumA+extremumB)/2.
-    axisBcenter = (extremumC+extremumD)/2.
-    
-    xCenter = est_x-zoom+axisBcenter
-    yCenter = est_y-zoom+axisAcenter
-    
-    if plots:
-        plt.clf()
-        def format_coord(x, y):
-            '''Function to also give data value on mouse over with imshow.'''
-            col = int(x+0.5)
-            row = int(y+0.5)
-            try:
-                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, target[row,col])
-            except:
-                return 'x=%1.4f, y=%1.4f' % (x, y)
+    try:
+        if preCropped:
+            zoom = image.shape[0]/2
+            est_x, est_y = 0,0
+            target = image ## Assume image is pre-cropped image of the star
+        else:
+            #smoothingConst *= zoom/20 
+            target = image[est_x-zoom:est_x+zoom,est_y-zoom:est_y+zoom]   ## Crop image of just the target star
             
-#        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w', \
-#            edgecolor='k')
-#        fig.subplots_adjust(wspace = 0.5)
+        #Save original (unsmoothed) data for plotting purposses
+        if plots:
+            target_orig = target.copy()
+            axisA_orig = np.sum(target,axis=0)   ## Take the sums of all values in each column,
+            axisB_orig = np.sum(target,axis=1)   ## then repeat for each row
         
-        dimx,dimy = target.shape
-        med = np.median(target)
-        dsig = np.std(target)
+        target = ndimage.gaussian_filter(target, sigma=smoothingConst,order=0)
         
-        ax = fig.add_subplot(subplotsDimensions+1)
-        ax.imshow(target_orig, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
-        ax.set_title('Star Center')
-        rcos = lambda theta: axisAcenter+averageRadius*np.cos(theta)
-        rsin = lambda theta: axisBcenter+averageRadius*np.sin(theta)
-        theta = np.arange(0,360)*(np.pi/180)
-        ax.plot(rcos(theta),rsin(theta),'m',linewidth=2)
-        ax.plot([axisAcenter]*dimy,range(dimy),'b')
-        ax.plot(range(dimx),[axisBcenter]*dimx,'r')
-        ax.set_xlim([-.5,dimx-.5])
-        ax.set_ylim([-.5,dimy-.5])
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.format_coord = format_coord 
-        
-        ax2 = fig.add_subplot(subplotsDimensions+2)
-        ax2.set_title('Smoothed Intensity Profile')
-        ax2.plot(axisB,'-r')
-        ax2.plot(axisB_orig,'-r', alpha=0.33)
-        ax2.axvline(x=extremumC,ymin=0,ymax=1,color='r',linestyle=':',linewidth=1)
-        ax2.axvline(x=extremumD,ymin=0,ymax=1,color='r',linestyle=':',linewidth=1)
-        ax2.axvline(x=axisBcenter,ymin=0,ymax=1,color='r',linewidth=2)
-        ax2.set_xlabel('X')
-        ax2.set_ylabel('Counts')
+        ## Sum columns
+        axisA = np.sum(target,axis=0)   ## Take the sums of all values in each column,
+        axisB = np.sum(target,axis=1)   ## then repeat for each row
 
-        ax3 = fig.add_subplot(subplotsDimensions+3)
-        ax3.plot(axisA,'-b')
-        ax3.plot(axisA_orig,'-b', alpha=0.33)
-        ax3.set_title('Smoothed Intensity Profile')
-        ax3.axvline(x=extremumA,ymin=0,ymax=1,color='b',linestyle=':',linewidth=1)
-        ax3.axvline(x=extremumB,ymin=0,ymax=1,color='b',linestyle=':',linewidth=1)
-        ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=2)
-        ax3.set_xlabel('Y')
-        ax3.set_ylabel('Counts')
-        plt.draw()
-        #plt.show()
-    return [xCenter,yCenter,averageRadius]
-    
+        axisADeriv = np.diff(axisA)     ## Find the differences between each pixel intensity and
+        axisBDeriv = np.diff(axisB)     ## the neighboring pixel (derivative of intensity profile)
+
+        lenaxisADeriv = len(axisADeriv)
+        lenaxisADeriv_2 = lenaxisADeriv/2
+        lenaxisBDeriv = len(axisBDeriv)
+        lenaxisBDeriv_2 = lenaxisBDeriv/2
+        
+        derivMinAind = np.where(axisADeriv == min(axisADeriv[lenaxisADeriv_2:lenaxisADeriv]))[0][0] ## Minimum in the derivative
+        derivMinBind = np.where(axisBDeriv == min(axisBDeriv[lenaxisBDeriv_2:lenaxisBDeriv]))[0][0] ## of the intensity plot
+
+        derivMaxAind = np.where(axisADeriv == max(axisADeriv[0:lenaxisADeriv_2]))[0][0] ## Maximum in the derivative
+        derivMaxBind = np.where(axisBDeriv == max(axisBDeriv[0:lenaxisBDeriv_2]))[0][0] ## of the intensity plot
+
+        extremumA = quadraticFit(axisADeriv,ext="max")
+        extremumB = quadraticFit(axisADeriv,ext="min")
+        extremumC = quadraticFit(axisBDeriv,ext="max")
+        extremumD = quadraticFit(axisBDeriv,ext="min")
+
+        averageRadius = (abs(derivMinAind-derivMaxAind)+ \
+            abs(derivMinBind-derivMaxBind))/4. ## Average diameter / 2
+        axisAcenter = (extremumA+extremumB)/2.
+        axisBcenter = (extremumC+extremumD)/2.
+        
+        xCenter = est_x-zoom+axisBcenter
+        yCenter = est_y-zoom+axisAcenter
+        
+        if plots:
+            plt.clf()
+            def format_coord(x, y):
+                '''Function to also give data value on mouse over with imshow.'''
+                col = int(x+0.5)
+                row = int(y+0.5)
+                try:
+                    return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, target[row,col])
+                except:
+                    return 'x=%1.4f, y=%1.4f' % (x, y)
+                
+    #        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w', \
+    #            edgecolor='k')
+    #        fig.subplots_adjust(wspace = 0.5)
+            
+            dimx,dimy = target.shape
+            med = np.median(target)
+            dsig = np.std(target)
+            
+            ax = fig.add_subplot(subplotsDimensions+1)
+            ax.imshow(target_orig, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
+            ax.set_title('Star Center')
+            rcos = lambda theta: axisAcenter+averageRadius*np.cos(theta)
+            rsin = lambda theta: axisBcenter+averageRadius*np.sin(theta)
+            theta = np.arange(0,360)*(np.pi/180)
+            ax.plot(rcos(theta),rsin(theta),'m',linewidth=2)
+            ax.plot([axisAcenter]*dimy,range(dimy),'b')
+            ax.plot(range(dimx),[axisBcenter]*dimx,'r')
+            ax.set_xlim([-.5,dimx-.5])
+            ax.set_ylim([-.5,dimy-.5])
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.format_coord = format_coord 
+            
+            ax2 = fig.add_subplot(subplotsDimensions+2)
+            ax2.set_title('Smoothed Intensity Profile')
+            ax2.plot(axisB,'-r')
+            ax2.plot(axisB_orig,'-r', alpha=0.33)
+            ax2.axvline(x=extremumC,ymin=0,ymax=1,color='r',linestyle=':',linewidth=1)
+            ax2.axvline(x=extremumD,ymin=0,ymax=1,color='r',linestyle=':',linewidth=1)
+            ax2.axvline(x=axisBcenter,ymin=0,ymax=1,color='r',linewidth=2)
+            ax2.set_xlabel('X')
+            ax2.set_ylabel('Counts')
+
+            ax3 = fig.add_subplot(subplotsDimensions+3)
+            ax3.plot(axisA,'-b')
+            ax3.plot(axisA_orig,'-b', alpha=0.33)
+            ax3.set_title('Smoothed Intensity Profile')
+            ax3.axvline(x=extremumA,ymin=0,ymax=1,color='b',linestyle=':',linewidth=1)
+            ax3.axvline(x=extremumB,ymin=0,ymax=1,color='b',linestyle=':',linewidth=1)
+            ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=2)
+            ax3.set_xlabel('Y')
+            ax3.set_ylabel('Counts')
+            plt.draw()
+            #plt.show()
+        return [xCenter,yCenter,averageRadius, False]
+    except Exception:    ## If an error occurs:
+        print "An error has occured in oscaar.trackSmooth(), \n\treturning inital (x,y) estimate"
+        return [est_x, est_y, 1.0, True]
+        
 def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, ccdGain=1, plots=False):
     '''Method for aperture photometry. 
     
@@ -307,52 +312,56 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
                             
         Core developer: Brett Morris
     '''
-    annulusRadiusInner = apertureRadius 
-    annulusRadiusOuter = annulusRadiusFactor*apertureRadius
+    try:
+        annulusRadiusInner = apertureRadius 
+        annulusRadiusOuter = annulusRadiusFactor*apertureRadius
 
-    imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
-    [dimx,dimy] = imageCrop.shape
-    XX, YY = np.meshgrid(np.arange(dimx),np.arange(dimy))
-    x = (XX - annulusRadiusOuter)**2
-    y = (YY - annulusRadiusOuter)**2
-    sourceIndices = x + y <= apertureRadius**2
-    skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
-    rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
-    rawError = np.sum(np.sqrt(imageCrop[sourceIndices]*ccdGain))
+        imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
+        [dimx,dimy] = imageCrop.shape
+        XX, YY = np.meshgrid(np.arange(dimx),np.arange(dimy))
+        x = (XX - annulusRadiusOuter)**2
+        y = (YY - annulusRadiusOuter)**2
+        sourceIndices = x + y <= apertureRadius**2
+        skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
+        rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
+        rawError = np.sum(np.sqrt(imageCrop[sourceIndices]*ccdGain))
 
-    if plots:
-        def format_coord(x, y):
-            ''' Function to also give data value on mouse over with imshow. '''
-            col = int(x+0.5)
-            row = int(y+0.5)
-            try:
-                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
-            except:
-                return 'x=%1.4f, y=%1.4f' % (x, y)
-        #fig = plt.figure(num=None, facecolor='w', edgecolor='k')
-        #fig.subplots_adjust(wspace = 0.5)
-        
-        med = np.median(imageCrop)
-        dsig = np.std(imageCrop)
-        
-        ax = fig.add_subplot(subplotsDimensions+photSubplotsOffset+1)
-        ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
-       
-        theta = np.arange(0,360)*(np.pi/180)
-        rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)
-        rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)
-        ax.plot(rcos(annulusRadiusInner,theta),rsin(annulusRadiusInner,theta),'r',linewidth=4)
-        ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_xlim([-.5,dimx-.5])
-        ax.set_ylim([-.5,dimy-.5])
-        ax.format_coord = format_coord 
-        plt.draw()
-        #plt.show()
-    return [rawFlux, rawError]
+        if plots:
+            def format_coord(x, y):
+                ''' Function to also give data value on mouse over with imshow. '''
+                col = int(x+0.5)
+                row = int(y+0.5)
+                try:
+                    return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
+                except:
+                    return 'x=%1.4f, y=%1.4f' % (x, y)
+            #fig = plt.figure(num=None, facecolor='w', edgecolor='k')
+            #fig.subplots_adjust(wspace = 0.5)
+            
+            med = np.median(imageCrop)
+            dsig = np.std(imageCrop)
+            
+            ax = fig.add_subplot(subplotsDimensions+photSubplotsOffset+1)
+            ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
+           
+            theta = np.arange(0,360)*(np.pi/180)
+            rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)
+            rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)
+            ax.plot(rcos(annulusRadiusInner,theta),rsin(annulusRadiusInner,theta),'r',linewidth=4)
+            ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_xlim([-.5,dimx-.5])
+            ax.set_ylim([-.5,dimy-.5])
+            ax.format_coord = format_coord 
+            plt.draw()
+            #plt.show()
+        return [rawFlux, rawError, False]
+    except Exception:    ## If an error occurs:
+        print "An error has occured in oscaar.phot(), \n\tReturning flux = 1"
+        return [1.0, 1.0, True]        
 
-def setFigureSettings(trackPlots,photPlots):
+def figureSettings(trackPlots,photPlots):
     global fig, subplotsDimensions, photSubplotsOffset
     if trackPlots or photPlots: plt.ion()
     if trackPlots and photPlots:
@@ -375,22 +384,27 @@ class dataBank:
     '''
         Methods for storing information from each star in Python dictionaries.
     '''
-    def __init__(self,imagesPath,darksPath,flatPath,regsPath):
+    def __init__(self,imagesPath,darksPath,flatPath,regsPath,ingress,egress):
         '''Run oscaar.parseRegionsFile() to get the inital guesses for the 
            initial centroids of the stars from the DS9 regions file, create
            dictionaries for each star, with x and y position lists'''
         self.imagesPaths = glob(imagesPath)
         self.darksPaths = glob(darksPath)
         self.masterFlat = pyfits.open(flatPath)[0].data
-
+        self.ingress = ingress
+        self.egress = egress
         self.allStarsDict = {}
         init_x_list,init_y_list = parseRegionsFile(regsPath)
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
+        self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
+        self.keys = []
         for i in range(0,len(init_x_list)):
             self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
-                            'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray)}
+                            'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
+                            'scaledFlux':np.copy(zeroArray)}
             self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
             self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
+            self.keys.append(paddedStr(i,3))
        # self.starDict['init_x_list'] = np.array(init_x_list,type=np.float32)
         #self.starDict['init_y_list'] = np.array(init_y_list,type=np.float32)        
     def returnDict(self):
@@ -398,9 +412,25 @@ class dataBank:
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
         self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
         self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
-    
-    def storeFlux(self,star,rawFlux,rawError):
+    def storeFlux(self,star,exposureNumber,rawFlux,rawError):
         self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
     def paths(self):
         return self.imagesPaths
+    def returnFluxes(self,star):
+        return self.allStarsDict[star]['rawFlux']
+    def storeTime(self,expNumber,time):
+        self.times[expNumber] = time
+    def timeJD(self):
+        return self.times
+    def getFlag(self,star):
+        return self.allStarsDict[star]['flag']
+    def getAllFlags(self):
+        flags = []
+        for star in self.allStarsDict:
+            flags.append(self.allStarsDict[star]['flag'])
+        return flags
+    def setFlag(self,star,setting):
+        self.allStarsDict[star]['flag'] = setting
+    def getKeys(self):
+        return self.keys
