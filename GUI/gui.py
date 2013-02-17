@@ -13,7 +13,6 @@ import math
 import webbrowser
 import time
 import subprocess
-execfile('oscmds.py')
 
 APP_EXIT = 1
 
@@ -23,8 +22,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         super(OscaarFrame, self).__init__(*args, **kwargs)
         self.InitUI()
 
-    def InitUI(self): ##InitUI provides code for creating and showing all items in the interface
-        ##Menu Bar:
+    #### Creates and initializes the GUI ####
+    
+    def InitUI(self):
+        
+        #### Defines the menubar ####
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
         menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application') ##provides a way to quit
@@ -38,10 +40,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
-        self.logo = wx.Image('OscaarLogo.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-        ####CONTROL BUTTON DECLARATIONS####
+        
+        
+        #### CONTROL BUTTON DECLARATIONS ####
         self.radioTrackingOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP) ##On is always set to default, can be changed
         self.radioTrackingOff = wx.RadioButton(self, label = "Off")
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
@@ -51,7 +55,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.radialStarWidth = wx.TextCtrl(self, value = '0')
         self.radialStarWidth.SetMaxLength(6)
         
+
+
         textCtrlSize = (500,25)
+        
         self.darkPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.darkPathBtn = wx.Button(self, -1, 'Browse')
         self.flatPathTxt = wx.TextCtrl(self, size = textCtrlSize)
@@ -70,11 +77,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.showPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.DatePickerCtrl(self)
         self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
-        self.egressDate = wx.DatePickerCtrl(self) ##DatePicker to pick the egress date
-        self.egressTime = TimeCtrl(self, fmt24hr = True) ##TimeCtrl to pick the egress time
-        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30)) ##Button to open ds9
+        self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
+        self.egressTime = TimeCtrl(self, fmt24hr = True) ## TimeCtrl to pick the egress time
+        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30)) ## Button to open ds9
 
-        #####Add items to sizer for organization#####
+        ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False)
@@ -91,11 +98,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
         self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT): '))
         self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT): '))
-        #self.sizer.Add(self.ds9Button,(5,4), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
         self.sizer.Add(self.ds9Button,(5,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
 
-        ###Set Default Values Initially###
+        #### Set Default Values Initially (from init.par)####
         init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
@@ -138,16 +144,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         self.sizer.Add(self.help, (12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
-        #self.sizer.Add(self.help, (12,4), wx.DefaultSpan, wx.TOP, 7)
-        #self.sizer.Add(self.run, (12,5), wx.DefaultSpan, wx.TOP, 7)
+
 
         self.help.Bind(wx.EVT_BUTTON, self.helpFunc)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
 
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        #self.SetSize((660, 535))
-        #self.SetMinSize((660, 535))
         setSize = (900, 500)
         self.SetSize(setSize)
         self.SetMinSize(setSize)
@@ -155,25 +158,24 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Centre()
         self.Show(True)
 
-    def OnQuit(self, e): ##defined for quitting using the file menu
+    #### Allows quitting from the file menu. (Fixes cmd-Q on OS X) ####
+    def OnQuit(self, e): 
         self.Close()
 
-    def addButtonPair(self, row, colStart, button1, button2, label): ##defined for neater creation of control items
+    #### Neater creation of control items ####
+    def addButtonPair(self, row, colStart, button1, button2, label): 
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##border of 8 pixels on the top and left
         self.sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     def addTextCtrl(self, row, colStart, textCtrl, label):
-        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)#wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
-        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        #self.sizer.Add(textCtrl, (row, 1), (1,2), wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
-        #self.sizer.Add(button, (row, 3), (1,1), wx.TOP, 7)
+        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
         self.sizer.Add(button, (row, 5), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
@@ -201,8 +203,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
-        ds9Loc = os.getcwd() + '/' +  platform + '/ds9'
-        regionsName = os.getcwd() + '/ds9s/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
+        ds9 = os.pardir + '/Extras/ds9'
+        ds9Loc = ds9 + '/' + sys.platform + '/ds9'
+        print(ds9Loc)
+        regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
 
     #####Opens the webpage for the documentation when help is pressed#####
@@ -216,6 +220,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         global worker
         worker = None
         init = open('../Code/init.par', 'w')
+        
         #Write to init.par
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
@@ -263,7 +268,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Destroy()
         self.guiOverwcheck(overwcheckDict)
         
-    ##Not yet implemented
+    ####NOT YET IMPLEMENTED Checks that the filenames entered are valid####
     def validityCheck(self):
         darkFrames = glob.glob(darkPathTxt.GetValue())
         imageFiles = glob.glob(imagPathTxt.GetValue())
@@ -278,21 +283,23 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if not containsFit:
             InvalidDarks(None)                
 
-    #####Used to radiobutton values to init more easily#####
+    ##### Used to set radiobutton values to init more easily #####
     def checkRB(self, button, text, filename):
         if button.GetValue() == True:
             filename.write(text + 'on\n')
         else:
             filename.write(text + 'off\n')
 
-    def parseTime(self, date, time, text, filename):  ##Converts datePicker and timeCtrl to string form for init.par
+    #### Converts datePicker and timeCtrl to string form for init.par ####
+    def parseTime(self, date, time, text, filename):  
         dateArr = str(date).split()
         d = dict((v,k) for k,v in enumerate(calendar.month_abbr))
         result = str(dateArr[3]) + '-' + str(d.get(dateArr[2])) + '-' + str(dateArr[1]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
 
-    def setDefaults(self, event): ####Sets default values to the values currently written to init.par####
+    ####Sets default values to the values currently written to init.par####
+    def setDefaults(self, event):
         init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
@@ -348,13 +355,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 worker = WorkerThread()
             if not join:
                 join = JoinThread(worker)
-            
+
+#### Checks if the dark frames are valid ####
+
 class InvalidDarks(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(Overwcheck, self).__init__(*args, **kwargs)
         self.Centre()
         self.Show()
-        
+
+#### Shows the 'please wait' dialog while OSCAAR runs ####
+
 class LoadingFrame(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, 'Oscaar')
@@ -364,6 +375,8 @@ class LoadingFrame(wx.Frame):
         self.SetSize((275,75))
         self.Centre()
         self.Show(True)
+
+#### Launches worker processes ####
         
 class WorkerThread(threading.Thread):
     def __init__(self):
@@ -371,7 +384,7 @@ class WorkerThread(threading.Thread):
         self.start()
 
     def run(self):
-        execfile('photom16irSimplified.py')
+        execfile(os.pardir + '/Code/oscaar.py')
 
 class JoinThread(threading.Thread):
     def __init__(self, toJoin):
@@ -387,8 +400,9 @@ def doneThreading():
     GraphFrame(None)
     loading.Close()
 
+#### Defines and organizes the Overwrite checking window ####
 
-class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
+class Overwcheck(wx.Frame):
     def __init__(self, fileDict, index,  *args, **kwargs):
         fileList = fileDict.keys()
         super(Overwcheck, self).__init__(*args, **kwargs)
@@ -429,11 +443,13 @@ class Overwcheck(wx.Frame): #Defines and organizes the Overwrite checking window
         self.Destroy()
         OscaarFrame(None)
 
+#### Shows the graphs and outputs after OSCAAR completes ####
+
 class GraphFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(GraphFrame, self).__init__(*args, **kwargs)
         self.graphIndex = 0
-        self.graphList = ['plots/jdRNF.png', 'plots/goodnessOfFit.png', 'plots/lightCurve.png']
+        self.graphList = [os.pardir + '/Outputs/Plots/jdRNF.png', os.pardir + 'Outputs/plots/goodnessOfFit.png', os.pardir + 'Outputs/plots/lightCurve.png']
         self.staticBitmap = wx.StaticBitmap(parent = self, pos = (20, 15), size = (800, 600))
         self.graph = wx.Image(self.graphList[self.graphIndex], wx.BITMAP_TYPE_ANY)
         self.graphIndex += 1
@@ -476,6 +492,7 @@ class GraphFrame(wx.Frame):
 
 
 app = wx.App(False)
-OscaarFrame(None) ##Run the GUI
+#### Runs the GUI ####
+OscaarFrame(None)
 app.MainLoop()
 
