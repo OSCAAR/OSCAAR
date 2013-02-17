@@ -43,7 +43,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(False) ## Store error flags
 
-times = data.timeJD()
+times = data.getTimes()
 print data.getAllFlags()
 for key in data.getKeys():
     plt.plot(times,data.returnFluxes(key))

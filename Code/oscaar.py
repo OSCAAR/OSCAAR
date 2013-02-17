@@ -468,22 +468,42 @@ class dataBank:
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
         
     def getPaths(self):
-        '''Return '''
+        '''Return the paths to the raw images used'''
         return self.imagesPaths
+        
     def returnFluxes(self,star):
+        '''Return the fluxes for one star, where the star parameter is the key for the
+              star of interest.'''
         return self.allStarsDict[star]['rawFlux']
+        
     def storeTime(self,expNumber,time):
+        '''Store the time in JD from the FITS header.
+           Inputs: exposureNumber - Index of exposure being considered
+           
+                   time - Time as read-in from the FITS header
+        '''
         self.times[expNumber] = time
-    def timeJD(self):
+        
+    def getTimes(self):
+        '''Return all times collected with dataBank.storeTime()'''
         return self.times
+        
     def getFlag(self,star):
+        '''Return the flag for the star with key "star" '''
         return self.allStarsDict[star]['flag']
+        
     def getAllFlags(self):
+        '''Return flags for all stars'''
         flags = []
         for star in self.allStarsDict:
             flags.append(self.allStarsDict[star]['flag'])
         return flags
+        
     def setFlag(self,star,setting):
+        '''Set flag for star with key <star> to <setting> where 
+           setting is a Boolean'''
         self.allStarsDict[star]['flag'] = setting
+        
     def getKeys(self):
+        '''Return the keys for all of the stars'''
         return self.keys
