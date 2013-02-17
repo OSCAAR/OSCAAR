@@ -618,7 +618,7 @@ class dataBank:
     def outOfTransit(self):
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
 
-    def calcMeanComparison(self,ccdGain=1):
+    def calcMeanComparison(self,ccdGain=12):
         '''
         Take the regression-weighted mean of all of the comparison stars
         to produce one comparison star flux to compare to the target to
@@ -644,5 +644,5 @@ class dataBank:
 
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
-        return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
-        
+        #return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
+        return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2)))  
