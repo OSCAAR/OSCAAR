@@ -10,13 +10,13 @@ imagesPath = '../Extras/Examples/20120616/tres1-???.fit'
 darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
 flatPath = '../Extras/Examples/20120616/masterFlat.fits'
 trackPlots = False#True
-photPlots = True#False
+photPlots = False
 
 ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
 egress = oscaar.ut2jd('2012-06-17;05:29:00')
 
 data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
-allStars = data.returnDict()               ## Store initialized dictionary
+allStars = data.getDict()               ## Store initialized dictionary
 
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(darksPath)
@@ -40,13 +40,34 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         data.storeCentroid(star,expNumber,x,y)
 
         ## Tracl and store the flux and uncertainty
-        flux, error, photFlag = oscaar.phot(image, x, y, 10, plots=photPlots)
+        flux, error, photFlag = oscaar.phot(image, x, y, 4, plots=photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(False) ## Store error flags
 
 times = data.getTimes()
-print data.getAllFlags()
 
-for key in data.getKeys():
-    plt.plot(times,data.returnFluxes(key))
+#for key in data.getKeys():
+#    plt.plot(times,data.returnFluxes(key))
+#plt.show()
+
+data.scaleFluxes()
+data.calcChiSq()
+chisq = data.getAllChiSq()
+
+meanComp = data.calcMeanComparison()
+target = data.getScaledFluxes('000')
+lightCurve = target/meanComp
+binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
+
+plt.plot(times,lightCurve,'k.')
+plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
+plt.axvline(ymin=0,ymax=1,x=ingress,color='k',ls=':')
+plt.axvline(ymin=0,ymax=1,x=egress,color='k',ls=':')
+plt.title('Light Curve')
+plt.xlabel('Time (JD)')
+plt.ylabel('Relative Flux')
 plt.show()
+
+#for key in data.getKeys():
+#    plt.plot(times,data.getScaledFluxes(key),'.')
+#plt.show()

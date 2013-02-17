@@ -464,7 +464,18 @@ def regressionScale(comparisonFlux,targetFlux,time,ingress,egress):
 def chiSquared(vector1,vector2):
     '''Return chi-squared of two vectors'''
     return np.sum(np.power(vector1-vector2,2))
-    
+
+def medianBin(time,flux,medianWidth):
+    numberBins = len(time)/medianWidth
+    binnedTime = np.arange(numberBins,dtype=float)
+    binnedFlux = np.arange(numberBins,dtype=float)
+    binnedStd = np.arange(numberBins,dtype=float)
+    for i in range(0,numberBins):
+        fluxInBin = flux[i*medianWidth:(i+1)*medianWidth+1]
+        binnedTime[i] = np.median(time[i*medianWidth:(i+1)*medianWidth+1])
+        binnedFlux[i] = np.median(fluxInBin)
+        binnedStd[i] = np.std(fluxInBin)
+    return binnedTime, binnedFlux, binnedStd    
 
 class dataBank:
     '''
@@ -585,7 +596,7 @@ class dataBank:
     def getScaledFluxes(self,star):
         '''Return the scaled fluxes for one star, where the star parameter is the 
            key for the star of interest.'''
-        return self.allStarsDict[star]['scaledFlux']
+        return np.array(self.allStarsDict[star]['scaledFlux'])
         
     def calcChiSq(self):
         for star in self.allStarsDict:
@@ -599,21 +610,31 @@ class dataBank:
         return chisq
 
     def outOfTransit(self):
-        return self.getTimes()[(self.getTimes() < ingress) + (self.getTimes() > egress)]
-    
+        return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
+
     def calcMeanComparison(self):
         '''
         Take the regression-weighted mean of all of the comparison stars
         to produce one comparison star flux to compare to the target to
         produce a light curve.
         '''
-        
-        bestFitP = optimize.leastsq()[0]
-        
+        numCompStars =  len(self.allStarsDict) - 1
+        targetFullLength = len(self.getScaledFluxes('000'))
+        target = self.getScaledFluxes('000')[self.outOfTransit()]
+        compStars = np.zeros([targetFullLength,numCompStars])
+        compStarsOOT = np.zeros([len(target),numCompStars])
+        columnCounter = 0
         for star in self.allStarsDict:
-            chisq.append(self.allStarsDict[star]['chisq'])
-        return chisq
-        
-        #oot = self.outOfTransit()
-        
+            if star != '000':
+                compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
+                compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
+                columnCounter += 1
+        initP = np.zeros([numCompStars])+ 1./numCompStars
+        def errfunc(p,target): ## Find only positive coefficients
+            if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target
+            #return np.dot(p,compStarsOOT.T) - target
+
+        bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float64).eps)[0]
+        print '\nBest fit regression coefficients:',bestFitP
+        return np.dot(bestFitP,compStars.T)
         
