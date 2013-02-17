@@ -23,6 +23,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.InitUI()
 
     def InitUI(self): ##InitUI provides code for creating and showing all items in the interface
+        
         ##Menu Bar:
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
@@ -37,7 +38,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
-        self.logo = wx.Image('OscaarLogo.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         ####CONTROL BUTTON DECLARATIONS####
@@ -201,7 +202,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
         ds9 = os.pardir + '/Extras/ds9'
-        ds9Loc = ds9 +  platform + '/ds9'
+        ds9Loc = ds9 + '/' + sys.platform + '/ds9'
+        print(ds9Loc)
         regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
 
