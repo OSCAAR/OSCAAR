@@ -11,9 +11,13 @@ darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
 flatPath = '../Extras/Examples/20120616/masterFlat.fits'
 trackPlots = False#True
 photPlots = False
-
+apertureRadius = 4.5    ## Best parameter for this dataset
+ccdGain = 0.77999997138977051
+smoothConst = 3
+trackingZoom = 10
 ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
 egress = oscaar.ut2jd('2012-06-17;05:29:00')
+outputPath = 'outputs/oscaarDataBase'
 
 data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
@@ -36,15 +40,11 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
             est_y = allStars[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
 
         ## Track and store the stellar centroid
-        x, y, radius, trackFlag = oscaar.trackSmooth(image, est_x, est_y, 3, zoom=10,plots=trackPlots)
+        x, y, radius, trackFlag = oscaar.trackSmooth(image, est_x, est_y, smoothConst, zoom=trackingZoom, plots=trackPlots)
         data.storeCentroid(star,expNumber,x,y)
 
-        ## Tracl and store the flux and uncertainty
-        #apertureRadius = 4; rms out-of-transit scatter: 0.012478066561
-        #apertureRadius = 4.5; rms out-of-transit scatter: 0.00831816981609 << best aperture
-        #apertureRadius = 5; rms out-of-transit scatter: 0.00919495508291
-        #apertureRadius = 6; rms out-of-transit scatter: 0.00961801849049
-        flux, error, photFlag = oscaar.phot(image, x, y, 4.5, ccdGain = 0.77999997138977051, plots=photPlots)
+        ## Track and store the flux and uncertainty
+        flux, error, photFlag = oscaar.phot(image, x, y, apertureRadius, ccdGain = ccdGain, plots=photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
 
@@ -58,14 +58,16 @@ data.scaleFluxes()
 data.calcChiSq()
 chisq = data.getAllChiSq()
 
-meanComp, meanCompError = data.calcMeanComparison(ccdGain = 0.77999997138977051)
-target = data.getScaledFluxes('000')
-lightCurve = target/meanComp
+meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = ccdGain)
+lightCurve = data.lightCurve(meanComparisonStar)
+
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
-photonNoise = meanCompError*lightCurve
+photonNoise = data.photonNoise()
 print np.std(lightCurve[data.outOfTransit()])
 print np.mean(photonNoise[data.outOfTransit()])
 
+#data.save(outputPath)
+oscaar.save(data,outputPath)
 plt.plot(times,lightCurve,'k.')
 plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
 plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)

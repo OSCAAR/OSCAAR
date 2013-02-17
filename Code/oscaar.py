@@ -12,7 +12,7 @@ from os import system
 import shutil
 from glob import glob
 from re import split
-
+import cPickle
 def paddedStr(num,pad):
     '''Return the number num padded with zero-padding of length pad'''
     strlen = len(str(num))
@@ -484,22 +484,31 @@ class dataBank:
         
         Core Developer: Brett Morris
     '''
-    def __init__(self,imagesPath,darksPath,flatPath,regsPath,ingress,egress):
+    def __init__(self,imagesPath,darksPath,flatPath,regsPath,ingress,egress,loading=False):
         '''
         Run oscaar.parseRegionsFile() to get the inital guesses for the 
         initial centroids of the stars from the DS9 regions file, create
         dictionaries in which to store all of the data collected
         for each star. Allocate the memory for these arrays wherever possible.
-        INPUTS: imagesPath - 
-                darksPath - 
-                flatPath - 
-                regsPath - 
+        INPUTS: imagesPath - Path to the data images
+        
+                darksPath - Path to the dark frames
+                
+                flatPath - Path to the master flat field
+                
+                regsPath - Path to the DS9 regions file
+                
                 ingress - Time of ingress in JD
+                
                 egress - Time of egress in JD
+                
+                loading - if loading=True, load data from a previously saved
+                          oscaar dataBank object
         '''
         self.imagesPaths = glob(imagesPath)
         self.darksPaths = glob(darksPath)
         self.masterFlat = pyfits.open(flatPath)[0].data
+        self.masterFlatPath = flatPath
         self.ingress = ingress
         self.egress = egress
         self.allStarsDict = {}
@@ -580,6 +589,7 @@ class dataBank:
         flags = []
         for star in self.allStarsDict:
             flags.append(self.allStarsDict[star]['flag'])
+        self.flags = flags
         return flags
         
     def setFlag(self,star,setting):
@@ -613,7 +623,8 @@ class dataBank:
         chisq = []
         for star in self.allStarsDict:
             chisq.append(self.allStarsDict[star]['chisq'])
-        return chisq
+        self.chisq = chisq
+        return self.chisq
 
     def outOfTransit(self):
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
@@ -645,4 +656,63 @@ class dataBank:
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
         #return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
-        return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2)))  
+        self.meanComparisonStar = np.dot(bestFitP,compStars.T)
+        self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2))) 
+        return self.meanComparisonStar, self.meanComparisonStarError  
+
+    def lightCurve(self,meanComparisonStar):
+        '''
+        Divide the target star flux by the mean comparison star to yield a light curve,
+        save the light curve into the dataBank object.
+        
+        INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star
+        
+        RETURNS: self.lightCurve - The target star divided by the mean comparison 
+                                   star, i.e., the light curve.
+        '''
+        self.lightCurve = self.getFluxes('000')/meanComparisonStar
+        return self.lightCurve
+
+    def photonNoise(self):
+        '''
+        Calculate photon noise using the lightCurve and the meanComparisonStar
+        
+        RETURNS: self.photonNoise - The estimated photon noise limit
+        '''
+        self.photonNoise = self.lightCurve*self.meanComparisonStarError
+        return self.photonNoise
+
+def save(data,outputPath):
+    '''
+    Save everything in dataBank object to a python pickle using cPickle.
+    
+    INPUTS: data - oscaar.dataBank() object to save
+    
+            outputPath - Path for the saved numpy-pickle.
+    '''
+    if glob(outputPath) > 0 or glob(outputPath+'/oscaarDataBase.pkl') > 0 or glob(outputPath+'.pkl') > 0: ## Over-write check
+        print 'WARNING: overwriting the most recent oscaarDataBase.pkl'
+    
+    if outputPath[len(outputPath)-4:len(outputPath)] == '.pkl':
+        outputName = outputPath
+    elif outputPath[-1] == '/': 
+        outputName = outputPath+'oscaarDataBase.pkl'
+    else: 
+        outputName = outputPath+'.pkl'
+    
+    output = open(outputName,'wb')
+    cPickle.dump(data,output)
+    output.close()
+
+def load(inputPath):
+    '''
+    Load everything from a dataBank object in a python pickle using cPickle.
+    
+    INPUTS: data - oscaar.dataBank() object to save
+    
+            outputPath - Path for the saved numpy-pickle.
+    '''
+    inputFile = open(inputPath,'rb')
+    data = cPickle.load(inputFile)
+    inputFile.close()
+    return data
