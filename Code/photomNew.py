@@ -58,16 +58,17 @@ data.scaleFluxes()
 data.calcChiSq()
 chisq = data.getAllChiSq()
 
-meanComp, meanError = data.calcMeanComparison()
+meanComp, meanCompError = data.calcMeanComparison(ccdGain = 0.77999997138977051)
 target = data.getScaledFluxes('000')
 lightCurve = target/meanComp
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
+photonNoise = meanCompError*lightCurve
 print np.std(lightCurve[data.outOfTransit()])
-print meanError.shape, meanComp.shape
-photonNoise = meanError*lightCurve
+print np.mean(photonNoise[data.outOfTransit()])
 
 plt.plot(times,lightCurve,'k.')
-plt.plot(times,photonNoise,'b',linewidth=2)
+plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
+plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)
 plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
 plt.axvline(ymin=0,ymax=1,x=ingress,color='k',ls=':')
 plt.axvline(ymin=0,ymax=1,x=egress,color='k',ls=':')
