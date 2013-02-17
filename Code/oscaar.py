@@ -19,6 +19,27 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
 
+def ut2jd(utshut):
+    [date, Time] = utshut.split(';')
+    [year, month, day] = date.split('-')
+    [hour, min, sec] = Time.split(':')
+    year = int(year); month = int(month); day = int(day)
+    hour = int(hour); min = int(min); sec = float(sec)
+    #years = (int(year) + 4716)*365.25
+    if month == 1 or month == 2: 
+        month += 12
+        year -= 1
+    a = year/100
+    b = a/4
+    c = 2-a+b
+    d = day
+    e = np.floor(365.25*(year+4716))
+    f = np.floor(30.6001*(month+1))
+    years = c+d+e+f-1524.5
+    fracOfDay = (hour/24.) + (min/(24*60.)) + (sec/(24*60*60.))
+    jd = years + fracOfDay
+    return jd
+
 def cd(a=None):
     """Change to directory a where a is a 
        string inside of single quotes. If a
@@ -164,6 +185,10 @@ def trackSmooth(image, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0
                  yCenter - the best-fit y-centroid of the star
                  
                  averageRadius - average radius of the SMOOTHED star in pixels
+                 
+                 ErrorFlag - Boolean corresponding to whether or not any error occured when 
+                             running oscaar.trackSmooth(). If an error occured, the flag is
+                             True; otherwise False.
                             
         Core developer: Brett Morris
         Modifications by: Luuk Visser, 2-12-2013
@@ -307,8 +332,12 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
                        
         RETURNS: rawFlux - the background-subtracted flux measured within the aperture
         
-                 rawError - the photon noise (limiting statistical) uncertainty on the 
+                 rawError - the photon noise (limiting statistical) Poisson uncertainty on the 
                             measurement of rawFlux
+
+                 ErrorFlag - Boolean corresponding to whether or not any error occured when 
+                             running oscaar.phot(). If an error occured, the flag is
+                             True; otherwise False.
                             
         Core developer: Brett Morris
     '''
@@ -324,7 +353,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
         sourceIndices = x + y <= apertureRadius**2
         skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
         rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
-        rawError = np.sum(np.sqrt(imageCrop[sourceIndices]*ccdGain))
+        rawError = np.sum(np.sqrt(imageCrop[sourceIndices]*ccdGain)) ## Poisson-uncertainty
 
         if plots:
             def format_coord(x, y):
@@ -361,7 +390,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
         print "An error has occured in oscaar.phot(), \n\tReturning flux = 1"
         return [1.0, 1.0, True]        
 
-def figureSettings(trackPlots,photPlots):
+def plottingSettings(trackPlots,photPlots):
     global fig, subplotsDimensions, photSubplotsOffset
     if trackPlots or photPlots: plt.ion()
     if trackPlots and photPlots:
@@ -383,6 +412,8 @@ def figureSettings(trackPlots,photPlots):
 class dataBank:
     '''
         Methods for storing information from each star in Python dictionaries.
+        
+        Core Developer: Brett Morris
     '''
     def __init__(self,imagesPath,darksPath,flatPath,regsPath,ingress,egress):
         '''Run oscaar.parseRegionsFile() to get the inital guesses for the 
@@ -391,8 +422,8 @@ class dataBank:
         self.imagesPaths = glob(imagesPath)
         self.darksPaths = glob(darksPath)
         self.masterFlat = pyfits.open(flatPath)[0].data
-        self.ingress = ingress
-        self.egress = egress
+        self.ingress = ut2jd(ingress)
+        self.egress = ut2jd(egress)
         self.allStarsDict = {}
         init_x_list,init_y_list = parseRegionsFile(regsPath)
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
@@ -404,18 +435,40 @@ class dataBank:
                             'scaledFlux':np.copy(zeroArray)}
             self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
             self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
-            self.keys.append(paddedStr(i,3))
-       # self.starDict['init_x_list'] = np.array(init_x_list,type=np.float32)
-        #self.starDict['init_y_list'] = np.array(init_y_list,type=np.float32)        
+            self.keys.append(paddedStr(i,3))    
+        
     def returnDict(self):
+        '''Return master dictionary of all star data'''
         return self.allStarsDict
+        
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
+        '''Store the centroid data collected by oscaar.trackSmooth()
+           Inputs: star - Key for the star for which the centroid has been measured
+           
+                   exposureNumber - Index of exposure being considered
+                   
+                   xCentroid - x-centroid of the star
+                   
+                   yCentroid - y-centroid of the star
+        '''
         self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
         self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
+        
     def storeFlux(self,star,exposureNumber,rawFlux,rawError):
+        '''Store the flux and error data collected by oscaar.phot()
+           Inputs: star - Key for the star for which the centroid has been measured
+           
+                   exposureNumber - Index of exposure being considered
+                   
+                   rawFlux - flux measured, to be stored
+                   
+                   rawError - photon noise measured, to be stored
+        '''
         self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
-    def paths(self):
+        
+    def getPaths(self):
+        '''Return '''
         return self.imagesPaths
     def returnFluxes(self,star):
         return self.allStarsDict[star]['rawFlux']
