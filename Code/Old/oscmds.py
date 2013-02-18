@@ -32,5 +32,5 @@ def overcheck(filename, checkfiles, varcheck):
             overcheck = raw_input('WARNING: Overwrite /' + filename + '/ ? (Y/n): ')
             break
     if overcheck == '' or overcheck == 'Y' or overcheck == 'y':
-        os.rmdir(filename)
+        shutil.rmtree(filename)
         mkdir(filename)
