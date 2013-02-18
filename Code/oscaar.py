@@ -684,7 +684,7 @@ class dataBank:
 
 def save(data,outputPath):
     '''
-    Save everything in dataBank object to a python pickle using cPickle.
+    Save everything in oscaar.dataBank object <data> to a python pickle using cPickle.
     
     INPUTS: data - oscaar.dataBank() object to save
     
@@ -706,7 +706,7 @@ def save(data,outputPath):
 
 def load(inputPath):
     '''
-    Load everything from a dataBank object in a python pickle using cPickle.
+    Load everything from a oscaar.dataBank() object in a python pickle using cPickle.
     
     INPUTS: data - oscaar.dataBank() object to save
     
