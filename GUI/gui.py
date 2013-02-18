@@ -2,6 +2,7 @@ import threading
 import wx
 import os
 import sys
+import datetime
 from wx.lib.masked import TimeCtrl
 import calendar
 from time import strftime
@@ -136,8 +137,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Ingress': pass ##Implement defaults for date and tiem
-                if inline[0] == 'Egress': pass
+                if inline[0] == 'Ingress':
+                    ingArray = inline[1].split(';')[0].split('-')
+                    ingDate = wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
+                    self.ingressDate.SetValue(ingDate)
+                    timeString = inline[1].split(';')[1] + ':' + inline[2] + ':' + inline[3].split('#')[0].strip()
+                    self.ingressTime.SetValue(timeString)
+                if inline[0] == 'Egress':
+                    egrArray = inline[1].split(';')[0].split('-')
+                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
+                    self.egressDate.SetValue(egrDate)
+                    timeString = inline[1].split(';')[1] + ':' + inline[2] + ':' + inline[3].split('#')[0].strip()
+                    self.egressTime.SetValue(timeString)
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
 
         self.run = wx.Button(self, -1, 'Run')

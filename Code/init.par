@@ -11,6 +11,8 @@ Perform Differential Photometry: off
 Star Tracking: on
 GUI: off
 Init GUI: on
+Ingress: 2012-06-17;02:59:00
+Egress: 2012-06-17;05:29:00
 Path to Dark Frames: ../Extras/Examples/20120616/tres1-???d.fit
 Path to Master-Flat Frame: ../Extras/Examples/20120616/masterFlat.fits
 Path to data images: ../Extras/Examples/20120616/tres1-???.fit
