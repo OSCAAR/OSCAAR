@@ -5,8 +5,9 @@ def mkdir(a, b=None):
         c = ''
     else:
         c = ' '+str(b)
-    command = 'mkdir '+str(a)+str(c)
-    os.system(command)
+    os.mkdir(str(a)+str(c))
+    #command = 'mkdir '+str(a)+str(c)
+    #os.system(command)
 
 def cd(a=None):
     """Change to directory a where a is a 
@@ -20,8 +21,9 @@ def cd(a=None):
 def cp(a, b):
     """Copy file a to location b where a,b are
        strings inside of single quotes"""
-    command = 'cp '+str(a)+' '+str(b)
-    os.system(command)
+    shutil.copy(str(a), str(b))
+    #command = 'cp '+str(a)+' '+str(b)
+    #os.system(command)
 
 def overcheck(filename, checkfiles, varcheck):
     overcheck = None
@@ -30,5 +32,5 @@ def overcheck(filename, checkfiles, varcheck):
             overcheck = raw_input('WARNING: Overwrite /' + filename + '/ ? (Y/n): ')
             break
     if overcheck == '' or overcheck == 'Y' or overcheck == 'y':
-        os.system('rm -r ' + filename)
+        shutil.rmtree(filename)
         mkdir(filename)

@@ -5,6 +5,7 @@ import pyfits
 import time
 from time import strftime
 import glob
+import shutil
 
 execfile('oscmds.py')                   ## Import custom functions:'mkdir','cd', 'cp'
 mkdir('filelists')
@@ -97,7 +98,7 @@ for i in range(0,len(checkfiles)):
         overwcheck3 = raw_input('WARNING: Overwrite /diff_out/ ? (Y/n): ')
         break
     if overwcheck3 == '' or overwcheck3 == 'Y' or overwcheck3 == 'y':
-        os.system('rm -r corrected')
+        shutil.rmtree('corrected')
         mkdir('corrected')
 
 
@@ -119,8 +120,9 @@ if track == 'on':                       ## If stars must be tracked, import fitt
 
 if track == None or track == 'off' and aper == 'on':
     track_smatrix = np.zeros([len(init_y_list),len(imgfiles)])
-    os.system('ls track_out/*.log > filelists/trackfiles.txt')
-    tracknames = open('filelists/trackfiles.txt','r').read().splitlines()
+    tracknames = glob.glob('track_out/*.log')
+    #os.system('ls track_out/*.log > filelists/trackfiles.txt')
+    #tracknames = open('filelists/trackfiles.txt','r').read().splitlines()
     for i in range(0,len(tracknames)):
         trackdata = open(tracknames[i],'r').read().splitlines()
         for j in range(0,len(trackdata)):
