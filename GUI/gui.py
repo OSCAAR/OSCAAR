@@ -109,7 +109,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 inline = init[i].split(":")
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Star Tracking':    
@@ -226,7 +226,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #Write to init.par
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
-        init.write('Path to Flat Frames: ' + self.flatPathTxt.GetValue() + '\n')
+        init.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
         init.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
         self.checkRB(self.radioTrackingOn, 'Star Tracking: ', init)
         init.write('Radial Star Width: ' + self.radialStarWidth.GetValue() + '\n')
