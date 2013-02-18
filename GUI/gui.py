@@ -76,9 +76,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.showPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
         self.showPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.DatePickerCtrl(self)
-        self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
+        #self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
+        self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
         self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
-        self.egressTime = TimeCtrl(self, fmt24hr = True) ## TimeCtrl to pick the egress time
+        self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30)) ## Button to open ds9
 
         ##### Add items to sizer for organization #####
@@ -135,8 +136,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Ingress': ingressUt = str(inline[1]) + ':' + str(inline[2]) + ':' + str(inline[3].split('#')[0].strip())
-                if inline[0] == 'Egress': egressUt = str(inline[1]) + ':' + str(inline[2]) + ':' + str(inline[3].split('#')[0].strip()) ##inline is split at colon so these lines are a bit different
+                if inline[0] == 'Ingress': pass ##Implement defaults for date and tiem
+                if inline[0] == 'Egress': pass
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
 
         self.run = wx.Button(self, -1, 'Run')
@@ -151,7 +152,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        setSize = (900, 500)
+        setSize = (900, 550) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
@@ -175,7 +176,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
-        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
+        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
         self.sizer.Add(button, (row, 5), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
