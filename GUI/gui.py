@@ -81,7 +81,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
         self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
-        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30)) ## Button to open ds9
+        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
+        self.masterFlatButton = wx.Button(self, -1, 'Master Flat GUI', size = (90,25))
 
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
@@ -102,6 +103,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT): '))
         self.sizer.Add(self.ds9Button,(5,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
+        self.sizer.Add(self.masterFlatButton, (3,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 7) ##Should probably include code from
+                                                                                        ##Master flat gui in this for it to work
 
         #### Set Default Values Initially (from init.par)####
         init = open('../Code/init.par', 'r').read().splitlines()

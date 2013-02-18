@@ -8,11 +8,11 @@ from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 from scipy import ndimage, optimize
 from time import sleep
-from os import system
 import shutil
 from glob import glob
 from re import split
 import cPickle
+from shutil import copy
 def paddedStr(num,pad):
     '''Return the number num padded with zero-padding of length pad'''
     strlen = len(str(num))
@@ -59,10 +59,10 @@ def cd(a=None):
 def cp(a, b):
     """Copy file a to location b where a,b are
        strings inside of single quotes"""
-    command = 'cp '+str(a)+' '+str(b)
-    system(command)
+    copy(str(a),str(b))
 
 def overWriteCheck(filename, checkfiles, varcheck):
+    """Checks to see if a particular file should be overwritten based on whether varcheck is on or off"""
     overcheck = None
     for i in range(0, len(checkfiles)):
         if checkfiles[i]== filename and varcheck == 'on':
