@@ -17,7 +17,7 @@ smoothConst = 3
 trackingZoom = 10
 ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
 egress = oscaar.ut2jd('2012-06-17;05:29:00')
-outputPath = 'outputs/oscaarDataBase'
+outputPath = '../outputs/oscaarDataBase'
 
 data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
