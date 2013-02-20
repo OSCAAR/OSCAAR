@@ -143,7 +143,7 @@ def quadraticFit(derivative,ext):
     return extremum
 
 def masterFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
-    '''Make a master flat by taking a median of a group of flat fields
+    '''Make a master flat by taking a mean of a group of flat fields
     
     INPUTS: flatImagesPath - Path to the flat field exposures
     
