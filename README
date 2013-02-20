@@ -1,14 +1,16 @@
 Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without much mess. 
 
-For your convenience, we've also written some code to make a combined flats file, as well as included a recent version of SAO Image DS9.
+OSCAAR supports Mac OS 10.6 and above, as well as Ubuntu 12.04 and above. Windows support will be included in version 2.0. It requires Python 2.7, and the add-on packages of NumPy, SciPy, PyFITS, MatPlotLib, as well as wxPython for the GUI. More information can be found on the OSCAAR wiki on GitHub.
 
-Within the Docs folder, Licensing can be found in the LICENSE file and some documentation can be found in the documentation pdf (very out of date right now).
+For your convenience, we've also written some code to make a combined flats file, as well as included a recent version of SAO Image DS9 for several major operating systems.
 
-OSCAAR 2.0 is under active development. Code may change or break rapidly and without notice. While we may not be able to include them in version 2.0, we welcome your input and suggestions. Please submit them through the issue tracker on our GitHub page.
+Within the Docs folder, Licensing can be found in the LICENSE file and up to date documentation is currently being worked on.
 
-This code is taken from the current working repository for OSCAAR 2.0, found at https://github.com/OSCAAR.
+OSCAAR 2.0 is under active development. Code will change and break rapidly and without notice. While we may not be able to include them in version 2.0, we welcome your input and suggestions. Please submit them through the issue tracker on our GitHub page.
+
+This code is taken from the current working repository for OSCAAR 2.0, found at https://github.com/OSCAAR/OSCAAR .
 
 OSCAAR is under development by current and former students of The University of Maryland, College Park. 
 
-You can visit oscaar1.1 and earlier at: 
+You can visit OSCAAR 1.1 and earlier, no longer maintained, at: 
 https://code.google.com/p/oscaar/
