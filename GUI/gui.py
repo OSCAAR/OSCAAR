@@ -33,14 +33,19 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #### Defines the menubar ####
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
+        self.oscaarMenu = wx.Menu()
+        self.helpMenu = wx.Menu()
         menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application') ##provides a way to quit
         menubar.Append(fileMenu, '&File')
+        menubar.Append(self.helpMenu, '&Help')
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
         self.menuDefaults = fileMenu.Append(-1, 'Set Defaults', 'Set Defaults')
         self.Bind(wx.EVT_MENU, self.setDefaults, self.menuDefaults)
         self.linkToPredictions = fileMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
-        self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)        
+        self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
+        self.helpItem = self.helpMenu.Append(-1, 'Help', 'Help')
+        self.Bind(wx.EVT_MENU, self.helpFunc, self.helpItem)
         
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
@@ -48,20 +53,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         
         #### CONTROL BUTTON DECLARATIONS ####
-        self.radioTrackingOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP) ##On is always set to default, can be changed
-        self.radioTrackingOff = wx.RadioButton(self, label = "Off")
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
         self.radioTrackPlotOff = wx.RadioButton(self, label = "Off")
-        self.radioAperOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
-        self.radioAperOff = wx.RadioButton(self, label = "Off")
-        self.radialStarWidth = wx.TextCtrl(self, value = '0')
-        self.radialStarWidth.SetMaxLength(6)
         
 
 
-        textCtrlSize = (500,25)
+        textCtrlSize = (510,25)
         
         self.darkPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.darkPathBtn = wx.Button(self, -1, 'Browse')
@@ -73,40 +73,34 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.regPathBtn = wx.Button(self, -1, 'Browse')
         self.smoothingConstTxt = wx.TextCtrl(self, value = '0')
         self.radiusTxt = wx.TextCtrl(self, value = '0')
-        self.ccdSatTxt = wx.TextCtrl(self, value = '0')
+        self.trackZoomTxt = wx.TextCtrl(self, value = '0')
         self.ccdGainTxt = wx.TextCtrl(self, value = '0')
-        self.diffPhotomOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
-        self.diffPhotomOff = wx.RadioButton(self, label = 'Off')
-        self.showPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
-        self.showPlotsOff = wx.RadioButton(self, label = 'Off')
+        self.photPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
+        self.photPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.DatePickerCtrl(self)
         #self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
         self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
         self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
-        self.masterFlatButton = wx.Button(self, -1, 'Master Flat GUI', size = (90,25))
+        self.masterFlatButton = wx.Button(self, -1, 'Flat Maker', size = (90,25))
 
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True)
-        self.addButtonPair(6, 4, self.radioTrackingOn, self.radioTrackingOff, wx.StaticText(self, -1, 'Star-Tracking Algorithm: '))
-        self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Plot Gaussian Fits: '))
-        self.addButtonPair(8, 4, self.radioAperOn, self.radioAperOff, wx.StaticText(self, -1, 'Photometry Algorithm: '))
-        self.addButtonPair(9, 4, self.diffPhotomOn, self.diffPhotomOff, wx.StaticText(self, -1, 'Differential Photometry:'))
-        self.addButtonPair(10, 4, self.showPlotsOn, self.showPlotsOff, wx.StaticText(self, -1, 'Display Plots (wxPython): '))
-        self.addTextCtrl(6,0, self.ccdSatTxt, wx.StaticText(self, -1, 'CCD Saturation: '))
+        self.addButtonPair(6, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
+        self.addButtonPair(7, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
+        self.addTextCtrl(6,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
         self.addTextCtrl(7,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
         self.addTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
-        self.addTextCtrl(9,0, self.radialStarWidth, wx.StaticText(self, -1, 'Radial star width: '))
-        self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
-        self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT): '))
-        self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT): '))
-        self.sizer.Add(self.ds9Button,(5,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 8)
+        self.addTextCtrl(9,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
+        self.addDateCtrl(8,4, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT):       '))
+        self.addDateCtrl(9,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT):       '))
+        self.sizer.Add(self.ds9Button,(11,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
-        self.sizer.Add(self.masterFlatButton, (3,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 8)
+        self.sizer.Add(self.masterFlatButton, (11,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
     
         #### Set Default Values Initially (from init.par)####
@@ -119,26 +113,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Star Tracking':    
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioTrackingOn.SetValue(False)
-                        self.radioTrackingOff.SetValue(True)
-                if inline[0] == 'Aper':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioAperOn.SetValue(False)
-                        self.radioAperOff.SetValue(True)
                 if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'CCD Saturation Limit':   self.ccdSatTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Tracking Zoom':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Show Plots':
+                if inline[0] == 'Plot Photometry': 
                     if inline[1].split('#')[0].strip() == 'off': 
-                        self.showPlotsOn.SetValue(False)
-                        self.showPlotsOff.SetValue(True)
-                if inline[0] == 'Perform Differential Photometry': 
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.diffPhotomOn.SetValue(False)
-                        self.diffPhotomOff.SetValue(True)
-                if inline[0] == 'Trackplot':
+                        self.photPlotsOn.SetValue(False)
+                        self.photPlotsOff.SetValue(True)
+                if inline[0] == 'Plot Tracking':
                     if inline[1].split('#')[0].strip() == 'off': 
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
@@ -158,18 +140,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
 
         self.run = wx.Button(self, -1, 'Run')
-        self.help = wx.Button(self, -1, 'Help')
-
-        self.sizer.Add(self.help, (12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
-        self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
-
-
-        self.help.Bind(wx.EVT_BUTTON, self.helpFunc)
+        self.sizer.Add(self.run, (11,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
 
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        setSize = (900, 550) ##Made the size bigger so the items fit in all os
+        setSize = (845, 500) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
@@ -181,28 +157,32 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Close()
 
     #### Neater creation of control items ####
-    def addButtonPair(self, row, colStart, button1, button2, label): 
+    def addButtonPair(self, row, colStart, button1, button2, label):
+        label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##border of 8 pixels on the top and left
         self.sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     def addTextCtrl(self, row, colStart, textCtrl, label):
+        label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
+        label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
-        self.sizer.Add(button, (row, 5), (1,1), wx.TOP, 7)
+        self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7)
+        self.sizer.Add(button, (row, 6), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addDateCtrl(self, row, colStart, dateCtrl, timeCtrl, label):
+        label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.ALIGN_RIGHT | wx.TOP, 7)
-        self.sizer.Add(dateCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
+        self.sizer.Add(dateCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP , 7)
         self.sizer.Add(timeCtrl, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     def updateColor(event,ctrl):
@@ -244,6 +224,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init = open('../Code/init.par', 'w')
         
         #Write to init.par
+        homeDir()
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
         init.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
@@ -253,11 +234,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.checkRB(self.radioTrackPlotOn, 'Trackplot: ', init)
         init.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
         self.checkRB(self.radioAperOn, 'Aper: ', init)
-        init.write('CCD Saturation Limit: ' + self.ccdSatTxt.GetValue() + '\n')
+        init.write('CCD Saturation Limit: ' + self.trackZoomTxt.GetValue() + '\n')
         init.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
         init.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
         self.checkRB(self.showPlotsOn, 'Show Plots: ', init)
-        self.checkRB(self.diffPhotomOn, 'Perform Differential Photometry: ', init)
+        self.checkRB(self.photPlotsOn, 'Perform Differential Photometry: ', init)
         self.checkRB(self.radioTrackingOn, 'Star Tracking: ', init)
         init.write('GUI: off\n')
         self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  init)
@@ -288,7 +269,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
         overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
         self.Destroy()
-        self.guiOverwcheck(overwcheckDict)
+        join = None
+        worker = None
+        global loading
+        if not worker:
+            worker = WorkerThread()
+        if not join:
+            join = JoinThread()
+        
+        #self.guiOverwcheck(overwcheckDict)
         
     ####NOT YET IMPLEMENTED Checks that the filenames entered are valid####
     def validityCheck(self):
@@ -340,7 +329,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.radioAperOn.SetValue(False)
                         self.radioAperOff.SetValue(True)
                 if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'CCD Saturation Limit':   self.ccdSatTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'CCD Saturation Limit':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Show Plots':
                     if inline[1].split('#')[0].strip() == 'off': 
@@ -348,8 +337,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.showPlotsOff.SetValue(True)
                 if inline[0] == 'Perform Differential Photometry': 
                     if inline[1].split('#')[0].strip() == 'off': 
-                        self.diffPhotomOn.SetValue(False)
-                        self.diffPhotomOff.SetValue(True)
+                        self.photPlotsOn.SetValue(False)
+                        self.photPlotsOff.SetValue(True)
                 if inline[0] == 'Trackplot':
                     if inline[1].split('#')[0].strip() == 'off': 
                         self.radioTrackPlotOn.SetValue(False)
@@ -387,6 +376,7 @@ class MasterFlatFrame(wx.Frame):
         
         ###Variable Declarations###
         pathCtrlSize = (325,25)
+        self.SetBackgroundColour(wx.Colour(227,227,227))
         self.flatImagesPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.flatDarksPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.masterFlatPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
@@ -472,7 +462,9 @@ class WorkerThread(threading.Thread):
         self.start()
 
     def run(self):
-        execfile(os.pardir + '/Code/oscaar.py')
+        homeDir()
+        cd('Code')
+        execfile('differentialPhotometry.py')
 
 class JoinThread(threading.Thread):
     def __init__(self, toJoin):

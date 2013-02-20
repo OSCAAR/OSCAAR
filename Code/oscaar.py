@@ -63,8 +63,9 @@ def cp(a, b):
     
 def homeDir():
     """Set the current directory to oscaar's home directory"""
-    while os.getcwd().split('/')[len(so.getcwd().split('/'))-1] != 'OSCAAR':
-        os.chdir(os.pardir)
+    if 'OSCAAR' in os.getcwd().split('/'):
+        while os.getcwd().split('/')[len(so.getcwd().split('/'))-1] != 'OSCAAR':
+            os.chdir(os.pardir)
 
 def overWriteCheck(filename, checkfiles, varcheck):
     """Checks to see if a particular file should be overwritten based on whether varcheck is on or off"""

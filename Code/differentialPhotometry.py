@@ -5,19 +5,40 @@ from matplotlib import pyplot as plt
 from time import time
 
 ## Inputs to paths, to be replaced with init.par parser
-regsPath = '../Extras/Examples/20120616/stars2.reg'
-imagesPath = '../Extras/Examples/20120616/tres1-???.fit'
-darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
-flatPath = '../Extras/Examples/20120616/masterFlat.fits'
-trackPlots = False#True
-photPlots = False
-apertureRadius = 4.5    ## Best parameter for this dataset
-ccdGain = 0.77999997138977051
-smoothConst = 3
-trackingZoom = 10
-ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
-egress = oscaar.ut2jd('2012-06-17;05:29:00')
+#regsPath = '../Extras/Examples/20120616/stars2.reg'
+#imagesPath = '../Extras/Examples/20120616/tres1-???.fit'
+#darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
+#flatPath = '../Extras/Examples/20120616/masterFlat.fits'
+#trackPlots = False#True
+#photPlots = False
+#apertureRadius = 4.5    ## Best parameter for this dataset
+#ccdGain = 0.77999997138977051
+#smoothConst = 3
+#trackingZoom = 10
+#ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
+#egress = oscaar.ut2jd('2012-06-17;05:29:00')
 outputPath = '../outputs/oscaarDataBase'
+
+###Parses init for settings###
+init = open('init.par', 'r').read().splitlines()
+for line in init:
+    if line.split() > 1 and line[0] != '#':
+        inline = line.split(':', 1)
+        inline[0] = inline[0].strip()
+        if inline[0] == 'Path to Dark Frames': darksPath = str(inline[1].split('#')[0].strip()) ##Everything after # on a line in init.par is ignored
+        if inline[0] == 'Path to Master-Flat Frame': flatPath = str(inline[1].split('#')[0].strip())
+        if inline[0] == 'Path to data images':  imagesPath = str(inline[1].split('#')[0].strip())
+        if inline[0] == 'Path to regions file': regsPath = str(inline[1].split('#')[0].strip())
+        if inline[0] == 'Ingress':  ingress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
+        if inline[0] == 'Egress':  egress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
+        if inline[0] == 'Radius':   apertureRadius = float(inline[1].split('#')[0].strip())
+        if inline[0] == 'Tracking Zoom':   trackingZoom = float(inline[1].split('#')[0].strip())
+        if inline[0] == 'CCD Gain':    ccdGain = float(inline[1].split('#')[0].strip())
+        if inline[0] == 'GUI': gui = inline[1].split('#')[0].strip()
+        if inline[0] == 'Plot Tracking': trackPlots = True if inline[1].split('#')[0].strip() == 'on' else False
+        if inline[0] == 'Plot Photometry': photPlots = True if inline[1].split('#')[0].strip() == 'on' else False
+        if inline[0] == 'Smoothing Constant': smoothConst = float(inline[1].split('#')[0].strip())
+        if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
 
 data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary

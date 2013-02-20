@@ -1,19 +1,13 @@
-Star Tracking: on
-Radial Star Width: 0
-Trackplot: off
-Smoothing Constant: 3
-Aper: on
-CCD Saturation Limit: 60000
-CCD Gain: 1
-Radius: 4
-Show Plots: off
-Perform Differential Photometry: off
-Star Tracking: on
-GUI: off
-Init GUI: on
-Ingress: 2012-06-17;02:59:00
-Egress: 2012-06-17;05:29:00
 Path to Dark Frames: ../Extras/Examples/20120616/tres1-???d.fit
 Path to Master-Flat Frame: ../Extras/Examples/20120616/masterFlat.fits
 Path to data images: ../Extras/Examples/20120616/tres1-???.fit
 Path to regions file: ../Extras/Examples/20120616/stars2.reg
+Ingress: 2012-06-17;02:59:00
+Egress: 2012-06-17;05:29:00
+Plot Photometry: off
+Plot Tracking: off
+Smoothing Constant: 3
+CCD Gain: 1
+Radius: 4
+Tracking Zoom: 10
+Init GUI: on
