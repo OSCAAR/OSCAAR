@@ -2,13 +2,13 @@ Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite 
 
 For your convenience, we've also written some code to make a combined flats file, as well as included a recent version of SAO Image DS9.
 
-Within the Docs folder, Licensing can be found in the LICENSE file and some documentation can be found in the pdf (very out of date right now).
+Within the Docs folder, Licensing can be found in the LICENSE file and some documentation can be found in the documentation pdf (very out of date right now).
 
 OSCAAR 2.0 is under active development. Code may change or break rapidly and without notice. While we may not be able to include them in version 2.0, we welcome your input and suggestions. Please submit them through the issue tracker on our GitHub page.
 
 This code is taken from the current working repository for OSCAAR 2.0, found at https://github.com/OSCAAR.
 
-OSCAAR is under development at the University of Maryland. 
+OSCAAR is under development by current and former students of The University of Maryland, College Park. 
 
 You can visit oscaar1.1 and earlier at: 
 https://code.google.com/p/oscaar/

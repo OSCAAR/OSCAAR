@@ -2,7 +2,7 @@ import threading
 import wx
 import os
 import sys
-from wx.lib.masked import TimeCtrl
+import datetime
 import calendar
 from time import strftime
 from time import strptime
@@ -13,6 +13,10 @@ import math
 import webbrowser
 import time
 import subprocess
+
+os.chdir(os.pardir)
+os.chdir('Code')
+execfile('oscaar.py')
 
 APP_EXIT = 1
 
@@ -43,7 +47,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-        
+        self.SetBackgroundColour(wx.Colour(227,227,227))
         
         #### CONTROL BUTTON DECLARATIONS ####
         self.radioTrackingOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP) ##On is always set to default, can be changed
@@ -76,10 +80,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.showPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
         self.showPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.DatePickerCtrl(self)
-        self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
+        #self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
+        self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
         self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
-        self.egressTime = TimeCtrl(self, fmt24hr = True) ## TimeCtrl to pick the egress time
-        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 30)) ## Button to open ds9
+        self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
+        self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
+        self.masterFlatButton = wx.Button(self, -1, 'Master Flat GUI', size = (90,25))
 
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
@@ -98,9 +104,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
         self.addDateCtrl(11,0, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT): '))
         self.addDateCtrl(12,0, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT): '))
-        self.sizer.Add(self.ds9Button,(5,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 7)
+        self.sizer.Add(self.ds9Button,(5,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 8)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
-
+        self.sizer.Add(self.masterFlatButton, (3,6), wx.DefaultSpan, wx.TOP | wx.LEFT, 8)
+        self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
+    
         #### Set Default Values Initially (from init.par)####
         init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
@@ -108,7 +116,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 inline = init[i].split(":")
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Star Tracking':    
@@ -135,8 +143,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Ingress': ingressUt = str(inline[1]) + ':' + str(inline[2]) + ':' + str(inline[3].split('#')[0].strip())
-                if inline[0] == 'Egress': egressUt = str(inline[1]) + ':' + str(inline[2]) + ':' + str(inline[3].split('#')[0].strip()) ##inline is split at colon so these lines are a bit different
+                if inline[0] == 'Ingress':
+                    ingArray = inline[1].split(';')[0].split('-')
+                    ingDate = wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
+                    self.ingressDate.SetValue(ingDate)
+                    timeString = inline[1].split(';')[1] + ':' + inline[2] + ':' + inline[3].split('#')[0].strip()
+                    self.ingressTime.SetValue(timeString)
+                if inline[0] == 'Egress':
+                    egrArray = inline[1].split(';')[0].split('-')
+                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
+                    self.egressDate.SetValue(egrDate)
+                    timeString = inline[1].split(';')[1] + ':' + inline[2] + ':' + inline[3].split('#')[0].strip()
+                    self.egressTime.SetValue(timeString)
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
 
         self.run = wx.Button(self, -1, 'Run')
@@ -151,7 +169,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        setSize = (900, 500)
+        setSize = (900, 550) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
@@ -175,7 +193,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
-        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
+        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
         self.sizer.Add(button, (row, 5), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
@@ -208,6 +227,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         print(ds9Loc)
         regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
+        
+    def openMasterFlatGUI(self, event):
+        MasterFlatFrame(None)
 
     #####Opens the webpage for the documentation when help is pressed#####
     def helpFunc(self, event):
@@ -224,7 +246,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #Write to init.par
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
-        init.write('Path to Flat Frames: ' + self.flatPathTxt.GetValue() + '\n')
+        init.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
         init.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
         self.checkRB(self.radioTrackingOn, 'Star Tracking: ', init)
         init.write('Radial Star Width: ' + self.radialStarWidth.GetValue() + '\n')
@@ -355,6 +377,72 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 worker = WorkerThread()
             if not join:
                 join = JoinThread(worker)
+
+
+
+class MasterFlatFrame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        super(MasterFlatFrame, self).__init__(*args, **kwargs)
+        self.frameSizer = wx.GridBagSizer(7,7)
+        
+        ###Variable Declarations###
+        pathCtrlSize = (325,25)
+        self.flatImagesPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
+        self.flatDarksPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
+        self.masterFlatPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
+        self.plotsOn = wx.RadioButton(self, -1, 'On')
+        self.plotsOff = wx.RadioButton(self, -1, 'Off')
+        self.flatBrowse = wx.Button(self, -1, 'Browse')
+        self.darkBrowse = wx.Button(self, -1, 'Browse')
+        self.masterPathBrowse = wx.Button(self, -1, 'Browse')
+        self.title = wx.StaticText(self, -1, 'OSCAAR: Master Flat Maker')
+        self.titleFont = wx.Font(15, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        self.title.SetFont(self.titleFont)
+        self.runButton = wx.Button(self, -1, 'Run')
+        self.runButton.Bind(wx.EVT_BUTTON, self.runMasterFlatMaker)
+
+        ######Add to sizer######
+        self.frameSizer.Add(self.runButton, (5,5), wx.DefaultSpan) 
+        self.frameSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
+        self.addPathChoice(self.frameSizer, 1, wx.StaticText(self, -1, 'Path to Flat Images:'), 
+                           self.flatBrowse, self.flatImagesPathCtrl, 'Choose Path to Flats...')
+        self.addPathChoice(self.frameSizer, 2, wx.StaticText(self, -1, 'Path to Dark Flat Images:'), 
+                           self.darkBrowse, self.flatDarksPathCtrl, 'Choose Path to Darks...')
+        self.addPathChoice(self.frameSizer, 3, wx.StaticText(self, -1, 'Path to Save Master Flat:'), 
+                           self.masterPathBrowse, self.masterFlatPathCtrl, 'Choose Path to Save Master Flat...')
+        self.addButtonPair(self.frameSizer, 0, 2, wx.StaticText(self, -1, 'Plots: '), self.plotsOn, self.plotsOff)
+
+        ###Set GUI Frame Attributes###
+        frameSize = (625, 245)
+        self.SetSizer(self.frameSizer)
+        self.SetSize(frameSize)
+        self.SetMinSize(frameSize)
+        self.SetTitle('Master Flat Maker')
+        self.Centre()
+        self.Show(True)
+
+    def addPathChoice(self, sizer, row, label, btn, textCtrl, message):
+        sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
+        sizer.Add(btn, (row, 5), (1,1), wx.TOP, 7)
+        btn.Bind(wx.EVT_BUTTON, lambda event: self.openDirDialog(event, message, textCtrl))
+
+    def addButtonPair(self, sizer, row, colStart, label, button1, button2): ##defined for neater insertion of control items
+        sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 12) ##border of 12 pixels on the top and left
+        sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
+        sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
+
+    #####Button Press Event Functions#####
+    def openDirDialog(self, event, message, textControl):
+        dlg = wx.DirDialog(self, message = message, style = wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            textControl.Clear()
+            textControl.WriteText(dlg.GetPath())
+        dlg.Destroy()
+
+    def runMasterFlatMaker(self, event):
+        masterFlatMaker(self.flatImagesPathCtrl.GetValue, self.flatDarksPathCtrl.GetValue, 
+                        self.masterFlatPathCtrl.GetValue, self.plotsOn.GetValue)
 
 #### Checks if the dark frames are valid ####
 
