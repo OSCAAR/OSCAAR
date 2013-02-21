@@ -16,7 +16,9 @@ import subprocess
 
 os.chdir(os.pardir)
 os.chdir('Code')
-execfile('oscaar.py')
+if os.getcwd() not in sys.path:
+    sys.path.insert(0, os.getcwd())
+import oscaar
 
 APP_EXIT = 1
 
@@ -138,13 +140,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Ingress':
                     ingArray = inline[1].split(';')[0].split('-')
-                    ingDate = wx.DateTimeFromDMY(int(ingArray[1].strip()), int(ingArray[2].strip())-1, int(ingArray[0].strip()))
+                    ingDate = wx.DateTimeFromDMY(int(ingArray[2].strip()), int(ingArray[1].strip())-1, int(ingArray[0].strip()))
                     self.ingressDate.SetValue(ingDate)
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.ingressTime.SetValue(str(timeString))
                 if inline[0] == 'Egress':
                     egrArray = inline[1].split(';')[0].split('-')
-                    egrDate = wx.DateTimeFromDMY(int(egrArray[1]), int(egrArray[2])-1, int(egrArray[0]))
+                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
                     self.egressDate.SetValue(egrDate)
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.egressTime.SetValue(str(timeString))
@@ -227,8 +229,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-        homeDir()
-        cd('Code')
+        oscaar.homeDir()
+        oscaar.cd('Code')
         global join
         join = None
         global worker
@@ -250,7 +252,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
         init.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
         init.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
-        init.write('Tracking Zoom:' + self.trackZoomTxt.GetValue() + '\n')
+        init.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
         init.write('Init GUI: on')
         init.close()
         init = open('../Code/init.par', 'r').read().splitlines()
@@ -292,7 +294,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split(' ')[0].split('/')
         d = dict((v,k) for k,v in enumerate(calendar.month_abbr))
-        result = str(dateArr[2]) + '-' + str(dateArr[1]) + '-' + str(dateArr[0]) + ';'
+        result = str(dateArr[2]) + '-' + str(dateArr[0]) + '-' + str(dateArr[1]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
 
@@ -454,7 +456,7 @@ class WorkerThread(threading.Thread):
         self.start()
 
     def run(self):
-        homeDir()
+        oscaar.homeDir()
         os.chdir('Code')
         execfile('differentialPhotometry.py')
 

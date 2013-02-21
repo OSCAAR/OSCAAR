@@ -13,6 +13,7 @@ from glob import glob
 from re import split
 import cPickle
 from shutil import copy
+import os
 def paddedStr(num,pad):
     '''Return the number num padded with zero-padding of length pad'''
     strlen = len(str(num))
