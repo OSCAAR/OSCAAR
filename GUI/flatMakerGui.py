@@ -1,5 +1,4 @@
 import wx
-import photPack
 
 class MasterFlatFrame(wx.Frame):
 

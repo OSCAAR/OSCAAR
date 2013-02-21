@@ -38,11 +38,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application') ##provides a way to quit
         menubar.Append(fileMenu, '&File')
         menubar.Append(self.helpMenu, '&Help')
+        menubar.Append(self.oscaarMenu, '&Oscaar')
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
-        self.menuDefaults = fileMenu.Append(-1, 'Set Defaults', 'Set Defaults')
+        self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
         self.Bind(wx.EVT_MENU, self.setDefaults, self.menuDefaults)
-        self.linkToPredictions = fileMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
+        self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.helpItem = self.helpMenu.Append(-1, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpFunc, self.helpItem)
@@ -59,8 +60,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
         self.radioTrackPlotOff = wx.RadioButton(self, label = "Off")
         
-
-
         textCtrlSize = (510,25)
         
         self.darkPathTxt = wx.TextCtrl(self, size = textCtrlSize)
@@ -78,12 +77,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.photPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
         self.photPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.DatePickerCtrl(self)
-        #self.ingressTime = TimeCtrl(parent = self, fmt24hr = True)
         self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
         self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
         self.masterFlatButton = wx.Button(self, -1, 'Flat Maker', size = (90,25))
+        self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
+        self.notesLabel = wx.StaticText(self, label = 'Notes')
+        self.notesLabel.SetFont(self.labelFont)
+    
 
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
@@ -102,12 +104,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
         self.sizer.Add(self.masterFlatButton, (11,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
+        self.sizer.Add(self.notesField, (10, 1), (2,2), wx.ALIGN_CENTER, 7)
+        self.sizer.Add(self.notesLabel, (10, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        
     
         #### Set Default Values Initially (from init.par)####
         init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
-                inline = init[i].split(":")
+                inline = init[i].split(":", 1)
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
@@ -120,25 +125,30 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     if inline[1].split('#')[0].strip() == 'off': 
                         self.photPlotsOn.SetValue(False)
                         self.photPlotsOff.SetValue(True)
+                    else:
+                        self.photPlotsOn.SetValue(True)
+                        self.photPlotsOff.SetValue(False)
                 if inline[0] == 'Plot Tracking':
                     if inline[1].split('#')[0].strip() == 'off': 
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
+                    else:
+                        self.radioTrackPlotOn.SetValue(True)
+                        self.radioTrackPlotOff.SetValue(False)
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Ingress':
                     ingArray = inline[1].split(';')[0].split('-')
-                    ingDate = wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
+                    ingDate = wx.DateTimeFromDMY(int(ingArray[1].strip()), int(ingArray[2].strip())-1, int(ingArray[0].strip()))
                     self.ingressDate.SetValue(ingDate)
-                    timeString = inline[1].split(';')[1] + ':' + inline[2] + ':' + inline[3].split('#')[0].strip()
-                    self.ingressTime.SetValue(timeString)
+                    timeString = inline[1].split(';')[1].split('#')[0].strip()
+                    self.ingressTime.SetValue(str(timeString))
                 if inline[0] == 'Egress':
                     egrArray = inline[1].split(';')[0].split('-')
-                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
+                    egrDate = wx.DateTimeFromDMY(int(egrArray[1]), int(egrArray[2])-1, int(egrArray[0]))
                     self.egressDate.SetValue(egrDate)
-                    timeString = inline[1].split(';')[1] + ':' + inline[2] + ':' + inline[3].split('#')[0].strip()
-                    self.egressTime.SetValue(timeString)
+                    timeString = inline[1].split(';')[1].split('#')[0].strip()
+                    self.egressTime.SetValue(str(timeString))
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
-
         self.run = wx.Button(self, -1, 'Run')
         self.sizer.Add(self.run, (11,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
@@ -217,57 +227,34 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
+        homeDir()
+        cd('Code')
         global join
         join = None
         global worker
         worker = None
-        init = open('../Code/init.par', 'w')
+        if self.notesField.GetValue != 'Enter notes to be saved here':
+            notes = open('../outputs/notes.txt', 'w') ##Not exactly sure where where the notes should go.
+            notes.write(str(self.notesField.GetValue))
         
+        init = open('../Code/init.par', 'w')
         #Write to init.par
-        homeDir()
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
         init.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
         init.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
-        self.checkRB(self.radioTrackingOn, 'Star Tracking: ', init)
-        init.write('Radial Star Width: ' + self.radialStarWidth.GetValue() + '\n')
-        self.checkRB(self.radioTrackPlotOn, 'Trackplot: ', init)
-        init.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
-        self.checkRB(self.radioAperOn, 'Aper: ', init)
-        init.write('CCD Saturation Limit: ' + self.trackZoomTxt.GetValue() + '\n')
-        init.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
-        init.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
-        self.checkRB(self.showPlotsOn, 'Show Plots: ', init)
-        self.checkRB(self.photPlotsOn, 'Perform Differential Photometry: ', init)
-        self.checkRB(self.radioTrackingOn, 'Star Tracking: ', init)
-        init.write('GUI: off\n')
         self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  init)
         self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', init)
+        self.checkRB(self.radioTrackPlotOn, 'Plot Tracking: ', init)
+        self.checkRB(self.photPlotsOn, 'Plot Photometry: ', init)
+        init.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
+        init.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
+        init.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
+        init.write('Tracking Zoom:' + self.trackZoomTxt.GetValue() + '\n')
         init.write('Init GUI: on')
         init.close()
         init = open('../Code/init.par', 'r').read().splitlines()
-        for i in range(0, len(init)):
-            if len(init[i].split()) > 1 and init[i][0] != '#':
-                inline = init[i].split(":")
-                inline[0] = inline[0].strip()
-                if inline[0] == 'Path to Dark Frames': darkLoc = str(inline[1].split('#')[0].strip()) ##Everything after # on a line in init.par is ignored
-                if inline[0] == 'Path to Master-Flat Frame': flatLoc = str(inline[1].split('#')[0].strip())
-                if inline[0] == 'Path to data images':  imagLoc = str(inline[1].split('#')[0].strip())
-                if inline[0] == 'Path to regions file': regsLoc = str(inline[1].split('#')[0].strip())
-                if inline[0] == 'Star Tracking':    track = inline[1].split('#')[0].strip()
-                if inline[0] == 'Aper':  aper = inline[1].split('#')[0].strip()
-                if inline[0] == 'Radius':   aprad = float(inline[1].split('#')[0].strip())
-                if inline[0] == 'CCD Saturation Limit':   satur = float(inline[1].split('#')[0].strip())
-                if inline[0] == 'CCD Gain':    Kccd = float(inline[1].split('#')[0].strip())
-                if inline[0] == 'Show Plots': aperplot = inline[1].split('#')[0].strip()
-                if inline[0] == 'Perform Differential Photometry':    diffonoff = inline[1].split('#')[0].strip()
-                if inline[0] == 'GUI': gui = inline[1].split('#')[0].strip()
-                if inline[0] == 'Trackplot': trackplot = inline[1].split('#')[0].strip()
-                if inline[0] == 'Smoothing Constant': smoothConst = float(inline[1].split('#')[0].strip())
-                if inline[0] == 'Ingress': ingressUt = str(inline[1]) + ':' + str(inline[2]) + ':' + str(inline[3].split('#')[0].strip())
-                if inline[0] == 'Egress': egressUt = str(inline[1]) + ':' + str(inline[2]) + ':' + str(inline[3].split('#')[0].strip()) ##inline is split at colon so these lines are a bit different
-                if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
-        overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
+        #overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
         self.Destroy()
         join = None
         worker = None
@@ -275,7 +262,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if not worker:
             worker = WorkerThread()
         if not join:
-            join = JoinThread()
+            join = JoinThread(worker)
         
         #self.guiOverwcheck(overwcheckDict)
         
@@ -302,10 +289,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             filename.write(text + 'off\n')
 
     #### Converts datePicker and timeCtrl to string form for init.par ####
-    def parseTime(self, date, time, text, filename):  
-        dateArr = str(date).split()
+    def parseTime(self, date, time, text, filename):
+        dateArr = str(self.ingressDate.GetValue()).split(' ')[0].split('/')
         d = dict((v,k) for k,v in enumerate(calendar.month_abbr))
-        result = str(dateArr[3]) + '-' + str(d.get(dateArr[2])) + '-' + str(dateArr[1]) + ';'
+        result = str(dateArr[2]) + '-' + str(dateArr[1]) + '-' + str(dateArr[0]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
 
@@ -314,36 +301,43 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init = open('../Code/init.par', 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
-                inline = init[i].split(":")
+                inline = init[i].split(":", 1)
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to Flat Frames':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Star Tracking':    
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioTrackingOn.SetValue(False)
-                        self.radioTrackingOff.SetValue(True)
-                if inline[0] == 'Aper':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioAperOn.SetValue(False)
-                        self.radioAperOff.SetValue(True)
                 if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'CCD Saturation Limit':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Tracking Zoom':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Show Plots':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.showPlotsOn.SetValue(False)
-                        self.showPlotsOff.SetValue(True)
-                if inline[0] == 'Perform Differential Photometry': 
+                if inline[0] == 'Plot Photometry': 
                     if inline[1].split('#')[0].strip() == 'off': 
                         self.photPlotsOn.SetValue(False)
                         self.photPlotsOff.SetValue(True)
-                if inline[0] == 'Trackplot':
+                    else:
+                        self.photPlotsOn.SetValue(True)
+                        self.photPlotsOff.SetValue(False)
+                if inline[0] == 'Plot Tracking':
                     if inline[1].split('#')[0].strip() == 'off': 
                         self.radioTrackPlotOn.SetValue(False)
                         self.radioTrackPlotOff.SetValue(True)
+                    else:
+                        self.radioTrackPlotOn.SetValue(True)
+                        self.radioTrackPlotOff.SetValue(False)
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Ingress':
+                    ingArray = inline[1].split(';')[0].split('-')
+                    ingDate = wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
+                    self.ingressDate.SetValue(ingDate)
+                    timeString = inline[1].split(';')[1].split('#')[0].strip()
+                    self.ingressTime.SetValue(timeString)
+                if inline[0] == 'Egress':
+                    egrArray = inline[1].split(';')[0].split('-')
+                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
+                    self.egressDate.SetValue(egrDate)
+                    timeString = inline[1].split(';')[1].split('#')[0].strip()
+                    self.egressTime.SetValue(timeString)
+                if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
 
     #####Opens the webpage for transit time predictions from Czech Astronomical Society#####
     def predictions(self, event):
@@ -366,8 +360,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 worker = WorkerThread()
             if not join:
                 join = JoinThread(worker)
-
-
 
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -463,7 +455,7 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         homeDir()
-        cd('Code')
+        os.chdir('Code')
         execfile('differentialPhotometry.py')
 
 class JoinThread(threading.Thread):
@@ -568,9 +560,6 @@ class GraphFrame(wx.Frame):
         self.bitmap = wx.BitmapFromImage(self.graph)
         self.staticBitmap.SetBitmap(self.bitmap)
         
-
-
-
 app = wx.App(False)
 #### Runs the GUI ####
 OscaarFrame(None)
