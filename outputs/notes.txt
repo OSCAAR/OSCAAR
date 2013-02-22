@@ -1,1 +1,1 @@
-<bound method TextCtrl.GetValue of <wx._controls.TextCtrl; proxy of <Swig Object of type 'wxTextCtrl *' at 0x49b0798> >>
+<bound method TextCtrl.GetValue of <wx._controls.TextCtrl; proxy of <Swig Object of type 'wxTextCtrl *' at 0x496d868> >>

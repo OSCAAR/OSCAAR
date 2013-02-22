@@ -37,18 +37,22 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         fileMenu = wx.Menu()
         self.oscaarMenu = wx.Menu()
         self.helpMenu = wx.Menu()
-        menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application') ##provides a way to quit
+        menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit\tCtrl+Q', 'Quit application') ##provides a way to quit
         menubar.Append(fileMenu, '&File')
         menubar.Append(self.helpMenu, '&Help')
         menubar.Append(self.oscaarMenu, '&Oscaar')
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
         self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
-        self.Bind(wx.EVT_MENU, self.setDefaults, self.menuDefaults)
+        self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, '../Code/init.par'), self.menuDefaults)
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
-        self.helpItem = self.helpMenu.Append(-1, 'Help', 'Help')
+        self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpFunc, self.helpItem)
+        self.save = fileMenu.Append(wx.ID_SAVE, '&Save\tCtrl+S', 'Save')
+        self.Bind(wx.EVT_MENU, self.saveParFile, self.save)
+        self.load = fileMenu.Append(wx.ID_OPEN, 'Load', 'Load')
+        self.Bind(wx.EVT_MENU, self.loadFunction, self.load)
         
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
@@ -109,48 +113,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer.Add(self.notesField, (10, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (10, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         
-    
-        #### Set Default Values Initially (from init.par)####
-        init = open('../Code/init.par', 'r').read().splitlines()
-        for i in range(0, len(init)):
-            if len(init[i].split()) > 1 and init[i][0] != '#':
-                inline = init[i].split(":", 1)
-                inline[0] = inline[0].strip()
-                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Tracking Zoom':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Plot Photometry': 
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.photPlotsOn.SetValue(False)
-                        self.photPlotsOff.SetValue(True)
-                    else:
-                        self.photPlotsOn.SetValue(True)
-                        self.photPlotsOff.SetValue(False)
-                if inline[0] == 'Plot Tracking':
-                    if inline[1].split('#')[0].strip() == 'off': 
-                        self.radioTrackPlotOn.SetValue(False)
-                        self.radioTrackPlotOff.SetValue(True)
-                    else:
-                        self.radioTrackPlotOn.SetValue(True)
-                        self.radioTrackPlotOff.SetValue(False)
-                if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Ingress':
-                    ingArray = inline[1].split(';')[0].split('-')
-                    ingDate = wx.DateTimeFromDMY(int(ingArray[2].strip()), int(ingArray[1].strip())-1, int(ingArray[0].strip()))
-                    self.ingressDate.SetValue(ingDate)
-                    timeString = inline[1].split(';')[1].split('#')[0].strip()
-                    self.ingressTime.SetValue(str(timeString))
-                if inline[0] == 'Egress':
-                    egrArray = inline[1].split(';')[0].split('-')
-                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
-                    self.egressDate.SetValue(egrDate)
-                    timeString = inline[1].split(';')[1].split('#')[0].strip()
-                    self.egressTime.SetValue(str(timeString))
-                if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
+        self.setDefaults(None, '../Code/init.par')
         self.run = wx.Button(self, -1, 'Run')
         self.sizer.Add(self.run, (11,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
@@ -235,9 +198,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         join = None
         global worker
         worker = None
-        if self.notesField.GetValue != 'Enter notes to be saved here':
+        if self.notesField.GetValue() != 'Enter notes to be saved here':
             notes = open('../outputs/notes.txt', 'w') ##Not exactly sure where where the notes should go.
-            notes.write(str(self.notesField.GetValue))
+            notes.write(str(self.notesField.GetValue()))
         
         init = open('../Code/init.par', 'w')
         #Write to init.par
@@ -261,6 +224,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         join = None
         worker = None
         global loading
+        loading = LoadingFrame(None, -1)
         if not worker:
             worker = WorkerThread()
         if not join:
@@ -293,14 +257,38 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Converts datePicker and timeCtrl to string form for init.par ####
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split(' ')[0].split('/')
-        d = dict((v,k) for k,v in enumerate(calendar.month_abbr))
         result = str(dateArr[2]) + '-' + str(dateArr[0]) + '-' + str(dateArr[1]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
+        
+    def saveParFile(self, event):
+        dlg = wx.FileDialog(self, message = 'choose a location to save your .par file', style = wx.FD_SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            parFile = open(dlg.GetPath(), 'w')
+            parFile.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
+            parFile.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
+            parFile.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
+            parFile.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
+            self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  parFile)
+            self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', parFile)
+            self.checkRB(self.radioTrackPlotOn, 'Plot Tracking: ', parFile)
+            self.checkRB(self.photPlotsOn, 'Plot Photometry: ', parFile)
+            parFile.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
+            parFile.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
+            parFile.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
+            parFile.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
+            parFile.write('Init GUI: on')
+            parFile.close()
+    
+    def loadFunction(self, event):
+        dlg = wx.FileDialog(self, message = 'choose a file to load', style = wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.setDefaults(None, dlg.GetPath())
+            
 
     ####Sets default values to the values currently written to init.par####
-    def setDefaults(self, event):
-        init = open('../Code/init.par', 'r').read().splitlines()
+    def setDefaults(self, event, filename):
+        init = open(filename, 'r').read().splitlines()
         for i in range(0, len(init)):
             if len(init[i].split()) > 1 and init[i][0] != '#':
                 inline = init[i].split(":", 1)
@@ -471,7 +459,7 @@ class JoinThread(threading.Thread):
         wx.CallAfter(doneThreading)
 
 def doneThreading():
-    GraphFrame(None)
+    #GraphFrame(None)
     loading.Close()
 
 #### Defines and organizes the Overwrite checking window ####
