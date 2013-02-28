@@ -3,6 +3,8 @@ import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
 from time import time
+import os
+import datetime
 
 ## Inputs to paths, to be replaced with init.par parser
 #regsPath = '../Extras/Examples/20120616/stars2.reg'
@@ -17,8 +19,12 @@ from time import time
 #trackingZoom = 10
 #ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
 #egress = oscaar.ut2jd('2012-06-17;05:29:00')
-outputPath = '../outputs/oscaarDataBase'
 
+oscaar.homeDir()
+os.mkdir('outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__'))
+outputPath = '../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__')
+
+oscaar.cd('Code')
 ###Parses init for settings###
 init = open('init.par', 'r').read().splitlines()
 for line in init:
