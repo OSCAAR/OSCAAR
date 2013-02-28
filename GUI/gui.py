@@ -359,24 +359,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def predictions(self, event):
         webbrowser.open_new_tab("http://var2.astro.cz/ETD/predictions.php") ##Change to documentation
 
-    def guiOverwcheck(self,fileDict):
-        filesOverwritten = fileDict.keys()
-        files = glob.glob('*')
-        index = 0
-        join = None
-        worker = None
-        while (filesOverwritten[index] not in files or fileDict.get(filesOverwritten[index]) != 'on') and index < len(filesOverwritten)-1:
-            index = index + 1
-        if index < len(filesOverwritten) - 1:
-            Overwcheck(parent = None, fileDict = fileDict, index = index)
-        else:
-            global loading
-            loading = LoadingFrame(None, -1)
-            if not worker:
-                worker = WorkerThread()
-            if not join:
-                join = JoinThread(worker)
-
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(MasterFlatFrame, self).__init__(*args, **kwargs)
@@ -491,48 +473,6 @@ def doneThreading():
     #GraphFrame(None)
     loading.Close()
 
-#### Defines and organizes the Overwrite checking window ####
-
-class Overwcheck(wx.Frame):
-    def __init__(self, fileDict, index,  *args, **kwargs):
-        fileList = fileDict.keys()
-        super(Overwcheck, self).__init__(*args, **kwargs)
-        sizer = wx.GridBagSizer(4,4)
-        sizer.Add(wx.StaticText(self, -1, 'Would you like to overwrite ' + fileList[index] + '?'), (0,2), (1,4), wx.TOP, 13)
-        yesButton = wx.Button(self, -1, 'Yes')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.yesCheck(event, fileDict, index), yesButton)
-        sizer.Add(yesButton, (2,2))
-        noButton = wx.Button(self, -1, 'No')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.noCheck(event, fileDict, index), noButton)
-        sizer.Add(noButton, (2,4))
-        self.SetSizer(sizer)
-        self.Centre()
-        self.SetSize((305, 100))
-        self.Show(True)
-        
-    def yesCheck(self, event, fileDict, filenum):
-        worker = None
-        join = None
-        fileList = fileDict.keys()
-        os.system('rm -r ' +  fileList[filenum])
-        self.Close()
-        files = glob.glob('*')
-        index = filenum + 1
-        if index < len(fileList):
-            while (fileList[index] not in files or fileDict.get(fileList[index]) != 'on') and index < len(fileList)-1:
-                index = index + 1
-            Overwcheck(parent = None, fileDict = fileDict, index = index)
-        else:
-            global loading
-            loading = LoadingFrame(None, -1)
-            if not worker:
-                worker = WorkerThread()
-            if not join:
-                join = JoinThread(worker)
-                
-    def noCheck(self, event, fileDict, filenum):
-        self.Destroy()
-        OscaarFrame(None)
 
 #### Shows the graphs and outputs after OSCAAR completes ####
 
