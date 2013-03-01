@@ -193,7 +193,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
         oscaar.homeDir()
-        oscaar.cd('Code')
+        oscaar.cd('../Code')
         global join
         join = None
         global worker
@@ -257,6 +257,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Converts datePicker and timeCtrl to string form for init.par ####
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split(' ')[0].split('/')
+        print dateArr
         result = str(dateArr[2]) + '-' + str(dateArr[0]) + '-' + str(dateArr[1]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
