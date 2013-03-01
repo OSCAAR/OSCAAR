@@ -107,8 +107,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addTextCtrl(7,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
         self.addTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
         self.addTextCtrl(9,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
-        self.addDateCtrl(8,4, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress (UT):       '))
-        self.addDateCtrl(9,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress (UT):       '))
+        self.addDateCtrl(8,4, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress, UT (YYYY/MM/DD):       '))
+        self.addDateCtrl(9,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress, UT (YYYY/MM/DD):       '))
         self.sizer.Add(self.ds9Button,(11,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
         self.sizer.Add(self.masterFlatButton, (11,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
@@ -286,8 +286,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Converts datePicker and timeCtrl to string form for init.par ####
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split('/')
-        print self.ingressDate.GetValue(), dateArr
-        result = str(dateArr[0]) + '-' + str(dateArr[1]) + '-' + str(dateArr[2]) + ';'
+        result = str(dateArr[1]) + '-' + str(dateArr[2]) + '-' + str(dateArr[0]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
         
