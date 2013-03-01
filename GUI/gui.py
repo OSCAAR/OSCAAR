@@ -286,7 +286,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Converts datePicker and timeCtrl to string form for init.par ####
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split('/')
-        result = '-'.join(dateArr)+';'#str(dateArr[1]) + '-' + str(dateArr[2]) + '-' + str(dateArr[0]) + ';'
+        result = str(dateArr[0]).strip() + '-' + str(dateArr[1]).strip() + '-' + str(dateArr[2]).strip() + ';'
         result += str(time)
         filename.write(text + result + '\n')
         
