@@ -88,12 +88,15 @@ def load(inputPath):
     inputFile.close()
     return data
     
+import matplotlib
 def plottingSettings(trackPlots,photPlots):
     #global fig, subplotsDimensions, photSubplotsOffset
-    if trackPlots or photPlots: plt.ion()
+    #if trackPlots or photPlots: plt.ion()
     if trackPlots and photPlots:
         fig = plt.figure(num=None, figsize=(18, 3), facecolor='w',edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
+        matplotlib.interactive(True)
+
         subplotsDimensions = 140
         photSubplotsOffset = 3
         fig.canvas.set_window_title('oscaar2.0') 
@@ -104,13 +107,16 @@ def plottingSettings(trackPlots,photPlots):
         photSubplotsOffset = 0
         fig.canvas.set_window_title('oscaar2.0') 
     elif trackPlots and not photPlots:
-        fig = plt.figure(num=None, figsize=(14, 4), facecolor='w',edgecolor='k')
+        print 'ends next line'
+        fig = plt.figure()#num=None, figsize=(14, 4), facecolor='w',edgecolor='k')
+        print 'this far'
         fig.subplots_adjust(wspace = 0.5)
         subplotsDimensions = 130
         photSubplotsOffset = 0
         fig.canvas.set_window_title('oscaar2.0') 
     else: 
         fig = plt.figure()
-        subplotsDimensions = 140
-    return [fig,subplotsDimensions]
+        subplotsDimensions = 110
+        photSubplotsOffset = 0
+    return [fig,subplotsDimensions,photSubplotsOffset]
 

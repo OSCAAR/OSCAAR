@@ -49,7 +49,7 @@ def quadraticFit(derivative,ext):
         extremum = indExtrema
     return extremum
 
-def trackSmooth(image, plottingThings, est_x, est_y, smoothingConst, preCropped=False, zoom=20.0,plots=False):
+def trackSmooth(image, est_x, est_y, smoothingConst, plottingThings, preCropped=False, zoom=20.0,plots=False):
     '''Method for tracking stellar centroids. 
     
        INPUTS: image - Numpy array image
@@ -94,7 +94,7 @@ def trackSmooth(image, plottingThings, est_x, est_y, smoothingConst, preCropped=
         np.e seems to give nice smoothing results if frame is already cut out, you can 
         set preCropped to True, so the script won't cut a frame out again. '''
     try:
-        [fig,subplotsDimensions] = plottingThings
+        [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
         if preCropped:
             zoom = image.shape[0]/2
             est_x, est_y = 0,0
@@ -143,7 +143,8 @@ def trackSmooth(image, plottingThings, est_x, est_y, smoothingConst, preCropped=
         yCenter = est_y-zoom+axisAcenter
         
         if plots:
-            plt.clf()
+            #plt.clf()
+            #plt.clf(fig)
             def format_coord(x, y):
                 '''Function to also give data value on mouse over with imshow.'''
                 col = int(x+0.5)
@@ -191,7 +192,7 @@ def trackSmooth(image, plottingThings, est_x, est_y, smoothingConst, preCropped=
             ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=2)
             ax3.set_xlabel('Y')
             ax3.set_ylabel('Counts')
-            plt.draw()
+            #plt.draw()
         return [xCenter,yCenter,averageRadius, False]
     except Exception:    ## If an error occurs:
         print "An error has occured in oscaar.trackSmooth(), \n\treturning inital (x,y) estimate"

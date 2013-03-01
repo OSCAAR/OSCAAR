@@ -1,5 +1,5 @@
 import oscaar
-#from oscaar import oscaar.astrometry
+from oscaar import astrometry
 from oscaar import photometry
 import pyfits
 import numpy as np
@@ -54,7 +54,7 @@ allStars = data.getDict()               ## Store initialized dictionary
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(darksPath)
 masterFlat = pyfits.open(flatPath)[0].data
-
+print 'plottingThings'
 plottingThings = oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
 print plottingThings
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
@@ -70,11 +70,11 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
             est_y = allStars[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
 
         ## Track and store the stellar centroid
-        x, y, radius, trackFlag = oscaar.astrometry.trackSmooth(image, plottingThings, est_x, est_y, smoothConst, zoom=trackingZoom, plots=trackPlots)
+        x, y, radius, trackFlag = astrometry.trackSmooth(image, est_x, est_y, smoothConst, plottingThings, zoom=trackingZoom, plots=trackPlots)
         data.storeCentroid(star,expNumber,x,y)
 
         ## Track and store the flux and uncertainty
-        flux, error, photFlag = photometry.phot(image, x, y, apertureRadius, ccdGain = ccdGain, plots=photPlots)
+        flux, error, photFlag = photometry.phot(image, x, y, apertureRadius, plottingThings, ccdGain = ccdGain, plots=photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
 
@@ -98,6 +98,7 @@ print np.mean(photonNoise[data.outOfTransit()])
 
 #data.save(outputPath)
 oscaar.save(data,outputPath)
+print 'plotting'
 plt.plot(times,lightCurve,'k.')
 plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
 plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)
@@ -107,6 +108,7 @@ plt.axvline(ymin=0,ymax=1,x=egress,color='k',ls=':')
 plt.title('Light Curve')
 plt.xlabel('Time (JD)')
 plt.ylabel('Relative Flux')
+print 'showing'
 plt.show()
 
 #for key in data.getKeys():

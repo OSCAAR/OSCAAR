@@ -20,7 +20,7 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
   
-def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, ccdGain=1, plots=False):
+def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRadiusFactor=1.5, ccdGain=1, plots=False):
     '''Method for aperture photometry. 
     
        INPUTS: image - numpy array image
@@ -55,6 +55,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, annulusRadiusFactor=1.5, c
         Core developer: Brett Morris
     '''
     try:
+        [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
         annulusRadiusInner = apertureRadius 
         annulusRadiusOuter = annulusRadiusFactor*apertureRadius
 
