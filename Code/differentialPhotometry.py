@@ -56,7 +56,8 @@ meanDarkFrame = oscaar.meanDarkFrame(darksPath)
 masterFlat = pyfits.open(flatPath)[0].data
 print 'plottingThings'
 plottingThings = oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
-print plottingThings
+print 'done plottingThings'
+
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file

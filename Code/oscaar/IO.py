@@ -87,16 +87,17 @@ def load(inputPath):
     data = cPickle.load(inputFile)
     inputFile.close()
     return data
-    
-import matplotlib
+
 def plottingSettings(trackPlots,photPlots):
+    print 'start'
     #global fig, subplotsDimensions, photSubplotsOffset
     #if trackPlots or photPlots: plt.ion()
     if trackPlots and photPlots:
+        print 'init fig'
         fig = plt.figure(num=None, figsize=(18, 3), facecolor='w',edgecolor='k')
+        print 'adjust fig'
         fig.subplots_adjust(wspace = 0.5)
-        matplotlib.interactive(True)
-
+        #matplotlib.interactive(True)
         subplotsDimensions = 140
         photSubplotsOffset = 3
         fig.canvas.set_window_title('oscaar2.0') 

@@ -192,7 +192,7 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plottingThings, preCropped=
             ax3.axvline(x=axisAcenter,ymin=0,ymax=1,color='b',linewidth=2)
             ax3.set_xlabel('Y')
             ax3.set_ylabel('Counts')
-            #plt.draw()
+            plt.draw()
         return [xCenter,yCenter,averageRadius, False]
     except Exception:    ## If an error occurs:
         print "An error has occured in oscaar.trackSmooth(), \n\treturning inital (x,y) estimate"
