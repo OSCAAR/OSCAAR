@@ -82,9 +82,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ccdGainTxt = wx.TextCtrl(self, value = '0')
         self.photPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
         self.photPlotsOff = wx.RadioButton(self, label = 'Off')
-        self.ingressDate = wx.DatePickerCtrl(self)
+        #self.ingressDate = wx.DatePickerCtrl(self)
+        self.ingressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
         self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
-        self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
+        #self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
+        self.egressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
+
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
         self.masterFlatButton = wx.Button(self, -1, 'Flat Maker', size = (90,25))
@@ -282,9 +285,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #### Converts datePicker and timeCtrl to string form for init.par ####
     def parseTime(self, date, time, text, filename):
-        dateArr = str(self.ingressDate.GetValue()).split(' ')[0].split('/')
-        print dateArr
-        result = str(dateArr[2]) + '-' + str(dateArr[0]) + '-' + str(dateArr[1]) + ';'
+        dateArr = str(self.ingressDate.GetValue()).split('/')
+        print self.ingressDate.GetValue(), dateArr
+        result = str(dateArr[0]) + '-' + str(dateArr[1]) + '-' + str(dateArr[2]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
         
@@ -344,13 +347,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Ingress':
                     ingArray = inline[1].split(';')[0].split('-')
-                    ingDate = wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
+                    ingDate = '/'.join(map(str,[ingArray[1],ingArray[2],ingArray[0]]))#wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
                     self.ingressDate.SetValue(ingDate)
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.ingressTime.SetValue(timeString)
                 if inline[0] == 'Egress':
                     egrArray = inline[1].split(';')[0].split('-')
-                    egrDate = wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
+                    egrDate = '/'.join(map(str,[egrArray[1],egrArray[2],egrArray[0]]))#wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
                     self.egressDate.SetValue(egrDate)
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.egressTime.SetValue(timeString)
@@ -457,7 +460,8 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         oscaar.homeDir()
-        os.chdir('Code')
+        #print os.getcwd()
+        #os.chdir('Code')
         execfile('differentialPhotometry.py')
 
 class JoinThread(threading.Thread):
