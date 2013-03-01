@@ -109,5 +109,8 @@ def plottingSettings(trackPlots,photPlots):
         subplotsDimensions = 130
         photSubplotsOffset = 0
         fig.canvas.set_window_title('oscaar2.0') 
-    return fig,subplotsDimensions
+    else: 
+        fig = plt.figure()
+        subplotsDimensions = 140
+    return [fig,subplotsDimensions]
 

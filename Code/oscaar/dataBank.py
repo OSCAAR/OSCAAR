@@ -14,8 +14,9 @@ from re import split
 import cPickle
 from shutil import copy
 import os
-import IO
-import other
+from IO import *
+from other import *
+from mathMethods import *
 class dataBank:
     '''
         Methods for storing information from each star in Python dictionaries.
@@ -50,17 +51,17 @@ class dataBank:
         self.ingress = ingress
         self.egress = egress
         self.allStarsDict = {}
-        init_x_list,init_y_list = IO.parseRegionsFile(regsPath)
+        init_x_list,init_y_list = parseRegionsFile(regsPath)
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
         for i in range(0,len(init_x_list)):
-            self.allStarsDict[other.paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
+            self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
                             'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
                             'scaledFlux':np.copy(zeroArray), 'chisq':0}
-            self.allStarsDict[other.paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
-            self.allStarsDict[other.paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
-            self.keys.append(other.paddedStr(i,3))    
+            self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
+            self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
+            self.keys.append(paddedStr(i,3))    
         
     def getDict(self):
         '''Return master dictionary of all star data'''
