@@ -1,4 +1,6 @@
 import oscaar
+#from oscaar import oscaar.astrometry
+from oscaar import photometry
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
@@ -47,7 +49,7 @@ allStars = data.getDict()               ## Store initialized dictionary
 meanDarkFrame = oscaar.meanDarkFrame(darksPath)
 masterFlat = pyfits.open(flatPath)[0].data
 
-oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
+plottingThings = oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
@@ -61,11 +63,11 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
             est_y = allStars[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
 
         ## Track and store the stellar centroid
-        x, y, radius, trackFlag = oscaar.trackSmooth(image, est_x, est_y, smoothConst, zoom=trackingZoom, plots=trackPlots)
+        x, y, radius, trackFlag = oscaar.astrometry.trackSmooth(image, plottingThings, est_x, est_y, smoothConst, zoom=trackingZoom, plots=trackPlots)
         data.storeCentroid(star,expNumber,x,y)
 
         ## Track and store the flux and uncertainty
-        flux, error, photFlag = oscaar.phot(image, x, y, apertureRadius, ccdGain = ccdGain, plots=photPlots)
+        flux, error, photFlag = photometry.phot(image, x, y, apertureRadius, ccdGain = ccdGain, plots=photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
 
