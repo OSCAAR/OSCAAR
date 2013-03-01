@@ -182,7 +182,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def openDS9(self, event):
         ds9 = os.pardir + '/Extras/ds9'
         ds9Loc = ds9 + '/' + sys.platform + '/ds9'
-        print(ds9Loc)
+        #print(ds9Loc)
         regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
         
@@ -286,7 +286,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Converts datePicker and timeCtrl to string form for init.par ####
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split('/')
-        result = str(dateArr[1]) + '-' + str(dateArr[2]) + '-' + str(dateArr[0]) + ';'
+        result = '-'.join(dateArr)+';'#str(dateArr[1]) + '-' + str(dateArr[2]) + '-' + str(dateArr[0]) + ';'
         result += str(time)
         filename.write(text + result + '\n')
         
@@ -346,13 +346,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Smoothing Constant': self.smoothingConstTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Ingress':
                     ingArray = inline[1].split(';')[0].split('-')
-                    ingDate = '/'.join(map(str,[ingArray[1],ingArray[2],ingArray[0]]))#wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
+                    ingDate = '/'.join(map(str,ingArray))#[ingArray[1],ingArray[2],ingArray[0]]))#wx.DateTimeFromDMY(int(ingArray[2]), int(ingArray[1])-1, int(ingArray[0]))
                     self.ingressDate.SetValue(ingDate)
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.ingressTime.SetValue(timeString)
                 if inline[0] == 'Egress':
                     egrArray = inline[1].split(';')[0].split('-')
-                    egrDate = '/'.join(map(str,[egrArray[1],egrArray[2],egrArray[0]]))#wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
+                    egrDate = '/'.join(map(str,ingArray))#[egrArray[1],egrArray[2],egrArray[0]]))#wx.DateTimeFromDMY(int(egrArray[2]), int(egrArray[1])-1, int(egrArray[0]))
                     self.egressDate.SetValue(egrDate)
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.egressTime.SetValue(timeString)
