@@ -14,6 +14,7 @@ from re import split
 import cPickle
 from shutil import copy
 import os
+import sys
 def paddedStr(num,pad):
     '''Return the number num padded with zero-padding of length pad'''
     strlen = len(str(num))
@@ -64,8 +65,11 @@ def cp(a, b):
     
 def homeDir():
     """Set the current directory to oscaar's home directory"""
-    if 'OSCAAR' in os.getcwd().split('\\'):
-        while os.getcwd().split('\\')[len(os.getcwd().split('\\'))-1] != 'OSCAAR':
+    slash = '/'
+    if sys.platform.startswith('win32'):
+        slash = '\\'
+    if 'OSCAAR' in os.getcwd().split(slash):
+        while os.getcwd().split(slash)[len(os.getcwd().split(slash))-1] != 'OSCAAR':
             os.chdir(os.pardir)
 
 def overWriteCheck(filename, checkfiles, varcheck):

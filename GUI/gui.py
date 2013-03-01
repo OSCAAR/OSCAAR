@@ -49,7 +49,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpFunc, self.helpItem)
-        self.save = fileMenu.Append(wx.ID_SAVE, '&Save\tCtrl+S', 'Save')
+        self.save = fileMenu.Append(wx.ID_SAVE, '&Save Settings\tCtrl+S', 'Save')
         self.Bind(wx.EVT_MENU, self.saveParFile, self.save)
         self.load = fileMenu.Append(wx.ID_OPEN, 'Load', 'Load')
         self.Bind(wx.EVT_MENU, self.loadFunction, self.load)
@@ -59,7 +59,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.SetBackgroundColour(wx.Colour(233,233,233))
         self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         
         #### CONTROL BUTTON DECLARATIONS ####
@@ -188,7 +188,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens the webpage for the documentation when help is pressed#####
     def helpFunc(self, event):
-        webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR/") ##Change to documentation
+        oscaar.homeDir()
+        oscaar.cd('Docs')
+        if os.name == 'posix':
+            os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
+        elif os.name == 'nt':
+            os.startfile('OscaarDocumentation-20110917.pdf')
+        #webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR/") ##Change to documentation
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
@@ -220,32 +226,52 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.close()
         init = open('../Code/init.par', 'r').read().splitlines()
         #overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
-        self.Destroy()
-        join = None
-        worker = None
-        global loading
-        loading = LoadingFrame(None, -1)
-        if not worker:
-            worker = WorkerThread()
-        if not join:
-            join = JoinThread(worker)
+        if self.validityCheck():
+            self.Destroy()
+            join = None
+            worker = None
+            global loading
+            loading = LoadingFrame(None, -1)
+            if not worker:
+               worker = WorkerThread()
+            if not join:
+                join = JoinThread(worker)
         
         #self.guiOverwcheck(overwcheckDict)
         
     ####NOT YET IMPLEMENTED Checks that the filenames entered are valid####
     def validityCheck(self):
-        darkFrames = glob.glob(darkPathTxt.GetValue())
-        imageFiles = glob.glob(imagPathTxt.GetValue())
-        regionsFile = glob.glob(regPathTxt.GetValue())
-        flatFrames = glob.glob(flatPathTxt.GetValue())
-        if not darkFrames:
-            InvalidDarks(None)
-        containsFit = False
-        for dark in darkFrames:
-           if str(dark).endswith('.fit') or str(dark).endswith('.fits'):
-               containsFit = True
-        if not containsFit:
-            InvalidDarks(None)                
+        darkFrames = glob.glob(self.darkPathTxt.GetValue())
+        imageFiles = glob.glob(self.imagPathTxt.GetValue())
+        regionsFile = glob.glob(self.regPathTxt.GetValue())
+        flatFrames = glob.glob(self.flatPathTxt.GetValue())
+        for i in flatFrames:
+            print str(i).endswith('.fits')
+        invalidsString = ""
+        commaNeeded = False
+        if not self.containsFit(darkFrames):
+            invalidsString += "Dark Frames"
+            commaNeeded = True
+        if not self.containsFit(imageFiles):
+            if commaNeeded:
+                invalidsString += ", "
+            invalidsString += "Image Files"
+            commaNeeded = True
+        if not self.containsFit(flatFrames):
+            if commaNeeded:
+                invalidsString += ", "
+            invalidsString += "Flat Frames"
+        if invalidsString == "":
+            return True
+        else:
+            InvalidPath(invalidsString, None, -1)
+        
+             
+    def containsFit(self, ary):
+        for i in ary:
+            if str(i).endswith('.fit') or str(i).endswith('.fits'):
+                return True
+        return False
 
     ##### Used to set radiobutton values to init more easily #####
     def checkRB(self, button, text, filename):
@@ -334,24 +360,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def predictions(self, event):
         webbrowser.open_new_tab("http://var2.astro.cz/ETD/predictions.php") ##Change to documentation
 
-    def guiOverwcheck(self,fileDict):
-        filesOverwritten = fileDict.keys()
-        files = glob.glob('*')
-        index = 0
-        join = None
-        worker = None
-        while (filesOverwritten[index] not in files or fileDict.get(filesOverwritten[index]) != 'on') and index < len(filesOverwritten)-1:
-            index = index + 1
-        if index < len(filesOverwritten) - 1:
-            Overwcheck(parent = None, fileDict = fileDict, index = index)
-        else:
-            global loading
-            loading = LoadingFrame(None, -1)
-            if not worker:
-                worker = WorkerThread()
-            if not join:
-                join = JoinThread(worker)
-
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(MasterFlatFrame, self).__init__(*args, **kwargs)
@@ -419,9 +427,12 @@ class MasterFlatFrame(wx.Frame):
 
 #### Checks if the dark frames are valid ####
 
-class InvalidDarks(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(Overwcheck, self).__init__(*args, **kwargs)
+class InvalidPath(wx.Frame):
+    def __init__(self, path, parent, id):
+        wx.Frame.__init__(self, parent, id, 'Check Path names')
+        self.SetSize((250,100))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.paths = wx.StaticText(self, -1, "The following paths are invalid: " + path)
         self.Centre()
         self.Show()
 
@@ -463,48 +474,6 @@ def doneThreading():
     #GraphFrame(None)
     loading.Close()
 
-#### Defines and organizes the Overwrite checking window ####
-
-class Overwcheck(wx.Frame):
-    def __init__(self, fileDict, index,  *args, **kwargs):
-        fileList = fileDict.keys()
-        super(Overwcheck, self).__init__(*args, **kwargs)
-        sizer = wx.GridBagSizer(4,4)
-        sizer.Add(wx.StaticText(self, -1, 'Would you like to overwrite ' + fileList[index] + '?'), (0,2), (1,4), wx.TOP, 13)
-        yesButton = wx.Button(self, -1, 'Yes')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.yesCheck(event, fileDict, index), yesButton)
-        sizer.Add(yesButton, (2,2))
-        noButton = wx.Button(self, -1, 'No')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.noCheck(event, fileDict, index), noButton)
-        sizer.Add(noButton, (2,4))
-        self.SetSizer(sizer)
-        self.Centre()
-        self.SetSize((305, 100))
-        self.Show(True)
-        
-    def yesCheck(self, event, fileDict, filenum):
-        worker = None
-        join = None
-        fileList = fileDict.keys()
-        os.system('rm -r ' +  fileList[filenum])
-        self.Close()
-        files = glob.glob('*')
-        index = filenum + 1
-        if index < len(fileList):
-            while (fileList[index] not in files or fileDict.get(fileList[index]) != 'on') and index < len(fileList)-1:
-                index = index + 1
-            Overwcheck(parent = None, fileDict = fileDict, index = index)
-        else:
-            global loading
-            loading = LoadingFrame(None, -1)
-            if not worker:
-                worker = WorkerThread()
-            if not join:
-                join = JoinThread(worker)
-                
-    def noCheck(self, event, fileDict, filenum):
-        self.Destroy()
-        OscaarFrame(None)
 
 #### Shows the graphs and outputs after OSCAAR completes ####
 
