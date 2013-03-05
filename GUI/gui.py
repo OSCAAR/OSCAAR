@@ -202,9 +202,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
         oscaar.homeDir()
-        oscaar.cd('../Code')
-        global join
-        join = None
+        oscaar.cd('Code')
         global worker
         worker = None
         if self.notesField.GetValue() != 'Enter notes to be saved here':
@@ -231,14 +229,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
         if self.validityCheck():
             self.Destroy()
-            join = None
-            worker = None
-            global loading
-            loading = LoadingFrame(None, -1)
             if not worker:
                worker = WorkerThread()
-            if not join:
-                join = JoinThread(worker)
+
         
         #self.guiOverwcheck(overwcheckDict)
         
@@ -460,22 +453,22 @@ class WorkerThread(threading.Thread):
     def run(self):
         oscaar.homeDir()
         #print os.getcwd()
-        #os.chdir('Code')
+        os.chdir('Code')
         execfile('differentialPhotometry.py')
 
-class JoinThread(threading.Thread):
-    def __init__(self, toJoin):
-        threading.Thread.__init__(self)
-        self.toJoin = toJoin
-        self.start()
+#class JoinThread(threading.Thread):
+#    def __init__(self, toJoin):
+#        threading.Thread.__init__(self)
+#        self.toJoin = toJoin
+#        self.start()
+#
+#    def run(self):
+#        self.toJoin.join()
+#        wx.CallAfter(doneThreading)
 
-    def run(self):
-        self.toJoin.join()
-        wx.CallAfter(doneThreading)
-
-def doneThreading():
+#def doneThreading():
     #GraphFrame(None)
-    loading.Close()
+#    loading.Close()
 
 
 #### Shows the graphs and outputs after OSCAAR completes ####

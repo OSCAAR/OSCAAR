@@ -22,9 +22,11 @@ import datetime
 #ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
 #egress = oscaar.ut2jd('2012-06-17;05:29:00')
 
-oscaar.homeDir()
-os.mkdir('../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__'))
-outputPath = '../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__')
+#oscaar.homeDir()
+#os.mkdir('../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__'))
+#outputPath = '../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__')
+
+outputPath = '../outputs/oscaarDataBase'
 
 #oscaar.cd('Code')
 ###Parses init for settings###
