@@ -20,7 +20,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.getheader(data.getPaths()[expNumber])['JD'])   ## Store time from FITS header
-    if statusBarAx != None: 
+    if statusBarAx != None and expNumber % 15 == 0: 
         plt.cla()
         statusBarAx.set_title('oscaar2.0 is running...')
         statusBarAx.set_xlim([0,100])
@@ -44,10 +44,15 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         ## Track and store the flux and uncertainty
         flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, plots=data.photPlots)
         data.storeFlux(star,expNumber,flux,error)
+        
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
         if data.trackPlots or data.photPlots: plt.draw()   
-    if statusBarAx != None: plt.draw()
+    if statusBarAx != None and expNumber % 15 == 0: plt.draw()
 plt.close()
+plt.ioff()
+fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+fig.canvas.set_window_title('oscaar2.0') 
+
 times = data.getTimes()
 
 #for key in data.getKeys():
