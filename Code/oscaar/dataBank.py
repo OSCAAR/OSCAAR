@@ -152,6 +152,8 @@ class dataBank:
         return self.chisq
 
     def outOfTransit(self):
+        '''Boolean array where True are the times in data.getTimes() that are
+           before ingress or after egress.'''
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
 
     def calcMeanComparison(self,ccdGain=12):

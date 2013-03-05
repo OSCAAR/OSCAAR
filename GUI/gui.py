@@ -13,7 +13,7 @@ import math
 import webbrowser
 import time
 import subprocess
-
+import oscaar
 def homeDir():
     """Set the current directory to oscaar's home directory"""
     ### BM: changed the split() argument to '/' rather than '\\'. 
@@ -429,7 +429,7 @@ class MasterFlatFrame(wx.Frame):
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
-        masterFlatMaker(self.flatImagesPathCtrl.GetValue, self.flatDarksPathCtrl.GetValue, 
+        oscaar.masterFlatMaker(self.flatImagesPathCtrl.GetValue, self.flatDarksPathCtrl.GetValue, 
                         self.masterFlatPathCtrl.GetValue, self.plotsOn.GetValue)
 
 #### Checks if the dark frames are valid ####
