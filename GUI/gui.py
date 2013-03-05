@@ -6,7 +6,7 @@ import datetime
 import calendar
 from time import strftime
 from time import strptime
-import glob
+from glob import glob
 from scipy import ndimage
 import numpy as np
 import math
@@ -14,11 +14,25 @@ import webbrowser
 import time
 import subprocess
 
+#def homeDir():
+#    """Set the current directory to oscaar's home directory"""
+#    if 'OSCAAR' in os.getcwd().split('\\'):
+#        while os.getcwd().split('\\')[len(os.getcwd().split('\\'))-1] != 'OSCAAR':
+#            os.chdir(os.pardir)
+
+def homeDir():
+    """Set the current directory to oscaar's home directory"""
+    if 'OSCAAR' in os.getcwd().split('/'):
+        while os.getcwd().split('/')[len(os.getcwd().split('/'))-1] != 'OSCAAR':
+            os.chdir(os.pardir)
+
+
+
 os.chdir(os.pardir)
 os.chdir('Code')
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
-import oscaar
+
 
 APP_EXIT = 1
 
@@ -191,8 +205,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens the webpage for the documentation when help is pressed#####
     def helpFunc(self, event):
-        oscaar.homeDir()
-        oscaar.cd('Docs')
+        #oscaar.homeDir()
+        homeDir()
+        #oscaar.cd('Docs')
+        os.chdir('Docs')
         if os.name == 'posix':
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
         elif os.name == 'nt':
@@ -201,8 +217,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-        oscaar.homeDir()
-        oscaar.cd('Code')
+        #oscaar.homeDir()
+        print os.getcwd()
+        homeDir()
+        print os.getcwd()
+        os.chdir('Code')
+        print os.getcwd()
+        #oscaar.cd('Code')
         global worker
         worker = None
         if self.notesField.GetValue() != 'Enter notes to be saved here':
@@ -237,10 +258,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     ####NOT YET IMPLEMENTED Checks that the filenames entered are valid####
     def validityCheck(self):
-        darkFrames = glob.glob(self.darkPathTxt.GetValue())
-        imageFiles = glob.glob(self.imagPathTxt.GetValue())
-        regionsFile = glob.glob(self.regPathTxt.GetValue())
-        flatFrames = glob.glob(self.flatPathTxt.GetValue())
+        darkFrames = glob(self.darkPathTxt.GetValue())
+        imageFiles = glob(self.imagPathTxt.GetValue())
+        regionsFile = glob(self.regPathTxt.GetValue())
+        flatFrames = glob(self.flatPathTxt.GetValue())
         for i in flatFrames:
             print str(i).endswith('.fits')
         invalidsString = ""
@@ -451,7 +472,8 @@ class WorkerThread(threading.Thread):
         self.start()
 
     def run(self):
-        oscaar.homeDir()
+        homeDir()
+        #oscaar.homeDir()
         #print os.getcwd()
         os.chdir('Code')
         execfile('differentialPhotometry.py')

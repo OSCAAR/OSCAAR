@@ -9,11 +9,7 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
 
-def homeDir():
-    """Set the current directory to oscaar's home directory"""
-    if 'OSCAAR' in os.getcwd().split('\\'):
-        while os.getcwd().split('\\')[len(os.getcwd().split('\\'))-1] != 'OSCAAR':
-            os.chdir(os.pardir)
+
 
 def overWriteCheck(filename, checkfiles, varcheck):
     """Checks to see if a particular file should be overwritten based on whether varcheck is on or off"""
