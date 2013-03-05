@@ -146,20 +146,4 @@ def plottingSettings(trackPlots,photPlots,statusBar=True):
         subplotsDimensions = 111
         photSubplotsOffset = 0
     return [fig,subplotsDimensions,photSubplotsOffset],statusBarAx
-
-def statusBar(trackPlots,photPlots):
-    if not trackPlots and not photPlots:
-        plt.cla()
-        statusBarAx.set_title('oscaar2.0 is running...')
-        statusBarAx.set_xlim([0,100])
-        statusBarAx.set_xlabel('Percent Complete (%)')
-        statusBarAx.get_yaxis().set_ticks([])
-        statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
-
-def plotUpdateImage(trackPlots,photPlots):
-    if trackPlots or photPlots: plt.draw()
-    
-def plotUpdateStar(trackPlots,photPlots):
-    if not trackPlots and not photPlots: plt.draw()
-
     
