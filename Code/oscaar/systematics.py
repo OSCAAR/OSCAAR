@@ -5,14 +5,14 @@ from glob import glob
 
 def meanDarkFrame(darksPath):
     '''Return the mean dark frame calculated from each dark frame in darksPath'''
-    darkFiles = glob(darksPath)
-    [dim1, dim2] = np.shape(pyfits.open(darkFiles[0])[0].data)
+    #darksPath = glob(darksPath)
+    [dim1, dim2] = np.shape(pyfits.open(darksPath[0])[0].data)
     ## Create N-dimensional array for N dark frames, where the first 
     ##    two dimensions are the dimensions of the first image
-    darks = np.zeros([len(darkFiles),dim1,dim2])
+    darks = np.zeros([len(darksPath),dim1,dim2])
     ## Return mean of all darks
-    for i in range(0,len(darkFiles)):
-        darks[i,:,:] = pyfits.open(darkFiles[i])[0].data
+    for i in range(0,len(darksPath)):
+        darks[i,:,:] = pyfits.open(darksPath[i])[0].data
     return np.mean(darks,axis=0)
 
 def masterFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):

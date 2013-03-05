@@ -55,7 +55,8 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRad
         Core developer: Brett Morris
     '''
     try:
-        [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
+        if plots:
+            [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
         annulusRadiusInner = apertureRadius 
         annulusRadiusOuter = annulusRadiusFactor*apertureRadius
 

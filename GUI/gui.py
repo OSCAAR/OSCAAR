@@ -16,6 +16,8 @@ import subprocess
 
 def homeDir():
     """Set the current directory to oscaar's home directory"""
+    ### BM: changed the split() argument to '/' rather than '\\'. 
+    
     if 'OSCAAR' in os.getcwd().split('/'):
         while os.getcwd().split('/')[len(os.getcwd().split('/'))-1] != 'OSCAAR':
             os.chdir(os.pardir)
@@ -210,11 +212,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
         #oscaar.homeDir()
-        print os.getcwd()
         homeDir()
-        print os.getcwd()
         os.chdir('Code')
-        print os.getcwd()
         #oscaar.cd('Code')
         global worker
         worker = None

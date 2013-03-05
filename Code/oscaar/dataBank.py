@@ -23,35 +23,21 @@ class dataBank:
         
         Core Developer: Brett Morris
     '''
-    def __init__(self,imagesPath,darksPath,flatPath,regsPath,ingress,egress,loading=False):
+    def __init__(self):
         '''
         Run oscaar.parseRegionsFile() to get the inital guesses for the 
         initial centroids of the stars from the DS9 regions file, create
         dictionaries in which to store all of the data collected
         for each star. Allocate the memory for these arrays wherever possible.
-        INPUTS: imagesPath - Path to the data images
-        
-                darksPath - Path to the dark frames
-                
-                flatPath - Path to the master flat field
-                
-                regsPath - Path to the DS9 regions file
-                
-                ingress - Time of ingress in JD
-                
-                egress - Time of egress in JD
-                
-                loading - if loading=True, load data from a previously saved
-                          oscaar dataBank object
+        Parse the init.par file to grab the paths and initial parameters for 
+        the run.
+        INPUTS: None.
         '''
-        self.imagesPaths = glob(imagesPath)
-        self.darksPaths = glob(darksPath)
-        self.masterFlat = pyfits.open(flatPath)[0].data
-        self.masterFlatPath = flatPath
-        self.ingress = ingress
-        self.egress = egress
+        self.parseInit() ## parse init.par using the parseInit() method
+        self.masterFlat = pyfits.getdata(self.flatPath)
+        self.masterFlatPath = self.flatPath
         self.allStarsDict = {}
-        init_x_list,init_y_list = parseRegionsFile(regsPath)
+        init_x_list,init_y_list = parseRegionsFile(self.regsPath)
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
@@ -220,3 +206,28 @@ class dataBank:
         '''
         self.photonNoise = self.lightCurve*self.meanComparisonStarError
         return self.photonNoise
+    
+    def parseInit(self):
+        '''
+        Parses init.par
+        '''
+        init = open('init.par', 'r').read().splitlines()
+        for line in init:
+            if line.split() > 1 and line[0] != '#':
+                inline = line.split(':', 1)
+                inline[0] = inline[0].strip()
+                if inline[0] == 'Path to Dark Frames': self.darksPath = glob(str(inline[1].split('#')[0].strip())) ##Everything after # on a line in init.par is ignored
+                elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
+                elif inline[0] == 'Path to data images':  self.imagesPaths = glob(str(inline[1].split('#')[0].strip()))
+                elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
+                elif inline[0] == 'Ingress':  self.ingress = ut2jd(str(inline[1].split('#')[0].strip()))
+                elif inline[0] == 'Egress':  self.egress = ut2jd(str(inline[1].split('#')[0].strip()))
+                elif inline[0] == 'Radius':   self.apertureRadius = float(inline[1].split('#')[0].strip())
+                elif inline[0] == 'Tracking Zoom':   self.trackingZoom = float(inline[1].split('#')[0].strip())
+                elif inline[0] == 'CCD Gain':    self.ccdGain = float(inline[1].split('#')[0].strip())
+                elif inline[0] == 'GUI': self.gui = inline[1].split('#')[0].strip()
+                elif inline[0] == 'Plot Tracking': self.trackPlots = True if inline[1].split('#')[0].strip() == 'on' else False
+                elif inline[0] == 'Plot Photometry': self.photPlots = True if inline[1].split('#')[0].strip() == 'on' else False
+                elif inline[0] == 'Smoothing Constant': self.smoothConst = float(inline[1].split('#')[0].strip())
+                elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
+        

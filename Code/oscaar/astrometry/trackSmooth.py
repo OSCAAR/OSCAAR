@@ -94,7 +94,8 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plottingThings, preCropped=
         np.e seems to give nice smoothing results if frame is already cut out, you can 
         set preCropped to True, so the script won't cut a frame out again. '''
     try:
-        [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
+        if plots:
+            [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
         if preCropped:
             zoom = image.shape[0]/2
             est_x, est_y = 0,0

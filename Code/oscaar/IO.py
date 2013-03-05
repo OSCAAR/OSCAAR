@@ -88,7 +88,7 @@ def load(inputPath):
     inputFile.close()
     return data
 
-def plottingSettings(trackPlots,photPlots):
+def plottingSettings(trackPlots,photPlots,statusBar=True):
     '''
     Function for handling matplotlib figures across oscaar methods. 
     INPUTS: trackPlots - boolean for turning astrometry plots on and off
@@ -125,9 +125,25 @@ def plottingSettings(trackPlots,photPlots):
         subplotsDimensions = 130
         photSubplotsOffset = 0
         fig.canvas.set_window_title('oscaar2.0') 
+    #elif : 
+    #    fig = plt.figure()
+    #    subplotsDimensions = 110
+    #    photSubplotsOffset = 0
+    if statusBar:
+        statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
+        statusBarFig.canvas.set_window_title('oscaar2.0') 
+        statusBarAx = statusBarFig.add_subplot(111,aspect=10)
+        statusBarAx.set_title('oscaar2.0 is running...')
+        statusBarAx.set_xlim([0,100])
+        statusBarAx.set_xlabel('Percent Complete (%)')
+        statusBarAx.get_yaxis().set_ticks([])
+
+        if trackPlots or photPlots:
+            return [fig,subplotsDimensions,photSubplotsOffset],statusBarAx
+        else: 
+            return [],statusBarAx
     else: 
-        fig = plt.figure()
-        subplotsDimensions = 110
-        photSubplotsOffset = 0
-    return [fig,subplotsDimensions,photSubplotsOffset]
+        return [fig,subplotsDimensions,photSubplotsOffset]
+
+
 
