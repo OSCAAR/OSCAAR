@@ -4,31 +4,10 @@ from oscaar import photometry
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
-from time import time
 import os
-import datetime
-
-## Inputs to paths, to be replaced with init.par parser
-#regsPath = '../Extras/Examples/20120616/stars2.reg'
-#imagesPath = '../Extras/Examples/20120616/tres1-???.fit'
-#darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
-#flatPath = '../Extras/Examples/20120616/masterFlat.fits'
-#trackPlots = False#True
-#photPlots = False
-#apertureRadius = 4.5    ## Best parameter for this dataset
-#ccdGain = 0.77999997138977051
-#smoothConst = 3
-#trackingZoom = 10
-#ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
-#egress = oscaar.ut2jd('2012-06-17;05:29:00')
-
-#oscaar.homeDir()
-#os.mkdir('../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__'))
-#outputPath = '../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__')
 
 outputPath = '../outputs/oscaarDataBase'
 
-#oscaar.cd('Code')
 ###Parses init for settings###
 init = open('init.par', 'r').read().splitlines()
 for line in init:
@@ -55,15 +34,13 @@ allStars = data.getDict()               ## Store initialized dictionary
 
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(darksPath)
-masterFlat = pyfits.open(flatPath)[0].data
-print 'plottingThings'
+masterFlat = pyfits.getdata(flatPath)#pyfits.open(flatPath)[0].data
 plottingThings = oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
-print 'done plottingThings'
 
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
-    image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
-    data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
+    image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
+    data.storeTime(expNumber,pyfits.getheader(data.getPaths()[expNumber])['JD'])   ## Store time from FITS header
     for star in allStars:
         if expNumber == 0:
             est_x = allStars[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 

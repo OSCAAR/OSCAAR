@@ -89,15 +89,27 @@ def load(inputPath):
     return data
 
 def plottingSettings(trackPlots,photPlots):
-    print 'start'
-    #global fig, subplotsDimensions, photSubplotsOffset
-    #if trackPlots or photPlots: plt.ion()
+    '''
+    Function for handling matplotlib figures across oscaar methods. 
+    INPUTS: trackPlots - boolean for turning astrometry plots on and off
+            photPlots - boolean for turning aperture photometry plots on and off
+            
+    RETURNS a list containing:
+            fig - the figure object from matplotlib that will be displayed while oscaar is running
+            subplotsDimensions - integer value that designates the x and y dimensions of the subplots
+                                 within the figure plot
+            photSubplotsOffset - if photPlots is True and trackPlots is True, then photSubplotsOffset
+                                 will ensure that the aperture photometry plots are on the right-most
+                                 subplot, otherwise it will assume that the aperture photometry plots
+                                 are the only/first subplot.
+            
+            This list returned by plottingSettings() should be stored to a variable, and used as an
+            argument in the phot() and trackSmooth() methods.
+    '''
+    if trackPlots or photPlots: plt.ion()   ## Turn on interactive plotting
     if trackPlots and photPlots:
-        print 'init fig'
         fig = plt.figure(num=None, figsize=(18, 3), facecolor='w',edgecolor='k')
-        print 'adjust fig'
         fig.subplots_adjust(wspace = 0.5)
-        #matplotlib.interactive(True)
         subplotsDimensions = 140
         photSubplotsOffset = 3
         fig.canvas.set_window_title('oscaar2.0') 
@@ -108,9 +120,7 @@ def plottingSettings(trackPlots,photPlots):
         photSubplotsOffset = 0
         fig.canvas.set_window_title('oscaar2.0') 
     elif trackPlots and not photPlots:
-        print 'ends next line'
-        fig = plt.figure()#num=None, figsize=(14, 4), facecolor='w',edgecolor='k')
-        print 'this far'
+        fig = plt.figure(num=None, figsize=(13.5, 4), facecolor='w',edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
         subplotsDimensions = 130
         photSubplotsOffset = 0

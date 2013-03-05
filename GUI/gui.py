@@ -14,19 +14,11 @@ import webbrowser
 import time
 import subprocess
 
-#def homeDir():
-#    """Set the current directory to oscaar's home directory"""
-#    if 'OSCAAR' in os.getcwd().split('\\'):
-#        while os.getcwd().split('\\')[len(os.getcwd().split('\\'))-1] != 'OSCAAR':
-#            os.chdir(os.pardir)
-
 def homeDir():
     """Set the current directory to oscaar's home directory"""
     if 'OSCAAR' in os.getcwd().split('/'):
         while os.getcwd().split('/')[len(os.getcwd().split('/'))-1] != 'OSCAAR':
             os.chdir(os.pardir)
-
-
 
 os.chdir(os.pardir)
 os.chdir('Code')
