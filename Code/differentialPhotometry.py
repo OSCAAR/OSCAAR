@@ -14,16 +14,22 @@ allStars = data.getDict()               ## Store initialized dictionary
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
 masterFlat = pyfits.getdata(data.flatPath)
-statusBar = True
-plottingThings,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots,statusBar)   ## Tell oscaar what figure settings to use 
+plottingThings,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
 
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.getheader(data.getPaths()[expNumber])['JD'])   ## Store time from FITS header
-    statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
-
+    if statusBarAx != None: 
+        plt.cla()
+        statusBarAx.set_title('oscaar2.0 is running...')
+        statusBarAx.set_xlim([0,100])
+        statusBarAx.set_xlabel('Percent Complete (%)')
+        statusBarAx.get_yaxis().set_ticks([])
+        statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
+        
     for star in allStars:
+        if statusBarAx == None: plt.clf()
         if expNumber == 0:
             est_x = allStars[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
             est_y = allStars[star]['y-pos'][0]  ##    stellar centroid for the first exosure
@@ -39,7 +45,8 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, plots=data.photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
-    plt.draw()    
+        if data.trackPlots or data.photPlots: plt.draw()   
+    if statusBarAx != None: plt.draw()
 plt.close()
 times = data.getTimes()
 

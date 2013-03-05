@@ -144,7 +144,7 @@ def trackSmooth(image, est_x, est_y, smoothingConst, plottingThings, preCropped=
         yCenter = est_y-zoom+axisAcenter
         
         if plots:
-            plt.clf()
+            #plt.clf()
             #plt.clf(fig)
             def format_coord(x, y):
                 '''Function to also give data value on mouse over with imshow.'''
