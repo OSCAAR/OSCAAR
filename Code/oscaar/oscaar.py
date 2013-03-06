@@ -52,10 +52,7 @@ def homeDir():
     """Set the current directory to oscaar's home directory"""
     ### BM: changed the split() argument to '/' rather than '\\'.
     ### DG: added a platform check
-    if sys.platform == 'win32':
-        splitChar = '\\'
-    else:
-        splitChar = '/'
+    splitChar = os.sep
     if 'OSCAAR' in os.getcwd().split(splitChar):
         while os.getcwd().split(splitChar)[len(os.getcwd().split(splitChar))-1] != 'OSCAAR':
             os.chdir(os.pardir)
