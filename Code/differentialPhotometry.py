@@ -5,6 +5,10 @@ import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
 import os
+## http://www.python.org/download/mac/tcltk/#activetcl-8-5-13
+## http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1_r0-py2.7-macosx-10.3-fat.egg/download
+import matplotlib 
+print matplotlib.__version__
 plt.ion()
 outputPath = '../outputs/oscaarDataBase'
 
@@ -14,13 +18,14 @@ allStars = data.getDict()               ## Store initialized dictionary
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
 masterFlat = pyfits.getdata(data.flatPath)
-plottingThings,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
+plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
 
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.getheader(data.getPaths()[expNumber])['JD'])   ## Store time from FITS header
     if statusBarAx != None and expNumber % 15 == 0: 
+        print 'plot'
         plt.cla()
         statusBarAx.set_title('oscaar2.0 is running...')
         statusBarAx.set_xlim([0,100])
@@ -47,11 +52,13 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
         if data.trackPlots or data.photPlots: plt.draw()   
-    if statusBarAx != None and expNumber % 15 == 0: plt.draw()
-plt.close()
+    if statusBarAx != None and expNumber % 15 == 0: 
+        print 'draw'
+        #plt.draw()
+        statusBarFig.canvas.draw()
 plt.ioff()
-fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-fig.canvas.set_window_title('oscaar2.0') 
+#plt.clf()
+plt.close()
 
 times = data.getTimes()
 
@@ -73,6 +80,8 @@ print np.mean(photonNoise[data.outOfTransit()])
 
 #data.save(outputPath)
 oscaar.save(data,outputPath)
+fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+fig.canvas.set_window_title('oscaar2.0') 
 plt.plot(times,lightCurve,'k.')
 plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
 plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)
