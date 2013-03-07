@@ -50,8 +50,11 @@ def ut2jd(ut):
 
 def homeDir():
     """Set the current directory to oscaar's home directory"""
-    if 'OSCAAR' in os.getcwd().split('\\'):
-        while os.getcwd().split('\\')[len(os.getcwd().split('\\'))-1] != 'OSCAAR':
+    ### BM: changed the split() argument to '/' rather than '\\'.
+    ### DG: added a platform check
+    splitChar = os.sep
+    if 'OSCAAR' in os.getcwd().split(splitChar):
+        while os.getcwd().split(splitChar)[len(os.getcwd().split(splitChar))-1] != 'OSCAAR':
             os.chdir(os.pardir)
 
 def overWriteCheck(filename, checkfiles, varcheck):

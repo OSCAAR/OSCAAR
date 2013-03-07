@@ -16,10 +16,11 @@ import subprocess
 #import oscaar
 def homeDir():
     """Set the current directory to oscaar's home directory"""
-    ### BM: changed the split() argument to '/' rather than '\\'. 
-    
-    if 'OSCAAR' in os.getcwd().split('/'):
-        while os.getcwd().split('/')[len(os.getcwd().split('/'))-1] != 'OSCAAR':
+    ### BM: changed the split() argument to '/' rather than '\\'.
+    ### DG: added a platform check
+    splitChar = os.sep
+    if 'OSCAAR' in os.getcwd().split(splitChar):
+        while os.getcwd().split(splitChar)[len(os.getcwd().split(splitChar))-1] != 'OSCAAR':
             os.chdir(os.pardir)
 
 os.chdir(os.pardir)
@@ -39,7 +40,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Creates and initializes the GUI ####
     
     def InitUI(self):
-        
         #### Defines the menubar ####
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
@@ -49,7 +49,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menubar.Append(fileMenu, '&File')
         menubar.Append(self.helpMenu, '&Help')
         menubar.Append(self.oscaarMenu, '&Oscaar')
-        self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
         self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
         self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, '../Code/init.par'), self.menuDefaults)
@@ -61,6 +60,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.saveParFile, self.save)
         self.load = fileMenu.Append(wx.ID_OPEN, 'Load', 'Load')
         self.Bind(wx.EVT_MENU, self.loadFunction, self.load)
+        self.SetMenuBar(menubar)
+
         
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
@@ -131,7 +132,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        setSize = (845, 500) ##Made the size bigger so the items fit in all os
+        setSize = (900, 500) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
@@ -203,9 +204,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         homeDir()
         #oscaar.cd('Docs')
         os.chdir('Docs')
-        if os.name == 'posix':
+        if sys.platform == 'linux2' or sys.platform == 'darwin': ##Haven't tested this
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
-        elif os.name == 'nt':
+        elif sys.platform == 'win32':
             os.startfile('OscaarDocumentation-20110917.pdf')
         #webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR/") ##Change to documentation
         
