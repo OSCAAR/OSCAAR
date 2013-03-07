@@ -15,29 +15,7 @@ import datetime
 
 outputPath = '../outputs/oscaarDataBase'
 
-#oscaar.cd('Code')
-###Parses init for settings###
-init = open('init.par', 'r').read().splitlines()
-for line in init:
-    if line.split() > 1 and line[0] != '#':
-        inline = line.split(':', 1)
-        inline[0] = inline[0].strip()
-        if inline[0] == 'Path to Dark Frames': darksPath = str(inline[1].split('#')[0].strip()) ##Everything after # on a line in init.par is ignored
-        elif inline[0] == 'Path to Master-Flat Frame': flatPath = str(inline[1].split('#')[0].strip())
-        elif inline[0] == 'Path to data images':  imagesPath = str(inline[1].split('#')[0].strip())
-        elif inline[0] == 'Path to regions file': regsPath = str(inline[1].split('#')[0].strip())
-        elif inline[0] == 'Ingress':  ingress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
-        elif inline[0] == 'Egress':  egress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
-        elif inline[0] == 'Radius':   apertureRadius = float(inline[1].split('#')[0].strip())
-        elif inline[0] == 'Tracking Zoom':   trackingZoom = float(inline[1].split('#')[0].strip())
-        elif inline[0] == 'CCD Gain':    ccdGain = float(inline[1].split('#')[0].strip())
-        elif inline[0] == 'GUI': gui = inline[1].split('#')[0].strip()
-        elif inline[0] == 'Plot Tracking': trackPlots = True if inline[1].split('#')[0].strip() == 'on' else False
-        elif inline[0] == 'Plot Photometry': photPlots = True if inline[1].split('#')[0].strip() == 'on' else False
-        elif inline[0] == 'Smoothing Constant': smoothConst = float(inline[1].split('#')[0].strip())
-        elif inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
-
-data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
+data = oscaar.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
 
 ## Prepare systematic corrections: dark frame, flat field
