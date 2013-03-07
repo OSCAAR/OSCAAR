@@ -13,7 +13,7 @@ import math
 import webbrowser
 import time
 import subprocess
-import oscaar
+#import oscaar
 def homeDir():
     """Set the current directory to oscaar's home directory"""
     ### BM: changed the split() argument to '/' rather than '\\'. 
