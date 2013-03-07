@@ -136,14 +136,17 @@ def plottingSettings(trackPlots,photPlots,statusBar=True):
     #    subplotsDimensions = 110
     #    photSubplotsOffset = 0
     elif not trackPlots and not photPlots:
-        fig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
-        fig.canvas.set_window_title('oscaar2.0') 
-        statusBarAx = fig.add_subplot(111,aspect=10)
+        statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
+        statusBarFig.canvas.set_window_title('oscaar2.0') 
+        statusBarAx = statusBarFig.add_subplot(111,aspect=10)
         statusBarAx.set_title('oscaar2.0 is running...')
         statusBarAx.set_xlim([0,100])
         statusBarAx.set_xlabel('Percent Complete (%)')
         statusBarAx.get_yaxis().set_ticks([])
         subplotsDimensions = 111
         photSubplotsOffset = 0
-    return [fig,subplotsDimensions,photSubplotsOffset],statusBarAx
+        fig = 0
+        subplotsDimensions=0
+        photSubplotsOffset = 0
+    return [fig,subplotsDimensions,photSubplotsOffset],statusBarFig,statusBarAx
     

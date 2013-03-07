@@ -6,13 +6,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from time import time
 import os
-<<<<<<< HEAD
 ## http://www.python.org/download/mac/tcltk/#activetcl-8-5-13
 ## http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1_r0-py2.7-macosx-10.3-fat.egg/download
 import matplotlib 
 print matplotlib.__version__
 plt.ion()
-=======
 import datetime
 
 ## Inputs to paths, to be replaced with init.par parser
@@ -33,7 +31,6 @@ import datetime
 #os.mkdir('../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__'))
 #outputPath = '../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__')
 
->>>>>>> acfe9bb608280017d9865d78649a9239a47cff76
 outputPath = '../outputs/oscaarDataBase'
 
 #oscaar.cd('Code')
@@ -62,7 +59,7 @@ data = oscaar.dataBank(imagesPath,darksPath,flatPath,regsPath,ingress,egress)  #
 allStars = data.getDict()               ## Store initialized dictionary
 
 ## Prepare systematic corrections: dark frame, flat field
-<<<<<<< HEAD
+
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
 masterFlat = pyfits.getdata(data.flatPath)
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
@@ -80,7 +77,6 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         statusBarAx.get_yaxis().set_ticks([])
         statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
         
-=======
 meanDarkFrame = oscaar.meanDarkFrame(darksPath)
 masterFlat = pyfits.open(flatPath)[0].data
 print 'plottingThings'
@@ -90,7 +86,6 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
->>>>>>> acfe9bb608280017d9865d78649a9239a47cff76
     for star in allStars:
         if expNumber == 0:
             est_x = allStars[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
@@ -107,7 +102,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         flux, error, photFlag = photometry.phot(image, x, y, apertureRadius, plottingThings, ccdGain = ccdGain, plots=photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
-<<<<<<< HEAD
+
         if data.trackPlots or data.photPlots: plt.draw()   
     if statusBarAx != None and expNumber % 15 == 0: 
         print 'draw'
@@ -116,8 +111,6 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
 plt.ioff()
 #plt.clf()
 plt.close()
-=======
->>>>>>> acfe9bb608280017d9865d78649a9239a47cff76
 
 times = data.getTimes()
 
@@ -139,12 +132,10 @@ print np.mean(photonNoise[data.outOfTransit()])
 
 #data.save(outputPath)
 oscaar.save(data,outputPath)
-<<<<<<< HEAD
+
 fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
 fig.canvas.set_window_title('oscaar2.0') 
-=======
 print 'plotting'
->>>>>>> acfe9bb608280017d9865d78649a9239a47cff76
 plt.plot(times,lightCurve,'k.')
 plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
 plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)

@@ -4,8 +4,8 @@ Path to Master-Flat Frame: ../Extras/Examples/20120616/masterFlat.fits
 Path to regions file: ../Extras/Examples/20120616/stars2.reg
 Ingress: 2012-06-17;02:59:00
 Egress: 2012-06-17;05:29:00
-Plot Tracking: on
-Plot Photometry: on
+Plot Tracking: off
+Plot Photometry: off
 Smoothing Constant: 3
 CCD Gain: 1.0
 Radius: 4.5
