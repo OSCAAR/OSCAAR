@@ -13,24 +13,6 @@ print matplotlib.__version__
 plt.ion()
 import datetime
 
-## Inputs to paths, to be replaced with init.par parser
-#regsPath = '../Extras/Examples/20120616/stars2.reg'
-#imagesPath = '../Extras/Examples/20120616/tres1-???.fit'
-#darksPath = '../Extras/Examples/20120616/tres1-???d.fit'
-#flatPath = '../Extras/Examples/20120616/masterFlat.fits'
-#trackPlots = False#True
-#photPlots = False
-#apertureRadius = 4.5    ## Best parameter for this dataset
-#ccdGain = 0.77999997138977051
-#smoothConst = 3
-#trackingZoom = 10
-#ingress = oscaar.ut2jd('2012-06-17;02:59:00') ## Enter ingress and egress in JD
-#egress = oscaar.ut2jd('2012-06-17;05:29:00')
-
-#oscaar.homeDir()
-#os.mkdir('../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__'))
-#outputPath = '../outputs/' + str(datetime.datetime.now()).split('.')[0].replace(':', '_').replace(' ', '__')
-
 outputPath = '../outputs/oscaarDataBase'
 
 #oscaar.cd('Code')
