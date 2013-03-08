@@ -68,7 +68,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         print 'draw'
         #plt.draw()
         statusBarFig.canvas.draw()
-plt.ioff()
+#plt.ioff()
 #plt.clf()
 plt.close()
 
