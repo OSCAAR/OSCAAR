@@ -1,11 +1,12 @@
+#import matplotlib
+#matplotlib.use('MacOSX')
+
 import oscaar
 from oscaar import astrometry
 from oscaar import photometry
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
-import matplotlib
-#matplotlib.use('MacOSX')
 from time import time
 import os
 ## http://www.python.org/download/mac/tcltk/#activetcl-8-5-13
@@ -23,7 +24,7 @@ allStars = data.getDict()               ## Store initialized dictionary
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
 masterFlat = pyfits.open(data.flatPath)[0].data
-print 'plottingThings'
+
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
 print plottingThings
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
@@ -59,9 +60,10 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         if data.trackPlots or data.photPlots: plt.draw()   
     if statusBarAx != None and expNumber % 15 == 0: 
         plt.draw()
-#plt.ioff()
-#plt.clf()
 plt.close()
+plt.ioff()
+#plt.clf()
+#plt.close()
 
 times = data.getTimes()
 
@@ -73,31 +75,34 @@ data.scaleFluxes()
 data.calcChiSq()
 chisq = data.getAllChiSq()
 
-meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = ccdGain)
-lightCurve = data.lightCurve(meanComparisonStar)
+meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
+lightCurve = data.computeLightCurve(meanComparisonStar)
 
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
-photonNoise = data.photonNoise()
+photonNoise = data.getPhotonNoise()
 print np.std(lightCurve[data.outOfTransit()])
 print np.mean(photonNoise[data.outOfTransit()])
 
 #data.save(outputPath)
 oscaar.save(data,outputPath)
-
-fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-fig.canvas.set_window_title('oscaar2.0') 
-print 'plotting'
-plt.plot(times,lightCurve,'k.')
-plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
-plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)
-plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
-plt.axvline(ymin=0,ymax=1,x=ingress,color='k',ls=':')
-plt.axvline(ymin=0,ymax=1,x=egress,color='k',ls=':')
-plt.title('Light Curve')
-plt.xlabel('Time (JD)')
-plt.ylabel('Relative Flux')
-print 'showing'
-plt.show()
+data.plot()
+if False:
+    fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+    fig.canvas.set_window_title('oscaar2.0') 
+    print 'plotting'
+    plt.plot(times,lightCurve,'k.')
+    plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
+    plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)
+    plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
+    plt.axvline(ymin=0,ymax=1,x=data.ingress,color='k',ls=':')
+    plt.axvline(ymin=0,ymax=1,x=data.egress,color='k',ls=':')
+    plt.title('Light Curve')
+    plt.xlabel('Time (JD)')
+    plt.ylabel('Relative Flux')
+    #fig.canvas.draw()
+    #plt.draw()
+    print 'showing'
+    plt.show()
 
 #for key in data.getKeys():
 #    plt.plot(times,data.getScaledFluxes(key),'.')
