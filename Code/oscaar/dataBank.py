@@ -177,8 +177,8 @@ class dataBank:
                 columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
         def errfunc(p,target): ## Find only positive coefficients
-            if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target
-            #return np.dot(p,compStarsOOT.T) - target
+            #if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target
+            return np.dot(p,compStarsOOT.T) - target
 
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
@@ -187,7 +187,7 @@ class dataBank:
         self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2))) 
         return self.meanComparisonStar, self.meanComparisonStarError  
 
-    def lightCurve(self,meanComparisonStar):
+    def computeLightCurve(self,meanComparisonStar):
         '''
         Divide the target star flux by the mean comparison star to yield a light curve,
         save the light curve into the dataBank object.
@@ -200,7 +200,7 @@ class dataBank:
         self.lightCurve = self.getFluxes('000')/meanComparisonStar
         return self.lightCurve
 
-    def photonNoise(self):
+    def getPhotonNoise(self):
         '''
         Calculate photon noise using the lightCurve and the meanComparisonStar
         
@@ -232,4 +232,28 @@ class dataBank:
                 elif inline[0] == 'Plot Photometry': self.photPlots = True if inline[1].split('#')[0].strip() == 'on' else False
                 elif inline[0] == 'Smoothing Constant': self.smoothConst = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
-        
+
+    def plot(self):
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('oscaar2.0') 
+        print 'plotting'
+        times = self.getTimes()
+        meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
+        lightCurve = self.computeLightCurve(meanComparisonStar)
+        binnedTime, binnedFlux, binnedStd = medianBin(times,lightCurve,10)
+        photonNoise = self.getPhotonNoise()
+
+        plt.plot(times,lightCurve,'k.')
+        plt.plot(times[self.outOfTransit()],photonNoise[self.outOfTransit()]+1,'b',linewidth=2)
+        plt.plot(times[self.outOfTransit()],1-photonNoise[self.outOfTransit()],'b',linewidth=2)
+        plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
+        plt.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        plt.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        plt.title('Light Curve')
+        plt.xlabel('Time (JD)')
+        plt.ylabel('Relative Flux')
+        #fig.canvas.draw()
+        #plt.draw()
+        print 'showing'
+        plt.show()
+
