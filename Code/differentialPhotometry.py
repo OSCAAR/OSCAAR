@@ -4,6 +4,8 @@ from oscaar import photometry
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib
+#matplotlib.use('MacOSX')
 from time import time
 import os
 ## http://www.python.org/download/mac/tcltk/#activetcl-8-5-13
@@ -19,15 +21,12 @@ data = oscaar.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress) 
 allStars = data.getDict()               ## Store initialized dictionary
 
 ## Prepare systematic corrections: dark frame, flat field
-
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
-masterFlat = pyfits.getdata(data.flatPath)
+masterFlat = pyfits.open(data.flatPath)[0].data
+print 'plottingThings'
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
-
+print plottingThings
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
-    print '\n'+data.getPaths()[expNumber]
-    image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
-    data.storeTime(expNumber,pyfits.getheader(data.getPaths()[expNumber])['JD'])   ## Store time from FITS header
     if statusBarAx != None and expNumber % 15 == 0: 
         print 'plot'
         plt.cla()
@@ -36,13 +35,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         statusBarAx.set_xlabel('Percent Complete (%)')
         statusBarAx.get_yaxis().set_ticks([])
         statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
-        
-meanDarkFrame = oscaar.meanDarkFrame(darksPath)
-masterFlat = pyfits.open(flatPath)[0].data
-print 'plottingThings'
-plottingThings = oscaar.plottingSettings(trackPlots,photPlots)   ## Tell oscaar what figure settings to use 
-print plottingThings
-for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
+
     print '\n'+data.getPaths()[expNumber]
     image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
@@ -55,19 +48,17 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
             est_y = allStars[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
 
         ## Track and store the stellar centroid
-        x, y, radius, trackFlag = astrometry.trackSmooth(image, est_x, est_y, smoothConst, plottingThings, zoom=trackingZoom, plots=trackPlots)
+        x, y, radius, trackFlag = astrometry.trackSmooth(image, est_x, est_y, data.smoothConst, plottingThings, zoom=data.trackingZoom, plots=data.trackPlots)
         data.storeCentroid(star,expNumber,x,y)
 
         ## Track and store the flux and uncertainty
-        flux, error, photFlag = photometry.phot(image, x, y, apertureRadius, plottingThings, ccdGain = ccdGain, plots=photPlots)
+        flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, plots=data.photPlots)
         data.storeFlux(star,expNumber,flux,error)
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
 
         if data.trackPlots or data.photPlots: plt.draw()   
     if statusBarAx != None and expNumber % 15 == 0: 
-        print 'draw'
-        #plt.draw()
-        statusBarFig.canvas.draw()
+        plt.draw()
 #plt.ioff()
 #plt.clf()
 plt.close()
