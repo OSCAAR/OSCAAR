@@ -2,7 +2,7 @@ Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite 
 
 OSCAAR supports Mac OS 10.6 and above, as well as Ubuntu 12.04 and above. Windows support will be included in version 2.0. It requires Python 2.7, and the add-on packages of NumPy, SciPy, PyFITS, MatPlotLib, as well as wxPython for the GUI. More information can be found on the OSCAAR wiki on GitHub.
 
-For your convenience, we've also written some code to make a combined flats file, as well as included a recent version of SAO Image DS9 for several major operating systems.
+For your convenience, we've also written some code to make master flats, as well as included a recent version of SAO Image DS9 for several major operating systems.
 
 Within the Docs folder, Licensing can be found in the LICENSE file and up to date documentation is currently being worked on.
 
