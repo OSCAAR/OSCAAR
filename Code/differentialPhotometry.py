@@ -16,10 +16,11 @@ print matplotlib.__version__
 plt.ion()
 import datetime
 
-outputPath = '../outputs/oscaarDataBase'
+#outputPath = '../outputs/oscaarDataBase'
 
 data = oscaar.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
+outputPath = data.outputPath
 
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)

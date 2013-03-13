@@ -232,6 +232,7 @@ class dataBank:
                 elif inline[0] == 'Plot Photometry': self.photPlots = True if inline[1].split('#')[0].strip() == 'on' else False
                 elif inline[0] == 'Smoothing Constant': self.smoothConst = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
+                elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
 
     def plot(self):
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')

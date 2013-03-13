@@ -75,7 +75,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
         self.radioTrackPlotOff = wx.RadioButton(self, label = "Off")
         
-        textCtrlSize = (510,25)
+        textCtrlSize = (530,25)
         
         self.darkPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.darkPathBtn = wx.Button(self, -1, 'Browse')
@@ -104,35 +104,38 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
     
-
+        self.outPathBtn = wx.Button(self, -1, 'Browse')
+        self.outputTxt = wx.TextCtrl(self, value = '../outputs', size = textCtrlSize)
+    
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True)
-        self.addButtonPair(6, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
-        self.addButtonPair(7, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
-        self.addTextCtrl(6,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
-        self.addTextCtrl(7,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
-        self.addTextCtrl(8,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
-        self.addTextCtrl(9,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
-        self.addDateCtrl(8,4, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress, UT (YYYY/MM/DD):       '))
-        self.addDateCtrl(9,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress, UT (YYYY/MM/DD):       '))
-        self.sizer.Add(self.ds9Button,(11,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', False)
+        self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
+        self.addButtonPair(8, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
+        self.addTextCtrl(7,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
+        self.addTextCtrl(8,0, self.ccdGainTxt, wx.StaticText(self, -1, 'CCD Gain: '))
+        self.addTextCtrl(9,0, self.radiusTxt, wx.StaticText(self, -1, 'Aperture Radius: '))
+        self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
+        self.addDateCtrl(9,4, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress, UT (YYYY/MM/DD):       '))
+        self.addDateCtrl(10,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress, UT (YYYY/MM/DD):       '))
+        self.sizer.Add(self.ds9Button,(12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
-        self.sizer.Add(self.masterFlatButton, (11,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        self.sizer.Add(self.masterFlatButton, (12,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
-        self.sizer.Add(self.notesField, (10, 1), (2,2), wx.ALIGN_CENTER, 7)
-        self.sizer.Add(self.notesLabel, (10, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
+        self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         
         self.setDefaults(None, '../Code/init.par')
         self.run = wx.Button(self, -1, 'Run')
-        self.sizer.Add(self.run, (11,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
 
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        setSize = (900, 500) ##Made the size bigger so the items fit in all os
+        setSize = (900, 535) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
@@ -183,7 +186,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if dlg.ShowModal() == wx.ID_OK:
             textControl.Clear()
             if fileDialog == False:
-                textControl.WriteText(dlg.GetPath()+"*.fit*")
+                textControl.WriteText(dlg.GetPath())
             else: textControl.WriteText(dlg.GetPath())
         dlg.Destroy()
 
@@ -228,6 +231,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
         init.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
         init.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
+        init.write('Output Path: ' + self.outputTxt.GetValue() + '\n')
         self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  init)
         self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', init)
         self.checkRB(self.radioTrackPlotOn, 'Plot Tracking: ', init)
