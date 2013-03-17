@@ -55,14 +55,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
-        self.Bind(wx.EVT_MENU, self.helpFunc, self.helpItem)
-        self.save = fileMenu.Append(wx.ID_SAVE, '&Save Settings\tCtrl+S', 'Save')
-        self.Bind(wx.EVT_MENU, self.saveParFile, self.save)
-        self.load = fileMenu.Append(wx.ID_OPEN, 'Load', 'Load')
-        self.Bind(wx.EVT_MENU, self.loadFunction, self.load)
+        self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
         self.SetMenuBar(menubar)
 
-        
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
@@ -91,28 +86,24 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ccdGainTxt = wx.TextCtrl(self, value = '0')
         self.photPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
         self.photPlotsOff = wx.RadioButton(self, label = 'Off')
-        #self.ingressDate = wx.DatePickerCtrl(self)
         self.ingressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
         self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
-        #self.egressDate = wx.DatePickerCtrl(self) ## DatePicker to pick the egress date
         self.egressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
-
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
         self.masterFlatButton = wx.Button(self, -1, 'Flat Maker', size = (90,25))
         self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
-    
         self.outPathBtn = wx.Button(self, -1, 'Browse')
         self.outputTxt = wx.TextCtrl(self, value = '../outputs', size = textCtrlSize)
     
         ##### Add items to sizer for organization #####
-        self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False)
-        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False)
-        self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False)
-        self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True)
-        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', False)
+        self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False, None)
+        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False, None)
+        self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False, None)
+        self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True, wx.FD_OPEN)
+        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', True, wx.FD_SAVE)
         self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
         self.addButtonPair(8, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
         self.addTextCtrl(7,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
@@ -160,13 +151,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
-    def addPathChoice(self, row, textCtrl, button, label, message, fileDialog):
+    def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
         label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7)
         self.sizer.Add(button, (row, 6), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(180,180,180))
-        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog))
+        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addDateCtrl(self, row, colStart, dateCtrl, timeCtrl, label):
@@ -179,9 +170,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         ctrl.SetForegroundColour(wx.Colour(0,0,0))
 
     #####Functions for event handling#####
-    def browseButtonEvent(self, event, message, textControl, fileDialog):
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
-            dlg = wx.FileDialog(self, message = message, style = wx.OPEN)
+            dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: dlg = wx.DirDialog(self, message = message,  style = wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             textControl.Clear()
@@ -202,7 +193,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         MasterFlatFrame(None)
 
     #####Opens the webpage for the documentation when help is pressed#####
-    def helpFunc(self, event):
+    def helpPressed(self, event):
         #oscaar.homeDir()
         homeDir()
         #oscaar.cd('Docs')
@@ -299,30 +290,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         result = str(dateArr[0]).strip() + '-' + str(dateArr[1]).strip() + '-' + str(dateArr[2]).strip() + ';'
         result += str(time)
         filename.write(text + result + '\n')
-        
-    def saveParFile(self, event):
-        dlg = wx.FileDialog(self, message = 'choose a location to save your .par file', style = wx.FD_SAVE)
-        if dlg.ShowModal() == wx.ID_OK:
-            parFile = open(dlg.GetPath(), 'w')
-            parFile.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
-            parFile.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
-            parFile.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
-            parFile.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
-            self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  parFile)
-            self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', parFile)
-            self.checkRB(self.radioTrackPlotOn, 'Plot Tracking: ', parFile)
-            self.checkRB(self.photPlotsOn, 'Plot Photometry: ', parFile)
-            parFile.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
-            parFile.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
-            parFile.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
-            parFile.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
-            parFile.write('Init GUI: on')
-            parFile.close()
     
-    def loadFunction(self, event):
-        dlg = wx.FileDialog(self, message = 'choose a file to load', style = wx.FD_OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.setDefaults(None, dlg.GetPath())
+    #def loadFunction(self, event):
+    #    dlg = wx.FileDialog(self, message = 'choose a file to load', style = wx.FD_OPEN)
+    #    if dlg.ShowModal() == wx.ID_OK:
+    #        self.setDefaults(None, dlg.GetPath())
             
 
     ####Sets default values to the values currently written to init.par####
@@ -470,70 +442,9 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         homeDir()
-        #oscaar.homeDir()
-        #print os.getcwd()
         os.chdir('Code')
         execfile('differentialPhotometry.py')
 
-#class JoinThread(threading.Thread):
-#    def __init__(self, toJoin):
-#        threading.Thread.__init__(self)
-#        self.toJoin = toJoin
-#        self.start()
-#
-#    def run(self):
-#        self.toJoin.join()
-#        wx.CallAfter(doneThreading)
-
-#def doneThreading():
-    #GraphFrame(None)
-#    loading.Close()
-
-
-#### Shows the graphs and outputs after OSCAAR completes ####
-
-class GraphFrame(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(GraphFrame, self).__init__(*args, **kwargs)
-        self.graphIndex = 0
-        self.graphList = [os.pardir + '/Outputs/Plots/jdRNF.png', os.pardir + 'Outputs/plots/goodnessOfFit.png', os.pardir + 'Outputs/plots/lightCurve.png']
-        self.staticBitmap = wx.StaticBitmap(parent = self, pos = (20, 15), size = (800, 600))
-        self.graph = wx.Image(self.graphList[self.graphIndex], wx.BITMAP_TYPE_ANY)
-        self.graphIndex += 1
-        self.bitmap = wx.BitmapFromImage(self.graph)
-        self.staticBitmap.SetBitmap(self.bitmap)
-        self.nextButton = wx.Button(parent = self, label = 'Next Graph', pos = (750, 585), size = (90, 35))
-        self.Bind(wx.EVT_BUTTON, self.nextGraph, self.nextButton)
-        self.prevButton = wx.Button(parent = self, label = 'Prev Graph', pos = (5, 585), size = (90, 35))
-        self.Bind(wx.EVT_BUTTON, self.prevGraph, self.prevButton)
-        self.prevButton.Hide()
-        self.SetBackgroundColour('White')
-        self.SetSize((850, 625))
-        self.Centre()
-        self.Show(True)
-
-    def nextGraph(self, event):
-        if self.graphIndex == len(self.graphList)-1:
-            self.nextButton.SetLabel('Close')
-        if self.graphIndex == len(self.graphList):
-            self.Destroy()
-            return
-        if self.graphIndex == 1:
-            self.prevButton.Show()
-        self.graph = wx.Image(self.graphList[self.graphIndex], wx.BITMAP_TYPE_ANY)
-        self.bitmap = wx.BitmapFromImage(self.graph)
-        self.staticBitmap.SetBitmap(self.bitmap)
-        self.graphIndex += 1
-
-    def prevGraph(self, event):
-        self.graphIndex -= 1
-        if self.graphIndex == len(self.graphList)-2:
-            self.nextButton.SetLabel('Next Graph')
-        if self.graphIndex == 1:
-            self.prevButton.Hide()
-        self.graph = wx.Image(self.graphList[self.graphIndex-1], wx.BITMAP_TYPE_ANY)
-        self.bitmap = wx.BitmapFromImage(self.graph)
-        self.staticBitmap.SetBitmap(self.bitmap)
         
 app = wx.App(False)
 #### Runs the GUI ####
