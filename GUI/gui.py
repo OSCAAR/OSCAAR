@@ -14,6 +14,7 @@ import webbrowser
 import time
 import subprocess
 #import oscaar
+
 def homeDir():
     """Set the current directory to oscaar's home directory"""
     ### BM: changed the split() argument to '/' rather than '\\'.
@@ -27,6 +28,7 @@ os.chdir(os.pardir)
 os.chdir('Code')
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
+import oscaar
 
 
 APP_EXIT = 1
@@ -206,10 +208,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-        #oscaar.homeDir()
         homeDir()
         os.chdir('Code')
-        #oscaar.cd('Code')
         global worker
         worker = None
         if self.notesField.GetValue() != 'Enter notes to be saved here':
@@ -234,11 +234,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Init GUI: on')
         init.close()
         init = open('../Code/init.par', 'r').read().splitlines()
-        #overwcheckDict = {'track_out':track, 'aper_out':aper, 'diff10': diffonoff, 'time_out': aper, 'diff_out':diffonoff}
         if self.validityCheck():
-            self.Destroy()
-            if not worker:
-               worker = WorkerThread()
+            if self.outputOverwriteCheck(self.outputTxt.GetValue()):
+                self.Destroy()
+                if not worker:
+                    worker = WorkerThread()
 
         
         #self.guiOverwcheck(overwcheckDict)
@@ -269,8 +269,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             return True
         else:
             InvalidPath(invalidsString, None, -1)
-        
-             
+    
+    def outputOverwriteCheck(self, path):
+        pathCorrected = path.replace('/', os.sep)
+        outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
+        if pathCorrected + '.pkl' in glob(outfolder):
+            OverWriteFrame(pathCorrected, None, -1)
+            return False
+        return True
+                 
     def containsFit(self, ary):
         for i in ary:
             if str(i).endswith('.fit') or str(i).endswith('.fits'):
@@ -344,6 +351,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Opens the webpage for transit time predictions from Czech Astronomical Society#####
     def predictions(self, event):
         webbrowser.open_new_tab("http://var2.astro.cz/ETD/predictions.php") ##Change to documentation
+
+class OverWriteFrame(wx.Frame):
+    def __init__(self, path, parent, id):
+        wx.Frame.__init__(self, parent, id, 'Overwrite outputs?')
+        self.SetSize((250,100))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.warningText = wx.StaticText(self, -1, 'Are you sure you want to overwrite ' + path + '?')
+        self.yesButton = wx.Button(self, -1, 'Yes')
+        self.noButton = wx.Button(self, -1, 'No')
+        self.Centre()
+        self.Show()
 
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -420,18 +438,6 @@ class InvalidPath(wx.Frame):
         self.paths = wx.StaticText(self, -1, "The following paths are invalid: " + path)
         self.Centre()
         self.Show()
-
-#### Shows the 'please wait' dialog while OSCAAR runs ####
-
-class LoadingFrame(wx.Frame):
-    def __init__(self, parent, id):
-        wx.Frame.__init__(self, parent, id, 'Oscaar')
-        self.loadingText = wx.StaticText(self, -1, 'Oscaar is currently running, please wait...')
-        self.loadingText.Centre()
-        
-        self.SetSize((275,75))
-        self.Centre()
-        self.Show(True)
 
 #### Launches worker processes ####
         
