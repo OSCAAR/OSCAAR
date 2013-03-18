@@ -274,7 +274,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         pathCorrected = path.replace('/', os.sep)
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
         if pathCorrected + '.pkl' in glob(outfolder):
-            OverWriteFrame(pathCorrected, None, -1)
+            OverWriteFrame(pathCorrected, self, -1)
             return False
         return True
                  
@@ -354,14 +354,22 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
 class OverWriteFrame(wx.Frame):
     def __init__(self, path, parent, id):
+        self.parent = parent
         wx.Frame.__init__(self, parent, id, 'Overwrite outputs?')
-        self.SetSize((250,100))
+        self.SetSize((280,120))
         self.SetBackgroundColour(wx.Colour(227,227,227))
-        self.warningText = wx.StaticText(self, -1, 'Are you sure you want to overwrite ' + path + '?')
-        self.yesButton = wx.Button(self, -1, 'Yes')
-        self.noButton = wx.Button(self, -1, 'No')
+        self.warningText = wx.StaticText(parent = self, id = -1, label = 'Are you sure you want to overwrite\n ' + path + '?', pos = (35,7), style = wx.ALIGN_CENTER)
+        self.yesButton = wx.Button(parent = self, id = -1, label = 'Yes', pos = (35,50))
+        self.noButton = wx.Button(parent = self, id = -1, label = 'No', pos = (145,50))
+        self.yesButton.Bind(wx.EVT_BUTTON, self.onYes)
+        self.noButton.Bind(wx.EVT_BUTTON, self.onNo)
         self.Centre()
         self.Show()
+    def onNo(self, event):
+        self.Destroy()
+    def onYes(self, event):
+        self.parent.Destroy()
+        worker = WorkerThread()
 
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -451,7 +459,6 @@ class WorkerThread(threading.Thread):
         os.chdir('Code')
         execfile('differentialPhotometry.py')
 
-        
 app = wx.App(False)
 #### Runs the GUI ####
 OscaarFrame(None)
