@@ -57,6 +57,7 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRad
     try:
         if plots:
             [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
+        if photSubplotsOffset == 0: plt.clf()
         annulusRadiusInner = apertureRadius 
         annulusRadiusOuter = annulusRadiusFactor*apertureRadius
 
