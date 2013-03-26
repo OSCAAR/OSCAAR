@@ -86,7 +86,11 @@ print np.mean(photonNoise[data.outOfTransit()])
 
 #data.save(outputPath)
 oscaar.save(data,outputPath)
-data.plot()
+#data.plot()
+
+execfile('plotPickle.py')
+
+#data.plot()
 if False:
     fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
     fig.canvas.set_window_title('oscaar2.0') 
