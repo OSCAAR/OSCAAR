@@ -35,12 +35,10 @@ APP_EXIT = 1
 
 class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def __init__(self, *args, **kwargs):
-
         super(OscaarFrame, self).__init__(*args, **kwargs)
         self.InitUI()
 
     #### Creates and initializes the GUI ####
-    
     def InitUI(self):
         #### Defines the menubar ####
         menubar = wx.MenuBar()
@@ -59,7 +57,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
         self.SetMenuBar(menubar)
-
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
@@ -120,12 +117,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        
         self.setDefaults(None, '../Code/init.par')
         self.run = wx.Button(self, -1, 'Run')
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
-
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
         setSize = (900, 535) ##Made the size bigger so the items fit in all os
@@ -179,8 +174,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if dlg.ShowModal() == wx.ID_OK:
             textControl.Clear()
             if fileDialog == False:
-                textControl.WriteText(dlg.GetPath())
-            else: textControl.WriteText(dlg.GetPath())
+                textControl.WriteText(dlg.GetPath().replace(os.sep, '/'))
+            else: textControl.WriteText(dlg.GetPath().replace(os.sep, '/'))
         dlg.Destroy()
 
     #####Opens DS9 to create a regions file when button is pressed#####
@@ -215,7 +210,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if self.notesField.GetValue() != 'Enter notes to be saved here':
             notes = open('../outputs/notes.txt', 'w') ##Not exactly sure where where the notes should go.
             notes.write(str(self.notesField.GetValue()))
-        
         init = open('../Code/init.par', 'w')
         #Write to init.par
         init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
@@ -239,9 +233,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 self.Destroy()
                 if not worker:
                     worker = WorkerThread()
-
-        
-        #self.guiOverwcheck(overwcheckDict)
         
     ####NOT YET IMPLEMENTED Checks that the filenames entered are valid####
     def validityCheck(self):
@@ -433,8 +424,7 @@ class MasterFlatFrame(wx.Frame):
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
-        oscaar.masterFlatMaker(self.flatImagesPathCtrl.GetValue, self.flatDarksPathCtrl.GetValue, 
-                        self.masterFlatPathCtrl.GetValue, self.plotsOn.GetValue)
+        oscaar.masterFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
 
 #### Checks if the dark frames are valid ####
 
