@@ -106,7 +106,10 @@ def plottingSettings(trackPlots,photPlots,statusBar=True):
             This list returned by plottingSettings() should be stored to a variable, and used as an
             argument in the phot() and trackSmooth() methods.
     '''
-    if trackPlots or photPlots: plt.ion()   ## Turn on interactive plotting
+    if trackPlots or photPlots: 
+        plt.ion()   ## Turn on interactive plotting
+        statusBarFig = 0 
+        statusBarAx = 0
     if trackPlots and photPlots:
         fig = plt.figure(num=None, figsize=(18, 3), facecolor='w',edgecolor='k')
         fig.subplots_adjust(wspace = 0.5)
