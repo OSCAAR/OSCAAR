@@ -156,7 +156,7 @@ class dataBank:
            before ingress or after egress.'''
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
 
-    def calcMeanComparison(self,ccdGain=12):
+    def calcMeanComparison(self,ccdGain=1):
         '''
         Take the regression-weighted mean of all of the comparison stars
         to produce one comparison star flux to compare to the target to
@@ -235,6 +235,7 @@ class dataBank:
                 elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
 
     def plot(self):
+        plt.clf()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('oscaar2.0') 
         print 'plotting'
