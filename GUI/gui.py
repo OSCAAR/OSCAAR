@@ -90,7 +90,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.egressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
-        self.masterFlatButton = wx.Button(self, -1, 'Flat Maker', size = (90,25))
+        self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25))
         self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
@@ -99,7 +99,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False, None)
-        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Flat Frames: '), 'Choose Path to Flat Frames', False, None)
+        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Master Flat: '), 'Choose Path to Flat Frames', False, None)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False, None)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True, wx.FD_OPEN)
         self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', True, wx.FD_SAVE)
@@ -424,7 +424,44 @@ class MasterFlatFrame(wx.Frame):
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
-        oscaar.masterFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
+        path = self.masterFlatPathCtrl.GetValue()
+        pathCorrected = path.replace('/', os.sep) + '.fits'
+        outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
+        if pathCorrected in glob(outfolder):
+            OverwFlatFrame(pathCorrected,self,-1)
+        else:
+            oscaar.masterFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
+            self.Destroy()
+        
+    def overWriteFlat(self):
+        path = self.masterFlatPathCtrl.GetValue()
+        pathCorrected = path.replace('/', os.sep) + '.fits'
+        outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
+        if pathCorrected in glob(outfolder):
+            return True
+        else: return False
+
+class OverwFlatFrame(wx.Frame):
+    def __init__(self, path, parent, id):
+        self.parent = parent
+        self.path = path
+        wx.Frame.__init__(self, parent, id, 'Overwrite master flat?')
+        self.SetSize((360,120))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.warningText = wx.StaticText(parent = self, id = -1, label = 'Are you sure you want to overwrite\n ' + path + '?', pos = (15,7), style = wx.ALIGN_CENTER)
+        self.yesButton = wx.Button(parent = self, id = -1, label = 'Yes', pos = (60,50))
+        self.noButton = wx.Button(parent = self, id = -1, label = 'No', pos = (190,50))
+        self.yesButton.Bind(wx.EVT_BUTTON, self.onYes)
+        self.noButton.Bind(wx.EVT_BUTTON, self.onNo)
+        self.Centre()
+        self.Show()
+    def onNo(self, event):
+        self.Destroy()
+    def onYes(self, event):
+        os.remove(self.path)
+        oscaar.masterFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+        self.parent.Destroy()
+        
 
 #### Checks if the dark frames are valid ####
 
