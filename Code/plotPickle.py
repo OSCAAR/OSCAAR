@@ -14,7 +14,7 @@ print matplotlib.__version__
 #plt.ion()
 import datetime
 
-outputPath = '.'+os.sep+'outputs'+os.sep+'oscaarDataBase.pkl'
+outputPath = '..'+os.sep+'outputs'+os.sep+'oscaarDataBase.pkl'
 data = oscaar.load(outputPath)
 
 fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')

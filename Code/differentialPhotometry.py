@@ -75,7 +75,8 @@ times = data.getTimes()
 data.scaleFluxes()
 data.calcChiSq()
 chisq = data.getAllChiSq()
-
+#plt.plot(chisq)
+#plt.show()
 meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
 lightCurve = data.computeLightCurve(meanComparisonStar)
 
@@ -86,9 +87,9 @@ print np.mean(photonNoise[data.outOfTransit()])
 
 #data.save(outputPath)
 oscaar.save(data,outputPath)
-#data.plot()
+data.plot()
 
-execfile('plotPickle.py')
+#execfile('plotPickle.py')
 
 #data.plot()
 if False:

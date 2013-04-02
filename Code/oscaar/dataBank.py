@@ -148,7 +148,9 @@ class dataBank:
         chisq = []
         for star in self.allStarsDict:
             chisq.append(self.allStarsDict[star]['chisq'])
-        self.chisq = chisq
+        self.chisq = np.array(chisq)
+        self.meanChisq = np.mean(chisq)
+        self.stdChisq = np.std(chisq)
         return self.chisq
 
     def outOfTransit(self):
@@ -158,9 +160,13 @@ class dataBank:
 
     def calcMeanComparison(self,ccdGain=1):
         '''
-        Take the regression-weighted mean of all of the comparison stars
+        Take the regression-weighted mean of some of the comparison stars
         to produce one comparison star flux to compare to the target to
         produce a light curve.
+        
+        The comparison stars used are those whose chi-squareds calculated by
+        self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
+        This condition removes outliers.
         '''
         numCompStars =  len(self.allStarsDict) - 1
         targetFullLength = len(self.getScaledFluxes('000'))
@@ -170,18 +176,22 @@ class dataBank:
         compErrors = np.copy(compStars)
         columnCounter = 0
         for star in self.allStarsDict:
-            if star != '000':
+            if star != '000' and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
                 compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
                 compErrors[:,columnCounter] = self.getErrors(star).astype(np.float64)
                 columnCounter += 1
+            elif (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
+                print 'Star '+str(star)+' excluded from regression'
+                columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
-        def errfunc(p,target): ## Find only positive coefficients
-            #if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target
-            return np.dot(p,compStarsOOT.T) - target
+        def errfunc(p,target): 
+            if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target ## Find only positive coefficients
+            #return np.dot(p,compStarsOOT.T) - target
 
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
+        print 'Default weight:',1./numCompStars
         #return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
         self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2))) 
