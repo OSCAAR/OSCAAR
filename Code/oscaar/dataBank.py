@@ -244,7 +244,7 @@ class dataBank:
                 elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
                 elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
 
-    def plot(self):
+    def plot(self,pointsPerBin=10):
         plt.clf()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('oscaar2.0') 
@@ -252,7 +252,7 @@ class dataBank:
         times = self.getTimes()
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
         lightCurve = self.computeLightCurve(meanComparisonStar)
-        binnedTime, binnedFlux, binnedStd = medianBin(times,lightCurve,10)
+        binnedTime, binnedFlux, binnedStd = medianBin(times,lightCurve,pointsPerBin)
         photonNoise = self.getPhotonNoise()
 
         plt.plot(times,lightCurve,'k.')

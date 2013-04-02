@@ -1,6 +1,3 @@
-#import matplotlib
-#matplotlib.use('MacOSX')
-
 import oscaar
 from oscaar import astrometry
 from oscaar import photometry
@@ -16,8 +13,6 @@ print matplotlib.__version__
 plt.ion()
 import datetime
 
-#outputPath = '../outputs/oscaarDataBase'
-
 data = oscaar.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
 outputPath = data.outputPath
@@ -30,7 +25,6 @@ plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlot
 print plottingThings
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     if statusBarAx != None and expNumber % 15 == 0: 
-        print 'plot'
         plt.cla()
         statusBarAx.set_title('oscaar2.0 is running...')
         statusBarAx.set_xlim([0,100])
@@ -38,7 +32,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         statusBarAx.get_yaxis().set_ticks([])
         statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
 
-    print '\n'+data.getPaths()[expNumber]
+    print '\n'+'Loading file: '+data.getPaths()[expNumber]
     image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
     for star in allStars:
@@ -63,20 +57,13 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         plt.draw()
 plt.close()
 plt.ioff()
-#plt.clf()
-#plt.close()
 
 times = data.getTimes()
-
-#for key in data.getKeys():
-#    plt.plot(times,data.returnFluxes(key))
-#plt.show()
 
 data.scaleFluxes()
 data.calcChiSq()
 chisq = data.getAllChiSq()
-#plt.plot(chisq)
-#plt.show()
+
 meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
 lightCurve = data.computeLightCurve(meanComparisonStar)
 
@@ -85,31 +72,7 @@ photonNoise = data.getPhotonNoise()
 print np.std(lightCurve[data.outOfTransit()])
 print np.mean(photonNoise[data.outOfTransit()])
 
-#data.save(outputPath)
 oscaar.save(data,outputPath)
-data.plot()
+data.plot(pointsPerBin=20)
 
 #execfile('plotPickle.py')
-
-#data.plot()
-if False:
-    fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-    fig.canvas.set_window_title('oscaar2.0') 
-    print 'plotting'
-    plt.plot(times,lightCurve,'k.')
-    plt.plot(times[data.outOfTransit()],photonNoise[data.outOfTransit()]+1,'b',linewidth=2)
-    plt.plot(times[data.outOfTransit()],1-photonNoise[data.outOfTransit()],'b',linewidth=2)
-    plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
-    plt.axvline(ymin=0,ymax=1,x=data.ingress,color='k',ls=':')
-    plt.axvline(ymin=0,ymax=1,x=data.egress,color='k',ls=':')
-    plt.title('Light Curve')
-    plt.xlabel('Time (JD)')
-    plt.ylabel('Relative Flux')
-    #fig.canvas.draw()
-    #plt.draw()
-    print 'showing'
-    plt.show()
-
-#for key in data.getKeys():
-#    plt.plot(times,data.getScaledFluxes(key),'.')
-#plt.show()
