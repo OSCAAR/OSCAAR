@@ -105,7 +105,8 @@ class dataBank:
            
                    time - Time as read-in from the FITS header
         '''
-        self.times[expNumber] = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
+        self.times[expNumber] = self.convertToJD(pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword])
+        print self.times[expNumber]
         
     def getTimes(self):
         '''Return all times collected with dataBank.storeTime()'''
@@ -268,6 +269,9 @@ class dataBank:
                 inline = line.split(':', 1)
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Exposure Time Keyword': self.timeKeyword = str(inline[1].split('#')[0].strip())
+        
+        if self.timeKeyword == 'JD': self.convertToJD = lambda x: x ## If the keyword is "JD", no conversion is needed
+        elif self.timeKeyword == 'DATE-OBS': self.convertToJD = ut2jdSplitAtT ## If the keyword is "DATE-OBS", converstion is needed
                 ##elif inline[0] == '':
                 
     def plot(self,pointsPerBin=10):
