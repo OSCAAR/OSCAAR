@@ -34,7 +34,8 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
 
     print '\n'+'Loading file: '+data.getPaths()[expNumber]
     image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
-    data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
+    data.storeTime(expNumber)
+    
     for star in allStars:
         if expNumber == 0:
             est_x = allStars[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 

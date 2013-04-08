@@ -34,6 +34,7 @@ class dataBank:
         INPUTS: None.
         '''
         self.parseInit() ## parse init.par using the parseInit() method
+        self.parseObservatory()
         if self.flatPath != 'None':
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
@@ -98,13 +99,13 @@ class dataBank:
               star of interest.'''
         return self.allStarsDict[star]['rawError']
         
-    def storeTime(self,expNumber,time):
+    def storeTime(self,expNumber):
         '''Store the time in JD from the FITS header.
            INPUTS: exposureNumber - Index of exposure being considered
            
                    time - Time as read-in from the FITS header
         '''
-        self.times[expNumber] = time
+        self.times[expNumber] = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
         
     def getTimes(self):
         '''Return all times collected with dataBank.storeTime()'''
@@ -257,6 +258,18 @@ class dataBank:
                 elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
                 elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
 
+    def parseObservatory(self):
+        '''
+        Parses observatory.par
+        '''
+        obs = open('observatory.par', 'r').read().splitlines()
+        for line in obs:
+            if line.split() > 1 and line[0] != '#':
+                inline = line.split(':', 1)
+                inline[0] = inline[0].strip()
+                if inline[0] == 'Exposure Time Keyword': self.timeKeyword = str(inline[1].split('#')[0].strip())
+                ##elif inline[0] == '':
+                
     def plot(self,pointsPerBin=10):
         plt.clf()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
