@@ -19,7 +19,7 @@ outputPath = data.outputPath
 
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
-masterFlat = pyfits.getdata(data.flatPath)
+masterFlat = data.masterFlat
 
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
 print plottingThings

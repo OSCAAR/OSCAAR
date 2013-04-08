@@ -34,8 +34,13 @@ class dataBank:
         INPUTS: None.
         '''
         self.parseInit() ## parse init.par using the parseInit() method
-        self.masterFlat = pyfits.getdata(self.flatPath)
-        self.masterFlatPath = self.flatPath
+        if self.flatPath != 'None':
+            self.masterFlat = pyfits.getdata(self.flatPath)
+            self.masterFlatPath = self.flatPath
+        elif self.flatPath == 'None':
+            print 'Using an isotropic ("placebo") master-flat (array of ones)'
+            dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
+            self.masterFlat = np.ones([dim1,dim2])
         self.allStarsDict = {}
         init_x_list,init_y_list = parseRegionsFile(self.regsPath)
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
@@ -142,15 +147,15 @@ class dataBank:
     def calcChiSq(self):
         for star in self.allStarsDict:
             self.allStarsDict[star]['chisq'] = chiSquared(self.getFluxes('000'),self.getFluxes(star))
-    
-    def getAllChiSq(self):
-        '''Return chi-squared's for all stars'''
         chisq = []
         for star in self.allStarsDict:
             chisq.append(self.allStarsDict[star]['chisq'])
         self.chisq = np.array(chisq)
         self.meanChisq = np.mean(chisq)
         self.stdChisq = np.std(chisq)
+    
+    def getAllChiSq(self):
+        '''Return chi-squared's for all stars'''
         return self.chisq
 
     def outOfTransit(self):
@@ -169,9 +174,13 @@ class dataBank:
         This condition removes outliers.
         '''
         
-        if self.allStarsDict['000']['chisq'] == None: self.calcChiSq()
+        ## Check whether chi-squared has been calculated already. If not, compute it.
+        chisq = []
+        for star in self.allStarsDict: chisq.append(self.allStarsDict[star]['chisq'])
+        chisq = np.array(chisq)
+        if all(chisq == 0): self.calcChiSq()
         
-        
+        ## Begin regression technique
         numCompStars =  len(self.allStarsDict) - 1
         targetFullLength = len(self.getScaledFluxes('000'))
         target = self.getScaledFluxes('000')[self.outOfTransit()]
