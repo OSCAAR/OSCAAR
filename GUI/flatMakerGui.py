@@ -16,7 +16,7 @@ class MasterFlatFrame(wx.Frame):
         self.flatBrowse = wx.Button(self, -1, 'Browse')
         self.darkBrowse = wx.Button(self, -1, 'Browse')
         self.masterPathBrowse = wx.Button(self, -1, 'Browse')
-        self.title = wx.StaticText(self, -1, 'OSCAAR: Master Flat Maker')
+        self.title = wx.StaticText(self, -1, 'Master Flat Maker')
         self.titleFont = wx.Font(15, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
         self.title.SetFont(self.titleFont)
         self.runButton = wx.Button(self, -1, 'Run')

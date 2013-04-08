@@ -63,7 +63,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
-        self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        if(sys.platform == 'darwin'):
+            self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         
         #### CONTROL BUTTON DECLARATIONS ####
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
@@ -113,7 +115,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addDateCtrl(10,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress, UT (YYYY/MM/DD):       '))
         self.sizer.Add(self.ds9Button,(12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
-        #self.sizer.Add(self.masterFlatButton, (12,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        self.sizer.Add(self.masterFlatButton, (12,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
@@ -123,7 +125,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        setSize = (900, 535) ##Made the size bigger so the items fit in all os
+        if(sys.platform == 'darwin' or sys.platform == 'linux'):
+            setSize = (900, 475) ## Sizes for UNIX
+        else:  setSize = (900, 535) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
