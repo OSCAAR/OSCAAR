@@ -387,6 +387,11 @@ class MasterFlatFrame(wx.Frame):
         self.runButton = wx.Button(self, -1, 'Run')
         self.runButton.Bind(wx.EVT_BUTTON, self.runMasterFlatMaker)
 
+        ## Set some defaults:
+        self.standardFlat.SetValue(True)
+        self.plotsOn.SetValue(True)
+        self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+
         ######Add to sizer######
         self.frameSizer.Add(self.runButton, (5,5), wx.DefaultSpan) 
         self.frameSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
@@ -396,9 +401,12 @@ class MasterFlatFrame(wx.Frame):
                            self.darkBrowse, self.flatDarksPathCtrl, 'Choose Path to Darks...')
         self.addPathChoice(self.frameSizer, 3, wx.StaticText(self, -1, 'Path to Save Master Flat:'), 
                            self.masterPathBrowse, self.masterFlatPathCtrl, 'Choose Path to Save Master Flat...')
-        self.addButtonPair(self.frameSizer, 4, 0, wx.StaticText(self, -1, 'Flat type: '), self.standardFlat, self.twilightFlat)
-        self.addButtonPair(self.frameSizer, 5, 0, wx.StaticText(self, -1, 'Plots: '), self.plotsOn, self.plotsOff)
-
+        #self.addButtonPair(self.frameSizer, 4, 0, wx.StaticText(self, -1, 'Flat type: '), self.standardFlat, self.twilightFlat)
+        #self.addButtonPair(self.frameSizer, 5, 0, wx.StaticText(self, -1, 'Plots: '), self.plotsOn, self.plotsOff)
+        #self.addButtonPair(self.frameSizer, 4, 0, wx.StaticText(self, -1, 'Flat type: '))
+        self.addButtonPair(4, 0, self.standardFlat, self.twilightFlat, wx.StaticText(self, -1, 'Flat type: '))
+        self.addButtonPair(5, 0, self.plotsOn, self.plotsOff, wx.StaticText(self, -1, 'Plots: '))
+        #self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
         ###Set GUI Frame Attributes###
         frameSize = (625, 245)
         self.SetSizer(self.frameSizer)
@@ -414,10 +422,16 @@ class MasterFlatFrame(wx.Frame):
         sizer.Add(btn, (row, 5), (1,1), wx.TOP, 7)
         btn.Bind(wx.EVT_BUTTON, lambda event: self.openDirDialog(event, message, textCtrl))
 
-    def addButtonPair(self, sizer, row, colStart, label, button1, button2): ##defined for neater insertion of control items
-        sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 12) ##border of 12 pixels on the top and left
-        sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
-        sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
+#    def addButtonPair(self, sizer, row, colStart, label, button1, button2): ##defined for neater insertion of control items
+#        sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 12) ##border of 12 pixels on the top and left
+#        sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
+#        sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
+
+    def addButtonPair(self, row, colStart, button1, button2, label):
+        label.SetFont(self.labelFont)
+        self.frameSizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##border of 8 pixels on the top and left
+        self.frameSizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
+        self.frameSizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     #####Button Press Event Functions#####
     def openDirDialog(self, event, message, textControl):
