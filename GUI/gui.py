@@ -362,6 +362,7 @@ class OverWriteFrame(wx.Frame):
         self.parent.Destroy()
         worker = WorkerThread()
 
+global standardFlat
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(MasterFlatFrame, self).__init__(*args, **kwargs)
@@ -431,6 +432,8 @@ class MasterFlatFrame(wx.Frame):
         pathCorrected = path.replace('/', os.sep) + '.fits'
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
         if pathCorrected in glob(outfolder):
+            global standardFlat
+            standardFlat = self.standardFlat.GetValue()
             OverwFlatFrame(pathCorrected,self,-1)
         else:
             if self.standardFlat.GetValue():
@@ -465,7 +468,14 @@ class OverwFlatFrame(wx.Frame):
         self.Destroy()
     def onYes(self, event):
         os.remove(self.path)
-        oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+#        oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+        print self.parent.standardFlat.GetValue()
+        if self.parent.standardFlat.GetValue():
+#        if self.standardFlat.GetValue():
+            oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+        else: 
+            oscaar.twilightFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+
         self.parent.Destroy()
         
 
