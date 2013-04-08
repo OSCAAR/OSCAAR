@@ -168,6 +168,10 @@ class dataBank:
         self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
         This condition removes outliers.
         '''
+        
+        if self.allStarsDict['000']['chisq'] == None: self.calcChiSq()
+        
+        
         numCompStars =  len(self.allStarsDict) - 1
         targetFullLength = len(self.getScaledFluxes('000'))
         target = self.getScaledFluxes('000')[self.outOfTransit()]

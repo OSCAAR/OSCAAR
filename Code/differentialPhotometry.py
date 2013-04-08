@@ -19,7 +19,7 @@ outputPath = data.outputPath
 
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
-masterFlat = pyfits.open(data.flatPath)[0].data
+masterFlat = pyfits.getdata(data.flatPath)
 
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
 print plottingThings
@@ -33,7 +33,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
 
     print '\n'+'Loading file: '+data.getPaths()[expNumber]
-    image = (pyfits.open(data.getPaths()[expNumber])[0].data - meanDarkFrame)/masterFlat    ## Open image from FITS file
+    image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber,pyfits.open(data.getPaths()[expNumber])[0].header['JD'])   ## Store time from FITS header
     for star in allStars:
         if expNumber == 0:
@@ -59,12 +59,9 @@ plt.close()
 plt.ioff()
 
 times = data.getTimes()
-
 data.scaleFluxes()
-data.calcChiSq()
-chisq = data.getAllChiSq()
-
 meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
+#chisq = data.getAllChiSq()
 lightCurve = data.computeLightCurve(meanComparisonStar)
 
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
