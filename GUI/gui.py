@@ -375,6 +375,8 @@ class MasterFlatFrame(wx.Frame):
         self.masterFlatPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.plotsOn = wx.RadioButton(self, -1, 'On')
         self.plotsOff = wx.RadioButton(self, -1, 'Off')
+        self.standardFlat = wx.RadioButton(self, -1, 'Standard')
+        self.twilightFlat = wx.RadioButton(self, -1, 'Twilight')
         self.flatBrowse = wx.Button(self, -1, 'Browse')
         self.darkBrowse = wx.Button(self, -1, 'Browse')
         self.masterPathBrowse = wx.Button(self, -1, 'Browse')
@@ -393,7 +395,8 @@ class MasterFlatFrame(wx.Frame):
                            self.darkBrowse, self.flatDarksPathCtrl, 'Choose Path to Darks...')
         self.addPathChoice(self.frameSizer, 3, wx.StaticText(self, -1, 'Path to Save Master Flat:'), 
                            self.masterPathBrowse, self.masterFlatPathCtrl, 'Choose Path to Save Master Flat...')
-        self.addButtonPair(self.frameSizer, 0, 2, wx.StaticText(self, -1, 'Plots: '), self.plotsOn, self.plotsOff)
+        self.addButtonPair(self.frameSizer, 4, 0, wx.StaticText(self, -1, 'Flat type: '), self.standardFlat, self.twilightFlat)
+        self.addButtonPair(self.frameSizer, 5, 0, wx.StaticText(self, -1, 'Plots: '), self.plotsOn, self.plotsOff)
 
         ###Set GUI Frame Attributes###
         frameSize = (625, 245)
@@ -430,7 +433,10 @@ class MasterFlatFrame(wx.Frame):
         if pathCorrected in glob(outfolder):
             OverwFlatFrame(pathCorrected,self,-1)
         else:
-            oscaar.masterFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
+            if self.standardFlat.GetValue():
+                oscaar.standardFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
+            else: 
+                oscaar.twilightFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
             self.Destroy()
         
     def overWriteFlat(self):
@@ -459,7 +465,7 @@ class OverwFlatFrame(wx.Frame):
         self.Destroy()
     def onYes(self, event):
         os.remove(self.path)
-        oscaar.masterFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+        oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
         self.parent.Destroy()
         
 
