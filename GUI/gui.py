@@ -258,7 +258,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 invalidsString += ", "
             invalidsString += "Image Files"
             commaNeeded = True
-        if not self.containsFit(flatFrames):
+        if not self.containsFit(flatFrames) and self.flatFits!='None':
             if commaNeeded:
                 invalidsString += ", "
             invalidsString += "Flat Frames"
