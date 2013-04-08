@@ -13,7 +13,7 @@ import math
 import webbrowser
 import time
 import subprocess
-#naveed#import oscaar
+#import oscaar
 
 def homeDir():
     """Set the current directory to oscaar's home directory"""
@@ -90,7 +90,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.egressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
-        self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25))
+        self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25), pos = (505, 433))
         self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
@@ -113,7 +113,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addDateCtrl(10,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress, UT (YYYY/MM/DD):       '))
         self.sizer.Add(self.ds9Button,(12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
-        self.sizer.Add(self.masterFlatButton, (12,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
+        #self.sizer.Add(self.masterFlatButton, (12,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
@@ -212,10 +212,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write(str(self.notesField.GetValue()))
         init = open('../Code/init.par', 'w')
         #Write to init.par
-        init.write('Path to Dark Frames: ' + self.darkPathTxt.GetValue() + '\n')
-        init.write('Path to data images: ' + self.imagPathTxt.GetValue() + '\n')
-        init.write('Path to Master-Flat Frame: ' + self.flatPathTxt.GetValue() + '\n')
-        init.write('Path to regions file: ' + self.regPathTxt.GetValue() + '\n')
+        self.darkFits = self.addStarFits(init, 'Path to Dark Frames: ', self.darkPathTxt.GetValue())
+        self.imgFits = self.addStarFits(init, 'Path to data images: ', self.imagPathTxt.GetValue())
+        self.flatFits = self.addStarFits(init, 'Path to Master-Flat Frame: ', self.flatPathTxt.GetValue())
+        self.regFits = self.addStarFits(init, 'Path to regions file: ', self.regPathTxt.GetValue())
         init.write('Output Path: ' + self.outputTxt.GetValue() + '\n')
         self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  init)
         self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', init)
@@ -233,15 +233,21 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 self.Destroy()
                 if not worker:
                     worker = WorkerThread()
+    
+    def addStarFits(self, init, field, path):
+        fitsPath = path
+        if os.path.isdir(fitsPath) and not (fitsPath.endswith(os.sep)):
+            fitsPath += os.sep
+        if path.endswith(os.sep):
+            fitsPath += '*.fits'
+        init.write(field + fitsPath + '\n')
+        return fitsPath
         
-    ####NOT YET IMPLEMENTED Checks that the filenames entered are valid####
     def validityCheck(self):
-        darkFrames = glob(self.darkPathTxt.GetValue())
-        imageFiles = glob(self.imagPathTxt.GetValue())
-        regionsFile = glob(self.regPathTxt.GetValue())
-        flatFrames = glob(self.flatPathTxt.GetValue())
-        for i in flatFrames:
-            print str(i).endswith('.fits')
+        darkFrames = glob(self.darkFits)
+        imageFiles = glob(self.imgFits)
+        regionsFile = glob(self.regFits)
+        flatFrames = glob(self.flatFits)
         invalidsString = ""
         commaNeeded = False
         if not self.containsFit(darkFrames):
@@ -287,13 +293,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         dateArr = str(self.ingressDate.GetValue()).split('/')
         result = str(dateArr[0]).strip() + '-' + str(dateArr[1]).strip() + '-' + str(dateArr[2]).strip() + ';'
         result += str(time)
-        filename.write(text + result + '\n')
-    
-    #def loadFunction(self, event):
-    #    dlg = wx.FileDialog(self, message = 'choose a file to load', style = wx.FD_OPEN)
-    #    if dlg.ShowModal() == wx.ID_OK:
-    #        self.setDefaults(None, dlg.GetPath())
-            
+        filename.write(text + result + '\n')    
 
     ####Sets default values to the values currently written to init.par####
     def setDefaults(self, event, filename):
