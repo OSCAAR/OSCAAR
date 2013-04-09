@@ -64,13 +64,15 @@ def save(data,outputPath):
     if glob(outputPath) > 0 or glob(outputPath+'/oscaarDataBase.pkl') > 0 or glob(outputPath+'.pkl') > 0: ## Over-write check
         print 'WARNING: overwriting the most recent oscaarDataBase.pkl'
     
-    if outputPath[len(outputPath)-4:len(outputPath)] == '.pkl':
+    if outputPath.endswith('.pkl'):
         outputName = outputPath
     elif outputPath[-1] == '/': 
         outputName = outputPath+'oscaarDataBase.pkl'
     else: 
         outputName = outputPath+'.pkl'
-    
+
+    try: del data.convertToJD   ## cPickle can not save functions, so delete the function data.convertToJD before saving
+    except: pass
     output = open(outputName,'wb')
     cPickle.dump(data,output)
     output.close()

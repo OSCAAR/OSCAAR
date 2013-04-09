@@ -40,6 +40,35 @@ def ut2jd(ut):
     jd = years + fracOfDay
     return jd
 
+def ut2jdSplitAtT(ut):
+    '''
+    Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the "T"
+    
+    INPUTS: ut - Time in Universial Time (UT)
+    
+    RETURNS: jd - Julian Date (JD)
+    '''
+    [date, Time] = ut.split('T')
+    [year, month, day] = date.split('-')
+    [hour, min, sec] = Time.split(':')
+    year = int(year); month = int(month); day = int(day)
+    hour = int(hour); min = int(min); sec = float(sec)
+    #years = (int(year) + 4716)*365.25
+    if month == 1 or month == 2: 
+        month += 12
+        year -= 1
+    a = year/100
+    b = a/4
+    c = 2-a+b
+    d = day
+    e = np.floor(365.25*(year+4716))
+    f = np.floor(30.6001*(month+1))
+    years = c+d+e+f-1524.5
+    fracOfDay = (hour/24.) + (min/(24*60.)) + (sec/(24*60*60.))
+    jd = years + fracOfDay
+    return jd
+
+
 def regressionScale(comparisonFlux,targetFlux,time,ingress,egress):
 	'''
     Use a least-squares regression to stretch and offset a comparison star fluxes

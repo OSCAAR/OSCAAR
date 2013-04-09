@@ -57,7 +57,7 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     if statusBarAx != None and expNumber % 15 == 0: 
         plt.draw()
 plt.close()
-plt.ioff()
+#plt.ioff()
 
 times = data.getTimes()
 data.scaleFluxes()
@@ -71,6 +71,6 @@ print np.std(lightCurve[data.outOfTransit()])
 print np.mean(photonNoise[data.outOfTransit()])
 
 oscaar.save(data,outputPath)
-data.plot(pointsPerBin=20)
+#data.plot(pointsPerBin=20)
 
 #execfile('plotPickle.py')

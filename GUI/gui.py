@@ -366,7 +366,6 @@ class OverWriteFrame(wx.Frame):
         self.parent.Destroy()
         worker = WorkerThread()
 
-global standardFlat
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(MasterFlatFrame, self).__init__(*args, **kwargs)
@@ -520,8 +519,17 @@ class WorkerThread(threading.Thread):
         os.chdir('Code')
         execfile('differentialPhotometry.py')
 
+class PlotThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.start()
+
+    def run(self):
+        homeDir()
+        os.chdir('Code')
+        execfile('plotPickle.py')
+
 app = wx.App(False)
 #### Runs the GUI ####
 OscaarFrame(None)
 app.MainLoop()
-
