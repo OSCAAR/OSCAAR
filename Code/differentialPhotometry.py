@@ -9,7 +9,6 @@ import os
 ## http://www.python.org/download/mac/tcltk/#activetcl-8-5-13
 ## http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-1.0.1/matplotlib-1.0.1_r0-py2.7-macosx-10.3-fat.egg/download
 import matplotlib 
-print matplotlib.__version__
 plt.ion()
 import datetime
 
@@ -22,7 +21,6 @@ meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
 masterFlat = data.masterFlat
 
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   ## Tell oscaar what figure settings to use 
-print plottingThings
 for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
     if statusBarAx != None and expNumber % 15 == 0: 
         plt.cla()
