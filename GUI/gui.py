@@ -211,9 +211,16 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         os.chdir('Code')
         global worker
         worker = None
-        if self.notesField.GetValue() != 'Enter notes to be saved here':
-            notes = open('../outputs/notes.txt', 'w') ##Not exactly sure where where the notes should go.
-            notes.write(str(self.notesField.GetValue()))
+        notes = open('../outputs/notes.txt', 'a')
+        notes.write('\n\n\n------------------------------------------'+\
+                    '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
+
+        if self.notesField.GetValue() == 'Enter notes to be saved here':
+            notes.write('\nNo notes entered.')
+        else: 
+            notes.write('\nNotes: '+str(self.notesField.GetValue()))
+        
+        notes.close()
         init = open('../Code/init.par', 'w')
         #Write to init.par
         self.darkFits = self.addStarFits(init, 'Path to Dark Frames: ', self.darkPathTxt.GetValue())

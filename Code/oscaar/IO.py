@@ -73,6 +73,7 @@ def save(data,outputPath):
 
     try: del data.convertToJD   ## cPickle can not save functions, so delete the function data.convertToJD before saving
     except: pass
+    
     output = open(outputName,'wb')
     cPickle.dump(data,output)
     output.close()
