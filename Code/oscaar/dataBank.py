@@ -106,9 +106,12 @@ class dataBank:
                    time - Time as read-in from the FITS header
         '''
         try:
-            self.times[expNumber] = self.convertToJD(pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword])
+            timeStamp = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
         except KeyError: 
-            print 'The Exposure Time Keyword indicated in observatory.par is not a valid key.'
+            print 'Input Error: The Exposure Time Keyword indicated in observatory.par is not a valid key: ',self.timeKeyword
+        finally: 
+            self.times[expNumber] = self.convertToJD(timeStamp)
+            
     def getTimes(self):
         '''Return all times collected with dataBank.storeTime()'''
         return self.times
