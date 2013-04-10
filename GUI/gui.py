@@ -54,12 +54,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, '../Code/init.par'), self.menuDefaults)
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
+        self.aboutOscaarButton = self.oscaarMenu.Append(-1, 'About oscaar', 'About oscaar')
+        self.Bind(wx.EVT_MENU, self.aboutOscaar, self.aboutOscaarButton)
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
         self.SetMenuBar(menubar)
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
-        #self.logo = wx.Image(os.pardir+ '/Docs/OscaarLogo.png', wx.BITMAP_TYPE_ANY)
         self.logo = wx.Image(os.pardir+ '/Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
@@ -355,6 +356,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def predictions(self, event):
         webbrowser.open_new_tab("http://var2.astro.cz/ETD/predictions.php") ##Change to documentation
 
+    def aboutOscaar(self, event):
+        AboutFrame(None,-1)
+
 class OverWriteFrame(wx.Frame):
     def __init__(self, path, parent, id):
         self.parent = parent
@@ -503,6 +507,53 @@ class OverwFlatFrame(wx.Frame):
 
         self.parent.Destroy()
         
+### "About" panel ###
+class AboutFrame(wx.Frame):
+    def __init__(self, parent, id):
+        self.parent = parent
+        wx.Frame.__init__(self, parent, id, 'About oscaar')
+        self.SetSize((600,500))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
+        self.logo = wx.Image('../Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        self.bitmap = wx.BitmapFromImage(self.logo)
+        self.static_bitmap.SetBitmap(self.bitmap)
+        if(sys.platform == 'darwin'):
+            self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+
+        ### WARNING: Do not post your name here or remove someone elses without consulting Brett Morris.
+        aboutText = '\n'.join(['oscaar v2.0beta',\
+                     'Open Source differential photometry Code for Amateur Astronomical Research\n',\
+                     'Created by Brett Morris (NASA GSFC/UMD)\n',\
+                     'Other Contributors:',\
+                     'Harley Katz (UMD)',\
+                     'Daniel Galdi (UMD)',\
+                     'Sam Gross (UMD)',\
+                     'Naveed Chowdhury (UMD)',\
+                     'Jared King (UMD)',\
+                     'Steven Knoll (UMD)',\
+                     'Luuk Visser (Leiden University)'])
+        
+        self.warningText = wx.StaticText(parent = self, id = -1, label = aboutText, pos=(0,75),style = wx.ALIGN_CENTER)
+        self.exitButton = wx.Button(parent = self, id = -1, label = 'Close', style = wx.ALIGN_CENTER)
+        self.exitButton.Bind(wx.EVT_BUTTON, self.exit)
+        
+        self.frameSizer = wx.GridBagSizer(7,7)
+        self.frameSizer.Add(self.static_bitmap, (0,0), wx.DefaultSpan, wx.TOP,7) 
+        self.frameSizer.Add(self.warningText, (1,0) , wx.DefaultSpan, wx.TOP,7)
+        self.frameSizer.Add(self.exitButton,(2,0) , wx.DefaultSpan, wx.TOP,7)
+
+        self.SetSizer(self.frameSizer)
+        self.Centre()
+        self.Show()
+        
+    def exit(self,event):
+        self.Destroy()
+
+
+
+
 
 #### Checks if the dark frames are valid ####
 
