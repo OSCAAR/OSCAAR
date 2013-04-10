@@ -523,10 +523,10 @@ class AboutFrame(wx.Frame):
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
         ### WARNING: Do not post your name here or remove someone elses without consulting Brett Morris.
-        aboutText = '\n'.join(['oscaar v2.0beta',\
-                     'Open Source differential photometry Code for Amateur Astronomical Research\n',\
-                     'Created by Brett Morris (NASA GSFC/UMD)\n',\
-                     'Other Contributors:',\
+        titleText = '\n'.join(['oscaar v2.0beta',\
+                     'Open Source differential photometry Code for Amateur Astronomical Research',\
+                     'Created by Brett Morris (NASA GSFC/UMD)\n'])
+        contribText = '\n'.join(['Other Contributors:',\
                      'Harley Katz (UMD)',\
                      'Daniel Galdi (UMD)',\
                      'Sam Gross (UMD)',\
@@ -535,14 +535,19 @@ class AboutFrame(wx.Frame):
                      'Steven Knoll (UMD)',\
                      'Luuk Visser (Leiden University)'])
         
-        self.warningText = wx.StaticText(parent = self, id = -1, label = aboutText, pos=(0,75),style = wx.ALIGN_CENTER)
+        self.titleText = wx.StaticText(parent = self, id = -1, label = titleText, pos=(0,75),style = wx.ALIGN_CENTER)
+        self.viewRepoButton = wx.Button(parent = self, id = -1, label = 'Open Code Repository (GitHub)', style = wx.ALIGN_CENTER)
+        self.viewRepoButton.Bind(wx.EVT_BUTTON, self.openRepo)
+        
+        self.contribText = wx.StaticText(parent = self, id = -1, label = contribText,style = wx.ALIGN_CENTER)
         self.exitButton = wx.Button(parent = self, id = -1, label = 'Close', style = wx.ALIGN_CENTER)
         self.exitButton.Bind(wx.EVT_BUTTON, self.exit)
-        
         self.frameSizer = wx.GridBagSizer(7,7)
-        self.frameSizer.Add(self.static_bitmap, (0,0), wx.DefaultSpan, wx.TOP,7) 
-        self.frameSizer.Add(self.warningText, (1,0) , wx.DefaultSpan, wx.TOP,7)
-        self.frameSizer.Add(self.exitButton,(2,0) , wx.DefaultSpan, wx.TOP,7)
+        self.frameSizer.Add(self.static_bitmap, (0,0), wx.DefaultSpan, wx.ALL | wx.ALIGN_CENTER,7) 
+        self.frameSizer.Add(self.titleText, (1,0) , wx.DefaultSpan, wx.ALL | wx.ALIGN_CENTER,7)
+        self.frameSizer.Add(self.viewRepoButton, (2,0) , wx.DefaultSpan, wx.ALL | wx.ALIGN_CENTER,7)        
+        self.frameSizer.Add(self.contribText, (3,0) , wx.DefaultSpan, wx.ALL | wx.ALIGN_CENTER,7)
+        self.frameSizer.Add(self.exitButton,(4,0) , wx.DefaultSpan, wx.ALL | wx.ALIGN_CENTER,7)
 
         self.SetSizer(self.frameSizer)
         self.Centre()
@@ -550,6 +555,8 @@ class AboutFrame(wx.Frame):
         
     def exit(self,event):
         self.Destroy()
+    def openRepo(self, event):
+        webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR")
 
 
 
