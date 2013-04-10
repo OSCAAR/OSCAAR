@@ -71,7 +71,7 @@ def save(data,outputPath):
     else: 
         outputName = outputPath+'.pkl'
 
-    try: del data.convertToJD   ## cPickle can not save functions, so delete the function data.convertToJD before saving
+    try: del data.convertToJD   ## cPickle can not save functions, so delete the function data.convertToJD before saving the object data
     except: pass
     
     output = open(outputName,'wb')
