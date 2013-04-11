@@ -65,7 +65,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
-        if(sys.platform == 'darwin'):
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         
@@ -127,8 +127,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        if(sys.platform == 'darwin' or sys.platform == 'linux'):
-            setSize = (900, 475) ## Sizes for UNIX
+        if(sys.platform == 'darwin'):
+            setSize = (900, 475) ## Sizes for Mac
+        elif(sys.platform == 'linux2'):
+            setSize = (975, 500)
         else:  setSize = (900, 535) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
@@ -512,13 +514,15 @@ class AboutFrame(wx.Frame):
     def __init__(self, parent, id):
         self.parent = parent
         wx.Frame.__init__(self, parent, id, 'About oscaar')
-        self.SetSize((600,500))
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
+            self.SetSize((525, 425))
+        else: self.SetSize((600,500))
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
         self.logo = wx.Image('../Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-        if(sys.platform == 'darwin'):
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
@@ -527,6 +531,7 @@ class AboutFrame(wx.Frame):
                      'Open Source differential photometry Code for Amateur Astronomical Research',\
                      'Created by Brett Morris (NASA GSFC/UMD)\n'])
         contribText = '\n'.join(['Other Contributors:',\
+                     'Nolan Matthews (UMD)',\
                      'Harley Katz (UMD)',\
                      'Daniel Galdi (UMD)',\
                      'Sam Gross (UMD)',\
