@@ -7,6 +7,9 @@ from matplotlib import pyplot
 from scipy import optimize,fmin,special
 from uncertainties import ufloat
 
+#This is a code written by Nolan Matthews which . . . 
+
+
 #Define a quadratic equation used for normalizing the data
 def quadbline(x,a,b,c):
 	y  = (a*x**2+b*x+c)
