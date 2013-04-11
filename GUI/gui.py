@@ -529,6 +529,7 @@ class AboutFrame(wx.Frame):
                      'Open Source differential photometry Code for Amateur Astronomical Research',\
                      'Created by Brett Morris (NASA GSFC/UMD)\n'])
         contribText = '\n'.join(['Other Contributors:',\
+                     'Nolan Matthews (UMD)',\
                      'Harley Katz (UMD)',\
                      'Daniel Galdi (UMD)',\
                      'Sam Gross (UMD)',\
