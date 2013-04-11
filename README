@@ -10,6 +10,8 @@ OSCAAR 2.0 is under active development. Code will change and break rapidly and w
 
 This code is taken from the current working repository for OSCAAR 2.0, found at https://github.com/OSCAAR/OSCAAR .
 
+The light curve model, transiter_pure.py, reflects the work of Nolan Matthews for his undergraduate honors thesis. 
+
 OSCAAR is under development by current and former students of The University of Maryland, College Park. 
 
 You can visit OSCAAR 1.1 and earlier, no longer maintained, at: 
