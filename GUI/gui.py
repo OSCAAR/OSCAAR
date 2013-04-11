@@ -130,7 +130,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if(sys.platform == 'darwin'):
             setSize = (900, 475) ## Sizes for Mac
         elif(sys.platform == 'linux2'):
-            setSize = (965, 500)
+            setSize = (975, 500)
         else:  setSize = (900, 535) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
