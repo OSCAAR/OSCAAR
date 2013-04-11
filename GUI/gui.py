@@ -65,7 +65,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
-        if(sys.platform == 'darwin'):
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         
@@ -512,7 +512,7 @@ class AboutFrame(wx.Frame):
     def __init__(self, parent, id):
         self.parent = parent
         wx.Frame.__init__(self, parent, id, 'About oscaar')
-        if(sys.platform == 'darwin'):
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.SetSize((525, 425))
         else: self.SetSize((600,500))
         self.SetBackgroundColour(wx.Colour(227,227,227))
@@ -520,7 +520,7 @@ class AboutFrame(wx.Frame):
         self.logo = wx.Image('../Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-        if(sys.platform == 'darwin'):
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
