@@ -512,7 +512,9 @@ class AboutFrame(wx.Frame):
     def __init__(self, parent, id):
         self.parent = parent
         wx.Frame.__init__(self, parent, id, 'About oscaar')
-        self.SetSize((600,500))
+        if(sys.platform == 'darwin'):
+            self.SetSize((525, 425))
+        else: self.SetSize((600,500))
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
         self.logo = wx.Image('../Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
