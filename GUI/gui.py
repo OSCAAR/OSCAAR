@@ -391,10 +391,12 @@ class MasterFlatFrame(wx.Frame):
         self.flatImagesPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.flatDarksPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.masterFlatPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
-        self.plotsOn = wx.RadioButton(self, -1, 'On')
-        self.plotsOff = wx.RadioButton(self, -1, 'Off')
-        self.standardFlat = wx.RadioButton(self, -1, 'Standard')
-        self.twilightFlat = wx.RadioButton(self, -1, 'Twilight')
+        #self.plotsOn = wx.RadioButton(self, -1, 'On')
+        #self.plotsOff = wx.RadioButton(self, -1, 'Off')
+        self.plotsRadioBox = wx.RadioBox(self,-1, "Plots", (10,10), wx.DefaultSize, ["On", "Off"], wx.RA_SPECIFY_COLS)
+        self.flatRadioBox = wx.RadioBox(self,-1, "Flat Type", (10,10), wx.DefaultSize, ["Standard", "Twilight"], wx.RA_SPECIFY_COLS)
+        #elf.standardFlat = wx.RadioButton(self, -1, 'Standard')
+        #self.twilightFlat = wx.RadioButton(self, -1, 'Twilight')
         self.flatBrowse = wx.Button(self, -1, 'Browse')
         self.darkBrowse = wx.Button(self, -1, 'Browse')
         self.masterPathBrowse = wx.Button(self, -1, 'Browse')
@@ -405,12 +407,12 @@ class MasterFlatFrame(wx.Frame):
         self.runButton.Bind(wx.EVT_BUTTON, self.runMasterFlatMaker)
 
         ## Set some defaults:
-        self.standardFlat.SetValue(True)
-        self.plotsOn.SetValue(True)
+        #self.standardFlat.SetValue(True)
+        #self.plotsOn.SetValue(True)
         self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
         ######Add to sizer######
-        self.frameSizer.Add(self.runButton, (5,5), wx.DefaultSpan) 
+        self.frameSizer.Add(self.runButton, (4,5), wx.DefaultSpan, wx.TOP, 15) 
         self.frameSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
         self.addPathChoice(self.frameSizer, 1, wx.StaticText(self, -1, 'Path to Flat Images:'), 
                            self.flatBrowse, self.flatImagesPathCtrl, 'Choose Path to Flats...')
@@ -418,13 +420,11 @@ class MasterFlatFrame(wx.Frame):
                            self.darkBrowse, self.flatDarksPathCtrl, 'Choose Path to Darks...')
         self.addPathChoice(self.frameSizer, 3, wx.StaticText(self, -1, 'Path to Save Master Flat:'), 
                            self.masterPathBrowse, self.masterFlatPathCtrl, 'Choose Path to Save Master Flat...')
-        #self.addButtonPair(self.frameSizer, 4, 0, wx.StaticText(self, -1, 'Flat type: '), self.standardFlat, self.twilightFlat)
-        #self.addButtonPair(self.frameSizer, 5, 0, wx.StaticText(self, -1, 'Plots: '), self.plotsOn, self.plotsOff)
-        #self.addButtonPair(self.frameSizer, 4, 0, wx.StaticText(self, -1, 'Flat type: '))
-        self.addButtonPair(4, 0, self.standardFlat, self.twilightFlat, wx.StaticText(self, -1, 'Flat type: '))
-        self.addButtonPair(5, 0, self.plotsOn, self.plotsOff, wx.StaticText(self, -1, 'Plots: '))
-        #self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
+        self.frameSizer.Add(self.plotsRadioBox, (4,0), wx.DefaultSpan)
+        self.frameSizer.Add(self.flatRadioBox, (4,1), (1,4))
         ###Set GUI Frame Attributes###
+        if sys.platform == 'Win32':
+            frameSize = (640, 260)
         frameSize = (625, 245)
         self.SetSizer(self.frameSizer)
         self.SetSize(frameSize)
@@ -459,18 +459,19 @@ class MasterFlatFrame(wx.Frame):
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
+        print self.plotsRadioBox.GetSelection() == 0
         path = self.masterFlatPathCtrl.GetValue()
         pathCorrected = path.replace('/', os.sep) + '.fits'
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
         if pathCorrected in glob(outfolder):
             global standardFlat
-            standardFlat = self.standardFlat.GetValue()
+            standardFlat = self.self.flatRadioBox.GetSelection() == 0
             OverwFlatFrame(pathCorrected,self,-1)
         else:
             if self.standardFlat.GetValue():
-                oscaar.standardFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
+                oscaar.standardFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             else: 
-                oscaar.twilightFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsOn.GetValue())
+                oscaar.twilightFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             self.Destroy()
         
     def overWriteFlat(self):
@@ -575,6 +576,7 @@ class InvalidPath(wx.Frame):
         self.SetSize((250,100))
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.paths = wx.StaticText(self, -1, "The following paths are invalid: " + path)
+        self.okButton = wx.Button(self, -1, 'Okay', pos = (self.GetPos()[0]/2,self.GetPos()[1]/2))
         self.Centre()
         self.Show()
 
