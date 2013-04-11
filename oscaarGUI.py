@@ -24,7 +24,6 @@ def homeDir():
         while os.getcwd().split(splitChar)[len(os.getcwd().split(splitChar))-1] != 'OSCAAR':
             os.chdir(os.pardir)
 
-os.chdir(os.pardir)
 os.chdir('Code')
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
@@ -51,7 +50,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menubar.Append(self.oscaarMenu, '&Oscaar')
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
         self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
-        self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, '../Code/init.par'), self.menuDefaults)
+        self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, 'Code/init.par'), self.menuDefaults)
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.aboutOscaarButton = self.oscaarMenu.Append(-1, 'About oscaar', 'About oscaar')
@@ -61,7 +60,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
-        self.logo = wx.Image(os.pardir+ '/Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        homeDir()
+        print os.getcwd()
+        self.logo = wx.Image(os.getcwd()+ '/Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
@@ -99,7 +100,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
         self.outPathBtn = wx.Button(self, -1, 'Browse')
-        self.outputTxt = wx.TextCtrl(self, value = '../outputs', size = textCtrlSize)
+        self.outputTxt = wx.TextCtrl(self, value = 'outputs', size = textCtrlSize)
     
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False, None)
@@ -121,7 +122,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.setDefaults(None, '../Code/init.par')
+        self.setDefaults(None, 'Code/init.par')
         self.run = wx.Button(self, -1, 'Run')
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
@@ -215,7 +216,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         os.chdir('Code')
         global worker
         worker = None
-        notes = open('../outputs/notes.txt', 'a')
+        notes = open('outputs/notes.txt', 'a')
         notes.write('\n\n\n------------------------------------------'+\
                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
 
@@ -225,7 +226,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+str(self.notesField.GetValue()))
         
         notes.close()
-        init = open('../Code/init.par', 'w')
+        init = open('Code/init.par', 'w')
         #Write to init.par
         self.darkFits = self.addStarFits(init, 'Path to Dark Frames: ', self.darkPathTxt.GetValue())
         self.imgFits = self.addStarFits(init, 'Path to data images: ', self.imagPathTxt.GetValue())
@@ -242,7 +243,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
         init.write('Init GUI: on')
         init.close()
-        init = open('../Code/init.par', 'r').read().splitlines()
+        init = open('Code/init.par', 'r').read().splitlines()
         if self.validityCheck():
             if self.outputOverwriteCheck(self.outputTxt.GetValue()):
                 self.Destroy()
@@ -516,11 +517,12 @@ class AboutFrame(wx.Frame):
         self.parent = parent
         wx.Frame.__init__(self, parent, id, 'About oscaar')
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-            self.SetSize((525, 425))
+            self.SetSize((525, 440))
         else: self.SetSize((600,500))
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
-        self.logo = wx.Image('../Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        homeDir()
+        self.logo = wx.Image(os.getcwd()+'/Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
