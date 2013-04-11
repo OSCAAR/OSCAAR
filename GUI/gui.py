@@ -127,8 +127,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
-        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-            setSize = (900, 475) ## Sizes for UNIX
+        if(sys.platform == 'darwin'):
+            setSize = (900, 475) ## Sizes for Mac
+        else if(sys.platform == 'linux2'):
+            setSize = (950, 500)
         else:  setSize = (900, 535) ##Made the size bigger so the items fit in all os
         self.SetSize(setSize)
         self.SetMinSize(setSize)
