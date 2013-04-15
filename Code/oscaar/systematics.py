@@ -104,7 +104,7 @@ def twilightFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
         for j in range(0,dim2):
             flat[i,j] = linearFitIntercept(range(len(flats[:,i,j])),flats[:,i,j])
 
-    flat = flat/np.mean(flat)
+    masterFlat = flat/np.mean(flat)
 
     if plots:
         ## If plots == True, plot the resulting master flat
