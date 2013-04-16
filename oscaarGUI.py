@@ -460,6 +460,8 @@ class MasterFlatFrame(wx.Frame):
     def runMasterFlatMaker(self, event):
         print self.plotsRadioBox.GetSelection() == 0
         path = self.masterFlatPathCtrl.GetValue()
+        if(not path.endswith(".fits")):
+            path += ".fits"
         pathCorrected = path.replace('/', os.sep) + '.fits'
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
         if pathCorrected in glob(outfolder):
