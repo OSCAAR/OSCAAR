@@ -200,15 +200,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
-        #oscaar.homeDir()
         homeDir()
-        #oscaar.cd('Docs')
         os.chdir('Docs')
         if sys.platform == 'linux2' or sys.platform == 'darwin': ##Haven't tested this
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
         elif sys.platform == 'win32':
             os.startfile('OscaarDocumentation-20110917.pdf')
-        #webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR/") ##Change to documentation
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
