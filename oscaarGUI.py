@@ -201,8 +201,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def helpPressed(self, event):
         homeDir()
         os.chdir('docs')
-        if sys.platform == 'linux2' or sys.platform == 'darwin': ##Haven't tested this
+        if sys.platform == 'linux2': ##Haven't tested this
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
+        elif sys.platform == 'darwin':
+            os.system("open OscaarDocumentation-20110917.pdf")
         elif sys.platform == 'win32':
             os.startfile('OscaarDocumentation-20110917.pdf')
         
