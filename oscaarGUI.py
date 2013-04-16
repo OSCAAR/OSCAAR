@@ -222,7 +222,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+str(self.notesField.GetValue()))
         
         notes.close()
-        init = open('code/init.par', 'w')
+        init = open('init.par', 'w')
         #Write to init.par
         self.darkFits = self.addStarFits(init, 'Path to Dark Frames: ', self.darkPathTxt.GetValue())
         self.imgFits = self.addStarFits(init, 'Path to data images: ', self.imagPathTxt.GetValue())
@@ -239,7 +239,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
         init.write('Init GUI: on')
         init.close()
-        init = open('code/init.par', 'r').read().splitlines()
+        init = open('init.par', 'r').read().splitlines()
         if self.validityCheck():
             if self.outputOverwriteCheck(self.outputTxt.GetValue()):
                 self.Destroy()
