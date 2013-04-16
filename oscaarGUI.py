@@ -394,7 +394,7 @@ class MasterFlatFrame(wx.Frame):
         #self.plotsOff = wx.RadioButton(self, -1, 'Off')
         self.plotsRadioBox = wx.RadioBox(self,-1, "Plots", (10,10), wx.DefaultSize, ["On", "Off"], wx.RA_SPECIFY_COLS)
         self.flatRadioBox = wx.RadioBox(self,-1, "Flat Type", (10,10), wx.DefaultSize, ["Standard", "Twilight"], wx.RA_SPECIFY_COLS)
-        #elf.standardFlat = wx.RadioButton(self, -1, 'Standard')
+        #self.standardFlat = wx.RadioButton(self, -1, 'Standard')
         #self.twilightFlat = wx.RadioButton(self, -1, 'Twilight')
         self.flatBrowse = wx.Button(self, -1, 'Browse')
         self.darkBrowse = wx.Button(self, -1, 'Browse')
