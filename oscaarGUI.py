@@ -426,7 +426,9 @@ class MasterFlatFrame(wx.Frame):
         ###Set GUI Frame Attributes###
         if sys.platform == 'Win32':
             frameSize = (640, 260)
-        frameSize = (625, 245)
+        elif sys.platform == 'darwin':
+            frameSize = (700, 220)
+        else: frameSize = (625, 245)
         self.SetSizer(self.frameSizer)
         self.SetSize(frameSize)
         self.SetMinSize(frameSize)
