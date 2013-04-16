@@ -123,7 +123,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.setDefaults(None, 'code/init.par')
-        self.run = wx.Button(self, -1, 'Run')
+
+        # Code to make Run button default for main window
+        run = wx.Button(self, -1, 'Run')
+                #setDefault(self.run)
+                #self.run.SetFocus()
+        
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
         self.sizer.SetDimension(5, 5, 550, 500)
