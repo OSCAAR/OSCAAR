@@ -24,7 +24,7 @@ def homeDir():
         while os.getcwd().split(splitChar)[len(os.getcwd().split(splitChar))-1] != 'OSCAAR':
             os.chdir(os.pardir)
 
-os.chdir('Code')
+os.chdir('code')
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 import oscaar
@@ -50,7 +50,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menubar.Append(self.oscaarMenu, '&Oscaar')
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
         self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
-        self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, 'Code/init.par'), self.menuDefaults)
+        self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, 'code/init.par'), self.menuDefaults)
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.aboutOscaarButton = self.oscaarMenu.Append(-1, 'About oscaar', 'About oscaar')
@@ -62,7 +62,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         homeDir()
         print os.getcwd()
-        self.logo = wx.Image(os.getcwd()+ '/Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.getcwd()+ '/code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
@@ -122,7 +122,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.setDefaults(None, 'Code/init.par')
+        self.setDefaults(None, 'code/init.par')
         self.run = wx.Button(self, -1, 'Run')
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
@@ -189,9 +189,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
-        ds9 = os.pardir + '/Extras/ds9'
+        ds9 = os.pardir + '/extras/ds9'
         ds9Loc = ds9 + '/' + sys.platform + '/ds9'
-        #print(ds9Loc)
         regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
         
@@ -201,7 +200,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
         homeDir()
-        os.chdir('Docs')
+        os.chdir('docs')
         if sys.platform == 'linux2' or sys.platform == 'darwin': ##Haven't tested this
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
         elif sys.platform == 'win32':
@@ -210,7 +209,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
         homeDir()
-        os.chdir('Code')
+        os.chdir('code')
         global worker
         worker = None
         notes = open('outputs/notes.txt', 'a')
@@ -223,7 +222,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+str(self.notesField.GetValue()))
         
         notes.close()
-        init = open('Code/init.par', 'w')
+        init = open('code/init.par', 'w')
         #Write to init.par
         self.darkFits = self.addStarFits(init, 'Path to Dark Frames: ', self.darkPathTxt.GetValue())
         self.imgFits = self.addStarFits(init, 'Path to data images: ', self.imagPathTxt.GetValue())
@@ -240,7 +239,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
         init.write('Init GUI: on')
         init.close()
-        init = open('Code/init.par', 'r').read().splitlines()
+        init = open('code/init.par', 'r').read().splitlines()
         if self.validityCheck():
             if self.outputOverwriteCheck(self.outputTxt.GetValue()):
                 self.Destroy()
@@ -519,7 +518,7 @@ class AboutFrame(wx.Frame):
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
         homeDir()
-        self.logo = wx.Image(os.getcwd()+'/Code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.getcwd()+'/code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
@@ -588,7 +587,7 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         homeDir()
-        os.chdir('Code')
+        os.chdir('code')
         execfile('differentialPhotometry.py')
 
 class PlotThread(threading.Thread):
@@ -598,7 +597,7 @@ class PlotThread(threading.Thread):
 
     def run(self):
         homeDir()
-        os.chdir('Code')
+        os.chdir('code')
         execfile('plotPickle.py')
 
 app = wx.App(False)
