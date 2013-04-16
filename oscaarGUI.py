@@ -61,7 +61,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         homeDir()
-        print os.getcwd()
+        #print os.getcwd()
         self.logo = wx.Image(os.getcwd()+ '/code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
@@ -462,7 +462,7 @@ class MasterFlatFrame(wx.Frame):
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
-        print self.plotsRadioBox.GetSelection() == 0
+        #print self.plotsRadioBox.GetSelection() == 0
         path = self.masterFlatPathCtrl.GetValue()
         if(not path.endswith(".fits")):
             path += ".fits"
@@ -506,7 +506,7 @@ class OverwFlatFrame(wx.Frame):
     def onYes(self, event):
         os.remove(self.path)
 #        oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
-        print self.parent.standardFlat.GetValue()
+        #print self.parent.standardFlat.GetValue()
         if self.parent.standardFlat.GetValue():
 #        if self.standardFlat.GetValue():
             oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
