@@ -304,6 +304,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def parseTime(self, date, time, text, filename):
         dateArr = str(self.ingressDate.GetValue()).split('/')
         result = str(dateArr[0]).strip() + '-' + str(dateArr[1]).strip() + '-' + str(dateArr[2]).strip() + ';'
+        if(time.count(":") is 1):
+            time += ":00"
         result += str(time)
         filename.write(text + result + '\n')    
 
