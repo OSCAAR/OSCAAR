@@ -1,0 +1,178 @@
+body {
+	font-family: helvetica, arial, sans-serif;
+    padding: 2em;
+	#border-style: solid;
+	#border-color: silver;
+	#border-radius: 10pt;
+	background-color: grey;
+	margin-left: auto;
+	margin-right: auto;
+	width: 70em;
+	margin-bottom: auto;
+}
+
+h1 {
+	text-align: center;
+}
+
+.headinfo {
+	text-align: center;
+	font-size: 80%;
+	margin-left: 0em;
+}
+
+#center {
+	text-align: center;
+	padding: 1em;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#navbar{
+	text-align: center;
+/*	padding: 0.5em; */
+/*   display: block;*/
+    margin-left: auto;
+    margin-right: auto;
+	border-collapse: collapse;
+}
+
+.linkList {
+	list-style-type: none;
+	padding-left: 4em; 
+}
+
+#navbar td {
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+#navbar td:hover {
+	background-color: silver
+}
+
+#grad td {
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+}
+
+#grad tr:hover {
+	background-color: #ECECEC;
+}
+
+
+#eph td {
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+    text-align: center; 
+}
+
+#eph tr:hover {
+	background-color: #ECECEC;
+}
+
+#eph th {
+	background-color: #386890;
+	color: #FFFFFF;
+}
+
+#eph tbody tr:nth-child(odd) {
+ background-color: #DAE6F0; /* darker */
+}
+#eph tr:nth-child(even) {
+ background-color: #FFFFFF; /* light */
+}
+
+
+#rej {
+	/*background-color: #ECECEC;*/
+	background-color: #F08080 ;
+}
+
+#acc {
+	background-color: #98FB98;
+}
+
+#wait {
+	background-color: #FFCC99;
+}
+
+#frontPhoto {
+	display: block;
+	float: left;
+	padding-right: 2em;
+	padding-bottom: 1em;
+	margin-bottom: auto;
+}
+
+#rightPhoto{
+	display: block;
+	float: right;
+	padding-left: 2em;
+	padding-right: 0em;
+}
+
+#leftPhoto{
+	display: block;
+	float: left;
+	padding-left: 0em;
+	padding-right: 2em;
+}
+
+.cite{
+	color: black;
+	/*text-decoration: underline;*/
+}
+
+.advisor {
+	/*text-align: right;*/
+	padding-left: 4em;
+}
+
+div {
+	display: block;
+	/*margin-top: 2em;*/
+	padding: 1.5em;
+	border: solid;
+	border-color: silver;
+	border-radius: 0.5em;
+	background-color: white; /*silver;*/
+}
+
+a {
+	/* color: rgb(86,86,86); */
+	color: #0066CC;
+	text-decoration: none;
+	font-size: 105%
+}
+a:hover{
+	color: #000099;
+	text-decoration: underline
+}
+
+p {
+	margin-left: 2em;
+	margin-right: 2em;
+}
+
+
+li {
+	line-height: 1.2em
+}
+
+img {
+	padding: 1em;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+object {
+	padding: 1em;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
