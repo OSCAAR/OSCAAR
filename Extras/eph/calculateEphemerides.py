@@ -75,9 +75,9 @@ observatory = ephem.Observer()
 observatory.lat =  observatory_latitude#'38:58:50.16'	## Input format-  deg:min:sec  (type=str)
 observatory.long = observatory_longitude#'-76:56:13.92' ## Input format-  deg:min:sec  (type=str)
 observatory.elevation = observatory_elevation   # m
-observatory.temp = observatory_temperature ## Celsius 
+observatory.temp = observatory_temperature      ## Celsius 
 observatory.horizon = observatory_minHorizon	## Input format-  deg:min:sec  (type=str)
-#observatory.date = '2013/1/18 00:48:47'#10:04:14'	
+
 def trunc(f, n):
     '''Truncates a float f to n decimal places without rounding'''
     slen = len('%.*f' % (n, f))
@@ -113,7 +113,11 @@ def depth(planet):
 	'''Transit depth'''
 	if exoplanetDB[planet]['DEPTH'] == '': return 0.0
 	else: return float(exoplanetDB[planet]['DEPTH'])
-
+    
+def transitBool(planet):
+    '''True if exoplanet is transiting, False if detected by other means'''
+    if exoplanetDB[planet]['TRANSIT'] == '0': return 0
+    elif exoplanetDB[planet]['TRANSIT'] == '1': return 1
 ########################################################################################
 ########################################################################################
 
@@ -168,7 +172,7 @@ def midEclipse(Tc, P, start, end):
 planets = []
 for planet in exoplanetDB:
     #if V(planet) != '---' and depth(planet) != '---' and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit:
-    if V(planet) != 0.0 and depth(planet) != 0.0 and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit:
+    if V(planet) != 0.0 and depth(planet) != 0.0 and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit and transitBool(planet):
         planets.append(planet)
 
 transits = {}
