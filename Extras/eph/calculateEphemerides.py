@@ -369,7 +369,7 @@ if htmlOut:
         '		<br /><br />',])
     htmlfooter = '\n'.join([
         '\n		<p class="headinfo">',\
-        '		Developed by: Brett Morris<br>',\
+        '		Developed by Brett Morris with great gratitude for the help of <a href="http://rhodesmill.org/pyephem/">PyEphem</a><br>',\
         '		</p>',\
         '		</div>',\
         '	</body>',\
