@@ -126,8 +126,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         # Code to make Run button default for main window
         self.run = wx.Button(self, -1, 'Run')
-                #setDefault(self.run)
-                #self.run.SetFocus()
+        #setDefault(self.run)
+        #self.run.SetFocus()
         
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
