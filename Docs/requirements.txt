@@ -1,0 +1,4 @@
+# To install all the prerequisites 
+numpy
+scipy
+pyfits
