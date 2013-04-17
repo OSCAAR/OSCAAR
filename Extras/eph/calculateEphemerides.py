@@ -14,9 +14,9 @@ from matplotlib import pyplot as plt
 from glob import glob
 from os import getcwd, sep
 
-pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
+pklDatabaseName = 'exoplanetDB2.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
-textDatabasePath = 'exoplanetData.txt'  ## Path to the text file saved from exoplanets.org
+textDatabasePath = 'exoplanetData2.txt'  ## Path to the text file saved from exoplanets.org
 calcEclipses = False                    ## Search for secondary eclipses? (type=bool)
 textOut = True                          ## Print out .txt file report? (type=bool)
 htmlOut = True                          ## Print out .html report? (type=bool)
@@ -25,7 +25,7 @@ startSem = gd2jd((2013,4,16,22,0,0))	## Beginning date/time of observing period.
 endSem = gd2jd((2013,5,1,22,0,0))       ## Ending date/time of observing period
 observatory_elevation = 20.0            ## meters
 observatory_temperature = 15.0          ## degrees C
-observatory_minHorizon = '20:00:00'     ## deg:min:sec  (type=str)
+observatory_minHorizon = '25:00:00'     ## deg:min:sec  (type=str)
 observatory_latitude = '38:58:50.16'    ## deg:min:sec  (type=str). Positive = North
 observatory_longitude = '-76:56:13.92'  ## deg:min:sec  (type=str). Positive = East
 twilightType = '-6'                     ## Civil = -6 degrees; Nautical = -12 degrees; Astronomical = -18 degrees. (type=str)
@@ -102,17 +102,17 @@ def duration(planet):
 	else: return float(exoplanetDB[planet]['T14'])
 def V(planet):
 	'''V mag'''
-	if exoplanetDB[planet]['V'] == '': return '---'
-	else: return trunc(float(exoplanetDB[planet]['V']),2)
+	if exoplanetDB[planet]['V'] == '': return 0.0
+	else: return float(exoplanetDB[planet]['V'])
 def KS(planet):
 	'''KS mag'''
-	if exoplanetDB[planet]['KS'] == '': return '---'
-	else: return trunc(float(exoplanetDB[planet]['KS']),2)
+	if exoplanetDB[planet]['KS'] == '': return 0.0
+	else: return float(exoplanetDB[planet]['KS'])
 
 def depth(planet):
 	'''Transit depth'''
-	if exoplanetDB[planet]['DEPTH'] == '': return '---'
-	else: return trunc(float(exoplanetDB[planet]['DEPTH']),3)
+	if exoplanetDB[planet]['DEPTH'] == '': return 0.0
+	else: return float(exoplanetDB[planet]['DEPTH'])
 
 ########################################################################################
 ########################################################################################
@@ -135,8 +135,12 @@ def list2datestrHTML(inList):
 	inList = map(str,inList)
 	return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
 
+def simbadURL(planet):
+	if exoplanetDB[planet]['SIMBADURL'] == '': return 'http://simbad.harvard.edu/simbad/'
+	else: return exoplanetDB[planet]['SIMBADURL']
+
 def RADecHTML(planet):
-    return RA(planet).split('.')[0]+'<br />'+dec(planet).split('.')[0]
+    return '<a href="'+simbadURL(planet)+'">'+RA(planet).split('.')[0]+'<br />'+dec(planet).split('.')[0]+'</a>'
 
 def midTransit(Tc, P, start, end):
 	'''Calculate mid-transits between Julian Dates start and end, using a 2500 
@@ -160,7 +164,8 @@ def midEclipse(Tc, P, start, end):
    assemble a list of them.'''
 planets = []
 for planet in exoplanetDB:
-    if V(planet) != '---' and depth(planet) != '---' and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit:
+    #if V(planet) != '---' and depth(planet) != '---' and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit:
+    if V(planet) != 0.0 and depth(planet) != 0.0 and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit:
         planets.append(planet)
 
 transits = {}
@@ -349,11 +354,12 @@ if htmlOut:
         '	<body>',\
         '		<div id="textDiv">',\
         '		<h1>Ephemerides for: '+observatory_name+'</h1>',\
-        '		<h2>Observing dates (UT): '+list2datestr(jd2gd(startSem)).split(' ')[0]+' - '+list2datestr(jd2gd(endSem)).split(' ')[0]+'</h2>'])#@,\
+        '		<h2>Observing dates (UT): '+list2datestr(jd2gd(startSem)).split(' ')[0]+' - '+list2datestr(jd2gd(endSem)).split(' ')[0]+'</h2>'
+        '       Click the column headers to sort. '])
 
     tableheader = '\n'.join([
-        '\n		<table class="sortable" id="eph">',\
-        '		<tr> <th>Planet</th>  	<th>Event</th>	<th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>K mag</th> <th>Depth (mag)</th> <th>Duration (hrs)</th> <th>RA/Dec</th></tr>'])
+        '\n		<table class="sortable" id="eph" align=center>',\
+        '		<tr> <th>Planet</th>  	<th>Event</th>	<th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth (mag)</th> <th>Duration (hrs)</th> <th>RA/Dec</th></tr>'])
     tablefooter = '\n'.join([
         '\n		</table>',\
         '		<br /><br />',])
@@ -372,8 +378,8 @@ if htmlOut:
         def writeHTMLOut():
             indentation = '		'
             middle = '</td><td>'.join([str(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
-                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],KS(str(planet[0])),V(str(planet[0])),\
-                                       str(depth(planet[0])),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0])])
+                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],trunc(V(str(planet[0])),2),\
+                                       trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
             report.write(line)
     
