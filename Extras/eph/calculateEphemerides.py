@@ -17,7 +17,7 @@ from os import getcwd, sep
 pklDatabaseName = 'exoplanetDB2.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
 textDatabasePath = 'exoplanetData2.txt'  ## Path to the text file saved from exoplanets.org
-calcEclipses = False                    ## Search for secondary eclipses? (type=bool)
+calcEclipses = True                    ## Search for secondary eclipses? (type=bool)
 textOut = True                          ## Print out .txt file report? (type=bool)
 htmlOut = True                          ## Print out .html report? (type=bool)
 ''' Start and end dates of the observing semester'''
@@ -171,7 +171,6 @@ def midEclipse(Tc, P, start, end):
    assemble a list of them.'''
 planets = []
 for planet in exoplanetDB:
-    #if V(planet) != '---' and depth(planet) != '---' and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit:
     if V(planet) != 0.0 and depth(planet) != 0.0 and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit and transitBool(planet):
         planets.append(planet)
 
@@ -241,7 +240,8 @@ for planet in planets:
                 star._ra = ephem.hours(RA(planet))
                 star._dec = ephem.degrees(dec(planet))
                 star.compute(observatory)
-                
+                exoplanetDB[planet]['Constellation'] = ephem.constellation(star)[0]
+                                
                 starrise = gd2jd(datestr2list(str(observatory.next_rising(star))))
                 starset = gd2jd(datestr2list(str(observatory.next_setting(star))))
                 
