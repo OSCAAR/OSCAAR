@@ -310,6 +310,12 @@ def jd2gd(jd,returnString=False):
     Calculators"
 
     2009-02-15 13:36 IJC: Converted to importable, callable function
+    
+    
+    Note from author: This script is buggy and reports Julian dates which are 
+    off by a day or two, depending on how far back you go. For example, 11 March 
+    1609 converted to JD will be off by two days. 20th and 21st century seem to 
+    be fine, though.
     """
 	jd=jd+0.5
 	Z=int(jd)
