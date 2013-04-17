@@ -1,6 +1,6 @@
-Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without much mess. 
+Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without too much mess. 
 
-OSCAAR supports Mac OS 10.6 and above, as well as Ubuntu 12.04 and above. Windows support will be included in version 2.0. It requires Python 2.7, and the add-on packages of NumPy, SciPy, PyFITS, MatPlotLib, as well as wxPython for the GUI. More information can be found on the OSCAAR wiki on GitHub.
+OSCAAR supports Mac OS 10.6 and above, Ubuntu 12.04 and Windows. It requires Python 2.7, and the add-on packages of NumPy, SciPy, PyFITS, MatPlotLib, as well as wxPython for the GUI. Additional features can be accessed with the optional download of the additional package PyEphem. More information can be found on the OSCAAR wiki on GitHub.
 
 For your convenience, we've also written some code to make master flats, as well as included a recent version of SAO Image DS9 for several major operating systems.
 
@@ -16,3 +16,7 @@ OSCAAR is under development by current and former students of The University of 
 
 You can visit OSCAAR 1.1 and earlier, no longer maintained, at: 
 https://code.google.com/p/oscaar/
+
+
+Core Developer: Brett Morris
+Contributors: Daniel Galdi, Nolan Matthews, Sam Gross
