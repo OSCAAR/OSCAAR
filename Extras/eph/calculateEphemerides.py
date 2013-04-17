@@ -12,8 +12,11 @@ import cPickle
 from ephemeris import gd2jd, jd2gd
 from matplotlib import pyplot as plt
 from glob import glob
-from os import getcwd
+from os import getcwd, sep
 
+pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
+pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
+textDatabasePath = 'exoplanetData.txt'  ## Path to the text file saved from exoplanets.org
 calcEclipses = False                    ## Search for secondary eclipses? (type=bool)
 textOut = True                          ## Print out .txt file report? (type=bool)
 htmlOut = True                          ## Print out .html report? (type=bool)
@@ -40,10 +43,9 @@ depth_limit = 0.008                     ## Depth lower-limit in magnitudes (type
        TT: epoch of mid-transit
        T14: transit/eclipse duration
 '''
-databasePath = glob(getcwd()+'/exoplanetDB.pkl')
-if len(databasePath) == 0:
-	print 'Parsing exoplanetData.txt data from exoplanetDB.org'
-	rawTable = open('exoplanetData.txt').read().splitlines()
+if len(pklDatabasePaths) == 0:
+	print 'Attempting to parse exoplanetData.txt data from exoplanetDB.org...'
+	rawTable = open(textDatabasePath).read().splitlines()
 	labels = rawTable[0].split(',')
 	labelUnits = rawTable[1].split(',')
 	rawTableArray = np.zeros([len(rawTable),len(rawTable[0].split(","))])
@@ -57,14 +59,14 @@ if len(databasePath) == 0:
 	for col in range(0,len(labels)):
 		exoplanetDB['units'][labels[col]] = labelUnits[col]
 	
-	output = open('exoplanetDB.pkl','wb')
+	output = open(pklDatabaseName,'wb')
 	cPickle.dump(exoplanetDB,output)
 	output.close()
 else: 
-	print 'Using previously parsed exoplanetData.txt data from exoplanets.org'
+	print 'Using previously parsed exoplanetData.txt data from exoplanets.org...'
 	''' Import data from exoplanets.org, parsed by
 	    exoplanetDataParser1.py'''
-	inputFile = open('exoplanetDB.pkl','rb')
+	inputFile = open(pklDatabaseName,'rb')
 	exoplanetDB = cPickle.load(inputFile)
 	inputFile.close()
 
