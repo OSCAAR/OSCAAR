@@ -5,5 +5,11 @@ observatory's parameters and the dates you'd like to
 observe and this will produce an HTML file with 
 events of interest. More documentation to come…
 
+REQUIREMENTS: In addition to the other packages required
+by OSCAAR, this tool requires "PyEphem", which does
+the all of the astrometric heavy-lifting. Download it here:
+http://rhodesmill.org/pyephem/
+
+
 
 Core developer: Brett Morris
