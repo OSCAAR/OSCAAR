@@ -366,7 +366,7 @@ if htmlOut:
         '       Click the column headers to sort. '])
 
     tableheader = '\n'.join([
-        '\n		<table class="sortable" id="eph" align=center>',\
+        '\n		<table class="sortable" id="eph">',\
         '		<tr> <th>Planet</th>  	<th>Event</th>	<th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth (mag)</th> <th>Duration (hrs)</th> <th>RA/Dec</th> <th>Constellation</th> </tr>'])
     tablefooter = '\n'.join([
         '\n		</table>',\

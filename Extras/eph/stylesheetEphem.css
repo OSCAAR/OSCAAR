@@ -1,9 +1,6 @@
 body {
 	font-family: helvetica, arial, sans-serif;
     padding: 2em;
-	#border-style: solid;
-	#border-color: silver;
-	#border-radius: 10pt;
 	background-color: grey;
 	margin-left: auto;
 	margin-right: auto;
@@ -31,8 +28,6 @@ h1 {
 
 #navbar{
 	text-align: center;
-/*	padding: 0.5em; */
-/*   display: block;*/
     margin-left: auto;
     margin-right: auto;
 	border-collapse: collapse;
@@ -61,7 +56,6 @@ h1 {
 	background-color: #ECECEC;
 }
 
-
 #eph td {
 	padding-left: 1.5em;
 	padding-right: 1.5em;
@@ -77,6 +71,7 @@ h1 {
 	color: #FFFFFF;
 }
 
+/* Color the rows with alternating color */
 #eph tbody tr:nth-child(odd) {
  background-color: #DAE6F0; /* darker */
 }
@@ -84,6 +79,11 @@ h1 {
  background-color: #FFFFFF; /* light */
 }
 
+/* Center the table */
+table.sortable {
+    margin-left: auto;
+    margin-right: auto;
+}
 
 #rej {
 	/*background-color: #ECECEC;*/
@@ -158,7 +158,7 @@ p {
 
 
 li {
-	line-height: 1.2em
+	line-height: 1.2em;
 }
 
 img {
