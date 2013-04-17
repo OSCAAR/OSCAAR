@@ -142,6 +142,9 @@ def simbadURL(planet):
 def RADecHTML(planet):
     return '<a href="'+simbadURL(planet)+'">'+RA(planet).split('.')[0]+'<br />'+dec(planet).split('.')[0]+'</a>'
 
+def constellation(planet):
+    return exoplanetDB[planet]['Constellation']
+
 def midTransit(Tc, P, start, end):
 	'''Calculate mid-transits between Julian Dates start and end, using a 2500 
 	   orbital phase kernel since T_c (for 2 day period, 2500 phases is 14 years)
@@ -199,6 +202,7 @@ for planet in planets:
                 star._ra = ephem.hours(RA(planet))
                 star._dec = ephem.degrees(dec(planet))
                 star.compute(observatory)
+                exoplanetDB[planet]['Constellation'] = ephem.constellation(star)[0]
                 bypassTag = False
                 try: 
                     starrise = gd2jd(datestr2list(str(observatory.next_rising(star))))
@@ -359,7 +363,7 @@ if htmlOut:
 
     tableheader = '\n'.join([
         '\n		<table class="sortable" id="eph" align=center>',\
-        '		<tr> <th>Planet</th>  	<th>Event</th>	<th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth (mag)</th> <th>Duration (hrs)</th> <th>RA/Dec</th></tr>'])
+        '		<tr> <th>Planet</th>  	<th>Event</th>	<th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth (mag)</th> <th>Duration (hrs)</th> <th>RA/Dec</th> <th>Constellation</th> </tr>'])
     tablefooter = '\n'.join([
         '\n		</table>',\
         '		<br /><br />',])
@@ -379,7 +383,7 @@ if htmlOut:
             indentation = '		'
             middle = '</td><td>'.join([str(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
                                        list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],trunc(V(str(planet[0])),2),\
-                                       trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0])])
+                                       trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
             report.write(line)
     
