@@ -35,7 +35,6 @@ observatory_name = 'University Of Maryland Observatory' ## Name of observatory f
 v_limit = 12.0                          ## V-magnitude upper-limit (type = float)
 depth_limit = 0.008                     ## Depth lower-limit in magnitudes (type = float)
 
-
     
 '''If there's a previously archived database pickle in this current working 
    directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
@@ -74,9 +73,9 @@ if len(pklDatabasePaths) == 0:
         for col in range(1,len(splitRow)):
             #exoplanetDB[splitRow[0]][labels[col]] = splitRow[col]
             exoplanetDB[splitRow[planetNameColumn]][labels[col]] = splitRow[col]
-    exoplanetDB['units'] = {}        ## Create entry for units of each subentry
-    for col in range(0,len(labels)):
-        exoplanetDB['units'][labels[col]] = labelUnits[col]
+    #exoplanetDB['units'] = {}        ## Create entry for units of each subentry
+    #for col in range(0,len(labels)):
+    #    exoplanetDB['units'][labels[col]] = labelUnits[col]
     
     output = open(pklDatabaseName,'wb')
     cPickle.dump(exoplanetDB,output)
