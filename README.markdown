@@ -3,7 +3,7 @@ OSCAAR 2.0 beta
 
 Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without too much mess. 
 
-OSCAAR supports Mac OS 10.6 and above, Ubuntu 12.04 and Windows. It requires Python 2.7, and the add-on packages of NumPy, SciPy, PyFITS, MatPlotLib, as well as wxPython for the GUI. Additional features can be accessed with the optional download of the additional package PyEphem. More information can be found on the OSCAAR wiki on GitHub.
+OSCAAR supports Mac OS 10.6 and above, Ubuntu 12.04 and Windows. It requires Python 2.7 and several additional packages listed on our [System Requirements wiki page](https://github.com/OSCAAR/OSCAAR/wiki/System-Requirements).
 
 For your convenience, we've included a recent version of SAO Image DS9 for several major operating systems. Within the Docs folder, Licensing can be found in the LICENSE file and up to date documentation is currently being worked on.
 
@@ -11,7 +11,7 @@ OSCAAR 2.0 is under active development. Code will change and break rapidly and w
 
 OSCAAR is under development by current and former students of The University of Maryland, College Park. The light curve model, transiter_pure.py, reflects the work of Nolan Matthews for his undergraduate honors thesis. 
 
-(OSCAAR 1.1 and earlier](https://code.google.com/p/oscaar/) are no longer maintained.
+[OSCAAR 1.1 and earlier](https://code.google.com/p/oscaar/) are no longer maintained.
 
 
 Core Developer: Brett Morris
