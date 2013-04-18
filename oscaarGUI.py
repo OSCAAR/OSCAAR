@@ -104,7 +104,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     
         ##### Add items to sizer for organization #####
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False, None)
-        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Master Flat: '), 'Choose Path to Flat Frames', False, None)
+        self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Master Flat: '), 'Choose Path to Flat Frames', True, wx.FD_OPEN)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False, None)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True, wx.FD_OPEN)
         self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', True, wx.FD_SAVE)
@@ -184,12 +184,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
-        else: dlg = wx.DirDialog(self, message = message,  style = wx.OPEN)
+        else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
+            filenames = dlg.GetPaths()
             textControl.Clear()
-            if fileDialog == False:
-                textControl.WriteText(dlg.GetPath().replace(os.sep, '/'))
-            else: textControl.WriteText(dlg.GetPath().replace(os.sep, '/'))
+            for i in range(0,len(filenames)):
+                if i != len(filenames)-1:
+                    textControl.WriteText(filenames[i] + ',')
+                else:
+                    textControl.WriteText(filenames[i])
         dlg.Destroy()
 
     #####Opens DS9 to create a regions file when button is pressed#####
@@ -477,7 +480,7 @@ class MasterFlatFrame(wx.Frame):
         dlg = wx.DirDialog(self, message = message, style = wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             textControl.Clear()
-            textControl.WriteText(dlg.GetPath())
+            textControl.WriteText(dlg.GetPaths())
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
