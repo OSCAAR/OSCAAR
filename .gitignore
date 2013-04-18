@@ -9,3 +9,4 @@ aper_out
 plots
 *.pyc
 Code/oscaar/*.pyc
+Extras/eph/exoplanets.csv
