@@ -13,6 +13,7 @@ from ephemeris import gd2jd, jd2gd
 from matplotlib import pyplot as plt
 from glob import glob
 from os import getcwd, sep
+from urllib import urlopen
 
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
@@ -34,15 +35,15 @@ v_limit = 12.0                          ## V-magnitude upper-limit (type = float
 depth_limit = 0.008                     ## Depth lower-limit in magnitudes (type = float)
 
 '''If there's a previously archived database pickle in this current working 
-   directory then use it, if not, parse "exoplanetData.txt" and make one.
-   To download data from exoplanets.org, export (button in upper right) a table 
-   with at least the following columns:
-       RA_STRING: right ascension of the planet
-       DEC_STRING: declination of the planet
-       PER: orbital period of the planet
-       TT: epoch of mid-transit
-       T14: transit/eclipse duration
+   directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
 '''
+if glob(textDatabasePath) == []:
+    print 'No local copy of exoplanets.org database. Downloading one...'
+    rawCSV = urlopen('http://www.exoplanets.org/csv-files/exoplanets.csv').read()
+    saveCSV = open(textDatabasePath,'w')
+    saveCSV.write(rawCSV)
+    saveCSV.close()
+
 if len(pklDatabasePaths) == 0:
     print 'Attempting to parse exoplanets.csv from exoplanets.org...'
     rawTable = open(textDatabasePath).read().splitlines()
