@@ -14,6 +14,6 @@ OSCAAR is under development by current and former students of The University of 
 [OSCAAR 1.1 and earlier](https://code.google.com/p/oscaar/) are no longer maintained.
 
 
-Core Developer: Brett Morris
 
+Core Developer: Brett Morris
 Contributors: Daniel Galdi, Nolan Matthews, Sam Gross
