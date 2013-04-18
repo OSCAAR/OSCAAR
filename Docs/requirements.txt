@@ -2,3 +2,11 @@
 numpy
 scipy
 pyfits
+wxPython
+matplotlib
+
+
+
+# Optional
+git
+pyephem
