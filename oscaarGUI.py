@@ -262,6 +262,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write(field + fitsPath + '\n')
         return fitsPath
         
+    
     def validityCheck(self):
         darkFrames = glob(self.darkFits)
         imageFiles = glob(self.imgFits)
@@ -281,6 +282,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             if commaNeeded:
                 invalidsString += ", "
             invalidsString += "Flat Frames"
+        if not self.containsReg(regionsFile):
+            if commaNeeded:
+                invalidsString += ", "
+            invalidsString += "Regions"
         try:
             float(self.smoothingConstTxt.GetValue())
             float(self.radiusTxt.GetValue())
@@ -307,6 +312,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def containsFit(self, ary):
         for i in ary:
             if str(i).endswith('.fit') or str(i).endswith('.fits'):
+                return True
+        return False
+    
+    def containsReg(self, ary):
+        for i in ary:
+            if str(i).endswith('.reg'):
                 return True
         return False
 
