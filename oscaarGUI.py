@@ -530,7 +530,7 @@ class AboutFrame(wx.Frame):
         wx.Frame.__init__(self, parent, id, 'About oscaar')
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.SetSize((525, 440))
-        else: self.SetSize((600,500))
+        else: self.SetSize((460,440))
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
         homeDir()
@@ -556,11 +556,11 @@ class AboutFrame(wx.Frame):
                      'Luuk Visser (Leiden University)'])
         
         self.titleText = wx.StaticText(parent = self, id = -1, label = titleText, pos=(0,75),style = wx.ALIGN_CENTER)
-        self.viewRepoButton = wx.Button(parent = self, id = -1, label = 'Open Code Repository (GitHub)', style = wx.ALIGN_CENTER)
+        self.viewRepoButton = wx.Button(parent = self, id = -1, label = 'Open Code Repository (GitHub)')
         self.viewRepoButton.Bind(wx.EVT_BUTTON, self.openRepo)
         
         self.contribText = wx.StaticText(parent = self, id = -1, label = contribText,style = wx.ALIGN_CENTER)
-        self.exitButton = wx.Button(parent = self, id = -1, label = 'Close', style = wx.ALIGN_CENTER)
+        self.exitButton = wx.Button(parent = self, id = -1, label = 'Close')
         self.exitButton.Bind(wx.EVT_BUTTON, self.exit)
         self.frameSizer = wx.GridBagSizer(7,7)
         self.frameSizer.Add(self.static_bitmap, (0,0), wx.DefaultSpan, wx.ALL | wx.ALIGN_CENTER,7) 
