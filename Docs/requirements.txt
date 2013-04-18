@@ -1,6 +1,5 @@
-# The prerequisite packages for OSCAAR
+# To install all the prerequisites 
 numpy
-<<<<<<< HEAD
 scipy
 pyfits
 wxPython
@@ -11,9 +10,3 @@ matplotlib
 # Optional
 git
 pyephem
-=======
-pyfits
-matplotlib
-pyephem
-wxpython
->>>>>>> Finished OSCAAR.pybundle
