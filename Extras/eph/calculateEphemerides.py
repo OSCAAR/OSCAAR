@@ -1,10 +1,9 @@
 '''
-Created on Feb 25, 2013
+Ephemeris calculating tool that uses transit data from exoplanets.org
+and astrometric calculations by PyEphem to tell you what transits you'll
+be able to observe from your observatory in the near future.
 
-Useful notes on PyEphem: http://zeus.asu.cas.cz/extra/pyephem-manual.html#ComputationsforParticularObservers
-Note: be cautious of planets with alternate names: HAT-P-30 b = WASP-51 b
-
-@author: bmmorris
+Core developer: Brett Morris
 '''
 import ephem     ## PyEphem module
 import numpy as np
