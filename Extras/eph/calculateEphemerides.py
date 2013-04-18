@@ -14,7 +14,8 @@ from matplotlib import pyplot as plt
 from glob import glob
 from os import getcwd, sep
 from urllib import urlopen
-
+from time import time
+from os.path import getmtime
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
 csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
@@ -56,10 +57,10 @@ else:
         saveCSV = open(csvDatabasePath,'w')
         saveCSV.write(rawCSV)
         saveCSV.close()
-
+    else: print "Your local copy of the exoplanets.org database is <30 days old. That'll do."
 
 if len(pklDatabasePaths) == 0:
-    print 'Attempting to parse exoplanets.csv from exoplanets.org...'
+    print 'Parsing '+csvDatabasePath+', the CSV database from exoplanets.org...'
     rawTable = open(csvDatabasePath).read().splitlines()
     labels = rawTable[0].split(',')
     labelUnits = rawTable[1].split(',')
