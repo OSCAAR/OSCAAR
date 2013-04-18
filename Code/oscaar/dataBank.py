@@ -247,9 +247,17 @@ class dataBank:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)
                 inline[0] = inline[0].strip()
-                if inline[0] == 'Path to Dark Frames': self.darksPath = np.sort(glob(str(inline[1].split('#')[0].strip()))) ##Everything after # on a line in init.par is ignored
+                if inline[0] == 'Path to Dark Frames': 
+                    darkpaths = []
+                    for path in str(inline[1].split('#')[0].strip()).split(','):
+                        darkpaths = darkPaths + glob(path)
+                    self.darksPath = np.sort(darkpaths)
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
-                elif inline[0] == 'Path to data images':  self.imagesPaths = np.sort(glob(str(inline[1].split('#')[0].strip())))
+                elif inline[0] == 'Path to data images':
+                    impaths = []
+                    for path in str(inline[1].split('#')[0].strip()).split(','):
+                        imPaths = imPaths + glob(path)
+                    self.imagesPaths = np.sort(impaths)
                 elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Ingress':  self.ingress = ut2jd(str(inline[1].split('#')[0].strip()))
                 elif inline[0] == 'Egress':  self.egress = ut2jd(str(inline[1].split('#')[0].strip()))

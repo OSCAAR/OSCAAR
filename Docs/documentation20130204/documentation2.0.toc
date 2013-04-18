@@ -1,0 +1,30 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}
+\contentsline {subsection}{\numberline {1.1}System Requirements}{2}{subsection.1.1}
+\contentsline {subsubsection}{\numberline {1.1.1}Disclaimer}{3}{subsubsection.1.1.1}
+\contentsline {section}{\numberline {2}Collecting Data}{3}{section.2}
+\contentsline {subsection}{\numberline {2.1}Telescope Tracking}{3}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Defocusing}{3}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Theory: Photon Noise}{4}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Dark Fields and Flat Frames}{4}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.5}Picking A Target}{5}{subsection.2.5}
+\contentsline {subsubsection}{\numberline {2.5.1}Transit Predictions}{5}{subsubsection.2.5.1}
+\contentsline {subsubsection}{\numberline {2.5.2}Choosing The Field}{5}{subsubsection.2.5.2}
+\contentsline {subsection}{\numberline {2.6}Imaging Software}{6}{subsection.2.6}
+\contentsline {section}{\numberline {3}Running $ \mathtt {oscaar}$\ }{6}{section.3}
+\contentsline {section}{\numberline {4}Running oscaar 2.0}{6}{section.4}
+\contentsline {subsection}{\numberline {4.1}Locating Your Stars with DS9}{6}{subsection.4.1}
+\contentsline {subsubsection}{\numberline {4.1.1}Locating Your Data}{8}{subsubsection.4.1.1}
+\contentsline {subsection}{\numberline {4.2}Making a Master Flat}{8}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Ingress and Egress Times}{9}{subsection.4.3}
+\contentsline {subsection}{\numberline {4.4}Running Parameters}{9}{subsection.4.4}
+\contentsline {subsubsection}{\numberline {4.4.1}Star Tracking}{9}{subsubsection.4.4.1}
+\contentsline {subsubsection}{\numberline {4.4.2}Aperture Photometry}{10}{subsubsection.4.4.2}
+\contentsline {subsubsection}{\numberline {4.4.3}Differential Photometry}{11}{subsubsection.4.4.3}
+\contentsline {subsection}{\numberline {4.5}Initializing $ \mathtt {oscaar}$\ }{12}{subsection.4.5}
+\contentsline {subsubsection}{\numberline {4.5.1}Recognizing Errors}{12}{subsubsection.4.5.1}
+\contentsline {subsection}{\numberline {4.6}Using the $ \mathtt {oscaar}$\ GUI}{13}{subsection.4.6}
+\contentsline {section}{\numberline {5}$ \mathtt {oscaar}$\ For Programmers}{15}{section.5}
+\contentsline {subsubsection}{\numberline {5.0.1}Navigating $ \mathtt {oscaar}$\ Output Files}{15}{subsubsection.5.0.1}
+\contentsline {subsubsection}{\numberline {5.0.2}$ \mathtt {oscaar}$\ API}{16}{subsubsection.5.0.2}
+\contentsline {subsection}{\numberline {5.1}Contributing to $ \mathtt {oscaar}$\ }{17}{subsection.5.1}
+\contentsline {section}{\numberline {6}Acknowledgements}{17}{section.6}
