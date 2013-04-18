@@ -13,8 +13,10 @@ from matplotlib import pyplot as plt
 from glob import glob
 from os import getcwd, sep
 from urllib import urlopen
+import urllib2
 from time import time
 from os.path import getmtime
+
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
 csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
@@ -35,6 +37,21 @@ v_limit = 12.0                          ## V-magnitude upper-limit (type = float
 depth_limit = 0.008                     ## Depth lower-limit in magnitudes (type = float)
 
     
+
+'''First, check if there is an internet connection.'''
+def internet_on():
+    '''If internet connection is available, return True.'''
+    try:
+        response=urllib2.urlopen('http://www.google.com',timeout=10)
+        return True
+    except urllib2.URLError as err: pass
+    return False
+if internet_on():
+    print "Internet connection detected."
+else:
+    print "WARNING: This script assumes that you're connected to the internet. The script may crash if you do not connect to internet."
+
+
 '''If there's a previously archived database pickle in this current working 
    directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
    If the old archive is >30 days old, grab a fresh version of the database from exoplanets.org.
