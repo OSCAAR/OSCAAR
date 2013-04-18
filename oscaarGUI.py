@@ -281,6 +281,16 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             if commaNeeded:
                 invalidsString += ", "
             invalidsString += "Flat Frames"
+        try:
+            float(self.smoothingConstTxt.GetValue())
+            float(self.radiusTxt.GetValue())
+            float(self.trackZoomTxt.GetValue())
+            float(self.ccdGainTxt.GetValue())
+        except ValueError:
+            if commaNeeded:
+                invalidsString += ", "
+            invalidsString += "Value Error"
+            commaNeeded = True
         if invalidsString == "":
             return True
         else:
@@ -397,12 +407,8 @@ class MasterFlatFrame(wx.Frame):
         self.flatImagesPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.flatDarksPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
         self.masterFlatPathCtrl = wx.TextCtrl(self, size = pathCtrlSize)
-        #self.plotsOn = wx.RadioButton(self, -1, 'On')
-        #self.plotsOff = wx.RadioButton(self, -1, 'Off')
         self.plotsRadioBox = wx.RadioBox(self,-1, "Plots", (10,10), wx.DefaultSize, ["On", "Off"], wx.RA_SPECIFY_COLS)
         self.flatRadioBox = wx.RadioBox(self,-1, "Flat Type", (10,10), wx.DefaultSize, ["Standard", "Twilight"], wx.RA_SPECIFY_COLS)
-        #self.standardFlat = wx.RadioButton(self, -1, 'Standard')
-        #self.twilightFlat = wx.RadioButton(self, -1, 'Twilight')
         self.flatBrowse = wx.Button(self, -1, 'Browse')
         self.darkBrowse = wx.Button(self, -1, 'Browse')
         self.masterPathBrowse = wx.Button(self, -1, 'Browse')
@@ -412,9 +418,6 @@ class MasterFlatFrame(wx.Frame):
         self.runButton = wx.Button(self, -1, 'Run')
         self.runButton.Bind(wx.EVT_BUTTON, self.runMasterFlatMaker)
 
-        ## Set some defaults:
-        #self.standardFlat.SetValue(True)
-        #self.plotsOn.SetValue(True)
         self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
         ######Add to sizer######
@@ -583,13 +586,17 @@ class AboutFrame(wx.Frame):
 
 class InvalidPath(wx.Frame):
     def __init__(self, path, parent, id):
-        wx.Frame.__init__(self, parent, id, 'Check Path names')
-        self.SetSize((250,100))
+        wx.Frame.__init__(self, parent, id, 'Invalid Parameter')
+        self.SetSize((350,100))
         self.SetBackgroundColour(wx.Colour(227,227,227))
-        self.paths = wx.StaticText(self, -1, "The following paths are invalid: " + path)
-        self.okButton = wx.Button(self, -1, 'Okay', pos = (self.GetPos()[0]/2,self.GetPos()[1]/2))
+        self.paths = wx.StaticText(self, -1, "The following is invalid: " + path)
+        self.okButton = wx.Button(self, -1, 'Okay', pos = (125,30))
+        self.okButton.Bind(wx.EVT_BUTTON, self.onOkay)
         self.Centre()
         self.Show()
+        
+    def onOkay(self, event):
+        self.Destroy()
 
 #### Launches worker processes ####
         
