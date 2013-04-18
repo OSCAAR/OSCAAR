@@ -487,12 +487,11 @@ class MasterFlatFrame(wx.Frame):
             path += ".fits"
         pathCorrected = path.replace('/', os.sep) + '.fits'
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
+        standardFlat = (self.flatRadioBox.GetSelection() == 0)
         if pathCorrected in glob(outfolder):
-            global standardFlat
-            standardFlat = self.self.flatRadioBox.GetSelection() == 0
             OverwFlatFrame(pathCorrected,self,-1)
         else:
-            if self.standardFlat.GetValue():
+            if standardFlat:
                 oscaar.standardFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             else: 
                 oscaar.twilightFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
