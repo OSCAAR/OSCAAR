@@ -413,7 +413,7 @@ class MasterFlatFrame(wx.Frame):
         self.darkBrowse = wx.Button(self, -1, 'Browse')
         self.masterPathBrowse = wx.Button(self, -1, 'Browse')
         self.title = wx.StaticText(self, -1, 'OSCAAR: Master Flat Maker')
-        self.titleFont = wx.Font(15, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.title.SetFont(self.titleFont)
         self.runButton = wx.Button(self, -1, 'Run')
         self.runButton.Bind(wx.EVT_BUTTON, self.runMasterFlatMaker)
@@ -577,9 +577,6 @@ class AboutFrame(wx.Frame):
         self.Destroy()
     def openRepo(self, event):
         webbrowser.open_new_tab("https://github.com/OSCAAR/OSCAAR")
-
-
-
 
 
 #### Checks if the dark frames are valid ####
