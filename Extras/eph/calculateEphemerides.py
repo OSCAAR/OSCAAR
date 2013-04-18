@@ -17,7 +17,7 @@ from urllib import urlopen
 
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
-textDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
+csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
 calcEclipses = True                    ## Search for secondary eclipses? (type=bool)
 textOut = True                          ## Print out .txt file report? (type=bool)
 htmlOut = True                          ## Print out .html report? (type=bool)
@@ -34,19 +34,33 @@ observatory_name = 'University Of Maryland Observatory' ## Name of observatory f
 v_limit = 12.0                          ## V-magnitude upper-limit (type = float)
 depth_limit = 0.008                     ## Depth lower-limit in magnitudes (type = float)
 
+
+    
 '''If there's a previously archived database pickle in this current working 
    directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
+   If the old archive is >30 days old, grab a fresh version of the database from exoplanets.org.
 '''
-if glob(textDatabasePath) == []:
+if glob(csvDatabasePath) == []:
     print 'No local copy of exoplanets.org database. Downloading one...'
     rawCSV = urlopen('http://www.exoplanets.org/csv-files/exoplanets.csv').read()
-    saveCSV = open(textDatabasePath,'w')
+    saveCSV = open(csvDatabasePath,'w')
     saveCSV.write(rawCSV)
     saveCSV.close()
+else: 
+    '''If the local copy of the exoplanets.org database is >30 days old, download a new one'''
+    secondsSinceLastModification = time() - getmtime(csvDatabasePath) ## in seconds
+    daysSinceLastModification = secondsSinceLastModification/(60*60*24*30)
+    if daysSinceLastModification > 30:
+        print 'Your local copy of the exoplanets.org database is >30 days old. Downloading a fresh one...'
+        rawCSV = urlopen('http://www.exoplanets.org/csv-files/exoplanets.csv').read()
+        saveCSV = open(csvDatabasePath,'w')
+        saveCSV.write(rawCSV)
+        saveCSV.close()
+
 
 if len(pklDatabasePaths) == 0:
     print 'Attempting to parse exoplanets.csv from exoplanets.org...'
-    rawTable = open(textDatabasePath).read().splitlines()
+    rawTable = open(csvDatabasePath).read().splitlines()
     labels = rawTable[0].split(',')
     labelUnits = rawTable[1].split(',')
     rawTableArray = np.zeros([len(rawTable),len(rawTable[0].split(","))])
@@ -67,7 +81,7 @@ if len(pklDatabasePaths) == 0:
     cPickle.dump(exoplanetDB,output)
     output.close()
 else: 
-    print 'Using previously parsed exoplanetData.txt data from exoplanets.org...'
+    print 'Using previously parsed database from exoplanets.org...'
     ''' Import data from exoplanets.org, parsed by
         exoplanetDataParser1.py'''
     inputFile = open(pklDatabaseName,'rb')
