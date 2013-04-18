@@ -15,5 +15,4 @@ OSCAAR is under development by current and former students of The University of 
 
 
 
-Core Developer: Brett Morris
-Contributors: Daniel Galdi, Nolan Matthews, Sam Gross
+Core Developer: Brett Morris. Contributors: Daniel Galdi, Nolan Matthews, Sam Gross
