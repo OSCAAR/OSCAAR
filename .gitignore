@@ -10,3 +10,6 @@ plots
 *.pyc
 Code/oscaar/*.pyc
 Extras/eph/exoplanets.csv
+Extras/eph/exoplanetDB.pkl
+Extras/eph/eventReport.html
+Extras/eph/eventReport.txt
