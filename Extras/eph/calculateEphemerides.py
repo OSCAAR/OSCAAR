@@ -89,7 +89,7 @@ if len(pklDatabasePaths) == 0:
         splitRow = rawTable[row].split(',')
         #exoplanetDB[splitRow[0]] = {}    ## Create dictionary for this row's planet
         exoplanetDB[splitRow[planetNameColumn]] = {}    ## Create dictionary for this row's planet
-        for col in range(1,len(splitRow)):
+        for col in range(0,len(splitRow)):
             #exoplanetDB[splitRow[0]][labels[col]] = splitRow[col]
             exoplanetDB[splitRow[planetNameColumn]][labels[col]] = splitRow[col]
     #exoplanetDB['units'] = {}        ## Create entry for units of each subentry
@@ -186,6 +186,9 @@ def RADecHTML(planet):
 def constellation(planet):
     return exoplanetDB[planet]['Constellation']
 
+def orbitReference(planet):
+    return exoplanetDB[planet]['TRANSITURL']
+
 def midTransit(Tc, P, start, end):
     '''Calculate mid-transits between Julian Dates start and end, using a 2500 
        orbital phase kernel since T_c (for 2 day period, 2500 phases is 14 years)
@@ -255,13 +258,6 @@ for planet in planets:
                 
                 '''If star is above horizon and sun is below horizon:'''        
                 if ((ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset)) or bypassTag:
-    #                print '\nComplete transit'
-    #                print 'Date:',observatory.date
-    #                print 'Sunset/rise:',sunsetStr,sunriseStr
-    ##                print 'Transit epoch:',list2datestr(jd2gd(transitEpoch))
-    #                print 'Starrise/set:',observatory.next_rising(star), observatory.next_setting(star)
-    #                print 'Ing/egr:',list2datestr(jd2gd(ingress)),list2datestr(jd2gd(egress))
-    #                print 'Hrs dark:',24.*(ephem.Date(sunriseStr)-ephem.Date(sunsetStr))
                     transitInfo = [planet,transitEpoch,duration(planet)/2,'transit']
                     transits[str(day)].append(transitInfo)
                     
@@ -470,55 +466,4 @@ if htmlOut:
     report.write(tablefooter)
     report.write(htmlfooter)
     report.close()
-
-plots = False
-if plots:
-    import matplotlib.cm as cm
-    import colorsys
-    
-    times = []
-    names = []
-    durations = []
-    eventType = []
-    for key in events:
-        for event in events[key]:
-            names.append(event[0])
-            times.append(event[1])
-            durations.append(event[2])
-            eventType.append(event[3])
-    
-    def eventTyper(eventType):
-        if eventType == 'transit': return 0
-        if eventType == 'eclipse': return 1
-    
-    eventType = map(eventTyper,eventType)
-
-    showMags = False
-    scaleSize = False
-    showLabels = True
-    bars = 0.083    ## 2 hours
-    alphaSetting = 0.7
-    format = 'o'
-    
-    fig = plt.figure(figsize=(24,8))
-    axis = fig.add_subplot(111)
-    
-    def get_color(color):
-        for hue in range(color):
-            hue = 1. * hue / color
-            col = [int(x) for x in colorsys.hsv_to_rgb(hue, 1.0, 230)]
-            yield "#{0:02x}{1:02x}{2:02x}".format(*col)
-    axis.errorbar(times,eventType,xerr=durations,fmt=format,alpha=alphaSetting)
-    
-    if showLabels:
-        for label, x, y in zip(names, times, eventType):
-            axis.annotate(
-                label,xy = (x, y), xytext = (0,5), textcoords = 'offset points', ha = 'left', va = 'bottom', rotation=45)
-                
-    #axis.legend(numpoints=1)
-    
-    def format_coord(x, y):
-        return 'Cursor: '+jd2gd(x,returnString=True)+' UT'
-    axis.format_coord = format_coord 
-    
-    plt.show()
+#print exoplanetDB['HD 209458 b']
