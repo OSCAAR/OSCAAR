@@ -20,24 +20,28 @@ from os.path import getmtime
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
 csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
-calcEclipses = True                    ## Search for secondary eclipses? (type=bool)
-textOut = True                          ## Print out .txt file report? (type=bool)
-htmlOut = True                          ## Print out .html report? (type=bool)
-''' Start and end dates of the observing semester'''
-startSem = gd2jd((2013,4,16,22,0,0))    ## Beginning date/time of observing period. Format: (YYYY,MM,DD,HH,MM,SS)
-endSem = gd2jd((2013,5,1,22,0,0))       ## Ending date/time of observing period
-observatory_elevation = 20.0            ## meters
-observatory_temperature = 15.0          ## degrees C
-observatory_minHorizon = '25:00:00'     ## deg:min:sec  (type=str)
-observatory_latitude = '38:58:50.16'    ## deg:min:sec  (type=str). Positive = North
-observatory_longitude = '-76:56:13.92'  ## deg:min:sec  (type=str). Positive = East
-twilightType = '-6'                     ## Civil = -6 degrees; Nautical = -12 degrees; Astronomical = -18 degrees. (type=str)
-observatory_name = 'University Of Maryland Observatory' ## Name of observatory for report header
-v_limit = 12.0                          ## V-magnitude upper-limit (type = float)
-depth_limit = 0.008                     ## Depth lower-limit in magnitudes (type = float)
+parFile = 'umo.par'
 
+'''Parse the observatory .par file'''
+parFileText = open('observatories/'+parFile,'r').read().splitlines()
+for line in parFileText:
+    parameter = line.split(':')[0]
+    value = line.split(':')[1]
+    if parameter == 'name': observatory_name = value
+    elif parameter == 'latitude': observatory_latitude = value
+    elif parameter == 'longitude': observatory_longitude = value
+    elif parameter == 'elevation': observatory_elevation = float(value)
+    elif parameter == 'temperature': observatory_temperature = float(value)
+    elif parameter == 'min_horizon': observatory_minHorizon = value
+    elif parameter == 'start_date': startSem = gd2jd(eval(value))
+    elif parameter == 'end_date': endSem = gd2jd(eval(value))
+    elif parameter == 'v_limit': v_limit = float(value)
+    elif parameter == 'depth_limit': depth_limit = float(value)
+    elif parameter == 'calc_eclipses': calcEclipses = bool(value)
+    elif parameter == 'html_out': htmlOut = bool(value)
+    elif parameter == 'text_out': textOut = bool(value)
+    elif parameter == 'twilight': twilightType = value
     
-
 '''First, check if there is an internet connection.'''
 def internet_on():
     '''If internet connection is available, return True.'''
@@ -49,8 +53,7 @@ def internet_on():
 if internet_on():
     print "Internet connection detected."
 else:
-    print "WARNING: This script assumes that you're connected to the internet. The script may crash if you do not connect to internet."
-
+    print "WARNING: This script assumes that you're connected to the internet. This script may crash if you do not have an internet connection."
 
 '''If there's a previously archived database pickle in this current working 
    directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
