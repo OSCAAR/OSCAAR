@@ -11,4 +11,4 @@ depth_limit:
 calc_eclipses: True
 html_out: True
 text_out: True
-twilight_degrees: 
+twilight: 
