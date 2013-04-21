@@ -20,44 +20,50 @@
 %\setcounter{tocdepth}{1}
 \section{Introduction}
 
-\newcommand{\oscaar}{$ \mathtt{oscaar}$\ }
+\newcommand{\oscaar}{$ \mathtt{oscaar}$ }
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\init}{\code{init.par}\ }
 
-\oscaar is a differential photometry package built for users at observatories of any size and users of any experience level. The process of differential photometry can be applied to many astrophysical phenomena including transiting extrasolar planets, variable stars, rotating asteroids and more, and this code is prepared for any such use. 
+\oscaar's core is a differential photometry package built for users of any experience level at observatories of any size. The process of differential photometry can be applied to many astrophysical phenomena including transiting extrasolar planets, variable stars, rotating asteroids and more. This package is prepared specially for transiting exoplanet observations, though often other photometric observations can be analyzed with \oscaar without any tweaking to the source code.
 
-The code was first designed in the summer of 2011 to take a series of CCD images obtained at the University of Maryland Observatory and churn out light curves of transiting extrasolar planets. If you're looking to do something similar, you've found the right code! The core of the code is written in Python, but it has been designed for users who have never seen Python before. That being said, experienced programmers will find that the guts of \oscaar provide a great toolkit for even the most demanding of photometric measurements.
+Development for \oscaar began in the summer of 2011 to take a series of images obtained at the \href{http://www.astro.umd.edu/openhouse/}{University of Maryland Observatory} in College Park, MD, USA and churn out light curves of transiting extrasolar planets. If you're looking to do something similar, you've found the right code! The core of the code is written in \href{http://www.python.org/}{Python}, but it has been designed to be operated with a graphical user interface (GUI) for users who have never seen Python before. That being said, experienced programmers will find that the guts of \oscaar provide a well-documented toolkit for even the most demanding of photometric measurements. Since the v1.0 release, \oscaar has been used by astronomers at all levels, from undergraduates to observatory-directing IAU members.
 
-Here we summarize the contents of this documentation. If you are new to photometric measurements, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:api} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
+Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:api} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
 
 \subsection{System Requirements} \label{sec:systemRequirements}
 
-This software package runs on the following required software and modules:  \\ \\
+There are several packages in addition to Python that must be installed on your machine before running \oscaar. Most of these packages have been around for some time in the astronomical community. They are all free and available for download via links below. We apologize for the number of packages that are necessary to download, but we have decided that these packages enable for the most efficient open-source distro that we can provide.  \\ \\
 \noindent
-\indent \href{http://www.python.org/getit/}{\textbf{Python 2.7.1}}: The main language this software is written in \\
-\indent \href{http://new.scipy.org/download.html}{\textbf{NumPy 1.6.0-py2.7}}: A Python module for efficient numerical computations \\
-\indent \href{http://www.stsci.edu/resources/software_hardware/pyfits/}{\textbf{PyFITS 2.4.0}}: A Python module for FITS handling \\
-\indent \href{http://matplotlib.sourceforge.net/index.html}{\textbf{Matplotlib 1.0.0-py2.7}}: A Python module for plotting\\
-\indent \href{http://hea-www.harvard.edu/RD/ds9/}{\textbf{SAO Image DS9}}: A standard astronomical FITS display interface \\
-\indent \href{http://www.wxpython.org/download.php#stable}{\textbf{wxPython}}: A Pythonic GUI toolkit
+\indent \href{http://www.python.org/getit/}{\textbf{Python 2.7.X}}: The core language of oscaar \\
+\indent \href{http://new.scipy.org/download.html}{\textbf{NumPy 1.6.0-py2.7}}: A Python module for efficient scientific computations \\
+\indent \href{http://www.stsci.edu/resources/software_hardware/pyfits/}{\textbf{PyFITS 2.4.0}}: A Python module for handling FITS files \\
+\indent \href{http://matplotlib.sourceforge.net/index.html}{\textbf{Matplotlib 1.X-py2.7}}: A Python module for plotting\\
+\indent \href{http://www.wxpython.org/download.php#stable}{\textbf{wxPython}}: A Pythonic GUI toolkit \\
+\indent \href{http://rhodesmill.org/pyephem/}{\textbf{PyEphem}} (\textit{optional}): A Python module for ephemeris generation \\
 
+\noindent
+PyEphem is not required to run differential photometric analysis with \oscaar but enables you to make detailed plans for observing nights in advance. More on this in Section ***.%\ref{}
 
 \subsubsection{Disclaimer}
 
-Though the modules used in this package have been stable historically and probably will not go away any time soon, the \oscaar Team does not take any responsibility for problems that arise as a result of changes to future versions of these modules. Sorry!
+Though the modules used in this package have been stable historically and probably will not go away any time soon, the \oscaar Team does not take any immediate responsibility for problems that arise as a result of changes to future versions of these modules. 
 
 \section{Collecting Data} \label{sec:collectingData}
 \subsection{Telescope Tracking}
 
-Differential photometry is generally done on a series of images of the same patch of the sky over a long period of time. You'll need a telescope that is well polar-aligned so that the telescope's tracking keeps the stars in nearly the same spot on your detector throughout the duration of your observations. It is an unreasonable challenge to align most small telescopes well enough to track a star perfectly over several hours, so \oscaar is built to monitor and correct for the drift in star positions on the detector over time. Just make sure your object of interest and a few comparison stars stay in the field throughout the whole observation. 
-
-The star tracking algorithm follows each star individually over time. If your photometric target is an asteroid, for example, that moves relative to the comparison stars over time, \oscaar will happily track the asteroid and the comparison stars independently. There is one major weakness in \oscaar's tracking -- if you stop an observing run and start again with the stars in different positions on the detector, \oscaar will likely barf. If the stars move significantly (tens of pixels) between two adjacent exposures, you must run \oscaar separately on each half of the time-series.
+Differential photometry is generally done on a series of images of the same patch of the sky over a long period of time. You'll need a telescope that is well polar-aligned so that the telescope's tracking keeps the stars in nearly the same spot on your detector throughout the duration of your observations. It is an unreasonable challenge to align most small telescopes well enough to track a star perfectly over several hours, so \oscaar is built to monitor and correct for the drift in star positions on the detector over time. Just make sure your object of interest and a few comparison stars stay in the field throughout the whole observation\footnote{If you need to re-center your target in the middle of an observation, \oscaar will only be able to continue to track the stars without special code tweaking if you change the stars' centroid positions by a few pixels at a time in between each exposure. The current version of \oscaar is not resilient against sudden discontinuous tracking anomalies.}. The star tracking algorithm follows each star individually over time. If your photometric target is an asteroid, for example, that moves relative to the comparison stars over time, \oscaar will happily track the asteroid and the comparison stars independently. 
 
 \subsection{Defocusing} \label{sec:defocusing}
 
-In precision photometry, relying on individual pixels is dangerous. Pixel defects occur frequently that can cause a pixel to read much higher counts than they actually receive (these are called ``hot pixels'') or sometimes much lower counts (``dead pixels''). If your target object is perfectly focused on a few pixels, you may be putting all of your photometric-eggs in one basket. Thus it is often advised that you \textbf{do not focus the telescope perfectly} when doing photometric measurements. If you can, defocus the telescope significantly so that you spread out the starlight over a few of pixels, and your pixel-to-pixel variations will play a less-significant role in the introduction of unwanted systematic noise and bias. 
+In precision photometry, relying on individual pixels is dangerous. Pixel defects occur frequently that can cause a pixel to read much higher counts than they actually receive (these are called ``hot pixels'') or sometimes much lower counts (``dead pixels''). If your target object is perfectly focused on a few pixels, you may be putting all of your photometric-eggs in one basket. Thus it is often advised that you \textbf{do not focus the telescope perfectly} when doing photometric measurements. If you can, defocus the telescope significantly so that you spread out the starlight over a few of pixels, and your pixel-to-pixel variations will play a less-significant role in the introduction of unwanted systematic noise and bias. See Figure \ref{fig:defocus} for examples.
 
-Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaar is written to accurately track stars of unconventional shapes. At the University of Maryland Observatory, we make most of our measurements on a 6in refractor. We defocus the stars until they look like small donuts (the hole is an artifact of the optical path of the refractor), and we've found that our photometry comes out best this way. \oscaar won't complain if your stars are donut-shaped, Gaussian or somewhere in between.
+Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaar is written to accurately track stars of unconventional shapes. At the University of Maryland Observatory, we make most of our measurements on a 6in refractor. We defocus the stars until they look like small donuts (the hole is an artifact of the optical path of the refractor), and we've found that our photometry comes out best this way. \oscaar won't complain if your stars are donut-shaped, Gaussian or somewhere in between. 
+
+\begin{figure}
+\includegraphics[scale=0.34]{imgs/focusing.png}
+\caption{Images of stars with varying levels of defocusing. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
+\label{fig:defocus}
+\end{figure}
 
 One must keep in mind that by spreading out the light over many pixels, the counts measured by each pixel is lower. As a result, defocusing is most helpful when observing bright objects. If the source you are observing is bright enough, you can defocus significantly without losing too much signal. However, it is important to note that the quality of your light curve will be directly related to how much more signal than noise you detected. Use defocusing sparingly (or not at all) when imaging dim targets.
 
