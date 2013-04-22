@@ -17,7 +17,7 @@ class EphFrame(wx.Frame):
         self.SetTitle('Ephemerides')
         self.ctrlList = []
         self.ephSizer = wx.GridBagSizer(7,7)
-        obsList = glob('observatories'+os.sep+'\*')
+        obsList = glob('observatories'+os.sep+'*')
         nameList = []
         for i in obsList:
             nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
