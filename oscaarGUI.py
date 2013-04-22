@@ -134,11 +134,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer.SetDimension(5, 5, 550, 500)
         self.SetSizer(self.sizer)
         self.bestSize = self.GetBestSizeTuple()
-        #if(sys.platform == 'darwin'):
-        #    setSize = (900, 475) ## Sizes for Mac
-        #elif(sys.platform == 'linux2'):
-        #    setSize = (975, 500)
-        #else:  setSize = (self.bestSize[0]+20,self.bestSize[1]+20) ##Made the size bigger so the items fit in all os
         setSize = (self.bestSize[0]+20,self.bestSize[1]+20) ##Not sure if this looks okay on os x and linux.
         self.SetSize(setSize)
         self.SetMinSize(setSize)
@@ -259,20 +254,28 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     worker = WorkerThread()
     
     def addStarFits(self, init, field, path):
-        fitsPath = path
-        if os.path.isdir(fitsPath) and not (fitsPath.endswith(os.sep)):
-            fitsPath += os.sep
-        if path.endswith(os.sep):
-            fitsPath += '*.fits'
-        init.write(field + fitsPath + '\n')
-        return fitsPath
-        
+        pathList = []
+        for impath in path.split(','):
+            newpath = impath
+            if os.path.isdir(impath) and not (impath.endswith(os.sep)):
+                newpath += os.sep
+            if newpath.endswith(os.sep):
+                newpath += '*.fits'
+            pathList += glob(newpath)
+        initText = ''
+        for i in range(0,len(pathList)):
+            if i == len(pathList)-1:
+                initText += pathList[i]
+            else:
+                initText += (pathList[i]+',')
+        init.write(field + initText + '\n')
+        return pathList
     
     def validityCheck(self):
-        darkFrames = glob(self.darkFits)
-        imageFiles = glob(self.imgFits)
-        regionsFile = glob(self.regFits)
-        flatFrames = glob(self.flatFits)
+        darkFrames = self.darkFits
+        imageFiles = self.imgFits
+        regionsFile = self.regFits
+        flatFrames = self.flatFits
         invalidsString = ""
         commaNeeded = False
         if not self.containsFit(darkFrames):
@@ -466,11 +469,6 @@ class MasterFlatFrame(wx.Frame):
         sizer.Add(btn, (row, 5), (1,1), wx.TOP, 7)
         btn.Bind(wx.EVT_BUTTON, lambda event: self.openDirDialog(event, message, textCtrl))
 
-#    def addButtonPair(self, sizer, row, colStart, label, button1, button2): ##defined for neater insertion of control items
-#        sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 12) ##border of 12 pixels on the top and left
-#        sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
-#        sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
-
     def addButtonPair(self, row, colStart, button1, button2, label):
         label.SetFont(self.labelFont)
         self.frameSizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##border of 8 pixels on the top and left
@@ -479,36 +477,38 @@ class MasterFlatFrame(wx.Frame):
 
     #####Button Press Event Functions#####
     def openDirDialog(self, event, message, textControl):
-        dlg = wx.DirDialog(self, message = message, style = wx.OPEN)
+        dlg = wx.FileDialog(self, message = message, style = wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
+            filenames = dlg.GetPaths()
             textControl.Clear()
-            textControl.WriteText(dlg.GetPaths())
+            for i in range(0,len(filenames)):
+                if i != len(filenames)-1:
+                    textControl.WriteText(filenames[i] + ',')
+                else:
+                    textControl.WriteText(filenames[i])
         dlg.Destroy()
 
     def runMasterFlatMaker(self, event):
-        #print self.plotsRadioBox.GetSelection() == 0
         path = self.masterFlatPathCtrl.GetValue()
-        if(not path.endswith(".fits")):
-            path += ".fits"
-        pathCorrected = path.replace('/', os.sep) + '.fits'
+        self.flatpaths = []
+        for impath in self.flatImagesPathCtrl.GetValue().split(','):
+            self.flatpaths += glob(impath)
+        self.flatdarkpaths = []
+        for dpath in self.flatDarksPathCtrl.GetValue().split(','):
+            self.flatdarkpaths += glob(dpath)
+        if not path.endswith('.fits'):
+            path += '.fits'
+        pathCorrected = path.replace('/', os.sep)
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
-        standardFlat = (self.flatRadioBox.GetSelection() == 0)
+        self.standardFlat = (self.flatRadioBox.GetSelection() == 0)
         if pathCorrected in glob(outfolder):
             OverwFlatFrame(pathCorrected,self,-1)
         else:
-            if standardFlat:
-                oscaar.standardFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
+            if self.standardFlat:
+                oscaar.standardFlatMaker(self.flatpaths, self.flatdarkpaths, self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             else: 
-                oscaar.twilightFlatMaker(glob(self.flatImagesPathCtrl.GetValue()), glob(self.flatDarksPathCtrl.GetValue()), self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
+                oscaar.twilightFlatMaker(self.flatpaths, self.flatdarkpaths, self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             self.Destroy()
-        
-    def overWriteFlat(self):
-        path = self.masterFlatPathCtrl.GetValue()
-        pathCorrected = path.replace('/', os.sep) + '.fits'
-        outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
-        if pathCorrected in glob(outfolder):
-            return True
-        else: return False
 
 class OverwFlatFrame(wx.Frame):
     def __init__(self, path, parent, id):
@@ -530,11 +530,11 @@ class OverwFlatFrame(wx.Frame):
         os.remove(self.path)
 #        oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
         #print self.parent.standardFlat.GetValue()
-        if self.parent.standardFlat.GetValue():
+        if self.parent.standardFlat:
 #        if self.standardFlat.GetValue():
-            oscaar.standardFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+            oscaar.standardFlatMaker(self.parent.flatpaths, self.parent.flatdarkpaths, self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsRadioBox.GetSelection() == 0)
         else: 
-            oscaar.twilightFlatMaker(glob(self.parent.flatImagesPathCtrl.GetValue()), glob(self.parent.flatDarksPathCtrl.GetValue()), self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsOn.GetValue())
+            oscaar.twilightFlatMaker(self.parent.flatpaths, self.parent.flatdarkpaths, self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsRadioBox.GetSelection() == 0)
 
         self.parent.Destroy()
         
