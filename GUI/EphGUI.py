@@ -10,9 +10,8 @@ class EphFrame(wx.Frame):
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-        self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
+        self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        
         self.SetTitle('Ephemerides')
 
         self.ephSizer = wx.GridBagSizer(7,7)
@@ -24,16 +23,20 @@ class EphFrame(wx.Frame):
         self.endSemTime = wx.TextCtrl(self, value = '00:00:00')
         self.latitude = wx.TextCtrl(self, value = 'deg:min:sec')
         self.elevation = wx.TextCtrl(self, value = '0.0')
-        
+        self.temp = wx.TextCtrl(self, value = '0.0')
         
         self.ephSizer.Add(self.title, (0,0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.addDateCtrl(1,0, self.startSemDate, self.startSemTime,wx.StaticText(self, -1, "Beginning of Obs, UT (YYYY/MM/DD): "))
-        self.addDateCtrl(2,0, self.endSemDate, self.endSemTime,wx.StaticText(self, -1, "End of Obs, UT (YYYY/MM/DD): "))
-        self.addTextCtrl(3,0, self.latitude, wx.StaticText(self, -1, 'Lattitude (deg:min:sec):'))
-        self.addTextCtrl(4,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation: '))
+        self.addDateCtrl(2,0, self.startSemDate, self.startSemTime,wx.StaticText(self, -1, "Beginning of Obs, UT (YYYY/MM/DD): "))
+        self.addDateCtrl(3,0, self.endSemDate, self.endSemTime,wx.StaticText(self, -1, "End of Obs, UT (YYYY/MM/DD): "))
+        self.addTextCtrl(4,0, self.latitude, wx.StaticText(self, -1, 'Lattitude (deg:min:sec):'))
+        self.addTextCtrl(5,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation: '))
+        self.addTextCtrl(6,0, self.temp, wx.StaticText(self, -1, 'Temperature (Celcius): '))
+
 
         self.SetBackgroundColour(wx.Colour(233,233,233))
         self.SetSizer(self.ephSizer)
+        self.bestSize = self.GetBestSizeTuple()
+        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
         self.Centre()
         self.Show()
         
