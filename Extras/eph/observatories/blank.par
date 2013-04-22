@@ -10,5 +10,5 @@ v_limit:
 depth_limit: 
 calc_eclipses: True
 html_out: True
-text_out: True
+text_out: False
 twilight: 
