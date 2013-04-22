@@ -20,7 +20,7 @@ from os.path import getmtime
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
 csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
-parFile = 'keck.par'
+parFile = 'umo.par'
 
 '''Parse the observatory .par file'''
 parFileText = open('observatories/'+parFile,'r').read().splitlines()
@@ -57,7 +57,7 @@ else:
 
 '''If there's a previously archived database pickle in this current working 
    directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
-   If the old archive is >30 days old, grab a fresh version of the database from exoplanets.org.
+   If the old archive is >14 days old, grab a fresh version of the database from exoplanets.org.
 '''
 if glob(csvDatabasePath) == []:
     print 'No local copy of exoplanets.org database. Downloading one...'
@@ -66,16 +66,16 @@ if glob(csvDatabasePath) == []:
     saveCSV.write(rawCSV)
     saveCSV.close()
 else: 
-    '''If the local copy of the exoplanets.org database is >30 days old, download a new one'''
+    '''If the local copy of the exoplanets.org database is >14 days old, download a new one'''
     secondsSinceLastModification = time() - getmtime(csvDatabasePath) ## in seconds
     daysSinceLastModification = secondsSinceLastModification/(60*60*24*30)
-    if daysSinceLastModification > 30:
-        print 'Your local copy of the exoplanets.org database is >30 days old. Downloading a fresh one...'
+    if daysSinceLastModification > 14:
+        print 'Your local copy of the exoplanets.org database is >14 days old. Downloading a fresh one...'
         rawCSV = urlopen('http://www.exoplanets.org/csv-files/exoplanets.csv').read()
         saveCSV = open(csvDatabasePath,'w')
         saveCSV.write(rawCSV)
         saveCSV.close()
-    else: print "Your local copy of the exoplanets.org database is <30 days old. That'll do."
+    else: print "Your local copy of the exoplanets.org database is <14 days old. That'll do."
 
 if len(pklDatabasePaths) == 0:
     print 'Parsing '+csvDatabasePath+', the CSV database from exoplanets.org...'
@@ -174,7 +174,8 @@ def list2datestr(inList):
 def list2datestrHTML(inList):
     '''Converse function to datestr2list'''
     inList = map(str,inList)
-    return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
+    #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
+    return inList[1].zfill(2)+'/<b>'+inList[2].zfill(2)+'</b><br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
 
 def simbadURL(planet):
     if exoplanetDB[planet]['SIMBADURL'] == '': return 'http://simbad.harvard.edu/simbad/'
@@ -188,6 +189,18 @@ def constellation(planet):
 
 def orbitReference(planet):
     return exoplanetDB[planet]['TRANSITURL']
+
+def nameWithLink(planet):
+    return '<a href="'+orbitReference(planet)+'">'+planet+'</a>'
+
+def mass(planet):
+    return exoplanetDB[planet]['MASS']
+
+def semimajorAxis(planet):
+    return trunc(0.004649*float(exoplanetDB[planet]['AR'])*float(exoplanetDB[planet]['RSTAR']),3)   ## Convert from solar radii to AU
+
+def radius(planet):
+    return trunc(10.05537*float(exoplanetDB[planet]['UR']),2) ## Convert from solar radii to Jupiter radii
 
 def midTransit(Tc, P, start, end):
     '''Calculate mid-transits between Julian Dates start and end, using a 2500 
@@ -372,7 +385,7 @@ if textOut:
             report.write('\n')
     report.close()
 
-
+print exoplanetDB['HAT-P-7 b']
 if htmlOut: 
     '''Write out a text report with the transits/eclipses. Write out the time of 
        ingress, egress, whether event is transit/eclipse, elapsed in time between
@@ -400,7 +413,7 @@ if htmlOut:
 
     tableheader = '\n'.join([
         '\n        <table class="sortable" id="eph">',\
-        '        <tr> <th>Planet</th>      <th>Event</th>    <th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec</th> <th>Const.</th> </tr>'])
+        '        <tr> <th>Planet</th>      <th>Event</th>    <th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec</th> <th>Const.</th> <th>Mass<br />(M<sub>J</sub>)</th> <th>Semimajor Axis<br />(AU)</th> <th>Radius<br />(R<sub>J</sub>)</th></tr>'])
     tablefooter = '\n'.join([
         '\n        </table>',\
         '        <br /><br />',])
@@ -416,13 +429,24 @@ if htmlOut:
 
     allKeys = np.array(allKeys)[np.argsort(allKeys)]
     for key in allKeys:
-        def writeHTMLOut():
+        def writeHTMLtransit():
             indentation = '        '
-            middle = '</td><td>'.join([str(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
+            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
                                        list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],trunc(V(str(planet[0])),2),\
-                                       trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0])])
+                                       trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
+                                       str(mass(planet[0])),semimajorAxis(planet[0]),radius(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
             report.write(line)
+        
+        def writeHTMLeclipse():
+            indentation = '        '
+            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
+                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],trunc(V(str(planet[0])),2),\
+                                       '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
+                                       str(mass(planet[0])),semimajorAxis(planet[0]),radius(planet[0])])
+            line = indentation+'<tr><td>'+middle+'</td></tr>\n'
+            report.write(line)
+
     
         if np.shape(events[key])[0] > 1:
             elapsedTime = []
@@ -451,17 +475,17 @@ if htmlOut:
             #    report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
             for planet in events[key]:
                 if planet[3] == 'transit':
-                    writeHTMLOut()
+                    writeHTMLtransit()
                 elif calcEclipses and planet[3] == 'eclipse':
-                    writeHTMLOut()          
+                    writeHTMLeclipse()          
             #report.write('\n')
         elif np.shape(events[key])[0] == 1:
             planet = events[key][0]
             #report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
             if planet[3] == 'transit':
-                    writeHTMLOut()
+                    writeHTMLtransit()
             elif calcEclipses and planet[3] == 'eclipse':
-                    writeHTMLOut()
+                    writeHTMLeclipse()
            # report.write('\n')
     report.write(tablefooter)
     report.write(htmlfooter)
