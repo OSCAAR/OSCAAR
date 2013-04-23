@@ -181,11 +181,11 @@ def list2datestr(inList):
     inList = map(str,inList)
     return inList[0]+'/'+inList[1]+'/'+inList[2]+' '+inList[3].zfill(2)+':'+inList[4].zfill(2)+':'+inList[5].zfill(2)
 
-def list2datestrHTML(inList,alt):
+def list2datestrHTML(inList,alt,direction):
     '''Converse function to datestr2list'''
     inList = map(str,inList)
     #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
-    return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong><br />'+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)+'; '+alt+'&deg;'
+    return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong>, '+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)+'<br /> '+alt+'&deg; '+direction
 
 def simbadURL(planet):
     if exoplanetDB[planet]['SIMBADURL'] == '': return 'http://simbad.harvard.edu/simbad/'
@@ -246,8 +246,25 @@ for day in np.arange(startSem,endSem+1):
     if calcEclipses: eclipses[str(day)] = []
 planetsNeverUp = []
 
-def ingressEgressAlt(planet,observatory,ingress,egress):
+
+def azToDirection(az):
+    az = float(az)
+    if (az >= 0 and az < 22.5) or (az >= 337.5 and az < 360): return 'N'
+    elif az >= 22.5 and az < 67.5:  return 'NE'
+    elif az >= 67.5 and az < 112.5:  return 'E'
+    elif az >= 112.5 and az < 157.5:  return 'SE'
+    elif az >= 157.5 and az < 202.5:  return 'S'
+    elif az >= 202.5 and az < 247.5:  return 'SW'
+    elif az >= 247.5 and az < 292.5:  return 'W'    
+    elif az >= 292.5 and az < 337.5:  return 'NW'
+#    if (az >= 0 and az < 45) or (az >= 315 and az < 360): return 'N'
+#    elif az >= 45 and az < 135:  return 'E'
+#    elif az >= 135 and az < 225: return 'S'
+#    elif az >= 225 and az < 315: return 'W'
+
+def ingressEgressAltAz(planet,observatory,ingress,egress):
     altitudes = []
+    directions = []
     for time in [ingress,egress]:
         observatory.date = list2datestr(jd2gd(time))
         star = ephem.FixedBody()
@@ -255,7 +272,10 @@ def ingressEgressAlt(planet,observatory,ingress,egress):
         star._dec = ephem.degrees(dec(planet))
         star.compute(observatory)
         altitudes.append(str(ephem.degrees(star.alt)).split(":")[0])
-    return altitudes
+        directions.append(azToDirection(str(ephem.degrees(star.az)).split(":")[0]))
+    ingressAlt,egressAlt = altitudes
+    ingressDir,egressDir = directions
+    return ingressAlt,ingressDir,egressAlt,egressDir
 
 for planet in planets:        
     for day in np.arange(startSem,endSem+1,1.0):
@@ -295,8 +315,8 @@ for planet in planets:
                 
                 '''If star is above horizon and sun is below horizon:'''        
                 if (ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset) or bypassTag:
-                    ingressAlt,egressAlt = ingressEgressAlt(planet,observatory,ingress,egress)
-                    transitInfo = [planet,transitEpoch,duration(planet)/2,'transit',ingressAlt,egressAlt]
+                    ingressAlt,ingressDir,egressAlt,egressDir = ingressEgressAltAz(planet,observatory,ingress,egress)
+                    transitInfo = [planet,transitEpoch,duration(planet)/2,'transit',ingressAlt,ingressDir,egressAlt,egressDir]
                     transits[str(day)].append(transitInfo)
                     
                 #else: print 'Partial transit'
@@ -318,8 +338,8 @@ for planet in planets:
                 
                 '''If star is above horizon and sun is below horizon:'''
                 if (ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset):
-                    ingressAlt,egressAlt = ingressEgressAlt(planet,observatory,ingress,egress)
-                    eclipseInfo = [planet,eclipseEpoch,duration(planet)/2,'eclipse',ingressAlt,egressAlt]
+                    ingressAlt,ingressDir,egressAlt,egressDir = ingressEgressAltAz(planet,observatory,ingress,egress)
+                    eclipseInfo = [planet,eclipseEpoch,duration(planet)/2,'eclipse',ingressAlt,ingressDir,egressAlt,egressDir]
                     eclipses[str(day)].append(eclipseInfo)
                 #else: print 'Partial eclipse'
         except ephem.NeverUpError:
@@ -459,8 +479,8 @@ if htmlOut:
     for key in allKeys:
         def writeHTMLtransit():
             indentation = '        '
-            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4]),\
-                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[5]),trunc(V(str(planet[0])),2),\
+            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(V(str(planet[0])),2),\
                                        trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
                                        mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
@@ -468,8 +488,8 @@ if htmlOut:
         
         def writeHTMLeclipse():
             indentation = '        '
-            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4]),\
-                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[5]),trunc(V(str(planet[0])),2),\
+            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(V(str(planet[0])),2),\
                                        '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
                                        mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
