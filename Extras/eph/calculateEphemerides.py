@@ -3,6 +3,9 @@ Ephemeris calculating tool that uses transit data from exoplanets.org
 and astrometric calculations by PyEphem to tell you what transits you'll
 be able to observe from your observatory in the near future.
 
+Exoplanets.org citation: Wright et al. 2011
+http://arxiv.org/pdf/1012.5676v3.pdf
+
 Core developer: Brett Morris
 '''
 import ephem     ## PyEphem module
@@ -16,7 +19,7 @@ from urllib import urlopen
 import urllib2
 from time import time
 from os.path import getmtime
-
+from copy import deepcopy
 pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
 pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
 csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
@@ -24,9 +27,15 @@ parFile = 'umo.par'
 
 '''Parse the observatory .par file'''
 parFileText = open('observatories/'+parFile,'r').read().splitlines()
+
+def returnBool(value):
+    '''Return booleans from strings'''
+    if value == 'True': return True
+    elif value == 'False': return False
+    
 for line in parFileText:
     parameter = line.split(':')[0]
-    value = line.split(':')[1]
+    value = line.split(':')[1].strip()
     if parameter == 'name': observatory_name = value
     elif parameter == 'latitude': observatory_latitude = value
     elif parameter == 'longitude': observatory_longitude = value
@@ -37,9 +46,10 @@ for line in parFileText:
     elif parameter == 'end_date': endSem = gd2jd(eval(value))
     elif parameter == 'v_limit': v_limit = float(value)
     elif parameter == 'depth_limit': depth_limit = float(value)
-    elif parameter == 'calc_eclipses': calcEclipses = bool(value)
-    elif parameter == 'html_out': htmlOut = bool(value)
-    elif parameter == 'text_out': textOut = bool(value)
+    elif parameter == 'calc_transits': calcTransits = returnBool(value)
+    elif parameter == 'calc_eclipses': calcEclipses = returnBool(value)
+    elif parameter == 'html_out': htmlOut = returnBool(value)
+    elif parameter == 'text_out': textOut = returnBool(value)
     elif parameter == 'twilight': twilightType = value
     
 '''First, check if there is an internet connection.'''
@@ -171,11 +181,11 @@ def list2datestr(inList):
     inList = map(str,inList)
     return inList[0]+'/'+inList[1]+'/'+inList[2]+' '+inList[3].zfill(2)+':'+inList[4].zfill(2)+':'+inList[5].zfill(2)
 
-def list2datestrHTML(inList):
+def list2datestrHTML(inList,alt):
     '''Converse function to datestr2list'''
     inList = map(str,inList)
     #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
-    return inList[1].zfill(2)+'/<b>'+inList[2].zfill(2)+'</b><br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
+    return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong><br />'+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)+'; '+alt+'&deg;'
 
 def simbadURL(planet):
     if exoplanetDB[planet]['SIMBADURL'] == '': return 'http://simbad.harvard.edu/simbad/'
@@ -194,13 +204,15 @@ def nameWithLink(planet):
     return '<a href="'+orbitReference(planet)+'">'+planet+'</a>'
 
 def mass(planet):
-    return exoplanetDB[planet]['MASS']
+    if exoplanetDB[planet]['MASS'] == '': return '---'
+    else: return trunc(float(exoplanetDB[planet]['MASS']),2)
 
 def semimajorAxis(planet):
-    return trunc(0.004649*float(exoplanetDB[planet]['AR'])*float(exoplanetDB[planet]['RSTAR']),3)   ## Convert from solar radii to AU
+    #return trunc(0.004649*float(exoplanetDB[planet]['AR'])*float(exoplanetDB[planet]['RSTAR']),3)   ## Convert from solar radii to AU
+    return trunc(float(exoplanetDB[planet]['SEP']),3)
 
 def radius(planet):
-    return trunc(10.05537*float(exoplanetDB[planet]['UR']),2) ## Convert from solar radii to Jupiter radii
+    return trunc(float(exoplanetDB[planet]['R']),2) ## Convert from solar radii to Jupiter radii
 
 def midTransit(Tc, P, start, end):
     '''Calculate mid-transits between Julian Dates start and end, using a 2500 
@@ -227,12 +239,24 @@ for planet in exoplanetDB:
     if V(planet) != 0.0 and depth(planet) != 0.0 and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit and transitBool(planet):
         planets.append(planet)
 
-transits = {}
+if calcTransits: transits = {}
 if calcEclipses: eclipses = {}
 for day in np.arange(startSem,endSem+1):
-    transits[str(day)] = []
+    if calcTransits: transits[str(day)] = []
     if calcEclipses: eclipses[str(day)] = []
 planetsNeverUp = []
+
+def ingressEgressAlt(planet,observatory,ingress,egress):
+    altitudes = []
+    for time in [ingress,egress]:
+        observatory.date = list2datestr(jd2gd(time))
+        star = ephem.FixedBody()
+        star._ra = ephem.hours(RA(planet))
+        star._dec = ephem.degrees(dec(planet))
+        star.compute(observatory)
+        altitudes.append(str(ephem.degrees(star.alt)).split(":")[0])
+    return altitudes
+
 for planet in planets:        
     for day in np.arange(startSem,endSem+1,1.0):
         ''' Calculate sunset/rise times'''
@@ -247,7 +271,7 @@ for planet in planets:
             '''Calculate mid-transits that occur on this night'''    
             transitEpochs = midTransit(epoch(planet),period(planet),sunset,sunrise)
             eclipseEpochs = midEclipse(epoch(planet),period(planet),sunset,sunrise)
-            if len(transitEpochs) != 0:
+            if calcTransits and len(transitEpochs) != 0:
                 transitEpoch = transitEpochs[0]
                 ingress = transitEpoch-duration(planet)/2
                 egress = transitEpoch+duration(planet)/2
@@ -270,8 +294,9 @@ for planet in planets:
                     bypassTag = True
                 
                 '''If star is above horizon and sun is below horizon:'''        
-                if ((ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset)) or bypassTag:
-                    transitInfo = [planet,transitEpoch,duration(planet)/2,'transit']
+                if (ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset) or bypassTag:
+                    ingressAlt,egressAlt = ingressEgressAlt(planet,observatory,ingress,egress)
+                    transitInfo = [planet,transitEpoch,duration(planet)/2,'transit',ingressAlt,egressAlt]
                     transits[str(day)].append(transitInfo)
                     
                 #else: print 'Partial transit'
@@ -293,7 +318,8 @@ for planet in planets:
                 
                 '''If star is above horizon and sun is below horizon:'''
                 if (ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset):
-                    eclipseInfo = [planet,eclipseEpoch,duration(planet)/2,'eclipse']
+                    ingressAlt,egressAlt = ingressEgressAlt(planet,observatory,ingress,egress)
+                    eclipseInfo = [planet,eclipseEpoch,duration(planet)/2,'eclipse',ingressAlt,egressAlt]
                     eclipses[str(day)].append(eclipseInfo)
                 #else: print 'Partial eclipse'
         except ephem.NeverUpError:
@@ -310,7 +336,7 @@ def removeEmptySets(dictionary):
             del dictionary[str(dayCounter)]
         dayCounter += 1
 
-removeEmptySets(transits)
+if calcTransits: removeEmptySets(transits)
 if calcEclipses: removeEmptySets(eclipses)
 
 events = {}
@@ -329,7 +355,7 @@ def mergeDictionaries(dict):
                     events[key].append(event)
             else:                            ## If there is only one to add,
                 events[key].append(dict[key][0])
-mergeDictionaries(transits)
+if calcTransits: mergeDictionaries(transits)
 if calcEclipses: mergeDictionaries(eclipses)
 
 if textOut: 
@@ -369,23 +395,22 @@ if textOut:
             else:
                 report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
             for planet in events[key]:
-                if planet[3] == 'transit':
+                if calcTransits and planet[3] == 'transit':
                     report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
-                elif calcEclipses and planet[3] == 'eclipse':
+                if calcEclipses and planet[3] == 'eclipse':
                     report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
 
             report.write('\n')
         elif np.shape(events[key])[0] == 1:
             planet = events[key][0]
             report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
-            if planet[3] == 'transit':
+            if calcTransits and planet[3] == 'transit':
                     report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
-            elif calcEclipses and planet[3] == 'eclipse':
+            if calcEclipses and planet[3] == 'eclipse':
                     report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
             report.write('\n')
     report.close()
 
-print exoplanetDB['HAT-P-7 b']
 if htmlOut: 
     '''Write out a text report with the transits/eclipses. Write out the time of 
        ingress, egress, whether event is transit/eclipse, elapsed in time between
@@ -413,13 +438,16 @@ if htmlOut:
 
     tableheader = '\n'.join([
         '\n        <table class="sortable" id="eph">',\
-        '        <tr> <th>Planet</th>      <th>Event</th>    <th>Ingress <br />(MM/DD<br />HH:MM, UT)</th> <th>Egress <br />(MM/DD<br />HH:MM, UT)</th> <th>V mag</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec</th> <th>Const.</th> <th>Mass<br />(M<sub>J</sub>)</th> <th>Semimajor Axis<br />(AU)</th> <th>Radius<br />(R<sub>J</sub>)</th></tr>'])
+        '        <tr> <th>Planet<br /><span class="small">[Link: Orbit ref.]</span></th>      <th>Event</th>    <th>Ingress <br /><span class="small">(MM/DD<br />HH:MM, UT)</span></th> <th>Egress <br /><span class="small">(MM/DD<br />HH:MM, UT)</span></th>'+\
+            '<th>V mag</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec<br /><span class="small">[Link: Simbad ref.]</span></th> <th>Const.</th> <th>Mass<br />(M<sub>J</sub>)</th>'+\
+            '<th>Semimajor <br />Axis (AU)</th> <th>Radius<br />(R<sub>J</sub>)</th></tr>'])
     tablefooter = '\n'.join([
         '\n        </table>',\
         '        <br /><br />',])
     htmlfooter = '\n'.join([
         '\n        <p class="headinfo">',\
-        '        Developed by Brett Morris with great gratitude for the help of <a href="http://rhodesmill.org/pyephem/">PyEphem</a><br>',\
+        '        Developed by Brett Morris with great gratitude for the help of <a href="http://rhodesmill.org/pyephem/">PyEphem</a>,<br/>',\
+        '        and for up-to-date exoplanet parameters from <a href="http://www.exoplanets.org/">exoplanets.org</a> (<a href="http://adsabs.harvard.edu/abs/2011PASP..123..412W">Wright et al. 2011</a>).<br />',\
         '        </p>',\
         '        </div>',\
         '    </body>',\
@@ -431,19 +459,19 @@ if htmlOut:
     for key in allKeys:
         def writeHTMLtransit():
             indentation = '        '
-            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
-                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],trunc(V(str(planet[0])),2),\
+            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4]),\
+                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[5]),trunc(V(str(planet[0])),2),\
                                        trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
-                                       str(mass(planet[0])),semimajorAxis(planet[0]),radius(planet[0])])
+                                       mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
             report.write(line)
         
         def writeHTMLeclipse():
             indentation = '        '
-            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2]))).split('.')[0],\
-                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2]))).split('.')[0],trunc(V(str(planet[0])),2),\
+            middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4]),\
+                                       list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[5]),trunc(V(str(planet[0])),2),\
                                        '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
-                                       str(mass(planet[0])),semimajorAxis(planet[0]),radius(planet[0])])
+                                       mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
             line = indentation+'<tr><td>'+middle+'</td></tr>\n'
             report.write(line)
 
@@ -474,17 +502,17 @@ if htmlOut:
             #else:
             #    report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
             for planet in events[key]:
-                if planet[3] == 'transit':
+                if calcTransits and planet[3] == 'transit':
                     writeHTMLtransit()
-                elif calcEclipses and planet[3] == 'eclipse':
+                if calcEclipses and planet[3] == 'eclipse':
                     writeHTMLeclipse()          
             #report.write('\n')
         elif np.shape(events[key])[0] == 1:
             planet = events[key][0]
             #report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
-            if planet[3] == 'transit':
+            if calcTransits and planet[3] == 'transit':
                     writeHTMLtransit()
-            elif calcEclipses and planet[3] == 'eclipse':
+            if calcEclipses and planet[3] == 'eclipse':
                     writeHTMLeclipse()
            # report.write('\n')
     report.write(tablefooter)
