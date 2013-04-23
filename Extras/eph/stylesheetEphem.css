@@ -68,7 +68,7 @@ h1 {
 }
 
 #eph tr:hover {
-	background-color: #ECECEC;
+	background-color: #D8D8D8;
 }
 
 #eph th {
@@ -82,6 +82,13 @@ h1 {
 }
 #eph tr:nth-child(even) {
  background-color: #FFFFFF; /* light */
+}
+
+#eph tbody tr:nth-child(odd):hover {
+ background-color: #BDFCC9; /* darker */
+}
+#eph tr:nth-child(even):hover {
+ background-color: #BDFCC9; /* light */
 }
 
 /* Center the table */
