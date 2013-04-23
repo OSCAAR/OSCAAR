@@ -5,11 +5,11 @@ elevation: 20.0
 temperature: 15.0
 min_horizon: 25:00:00
 start_date: (2013,4,22,22,0,0)
-end_date: (2013,5,1,22,0,0)
-v_limit: 12.5
+end_date: (2013,5,22,22,0,0)
+v_limit: 12.1
 depth_limit: 0.008
-calc_eclipses: True
 calc_transits: True
+calc_eclipses: False
 html_out: True
 text_out: False
 twilight: -6

@@ -78,7 +78,7 @@ h1 {
 
 /* Color the rows with alternating color */
 #eph tbody tr:nth-child(odd) {
- background-color: #DAE6F0; /* darker */
+ background-color: #E0F5FF/*#D6EBFF/*#DAE6F0; /* darker */
 }
 #eph tr:nth-child(even) {
  background-color: #FFFFFF; /* light */
