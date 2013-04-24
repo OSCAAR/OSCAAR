@@ -1,7 +1,7 @@
 OSCAAR 2.0 beta
 ================================
 
-Welcome to OSCAAR 2.0 beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without too much mess. 
+Welcome to OSCAAR 2.0 (still pre-)beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without too much mess. 
 
 OSCAAR supports Mac OS 10.6 and above, Ubuntu 12.04 and Windows. It requires Python 2.7 and several additional packages listed on our [System Requirements wiki page](https://github.com/OSCAAR/OSCAAR/wiki/System-Requirements).
 
