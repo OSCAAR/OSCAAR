@@ -332,12 +332,18 @@ for planet in planets:
                 star._dec = ephem.degrees(dec(planet))
                 star.compute(observatory)
                 exoplanetDB[planet]['Constellation'] = ephem.constellation(star)[0]
-                                
-                starrise = gd2jd(datestr2list(str(observatory.next_rising(star))))
-                starset = gd2jd(datestr2list(str(observatory.next_setting(star))))
-                
+                bypassTag = False                    
+                try:
+                    starrise = gd2jd(datestr2list(str(observatory.next_rising(star))))
+                    starset = gd2jd(datestr2list(str(observatory.next_setting(star))))
+                except ephem.AlwaysUpError:
+                    '''If the star is always up, you don't need starrise and starset to 
+                       know that the event should be included further calculations'''
+                    print 'Woo! '+str(planet)+' is always above the horizon.'
+                    bypassTag = True
+                                    
                 '''If star is above horizon and sun is below horizon:'''
-                if (ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset):
+                if (ingress > sunset and egress < sunrise) and (ingress > starrise and egress < starset) or bypassTag:
                     ingressAlt,ingressDir,egressAlt,egressDir = ingressEgressAltAz(planet,observatory,ingress,egress)
                     eclipseInfo = [planet,eclipseEpoch,duration(planet)/2,'eclipse',ingressAlt,ingressDir,egressAlt,egressDir]
                     eclipses[str(day)].append(eclipseInfo)

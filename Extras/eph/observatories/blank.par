@@ -8,6 +8,7 @@ start_date:
 end_date: 
 v_limit: 
 depth_limit: 
+calc_transits: True
 calc_eclipses: True
 html_out: True
 text_out: False
