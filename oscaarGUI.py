@@ -311,6 +311,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             return True
         else:
             InvalidPath(invalidsString, None, -1)
+            return False
     
     def outputOverwriteCheck(self, path):
         pathCorrected = path.replace('/', os.sep)
