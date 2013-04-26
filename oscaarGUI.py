@@ -14,6 +14,7 @@ import webbrowser
 import time
 import subprocess
 #import oscaar
+    
 
 def homeDir():
     """Set the current directory to oscaar's home directory"""
@@ -96,6 +97,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
         self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25), pos = (505, 433))
+        self.ephButton = wx.Button(self,-1, 'EphGUI')
         self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
@@ -116,6 +118,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addTextCtrl(10,0, self.smoothingConstTxt, wx.StaticText(self, -1, 'Smoothing Constant: '))
         self.addDateCtrl(9,4, self.ingressDate, self.ingressTime, wx.StaticText(self, -1, 'Ingress, UT (YYYY/MM/DD):       '))
         self.addDateCtrl(10,4, self.egressDate, self.egressTime, wx.StaticText(self, -1, 'Egress, UT (YYYY/MM/DD):       '))
+        self.sizer.Add(self.ephButton, (12,3),wx.DefaultSpan,wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.ds9Button,(12,5), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.ds9Button.Bind(wx.EVT_BUTTON, self.openDS9)
         self.sizer.Add(self.masterFlatButton, (12,4), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
