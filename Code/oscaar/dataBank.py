@@ -35,6 +35,8 @@ class dataBank:
         '''
         self.parseInit() ## parse init.par using the parseInit() method
         self.parseObservatory()
+        assert len(self.imagesPaths) > 1, 'Must have at least one data image'
+
         if self.flatPath != 'None':
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
@@ -43,7 +45,7 @@ class dataBank:
             dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
             self.masterFlat = np.ones([dim1,dim2])
         self.allStarsDict = {}
-        init_x_list,init_y_list = parseRegionsFile(self.regsPath)
+        init_x_list,init_y_list = parseRegionsFile(self.regsPath)        
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
@@ -250,13 +252,14 @@ class dataBank:
                 if inline[0] == 'Path to Dark Frames': 
                     darkpaths = []
                     for path in str(inline[1].split('#')[0].strip()).split(','):
-                        darkpaths = darkPaths + glob(path)
+                        darkpaths.append(glob(path)[0])
                     self.darksPath = np.sort(darkpaths)
+                    print 'darkpaths',darkpaths
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Path to data images':
                     impaths = []
                     for path in str(inline[1].split('#')[0].strip()).split(','):
-                        imPaths = imPaths + glob(path)
+                        impaths.append(glob(path)[0])
                     self.imagesPaths = np.sort(impaths)
                 elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Ingress':  self.ingress = ut2jd(str(inline[1].split('#')[0].strip()))
