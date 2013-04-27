@@ -63,7 +63,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         homeDir()
         #print os.getcwd()
-        self.logo = wx.Image(os.getcwd()+ '/code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.getcwd()+ '/code/oscaar/images/logo4.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
@@ -553,7 +553,7 @@ class AboutFrame(wx.Frame):
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
         homeDir()
-        self.logo = wx.Image(os.getcwd()+'/code/oscaar/logo4.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.getcwd()+'/code/oscaar/images/logo4noText.png', wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
