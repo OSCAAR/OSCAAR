@@ -20,7 +20,7 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
   
-def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRadiusFactor=1.5, ccdGain=1, plots=False):
+def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRadiusFactor=2.75, ccdGain=1, plots=False):
     '''Method for aperture photometry. 
     
        INPUTS: image - numpy array image
@@ -54,52 +54,50 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRad
                             
         Core developer: Brett Morris
     '''
-    try:
-        if plots:
-            [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
-            if photSubplotsOffset == 0: plt.clf()
-        annulusRadiusInner = apertureRadius 
-        annulusRadiusOuter = annulusRadiusFactor*apertureRadius
+    if plots:
+        [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
+        if photSubplotsOffset == 0: plt.clf()
+    annulusRadiusInner = 1.40*apertureRadius 
+    annulusRadiusOuter = annulusRadiusFactor*apertureRadius
 
-        imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
-        [dimx,dimy] = imageCrop.shape
-        XX, YY = np.meshgrid(np.arange(dimx),np.arange(dimy))
-        x = (XX - annulusRadiusOuter)**2
-        y = (YY - annulusRadiusOuter)**2
-        sourceIndices = x + y <= apertureRadius**2
-        skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
-        rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
-        rawError = np.sum(np.sqrt(imageCrop[sourceIndices]*ccdGain)) ## Poisson-uncertainty
+    imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
+    [dimx,dimy] = imageCrop.shape
+    XX, YY = np.meshgrid(np.arange(dimx),np.arange(dimy))
+    x = (XX - annulusRadiusOuter)**2
+    y = (YY - annulusRadiusOuter)**2
+    sourceIndices = x + y <= apertureRadius**2
+    skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
+    rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
+    rawError = np.sqrt(np.sum(imageCrop[sourceIndices]*ccdGain) + np.median(imageCrop[skyIndices])) ## Poisson-uncertainty
 
-        if plots:
-            def format_coord(x, y):
-                ''' Function to also give data value on mouse over with imshow. '''
-                col = int(x+0.5)
-                row = int(y+0.5)
-                try:
-                    return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
-                except:
-                    return 'x=%1.4f, y=%1.4f' % (x, y)
-           
-            med = np.median(imageCrop)
-            dsig = np.std(imageCrop)
-            
-            ax = fig.add_subplot(subplotsDimensions+photSubplotsOffset+1)
-            ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
-           
-            theta = np.arange(0,360)*(np.pi/180)
-            rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)
-            rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)
-            ax.plot(rcos(annulusRadiusInner,theta),rsin(annulusRadiusInner,theta),'r',linewidth=4)
-            ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
-            ax.set_xlabel('X')
-            ax.set_ylabel('Y')
-            ax.set_title('Aperture')
-            ax.set_xlim([-.5,dimx-.5])
-            ax.set_ylim([-.5,dimy-.5])
-            ax.format_coord = format_coord 
-            plt.draw()
-        return [rawFlux, rawError, False]
-    except Exception:    ## If an error occurs:
-        print "An error has occured in oscaar.phot(), \n\tReturning flux = 1"
-        return [1.0, 1.0, True]        
+    if plots:
+        def format_coord(x, y):
+            ''' Function to also give data value on mouse over with imshow. '''
+            col = int(x+0.5)
+            row = int(y+0.5)
+            try:
+                return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, imageCrop[row,col])
+            except:
+                return 'x=%1.4f, y=%1.4f' % (x, y)
+       
+        med = np.median(imageCrop)
+        dsig = np.std(imageCrop)
+        
+        ax = fig.add_subplot(subplotsDimensions+photSubplotsOffset+1)
+        ax.imshow(imageCrop, cmap=cm.gray, interpolation="nearest",vmin = med-0.5*dsig, vmax =med+2*dsig)
+       
+        theta = np.arange(0,360)*(np.pi/180)
+        rcos = lambda r, theta: annulusRadiusOuter + r*np.cos(theta)
+        rsin = lambda r, theta: annulusRadiusOuter + r*np.sin(theta)
+        ax.plot(rcos(apertureRadius,theta),rsin(apertureRadius,theta),'m',linewidth=4)
+        ax.plot(rcos(annulusRadiusInner,theta),rsin(annulusRadiusInner,theta),'r',linewidth=4)
+        ax.plot(rcos(annulusRadiusOuter,theta),rsin(annulusRadiusOuter,theta),'r',linewidth=4)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_title('Aperture')
+        ax.set_xlim([-.5,dimx-.5])
+        ax.set_ylim([-.5,dimy-.5])
+        ax.format_coord = format_coord 
+        plt.draw()
+    return [rawFlux, rawError, False]
+     

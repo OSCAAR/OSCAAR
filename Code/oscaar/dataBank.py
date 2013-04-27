@@ -215,7 +215,8 @@ class dataBank:
         print 'Default weight:',1./numCompStars
         #return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
-        self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2))) 
+        #self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2))) 
+        self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((np.sqrt(compStars.T*ccdGain)/(compStars.T*ccdGain))**2))) 
         return self.meanComparisonStar, self.meanComparisonStarError  
 
     def computeLightCurve(self,meanComparisonStar):
@@ -254,7 +255,6 @@ class dataBank:
                     for path in str(inline[1].split('#')[0].strip()).split(','):
                         darkpaths.append(glob(path)[0])
                     self.darksPath = np.sort(darkpaths)
-                    print 'darkpaths',darkpaths
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Path to data images':
                     impaths = []
