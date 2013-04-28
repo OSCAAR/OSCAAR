@@ -16,7 +16,7 @@ class EphFrame(wx.Frame):
         self.SetTitle('Ephemerides')
         self.ctrlList = []
         self.ephSizer = wx.GridBagSizer(5,5)
-        obsList = glob('observatories'+os.sep+'*')
+        obsList = glob('..'+os.sep+'eph'+'observatories'+os.sep+'*')
         nameList = []
         for i in obsList:
             nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
@@ -100,7 +100,8 @@ class EphFrame(wx.Frame):
             self.filename.SetValue('Enter Filename for Observatory')
             self.name.SetValue('Enter Name of Observatory')
         else:
-            obsPath = os.getcwd() + os.sep + 'observatories' + os.sep + self.observatory.GetValue() + '.par'
+            HomeDir()
+            obsPath = os.getcwd() + 'Extras' + os.sep + 'eph' + 'observatories' + os.sep + self.observatory.GetValue() + '.par'
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
         obsFilename = obsPath[obsPath.rfind(os.sep)+1:obsPath.rfind('.')]
