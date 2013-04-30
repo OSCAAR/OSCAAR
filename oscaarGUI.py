@@ -721,7 +721,7 @@ class EphFrame(wx.Frame):
         self.addRadioBox(6,3, self.html_out)
         self.addRadioBox(8,3, self.text_out)
         self.addRadioBox(10,3, self.calc_transits)
-        self.addRadioBox(10,4, self.calc_eclipses)
+        self.addRadioBox(12,3, self.calc_eclipses)
 
         self.addButton(1,1, self.calcButton)
         self.Bind(wx.EVT_BUTTON, self.calculate)
