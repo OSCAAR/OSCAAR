@@ -1,14 +1,14 @@
 name: Apache Point Observatory, NM
 latitude: 32:46:49
-longitude: -105:49:13		
+longitude: -105:49:13
 elevation: 2788.0
 temperature: 0.0
 min_horizon: 15:00:00
-start_date: 
-end_date: 
+start_date: (YYYY,MM,DD,00,00,00)
+end_date: (YYYY,MM,DD,00,00,00)
 v_limit: 15.00
 depth_limit: 0.000
 calc_eclipses: True
 html_out: True
-text_out: False
+text_out: True
 twilight: -12

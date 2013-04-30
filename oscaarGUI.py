@@ -695,6 +695,7 @@ class EphFrame(wx.Frame):
         self.selectObsLbl.SetFont(self.labelFont)
         self.html_out = wx.RadioBox(self, -1, label = 'Html Out', choices = ['True', 'False'])
         self.text_out = wx.RadioBox(self, -1, label = 'Text Out', choices = ['True', 'False'])
+        self.calc_transits = wx.RadioBox(self, -1, label = 'Calc Transits', choices = ['True', 'False'])
         self.calc_eclipses = wx.RadioBox(self, -1, label = 'Calc Eclipses', choices = ['True', 'False'])
         self.twilightType = wx.TextCtrl(self,-1, value = '0')
         self.min_horizon = wx.TextCtrl(self,-1,value = 'deg:min:sec')
@@ -719,7 +720,9 @@ class EphFrame(wx.Frame):
         self.addTextCtrl(13,0, self.min_horizon, wx.StaticText(self,-1, 'Minimum Horizon: '), wx.DefaultSpan)
         self.addRadioBox(6,3, self.html_out)
         self.addRadioBox(8,3, self.text_out)
-        self.addRadioBox(10,3, self.calc_eclipses)
+        self.addRadioBox(10,3, self.calc_transits)
+        self.addRadioBox(10,4, self.calc_eclipses)
+
         self.addButton(1,1, self.calcButton)
         self.Bind(wx.EVT_BUTTON, self.calculate)
         
@@ -785,6 +788,11 @@ class EphFrame(wx.Frame):
                             self.endSemTime.SetValue(dateArr[3]+':'+dateArr[4]+':'+dateArr[5])
                 elif line[0] == 'v_limit': self.v_limit.SetValue(str(line[1].split('#')[0].strip()))
                 elif line[0] == 'depth_limit': self.depth_limit.SetValue(str(line[1].split('#')[0].strip()))
+                elif line[0] == 'calc_transits':
+                    if bool(line[1].split('#')[0].strip()):
+                        self.calc_transits.SetSelection(0)
+                    else:
+                        self.calc_transits.SetSelection(1)
                 elif line[0] == 'calc_eclipses':
                     if bool(line[1].split('#')[0].strip()):
                         self.calc_eclipses.SetSelection(0)
@@ -808,8 +816,9 @@ class EphFrame(wx.Frame):
         semtimeArr = self.startSemTime.GetValue().split(':')
         enddateArr = self.endSemDate.GetValue().split('/')
         endtimeArr = self.endSemTime.GetValue().split(':')
-        newobs = file(filename, 'w')
+        newobs = open(filename, 'w')
         newobs.write('name: ' + self.name.GetValue() + '\n')
+        newobs.write('latitude: ' + self.latitude.GetValue() + '\n')
         newobs.write('longitude: ' + self.longitude.GetValue() + '\n')
         newobs.write('elevation: ' + self.elevation.GetValue() + '\n')
         newobs.write('temperature: ' + self.temp.GetValue() + '\n')
@@ -818,6 +827,7 @@ class EphFrame(wx.Frame):
         newobs.write('end_date: ' + '(' + enddateArr[0] + ',' + enddateArr[1] + ',' + enddateArr[2] + ',' + endtimeArr[0] + ',' + endtimeArr[1] + ',' + endtimeArr[2] + ')' + '\n')
         newobs.write('v_limit: ' + self.v_limit.GetValue() + '\n')
         newobs.write('depth_limit: ' + self.depth_limit.GetValue() + '\n')
+        newobs.write('calc_transits: ' + str(self.calc_transits.GetSelection()==0) + '\n')
         newobs.write('calc_eclipses: ' + str(self.calc_eclipses.GetSelection()==0) + '\n')
         newobs.write('html_out: ' + str(self.html_out.GetSelection()==0) + '\n')
         newobs.write('text_out: ' + str(self.text_out.GetSelection()==0) + '\n')
@@ -825,8 +835,16 @@ class EphFrame(wx.Frame):
         newobs.close()
         
     def calculate(self, event):
-        path = 'observatories' + os.sep + self.filename.GetValue() + '.par'
-        self.saveFile(path)
+        path = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'observatories' +os.sep+ self.filename.GetValue() + '.par')
+        self.saveFile(str(path))
+        namespace = {}
+        execfile( os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'calculateEphemerides.py',namespace)
+        globals().update(namespace)
+        rootPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep)
+        calculateEphemerides(path,rootPath)
+        outputPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'eventReport.html')
+        if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
+
 
 app = wx.App(False)
 #### Runs the GUI ####

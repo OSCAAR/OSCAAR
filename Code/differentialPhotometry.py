@@ -83,7 +83,6 @@ print np.std(lightCurve[data.outOfTransit()])
 print np.mean(photonNoise[data.outOfTransit()])
 
 
-
 oscaar.save(data,outputPath)
 #data.plot(pointsPerBin=20)
 
