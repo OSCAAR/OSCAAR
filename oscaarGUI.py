@@ -673,8 +673,13 @@ class EphFrame(wx.Frame):
         homeDir()
         obsList = glob('Extras' + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
         nameList = []
-        for i in obsList:
-            nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
+        #for i in obsList:
+        #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
+        for file in obsList:        ## Gather all available observatory names
+            openfile = open(file,'r').read().splitlines()
+            for line in openfile: 
+                if line.split(':')[0] == 'name':
+                    nameList.append(line.split(':')[1].strip())
         nameList += ['Enter New Observatory']
         self.observatory = wx.ComboBox(self, value = 'Observatories', choices = nameList, name = 'Observatories', size = (235,25))
         self.observatory.Bind(wx.EVT_COMBOBOX, self.enterNewObs)
@@ -759,7 +764,21 @@ class EphFrame(wx.Frame):
             self.name.SetValue('Enter Name of Observatory')
         else:
             homeDir()
-            obsPath = os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'observatories' + os.sep + self.observatory.GetValue() + '.par'
+            '''This is a hack so as to display the observatory names in the drop down menu but to
+               open files using the glob() retrieved paths. It could be cleaned up. -BM'''
+            obsList = glob('Extras' + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
+            nameList = []
+            #for i in obsList:
+            #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
+            for file in obsList:        ## Gather all available observatory names
+                openfile = open(file,'r').read().splitlines()
+                for line in openfile: 
+                    if line.split(':')[0] == 'name':
+                        nameList.append(line.split(':')[1].strip())
+            
+            for ind in range(0,len(nameList)):
+                if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
+            obsPath = os.getcwd() +os.sep+ openFile
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
         obsFilename = obsPath[obsPath.rfind(os.sep)+1:obsPath.rfind('.')]
@@ -838,13 +857,13 @@ class EphFrame(wx.Frame):
         path = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'observatories' +os.sep+ self.filename.GetValue() + '.par')
         self.saveFile(str(path))
         namespace = {}
-        execfile( os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'calculateEphemerides.py',namespace)
+        execfile(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'calculateEphemerides.py',namespace)
         globals().update(namespace)
         rootPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep)
         calculateEphemerides(path,rootPath)
         outputPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'eventReport.html')
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
-
+        self.Destroy()
 
 app = wx.App(False)
 #### Runs the GUI ####
