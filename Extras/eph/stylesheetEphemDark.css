@@ -1,11 +1,12 @@
 body {
 	font-family: helvetica, arial, sans-serif;
     padding: 2em;
-	background-color: grey;
+	background-color: black;
 	margin-left: auto;
 	margin-right: auto;
 	width: 70em;
 	margin-bottom: auto;
+    color: white;
 }
 
 h1 {
@@ -39,23 +40,23 @@ h1 {
 }
 
 #eph th {
-	background-color: #386890;
+	background-color: #801919;
 	color: #FFFFFF;
 }
 
 /* Color the rows with alternating color */
 #eph tbody tr:nth-child(odd) {
- background-color: #EAF5F5;/*#E0F5FF/*#D6EBFF/*#DAE6F0; /* darker */
+ background-color: 	#A01F1F;/*#E0F5FF/*#D6EBFF/*#DAE6F0; /* darker */
 }
 #eph tr:nth-child(even) {
- background-color: #FFFFFF; /* light */
+ background-color: 	#B34C4C; /* light */
 }
 
 #eph tbody tr:nth-child(odd):hover {
- background-color: #BDFCC9; /* darker */
+ background-color:		#E68A5C; /* darker */
 }
 #eph tr:nth-child(even):hover {
- background-color: #BDFCC9; /* light */
+ background-color: 	#E68A5C; /* light */
 }
 
 /* Center the table */
@@ -70,7 +71,7 @@ table.daynight {
     margin-left: auto;
     margin-right: auto;
     font-size: 10pt;
-    background-color: #EAF5F5;
+    background-color: #A01F1F;
 }
 
 div {
@@ -78,14 +79,14 @@ div {
 	/*margin-top: 2em;*/
 	padding: 1.5em;
 	border: solid;
-	border-color: silver;
+	border-color: white;
 	border-radius: 0.5em;
-	background-color: white; /*silver;*/
+	background-color: 	#330000;
 }
 
 a {
 	/* color: rgb(86,86,86); */
-	color: #0066CC;
+	color: 	#D6EBFF;
 	text-decoration: none;
 	font-size: 105%
 }

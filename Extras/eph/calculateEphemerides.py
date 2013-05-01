@@ -118,7 +118,7 @@ def calculateEphemerides(parFile,rootPath):
         ''' Import data from exoplanets.org, parsed by
             exoplanetDataParser1.py'''
         inputFile = open(rootPath+pklDatabaseName,'rb')
-        exoplanetDB = cPickle.load(rootPath+inputFile)
+        exoplanetDB = cPickle.load(inputFile)
         inputFile.close()
 
     ''' Set up observatory parameters '''
@@ -457,14 +457,28 @@ def calculateEphemerides(parFile,rootPath):
             '        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />',\
             '        <title>Ephemeris</title>',\
             '        <link rel="stylesheet" href="'+rootPath+'stylesheetEphem.css" type="text/css" />',\
-            '        <base target="_blank">',\
+            '         <script type="text/javascript">',\
+            '          function changeCSS(cssFile, cssLinkIndex) {',\
+            '            var oldlink = document.getElementsByTagName("link").item(cssLinkIndex);',\
+            '            var newlink = document.createElement("link")',\
+            '            newlink.setAttribute("rel", "stylesheet");',\
+            '            newlink.setAttribute("type", "text/css");',\
+            '            newlink.setAttribute("href", cssFile);',\
+                 
+            '            document.getElementsByTagName("head").item(0).replaceChild(newlink, oldlink);',\
+            '          }',\
+            '        </script>',\
             '       <script src="'+rootPath+'sorttable.js"></script>',\
             '    </head>',\
             '    <body>',\
             '        <div id="textDiv">',\
             '        <h1>Ephemerides for: '+observatory_name+'</h1>',\
             '        <h2>Observing dates (UT): '+list2datestr(jd2gd(startSem)).split(' ')[0]+' - '+list2datestr(jd2gd(endSem)).split(' ')[0]+'</h2>'
-            '       Click the column headers to sort. '])
+            '       Click the column headers to sort. ',\
+            '        <table class="daynight" id="eph">',\
+            '        <tr><th colspan=2>Toggle Color Scheme</th></tr>',\
+            '        <tr><td><a href="#" onclick="changeCSS(\''+rootPath+'stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\''+rootPath+'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
+            '        </table>'])
 
         tableheader = '\n'.join([
             '\n        <table class="sortable" id="eph">',\
