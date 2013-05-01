@@ -456,7 +456,7 @@ def calculateEphemerides(parFile,rootPath):
             '    <head>',\
             '        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />',\
             '        <title>Ephemeris</title>',\
-            '        <link rel="stylesheet" href="'+rootPath+'stylesheetEphem.css" type="text/css" />',\
+            '        <link rel="stylesheet" href="./stylesheetEphem.css" type="text/css" />',\
             '         <script type="text/javascript">',\
             '          function changeCSS(cssFile, cssLinkIndex) {',\
             '            var oldlink = document.getElementsByTagName("link").item(cssLinkIndex);',\
@@ -468,7 +468,7 @@ def calculateEphemerides(parFile,rootPath):
             '            document.getElementsByTagName("head").item(0).replaceChild(newlink, oldlink);',\
             '          }',\
             '        </script>',\
-            '       <script src="'+rootPath+'sorttable.js"></script>',\
+            '       <script src="./sorttable.js"></script>',\
             '    </head>',\
             '    <body>',\
             '        <div id="textDiv">',\
@@ -477,7 +477,7 @@ def calculateEphemerides(parFile,rootPath):
             '       Click the column headers to sort. ',\
             '        <table class="daynight" id="eph">',\
             '        <tr><th colspan=2>Toggle Color Scheme</th></tr>',\
-            '        <tr><td><a href="#" onclick="changeCSS(\''+rootPath+'stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\''+rootPath+'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
+            '        <tr><td><a href="#" onclick="changeCSS(\'./stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\''+rootPath+'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
             '        </table>'])
 
         tableheader = '\n'.join([
