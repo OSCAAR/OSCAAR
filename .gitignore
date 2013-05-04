@@ -7,8 +7,13 @@ file1.txt
 file2.txt
 aper_out
 plots
-*.pyc
-Code/oscaar/*.pyc
+*.py?
+Code/*.py?
+Code/outputs/*
+Code/oscaar/*.py?
+Code/oscaar/astronometry/*.py?
+Code/oscaar/photometry/*.py?
+Code/oscaar/transiter/*.py?
 Extras/eph/exoplanets.csv
 Extras/eph/exoplanetDB.pkl
 Extras/eph/eventReport.html
@@ -16,3 +21,9 @@ Extras/eph/eventReport.txt
 outputs/oscaarDataBase.npz
 outputs/oscaarDataBase.pkl
 outputs/notes.txt
+Extras/eph/*.py?
+Docs/documentation20130204/*.log
+Docs/documentation20130204/*.aux
+Docs/documentation20130204/*.out
+Docs/documentation20130204/*.gz
+Docs/documentation20130204/*.toc
