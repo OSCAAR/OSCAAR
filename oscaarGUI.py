@@ -14,16 +14,29 @@ import webbrowser
 import time
 import subprocess
 #import oscaar
-    
+from os.path import expanduser
 
 def homeDir():
-    """Set the current directory to oscaar's home directory"""
-    ### BM: changed the split() argument to '/' rather than '\\'.
-    ### DG: added a platform check
-    splitChar = os.sep
-    if 'OSCAAR' in os.getcwd().split(splitChar):
-        while os.getcwd().split(splitChar)[len(os.getcwd().split(splitChar))-1] != 'OSCAAR':
-            os.chdir(os.pardir)
+    '''Look for the `.homeDir file` in the current directory. If it is in
+       in the current working directory, do nothing. Otherwise, go up a 
+       level through parent directories until the `.homeDir` file is in the
+       current working directory. If it is never reached, go back 
+       to the original current working directory and prompt the user. '''
+    originalDirectory = os.getcwd()
+    userHomeDirectory = expanduser("~")    
+    ## This is the user's home directory. Assume that they will not put the oscaar
+    ## working directory at any levels higher than this.
+    
+    while len(glob('./.homeDir'))  == 0 and len(os.getcwd()) > len(userHomeDirectory):
+        os.chdir(os.pardir)
+    if len(os.getcwd()) == len(userHomeDirectory):
+        print '\nWARNING: oscaar.homeDir() has walked backward through to your user home '+\
+                'directory and has not found the top-level directory for OSCAAR. '+\
+                'The current working directory will now be changed back to the '+\
+                'current working directory before oscaar.homeDir() was called. '+\
+                'This error can be caused by deleting the OSCAAR/.homeDir file, '+\
+                'which indicates the top-level oscaar directory. \n'
+        os.chdir(originalDirectory)
 
 os.chdir('code')
 if os.getcwd() not in sys.path:
