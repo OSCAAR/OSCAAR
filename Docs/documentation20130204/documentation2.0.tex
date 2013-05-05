@@ -74,7 +74,7 @@ In precision photometry, relying on individual pixels is dangerous. Pixel defect
 
 Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaar is written to accurately track stars of unconventional shapes. At the University of Maryland Observatory, we make most of our measurements on a 6in refractor. We defocus the stars until they look like small donuts (the hole is an artifact of the optical path of the refractor), and we've found that our photometry comes out best this way. \oscaar won't complain if your stars are donut-shaped, Gaussian or somewhere in between. 
 
-\begin{figure}
+\begin{figure}[h]
 \includegraphics[scale=0.34]{imgs/focusing.png}
 \caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
 \label{fig:defocus}
@@ -136,23 +136,31 @@ You will now be shown some initial parameters that you must set in order to run 
 
 The first and most intensive task you'll have to do to prepare \oscaar  for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of SAO Image DS9 (see Section \ref{sec:systemRequirements} to download). 
 
-To begin, start DS9 and open the first image from the series of images you will process. You can also start DS9 from within \oscaar by clicking \code{Open DS9} button. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius. 
+To begin, start DS9 and open the first image from the series of images you will process. You can also start DS9 from within \oscaar by clicking \code{Open DS9} button. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
+\begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.34]{imgs/ds9.png}
-{\small \textbf{Screenshot 1}: Using DS9 to locate the target and comparison stars}
+\includegraphics[scale=0.2]{imgs/ds9.png}
+\caption{Using DS9 to locate the target and comparison stars.}
+\label{fig:ds9}
 \end{center}	
+\end{figure}
 The first star that you select will be treated as the target star, and any subsequent choices will be comparison stars. Repeat this process for as many comparison stars as you like (try to keep it under 25 for speed). Avoid picking stars near any obvious defects on the detector, any stars less than 150 pixels from the edge of the image, or stars with a neighboring star close nearby. 
 
 When you're done choosing control stars, go to \code{Regions} \textgreater  \code{Save Regions...} and save a regions file in a directory where you will be able to find it later. This file will contain the pixel coordinates of the stars at the beginning of the observation, which tells \oscaar which stars to track. You may want to check that the test star is in fact the first star in the regions file. Open the regions file in a text editor and check that the first line resembling ``\code{circle(100,600,10)}'' has the proper (x,y) pixel coordinates and radius (in this example, the position is (100,600) with a radius of 10). If the first circle coordinate line does not point to the target star, find the circle coordinate that does, move that line to the top of the list, and save the file.
 
 \subsubsection{Locating Your Data}
 
-	\oscaar  is built to find files by their paths. To properly set the image paths, you should click the browse button next to the dark images path field and choose all of the dark image files that you wish to be processed. To do this, select your first file and hold ctrl and click every subsequent file you would like to select. Alternatively, if they are all listed consecutively, you can click the first file, hold shift, and then click the last one. Now click the "Open" button and all of your dark images should be listed separated by commas. Now you should do the same thing with the path to data images field.
+	\oscaar  is built to find files by their paths. To properly set the image paths, you should click the browse button next to the dark images path field and choose all of the dark image files that you wish to be processed. To do this, select your first file, then hold the \code{Ctrl} key on Windows or the \code{Command} key on Mac and click every file you would like to select. Alternatively, if they are all listed consecutively, you can click the first file, hold shift, and then click the last one. Now click the ``Open'' button and all of your dark images should be listed separated by commas. Do the same for your data images in the \code{Data Images} field of the \oscaar GUI.
 	
 \subsection{Making a Master Flat}
-Now that you have properly set the path to the darks and the data images, you must now make your master flat. To do this, the first step is to click the "Master Flat Maker" button at the bottom of the \oscaar window. You should now see something like this
-
-******Insert Screencap here******
+Now that you have properly set the path to the darks and the data images, you must now make your master flat. First click the ``Master Flat Maker'' button at the bottom of the \oscaar window, and a dialog box should pop up that looks like Figure \ref{fig:flats}.
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.25]{imgs/flatMaker.png}
+\caption{\oscaar's Master flat maker allows you to make master flats out of raw images.}
+\label{fig:flats}
+\end{center}	
+\end{figure}
 
 Now you must set the paths to the flat images and the dark flat images in the same way you set the image paths previously. You must also enter the path and filename for the master flat. To do this, click the browse button and navigate to the location you would like to save the master flat. When entering a name, make sure you leave off a file extension. For example, one's master path might look like "~/Documents/masterFlat" when all is said and done. Now click the "Run" button on the master flat maker. Now if the master flat maker is not closed, close it. In your output path, you should now have a file with the name you specified and ".fits" at the end of it. This is the file you should choose when selecting the path to the master flat frame in the main window of \oscaar. At this point you should also click the browse to select the regions file and select the regions file you saved in ds9.
 
