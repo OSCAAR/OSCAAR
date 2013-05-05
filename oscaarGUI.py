@@ -30,19 +30,22 @@ def homeDir():
     while len(glob('./.homeDir'))  == 0 and len(os.getcwd()) > len(userHomeDirectory):
         os.chdir(os.pardir)
     if len(os.getcwd()) == len(userHomeDirectory):
-        print '\nWARNING: oscaar.homeDir() has walked backward through to your user home '+\
-                'directory and has not found the top-level directory for OSCAAR. '+\
-                'The current working directory will now be changed back to the '+\
-                'current working directory before oscaar.homeDir() was called. '+\
-                'This error can be caused by deleting the OSCAAR/.homeDir file, '+\
-                'which indicates the top-level oscaar directory. \n'
+        print '\n******************************************************************\n'+\
+                'WARNING: oscaar.homeDir() has walked backward through to your user  \n'+\
+                'home directory and has not found the top-level directory for OSCAAR. \n'+\
+                'The current working directory will now be changed back to the \n'+\
+                'current working directory before oscaar.homeDir() was called. \n'+\
+                'This error can be caused by deleting the OSCAAR/.homeDir file, \n'+\
+                'which indicates the top-level oscaar directory. It is permissible\n'+\
+                'to change the name of the OSCAAR directory as long as .homeDir is\n'+\
+                'still located in that directory.\n'+\
+                '******************************************************************\n'
         os.chdir(originalDirectory)
 
 os.chdir('code')
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 import oscaar
-
 
 APP_EXIT = 1
 

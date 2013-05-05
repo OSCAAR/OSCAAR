@@ -28,7 +28,7 @@
 
 Development for \oscaar began in the summer of 2011 to take a series of images obtained at the \href{http://www.astro.umd.edu/openhouse/}{University of Maryland Observatory} in College Park, MD, USA and churn out light curves of transiting extrasolar planets. If you're looking to do something similar, you've found the right code! The core of the code is written in \href{http://www.python.org/}{Python}, but it has been designed to be operated with a graphical user interface (GUI) for users who have never seen Python before. That being said, experienced programmers will find that the guts of \oscaar provide a well-documented toolkit for even the most demanding of photometric measurements. Since the v1.0 release, \oscaar has been used by astronomers at all levels, from undergraduates to observatory-directing IAU members.
 
-Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:api} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
+Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section *** we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
 
 \subsection{System Requirements} \label{sec:systemRequirements}
 
@@ -49,9 +49,24 @@ PyEphem is not required to run differential photometric analysis with \oscaar bu
 Though the modules used in this package have been stable historically and probably will not go away any time soon, the \oscaar Team does not take any immediate responsibility for problems that arise as a result of changes to future versions of these modules. 
 
 \section{Collecting Data} \label{sec:collectingData}
+
+\subsection{Picking A Target}
+
+
+
+\subsection{Navigating The Sky} \label{sec:nav}
+
+It is one hour before the photometric event that you want to observe, you have taken your flat fields, and you're ready to slew to your target. You punch in the RA and declination of the target, and your telescope lumbers over to that part of the sky, but you can't recognize the pattern of stars that come out on your first image. Is that star near the center of the field actually your target, or are you looking at the wrong part of the sky? 
+
+While it is not necessary for running \oscaar, we highly recommend that you download the open-source planetarium software \href{http://www.stellarium.org/}{Stellarium} for navigating the sky and planning. This free, user-friendly package is supported on nearly every operating system and boasts some advanced features that will make it easy for you to find your targets. 
+
+One feature of particular utility for the exoplanet community is that the object finding search bar that you use to find objects in Stellarium is linked to the professional astronomical database \href{http://simbad.harvard.edu/simbad/}{SIMBAD} to resolve nearly any object by any name. SIMBAD is updated relatively quickly, so when you want to go out and observe that new exoplanet but your old planetarium software doesn't know about the latest WASP or HAT target, Stellarium will resolve the name through SIMBAD and take you to the coordinates published for that object\footnote{Of course, this feature only works when your machine is connected to the internet, so if you do not have an internet connection at your observatory, you'll still need to query for your target before you get to the observatory, print out your star charts.}.
+
+Stellarium also has great ``Flip Scene'' buttons that allow you to mirror flip your views of the sky to match the flips that your telescope optics do. That way you can match up your observed field of view with the stars in Stellarium without having to imagine complicated image transpositions in your head.
+
 \subsection{Telescope Tracking}
 
-Differential photometry is generally done on a series of images of the same patch of the sky over a long period of time. You'll need a telescope that is well polar-aligned so that the telescope's tracking keeps the stars in nearly the same spot on your detector throughout the duration of your observations. It is an unreasonable challenge to align most small telescopes well enough to track a star perfectly over several hours, so \oscaar is built to monitor and correct for the drift in star positions on the detector over time. Just make sure your object of interest and a few comparison stars stay in the field throughout the whole observation\footnote{If you need to re-center your target in the middle of an observation, \oscaar will only be able to continue to track the stars without special code tweaking if you change the stars' centroid positions by a few pixels at a time in between each exposure. The current version of \oscaar is not resilient against sudden discontinuous tracking anomalies.}. The star tracking algorithm follows each star individually over time. If your photometric target is an asteroid, for example, that moves relative to the comparison stars over time, \oscaar will happily track the asteroid and the comparison stars independently. 
+Differential photometry is generally done on a series of images of the same patch of the sky over a long period of time. You'll need a telescope that is well polar-aligned so that the telescope's tracking keeps the stars in nearly the same spot on your detector throughout the duration of your observations. It is an unreasonable challenge to align most small telescopes well enough to track a star perfectly over several hours, so \oscaar is built to monitor and correct for the drift in star positions on the detector over time. Just make sure your target object and a few comparison stars stay in the field throughout the whole observation\footnote{If you need to re-center your target in the middle of an observation, \oscaar will only be able to continue to track the stars without special code tweaking if you change the stars' centroid positions by a few pixels (i.e., $\sim$2 or 3 pixels) at a time in between each exposure. The current version of \oscaar is not resilient against sudden discontinuous tracking anomalies.}. The star tracking algorithm follows each star individually over time. If your photometric target is an asteroid, for example, that moves relative to the comparison stars over time, \oscaar will happily track the asteroid and the comparison stars independently. 
 
 \subsection{Defocusing} \label{sec:defocusing}
 
@@ -61,13 +76,13 @@ Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaa
 
 \begin{figure}
 \includegraphics[scale=0.34]{imgs/focusing.png}
-\caption{Images of stars with varying levels of defocusing. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
+\caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
 \label{fig:defocus}
 \end{figure}
 
-One must keep in mind that by spreading out the light over many pixels, the counts measured by each pixel is lower. As a result, defocusing is most helpful when observing bright objects. If the source you are observing is bright enough, you can defocus significantly without losing too much signal. However, it is important to note that the quality of your light curve will be directly related to how much more signal than noise you detected. Use defocusing sparingly (or not at all) when imaging dim targets.
+One must keep in mind that by spreading out the light over many pixels, the counts measured by each pixel is lower. As a result, defocusing is most helpful when observing bright objects. If the source you are observing is bright enough, you can defocus significantly without losing too much signal. However, it is important to note that the quality of your light curve will be directly related to how much more signal than noise you detected, as we will discuss in Section \ref{sec:photonNoise}. Use defocusing sparingly (or not at all) when imaging dim targets\footnote{For example, we use a sharp focus for stars dimmer than $V=10$ on our 152mm refractor at the University of Maryland Observatory.}.
 
-\subsection{Theory: Photon Noise}
+\subsection{Theory: Photon Noise} \label{sec:photonNoise}
 
 There is a fundamental physical limit to the signal-to-noise ratio that can be achieved in photometric measurements. Since photometry is the process of counting photons, there is a type of statistical uncertainty introduced into each measurement that goes by many names: \textit{photon noise, Poisson uncertainty, shot noise,} etc. This uncertainty is unavoidable in counting measurements and is easy to calculate -- the photon noise, or the uncertainty in a measurement of $N$ photons, $\sigma_N$ is
 
@@ -119,12 +134,12 @@ You will now be shown some initial parameters that you must set in order to run 
 
 \subsection{Locating Your Stars with DS9}
 
-The first and most intensive task you'll have to do to prepare \oscaar  for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with close binaries; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has them the user enter each of the stars with SAO Image DS9 (see Section \ref{sec:systemRequirements} to download). 
+The first and most intensive task you'll have to do to prepare \oscaar  for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of SAO Image DS9 (see Section \ref{sec:systemRequirements} to download). 
 
-To begin, start DS9 and open the first image from the series of images you will process. You can also start DS9 from within \oscaar by clicking the Open DS9 button. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), \textbf{first} double click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius. 
+To begin, start DS9 and open the first image from the series of images you will process. You can also start DS9 from within \oscaar by clicking \code{Open DS9} button. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius. 
 \begin{center}
 \includegraphics[scale=0.34]{imgs/ds9.png}
-{\small \textbf{Screenshot 1}: Using DS9 to locate test and control stars}
+{\small \textbf{Screenshot 1}: Using DS9 to locate the target and comparison stars}
 \end{center}	
 The first star that you select will be treated as the target star, and any subsequent choices will be comparison stars. Repeat this process for as many comparison stars as you like (try to keep it under 25 for speed). Avoid picking stars near any obvious defects on the detector, any stars less than 150 pixels from the edge of the image, or stars with a neighboring star close nearby. 
 
@@ -137,7 +152,7 @@ When you're done choosing control stars, go to \code{Regions} \textgreater  \cod
 \subsection{Making a Master Flat}
 Now that you have properly set the path to the darks and the data images, you must now make your master flat. To do this, the first step is to click the "Master Flat Maker" button at the bottom of the \oscaar window. You should now see something like this
 
-<Insert Screencap here>
+******Insert Screencap here******
 
 Now you must set the paths to the flat images and the dark flat images in the same way you set the image paths previously. You must also enter the path and filename for the master flat. To do this, click the browse button and navigate to the location you would like to save the master flat. When entering a name, make sure you leave off a file extension. For example, one's master path might look like "~/Documents/masterFlat" when all is said and done. Now click the "Run" button on the master flat maker. Now if the master flat maker is not closed, close it. In your output path, you should now have a file with the name you specified and ".fits" at the end of it. This is the file you should choose when selecting the path to the master flat frame in the main window of \oscaar. At this point you should also click the browse to select the regions file and select the regions file you saved in ds9.
 
@@ -147,236 +162,6 @@ Now you must enter the Ingress and Egress time of the object you observed in Coo
 \subsection{Running Parameters}
 The next step in running \oscaar is to properly set all of the initial running parameters. These have default values set, but these may need to be modified for your particular data set.
 
-
-\subsubsection{Star Tracking}
-
-The next set of options controls the star tracking algorithm. Since very well-aligned telescopes generally track imperfectly over a few hours, in most runs stars drift across the detector slightly. \oscaar  will take the initial star positions that you saved in the regions file from DS9 and track the stars as they move across the CCD using a Guassian fitting routine. 
-
-	This bit of code is the slowest portion of the code, as fitting a 20x20 element, two dimensional Gaussian to noisy data is never an easy task. Once you do the tracking on your stars using \oscaar, you can reuse the tracking information if you need to redo the aperture photometry or differential photometry (I'll talk about those next). If you don't delete the output produced by the tracking part of the code, you won't have to run it again and spend time waiting for fits. This nifty independence of each part of the code will be a common theme in the rest of these instructions. 
-
-	To turn the tracking algorithm on or off, simply type \code{on} or \code{off} in lower case letters after the word \textsf{track}, ie:\\
-	
-\indent \code{track on}\\
-
-	And it's as simple as that. If you'd like to see how the code works a little deeper or troubleshoot a problem that you think might be related to tracking, you may want to see a plot of the Gaussian fitting as it is performed. If you are adventurous and would like to try it, throw in\\
-
-\indent \code{trackplot on}\\
-
-The resulting plots are three dimensional and can be rotated and manipulated. The red wire-frame is the data and the blue surface is the fit. 
-
-	In order to help the fitting algorithm find the object faster, enter an estimate for the sigma parameter, corresponding to the radial width of the star in pixels, using the \textsf{estsig} parameter: \\
-	
-\indent \code{estsig 2.0}\\
-
-If you try to start a run and the fitting algorithm is barfing errors like those shown in Section~\ref{sec:err}, you likely need to pick a new \textsf{estsig} value. 
-
-\subsubsection{Aperture Photometry}
-
-In this documentation I've talked about ``aperture photometry" and ``differential photometry" as if they are different things that are intimately related. Aperture photometry is the process of looking at the intensity of a star by determining the flux through a digital aperture. Differential photometry is the process of taking instrumental magnitudes obtained from aperture photometry of different stars, averaging them and comparing them to another star to look for variation of one star over time. This section will briefly discuss using the algorithm that does the aperture photometry.
-
-	Let's turn on the aperture photometry algorithm:\\
-	
-\indent \code{aper on}\\
-
-	The fit produced in the star tracking stage has two important output values: an (x,y) pixel coordinate for the center of the star and a $ \sigma $ parameter determining the radial width of that star. The code will consider a ``source" and ``sky" aperture around the star based on a scaling parameter that you enter. The default is to make a source aperture 5.5 the $ \sigma $ of the source, so let's set this aperture radius:\\
-	
-	\indent \code{aprad 5.5}\\
-	
-	Just in case one of the control stars was too close to saturating the CCD, there is an extra check built in to the code to ignore stars more than 85\% of the saturation limit. Since each CCD could have a different saturation count limit, you can enter the limit on your detector into the \code{init.par} file as follows for a CCD with a 60,000 count limit: \\
-	
-\indent \code{satur 60000} \\
-
-	If you were to try to compare photometry between different CCDs, you would need to keep track of the different gains (sometimes represented as a ``K") of each device. In order to make the measurements as consistent as possible across different devices, there is a gain parameter for you to specify. If you do not know the gain for your device, look at the header information of any of your FITS files recorded by this device. The gain is noted in the ``EGAIN" field. For my SBIG ST-10, I'll set it to:\\
-	
-\indent \code{Kccd 0.7799} \\
-
-\noindent Note the upper case \code{K}, this is the only in the upper case letter in the \code{init.par} file. 
-
-	Similar to the tracking algorithm options, there is an aperture photometry option for displaying all plots. This is not recommended for common use, but if you need to troubleshoot a problem or check that your aperture radius is appropriate, you may want to see a few plots controlled by the \code{aperplot} parameter. These plots will show each star as the aperture photometry algorithm is being applied to it, along with two red circles representing the source aperture radius (controlled by \code{aprad}) and an outer circle showing the sky aperture between the source radius and some further radius that will be used to find the background intensity. To turn on these plots:\\
-
-\indent \code{aperplot off}\\
-
-
-\subsubsection{Differential Photometry}
-
-Finally it is time to tell \oscaar  to do the differential photometry. The differential photometry algorithm is activated with \\
-
-\indent \code{diff on}\\
-
-\noindent which calculates the magnitude of the test star with respect to the control stars. The process is repeated to compare each control star against all of the other control stars, as well. This way you can visually inspect the control stars to make sure they aren't variable. 
-
-All that's left to do now is to visualize the data!  Turn on the built-in GUI with\\
-
-\indent \code{diffgui on}\\
-
-\noindent Instructions for using the GUI can be found in Section~\ref{sec:gui}. \\
-
-
-\subsection{Initializing \oscaar}
-
-\code{init.par} is now all set up. \oscaar  is ready to run! To run oscaar, open a Unix shell and change directories to the oscaar directory. Execute the Python script that controls \oscaar : \\
-
-\indent \code{\$ python photom15.py} \\
-
-\noindent This file is specific to \code{oscaar1.1.0}. Different versions have ``photom.py" files with different numbers. 
-
-When the code is running, the following will be printed to standard out: \\
-
-{\addtolength{\leftskip}{10 mm}
-{\scriptsize
-\noindent \code{Loading and averaging dark frames...\\
-IMAGE 1/353, STAR 1/3************************\\
-\{'amp': 20953, 'sigma': 2, 'xcenter': 15, 'ycenter': 13, 'offset': 435\}\\
-IMAGE 1/353, STAR 2/3************************\\
-\{'amp': 1143, 'sigma': 2, 'xcenter': 9, 'ycenter': 8, 'offset': 391\}\\
-IMAGE 1/353, STAR 3/3************************\\
-\{'amp': 591, 'sigma': 2, 'xcenter': 9, 'ycenter': 9, 'offset': 390\} } \\
- \vdots
-
-	}
-}
-
-For each star, the \oscaar  runs the tracking algorithm and prints the output from the Gaussian fit, then runs the aperture photometry algorithm. The important fit parameters are displayed so you can check that they are reasonable while the code is running. Here the values are abbreviated as integers for clarity, though they will appear as long decimals (``floats'' in Python speak) in your standard out. 
-
-\subsubsection{Recognizing Errors}
-\label{sec:err}
-Sometimes the script will return something resembling the following: \\
-
-{\addtolength{\leftskip}{10 mm}
-{\scriptsize
-\noindent \code{IMAGE 76/353, STAR 2/3************************ \\
-eigenvalues: \\
--0.0322264\\
-0.631025\\
-0.960443\\
-1.12215\\
-2.31861\\
-matrix forced pos-def by adding 0.034545 to diagonal \\
-\{'amp': 1757, 'sigma': 1, 'xcenter': 11, 'ycenter': 9, 'offset': 324\} }\\
-
-	}
-}
-
-\noindent This indicates that the fitting algorithm had some difficulty, but it eventually found the proper fit. It is OK if this happens in bursts as \oscaar  analyses a bad image, as long as the output eventually looks normal again. 
-
-It is \textbf{not} OK if the following is printed: \\
-
-{\addtolength{\leftskip}{10 mm}
-{\scriptsize
-\noindent \code{IMAGE 1/353, STAR 1/3*********************** \\
-\vdots \\
-invalid value encountered in double\_scalars\\
-MnHesse: 2nd derivative zero for parameter 0\\
-MnHesse fails and will return diagonal matrix \\
-MnHesse: 2nd derivative zero for parameter 0\\
-MnHesse fails and will return diagonal matrix \\
-ERROR: Fit not found for this frame.}\\
-
-	}
-}
-
-\noindent As mentioned earlier, if you choose a bad \code{estsig} value in the \code{init.par} file, this error may be the fitting algorithm dying as a result. 
-
-	If a star is not located where the \code{Regions} file tells \oscaar  to look, the fitting algorithm will fail with the error above. If this happens you should kill the script with \code{Ctrl+C}. Open your \code{Regions} file in DS9 and check that the star that failed is properly marked, and open the image where the code failed and look for irregularities (like a plane or satellite passing in the image, the tracking on your telescope dying, the star running off the edge of the detector, etc.).
-
-If the image is bad for any reason, you can rename that image so that it no longer matches what the \code{init.par} file is looking for and it gets skipped over. Then start the script again. If you do this to many consecutive images, the tracking algorithm might not be able to track the stars before and after the break. If this is the case, you may need to do the \oscaar  analysis in separate chunks with unique \code{Regions} files corresponding to before and after the break. 
-
-If you can't find anything that seems to be wrong, it is best to discontinue use of this control star. Open the regions file, go to the \code{circle(x,y,r)} line corresponding to the failed star and comment it out with a preceding \code{\#}: \\
-
-\indent \code{\#circle(x,y,r)}\\
-
-\subsection{Using the \oscaar  GUI} 
-\label{sec:gui}
-
-When \code{diffgui} is \code{on}, the built-in GUI for \oscaar  will open with your data. This can be explicitly triggered from the command line with \\
-
-\indent \code{\$ python differgui2.py}\\
-
-\noindent in \code{oscaar1.1.0}. The following interface will be displayed:\\
-
-\begin{center}
-\includegraphics[scale=0.4]{imgs/gui1.png}
-{\small \textbf{Screenshot 2}: The starting view in \oscaar 's GUI}
-\end{center}
-\bigskip
-
-This shows the light curve of your test star. The example in Screenshot 2 is a light curve of transit of exoplanet HD 189733b. The vertical axis corresponds to the differential magnitude of the star with some constant arbitrary vertical displacement. Note that the dimmer astronomical magnitudes correspond to larger numbers. The horizontal axis is time in Julian Date, as recorded in the FITS header of your test star. 
-
-This plot is interactive. You can click on the middle button at the bottom of the window (the axes icon) to select a panning tool. The magnifying glass icon is a rectangular zoom tool. Click the home icon to return to the initial (default) view. Click the floppy disk icon to save the image to a PNG. 
-
-You can check for intrinsic variability in your control stars by clicking the ``Control Star'' button in the yellow box in the upper right. You can go through all of the control stars by clicking the ``Prev Control'' and ``Next Control'' buttons.  \\
-
-\begin{center}
-\includegraphics[scale=0.4]{imgs/gui2.png}
-{\small \textbf{Screenshot 3}: Checking control stars in \oscaar 's GUI }
-\end{center}
-\bigskip
-
-Even good control stars will show noise like this one. The scaling of the magnitude axis changes from star to star, so even though they may all look similar, the scale is almost certainly changing. 
-
-The ``Residuals'' plots may be a bit of a misnomer. They represent the difference between the differential magnitude measurements of two random control stars. This is mainly a tool for troubleshooting. If there are big, discontinuous jumps in these ``Residual'' plots or trends in the data apart from noise around zero, there is likely something wrong with the analysis of that control star. To check different pairs of stars, click ``Random Residuals''. 
-
-Grid lines and the median binning can be toggled with the ``Toggle Grid'' and ``Toggle Median'' buttons. 
-
-
-\section{\oscaar For Programmers} \label{sec:api}
-
-\subsubsection{Navigating \oscaar  Output Files}
-
-\oscaar  outputs files into different directories within the \code{oscaar1.1.0} running directory. \\
-
-
-\begin{center}
-\begin{tabular*}{\textwidth}{c  c  c }
-\hline
-\hline
-\textbf{Directory} & \textbf{Contents} & \textbf{Contents Format}\\\hline \\
-
-filelists & Names of files that \oscaar  will need & List of paths \\ \\
-aper\_out & Aperture photometry results & Inst. mag., error  \\ \\
-track\_out & Tracking algorithm results & x-pos., y-pos., sigma\\ \\
-diff\_out & Differential photometric magnitude & Diff. mag., error  \\  \\
-time\_out & JD time extracted from test star headers & List of JD \\ \\
-\hline \\
-\end{tabular*} \\
-\textbf{Note}: The differential magnitude error algorithm is still not well refined. 
-\end{center}
-\bigskip 
-
-\noindent The \oscaar  running directory is intended to be copied for each new run you do to preserve the running parameters for your records. If you start a new run in an \oscaar  directory with these output directories already generated, \oscaar  will ask you before overwriting them. 
-
-
-\subsubsection{\oscaar  API}
-
-You are welcome to write your own script that reads the different output files, and manipulates the data however you like. This will give you the power to script any analysis you can think of. The script that does the differential photometry in \code{oscaar1.1.0} is \code{differcalc2.py}. It uses object orientation to manage all of the different bits of data that are involved. The classes used in \code{differcalc2.py} are defined in \code{diffmodule3.py}, and you may find them useful to handle the myriad of data elements. 
-
-For example, the sample script below will plot the pixel coordinates of the test star throughout the run by objectively accessing the x and y positions of the star: \\
-
-{\addtolength{\leftskip}{10 mm}
-{\scriptsize
-\noindent \code{import matplotlib.pyplot as plt \\
-import diffmodule3 as dm \#\# Classes for "fluxArray" and "starObj" \\ 
-\\
-teststar = dm.starObj(`001') \#\# Initialize a star object \\ 
-x = teststar.trackx()      \#\# Access the x and y positions \\
-y = teststar.tracky() \\
-\\
-plt.plot(x,y)                \#\# Plot the star positions \\
-plt.title(`Pixel Coordinates of the Test Star') \\
-plt.show() }\\
-
-	}
-}
-
-\noindent which may produce a plot that looks something like this: \\
-
-\begin{center}
-\includegraphics[scale=0.5]{imgs/sample.png} \\
-{\small \textbf{Screenshot 4}: Making a quick script to see the star position on the detector throughout the run}
-\end{center}
-\bigskip
-
-\noindent Open up an interactive Python shell, import the module and do a \code{help(differmodule3)} to see all of the available object classes and methods. 
 
 
 
