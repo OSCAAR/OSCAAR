@@ -208,7 +208,7 @@ The next step in running \oscaar is to properly set all of the initial running p
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackPlots.png}
-\caption{\code{Track plots} set to \code{True} and \code{Photometry plots} set to \code{False}.}
+\caption{\code{Track plots} set to \code{True} and \code{Photometry plots} set to \code{False}. The leftmost image shows the star with a cross-hair indicating the centroid, also circled in magenta (the radius of this circle is not meaningful). The plots on the right indicate the sums of the intensities in pixels along the rows and columns, in the transparent curves. The solid curves represent the smoothed intensity profiles, which are used to find the centroid. The bold vertical lines mark the best-fit stellar centroid in each axis.}
 \label{fig:trackingExamples}
 \end{center}	
 \end{figure}
@@ -237,8 +237,13 @@ The next step in running \oscaar is to properly set all of the initial running p
 
 
 \subsubsection{CCD Gain}
+
+
 \subsubsection{Aperture Radius} \label{sec:aperRad}
+
+
 \subsubsection{Notes}
+This text field is meant for you to enter any notes you might want to know later. All of your running parameters will be saved in the data file so you won't need to copy them here, but if you want to label the run in any particular way, there's a sweet little box here specifically for that purpose.
 
 \subsubsection{Ingress and Egress Times}
 If you are observing a transiting exoplanet, \oscaar can do its most precise photometry if it knows when your target is ``in-transit'', meaning the planet is occulting the disk of star, or ``out-of-transit'', meaning the planet is not occulting the star. This is because it uses mathematical techniques that look for changes in each comparison star compared to the target star in order to determine which comparison stars are the best to use. If you compared the target to comparisons while the planet was in-transit, there would be a real (and important) difference between the two that we want to measure accurately. For this reason we input the ingress and egress times and only compare the target and comparison stars during out-of-transit exposures.
@@ -247,15 +252,17 @@ Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour
 
 
 
-\subsection{Contributing to \oscaar}
-This version of \oscaar was made by four people, and we're proud of the work we've done. But \oscaar can still be improved and we need your help! \oscaar is used in more than 10 countries by amateurs and professionals alike, and in order to keep up with the demands of providing a user-friendly differential photometry code for an international audience, we'd love to have your help if you can: code in Python, translate some documentation, or provide any feedback at all. If you'd like to help, please contact us at \href{mailto:oscaarUMD@gmail.com}{oscaarUMD@gmail.com}. 
+\section{Contributing to \oscaar}
+This version of \oscaar was made by four people, and we're proud of the work we've done. But \oscaar can still be improved and we need your help! \oscaar is used in more than 10 countries by amateurs and professionals alike, and in order to keep up with the demands of providing a user-friendly differential photometry code for an international audience, we'd love to have your help if you can: code in Python, or provide any feedback at all. If you'd like to help but don't know where to begin, please feel free to contact us at \href{mailto:oscaarUMD@gmail.com}{oscaarUMD@gmail.com}. We'd love to work together! 
+
+We keep the \href{https://github.com/OSCAAR/OSCAAR}{source code on GitHub}, a popular open source code repository site. There you can find the code in its most up-to-date (alpha, beta, and stable) form, the \href{https://github.com/OSCAAR/OSCAAR/issues?state=open}{Issue Tracker} where known issues are logged and new issues or comments can be posted.
 
 
 
 
 \section{Acknowledgements}
 \oscaar has come a long way from the first 1,000 lines of code that Brett Morris wrote in 2011. It could not have gotten there without the help of the following colleagues: 
-Drake Deming, Avi Mandell, Elizabeth Warner, Alberto Bolatto, Harley Katz, Jacob Endres, Daniel Galdi, Sam Gross, Luuk Visser.
+Drake Deming, Avi Mandell, Daniel Galdi, Sam Gross, Luuk Visser, Harley Katz, Elizabeth Warner, Alberto Bolatto.
 
 	
 \end{document}

@@ -116,7 +116,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
         self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25), pos = (505, 433))
-        self.ephButton = wx.Button(self,-1, 'EphGUI')
+        self.ephButton = wx.Button(self,-1, 'Ephemeris')
         self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
