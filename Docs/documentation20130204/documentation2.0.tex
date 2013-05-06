@@ -1,6 +1,11 @@
 % Report section types:  \part{}, \chapter{}, \section{}, \subsection{}, \subsubsection{}, \paragraph{}, \subparagraph{}.
 % Article section types: \part{}, \section{}, \subsection{}, \subsubsection{}, \paragraph{}, \subparagraph{}.
-\documentclass{article}
+\documentclass[a4paper]{article}
+
+\marginparsep = 0pt
+\marginparwidth = 0pt
+\oddsidemargin = 0.5in
+\textwidth = 5.25in
 \usepackage{graphicx}
 %\documentclass{report}
 %\usepackage{fontspec}
@@ -188,7 +193,7 @@ The next step in running \oscaar is to properly set all of the initial running p
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.45]{imgs/smooth.eps}
-\caption{Trying a range of \code{Smoothing Constant} values from 0 to 3.}
+\caption{A range of \code{Smoothing Constant} values from 0 to 3 are applied to the stellar intensity profile along the columns surrounding one star (see Figure \ref{fig:sumsExample} for the origin of the intensity profile).}
 \label{fig:smoothExample}
 \end{center}	
 \end{figure}
@@ -216,7 +221,7 @@ The next step in running \oscaar is to properly set all of the initial running p
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/aperPlots.png}
-\caption{\code{Photometry plots} both set \code{True} and \code{Track plots} set to \code{False}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two concentric circles (red) mark the ``sky annulus,'' within which the sky background is measured.  }
+\caption{\code{Photometry plots} set \code{True} and \code{Track plots} set to \code{False}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two concentric circles (red) mark the ``sky annulus,'' within which the sky background is measured.  }
 \label{fig:photPlots}
 \end{center}	
 \end{figure}
