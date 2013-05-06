@@ -148,6 +148,8 @@ The first star that you select will be treated as the target star, and any subse
 
 When you're done choosing control stars, go to \code{Regions} \textgreater  \code{Save Regions...} and save a regions file in a directory where you will be able to find it later. This file will contain the pixel coordinates of the stars at the beginning of the observation, which tells \oscaar which stars to track. You may want to check that the test star is in fact the first star in the regions file. Open the regions file in a text editor and check that the first line resembling ``\code{circle(100,600,10)}'' has the proper (x,y) pixel coordinates and radius (in this example, the position is (100,600) with a radius of 10). If the first circle coordinate line does not point to the target star, find the circle coordinate that does, move that line to the top of the list, and save the file.
 
+In the \oscaar GUI, click \code{Browse} in the \code{Path to Regions File} field and enter the path to the regions file you just made.
+
 \subsubsection{Locating Your Data}
 
 	\oscaar  is built to find files by their paths. To properly set the image paths, you should click the browse button next to the dark images path field and choose all of the dark image files that you wish to be processed. To do this, select your first file, then hold the \code{Ctrl} key on Windows or the \code{Command} key on Mac and click every file you would like to select. Alternatively, if they are all listed consecutively, you can click the first file, hold shift, and then click the last one. Now click the ``Open'' button and all of your dark images should be listed separated by commas. Do the same for your data images in the \code{Data Images} field of the \oscaar GUI.
@@ -162,14 +164,86 @@ Now that you have properly set the path to the darks and the data images, you mu
 \end{center}	
 \end{figure}
 
-Now you must set the paths to the flat images and the dark flat images in the same way you set the image paths previously. You must also enter the path and filename for the master flat. To do this, click the browse button and navigate to the location you would like to save the master flat. When entering a name, make sure you leave off a file extension. For example, one's master path might look like "~/Documents/masterFlat" when all is said and done. Now click the "Run" button on the master flat maker. Now if the master flat maker is not closed, close it. In your output path, you should now have a file with the name you specified and ".fits" at the end of it. This is the file you should choose when selecting the path to the master flat frame in the main window of \oscaar. At this point you should also click the browse to select the regions file and select the regions file you saved in ds9.
+Now you must set the paths to the flat images and the dark flat images in the same way you set the image paths previously. You must also enter the path and filename for the master flat. To do this, click the \code{Browse} button and navigate to the location you would like to save the master flat. 
 
-\subsection{Ingress and Egress Times}
-Now you must enter the Ingress and Egress time of the object you observed in Coordinated Universal Time (UTC). To find this, you must know the coordinates from which you were observing and the date you observed. Once you have discovered your time, you must enter it into the text field. To do this, you must use the format MM/DD/YYYY.
+There are two options for how you can make your flat, either  the ``Standard'' or ``Twilight'' flat type. The standard flat maker algorithm is a simple mean combination of the flat frames that you enter into the flat maker GUI. If you took dome flats or bright sky flats, this is the right option for you. If you took flats at twilight as the sun was setting and the sky background was your ``screen'', the twilight flat algorithm will fit a linear function to the intensity of each pixel over time, and use the intercept as the normalization factor for the flat. The twilight flat algorithm is much slower than the standard method, because those linear fits are computationally expensive in an interpreted language like Python. We hope to code up alternative versions of these routines that you can experiment with on your dataset, some of which may access much faster, compiled code in C or Cython.
+
+Now click the \code{Run} button on the master flat maker and close it when it is done. You should now choose the output file when selecting the path to the master flat frame in the main \oscaar GUI. 
+
 
 \subsection{Running Parameters}
 The next step in running \oscaar is to properly set all of the initial running parameters. These have default values set, but these may need to be modified for your particular data set.
 
+\subsubsection{Smoothing Constant}
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.20]{imgs/sums.png}
+\caption{Sums along the columns and rows around a star.}
+\label{fig:sumsExample}
+\end{center}	
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.45]{imgs/smooth.eps}
+\caption{Trying a range of \code{Smoothing Constant} values from 0 to 3.}
+\label{fig:smoothExample}
+\end{center}	
+\end{figure}
+
+\subsubsection{Tracking and Photometry Plots}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.45]{imgs/trackingExample.eps}
+\caption{\textbf{Stellar Centroid Tracking}: The top row of plots show the sum of intensities in each pixel along the columns a well-focus star, similar to Figure \ref{fig:sumsExample}, and the bottom row shows the same for a highly defocused star (see discussion on defocusing in Section \ref{sec:defocusing}). The plots on the left show the counts on the detector summed along the columns of pixels, and smoothed with non-zero smoothing constants. The plots on the right show the first spatial derivative of the intensity profiles, with clear extrema at the pixel locations corresponding to the points of greatest positive and negative slope in the intensity profiles. A quadratic is fit to the three points closest to each of the extrema, yielding sub-pixel precision measurements on the coordinates of the extrema (marked above with the dotted vertical red lines). The midpoint between these best-fit extrema is taken as the stellar centroid, marked with the solid vertical red line in the plots above. This process is repeated for the other axis (sum along the rows) to get the other of the two centroid coordinates for each star.}
+\label{fig:sumRowsAndCols}
+\end{center}	
+\end{figure}
+
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.25]{imgs/trackPlots.png}
+\caption{\code{Track plots} set to \code{True} and \code{Photometry plots} set to \code{False}.}
+\label{fig:trackingExamples}
+\end{center}	
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.25]{imgs/aperPlots.png}
+\caption{\code{Photometry plots} both set \code{True} and \code{Track plots} set to \code{False}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two concentric circles (red) mark the ``sky annulus,'' within which the sky background is measured.  }
+\label{fig:photPlots}
+\end{center}	
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.25]{imgs/trackAperPlots.png}
+\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot.}
+\label{fig:trackAndPhotPlots}
+\end{center}	
+\end{figure}
+
+
+
+\subsubsection{Track Zoom}
+\oscaar tracks each star through consecutive exposures by looking for the each centroid near to the detector location that it had in the previous exposure. Since the stars will drift somewhat from frame to frame if your telescope is not perfectly aligned, we define a width around the previous centroid within which to search for the centroid in the following frame. The ideal width of this search box will depend on the plate scale of your device, how defocused the telescope is, how poor the alignment is, etc. 
+
+
+
+\subsubsection{CCD Gain}
+\subsubsection{Aperture Radius} \label{sec:aperRad}
+\subsubsection{Notes}
+
+\subsubsection{Ingress and Egress Times}
+If you are observing a transiting exoplanet, \oscaar can do its most precise photometry if it knows when your target is ``in-transit'', meaning the planet is occulting the disk of star, or ``out-of-transit'', meaning the planet is not occulting the star. This is because it uses mathematical techniques that look for changes in each comparison star compared to the target star in order to determine which comparison stars are the best to use. If you compared the target to comparisons while the planet was in-transit, there would be a real (and important) difference between the two that we want to measure accurately. For this reason we input the ingress and egress times and only compare the target and comparison stars during out-of-transit exposures.
+
+Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour scale, in Universal Time. Seconds are insignificant.
 
 
 
@@ -181,7 +255,7 @@ This version of \oscaar was made by four people, and we're proud of the work we'
 
 \section{Acknowledgements}
 \oscaar has come a long way from the first 1,000 lines of code that Brett Morris wrote in 2011. It could not have gotten there without the help of the following colleagues: 
-Harley Katz, Drake Deming, Elizabeth Warner, Alberto Bolatto, Avi Mandell, Jacob Endres, Daniel Galdi, Sam Gross.
+Drake Deming, Avi Mandell, Elizabeth Warner, Alberto Bolatto, Harley Katz, Jacob Endres, Daniel Galdi, Sam Gross, Luuk Visser.
 
 	
 \end{document}

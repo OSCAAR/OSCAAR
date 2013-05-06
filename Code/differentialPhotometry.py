@@ -64,7 +64,6 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         
         data.storeFlux(star,expNumber,flux,error)           ## Store the flux and uncertainty
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
-
         if data.trackPlots or data.photPlots: plt.draw()   
     if statusBarAx != None and expNumber % 15 == 0: 
         plt.draw()

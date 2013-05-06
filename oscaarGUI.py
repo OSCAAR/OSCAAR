@@ -534,7 +534,7 @@ class MasterFlatFrame(wx.Frame):
         self.flatdarkpaths = []
         for dpath in self.flatDarksPathCtrl.GetValue().split(','):
             self.flatdarkpaths += glob(dpath)
-        if not path.endswith('.fits'):
+        if not path.endswith('.fits') and not path.endswith('.fit'):
             path += '.fits'
         pathCorrected = path.replace('/', os.sep)
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'

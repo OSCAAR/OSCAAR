@@ -20,7 +20,7 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
   
-def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRadiusFactor=2.75, ccdGain=1, plots=False):
+def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=2.75, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False):
     '''Method for aperture photometry. 
     
        INPUTS: image - numpy array image
@@ -34,9 +34,15 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRad
                apertureRadius - radius in pixels from centroid to use 
                                 for source aperture
                                 
-               annulusRadiusFactor - measure the background for sky background 
+               annulusInnerRadiusFactor - measure the background for sky background 
+                                     subtraction fron an annulus from a factor of 
+                                     annulusInnerRadiusFactor bigger than the apertureRadius to
+                                     one a factor annulusOuterRadiusFactor bigger.
+               
+               annulusOuterRadiusFactor - measure the background for sky background 
                                      subtraction fron an annulus a factor of 
-                                     annulusRadiusFactor bigger than the apertureRadius
+                                     annulusInnerRadiusFactor bigger than the apertureRadius to
+                                     one a factor annulusOuterRadiusFactor bigger.
                                      
                ccdGain - gain of your detector, used to calculate the photon noise
                
@@ -57,8 +63,8 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusRad
     if plots:
         [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
         if photSubplotsOffset == 0: plt.clf()
-    annulusRadiusInner = 1.40*apertureRadius 
-    annulusRadiusOuter = annulusRadiusFactor*apertureRadius
+    annulusRadiusInner = annulusInnerRadiusFactor*apertureRadius 
+    annulusRadiusOuter = annulusOuterRadiusFactor*apertureRadius
 
     imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
     [dimx,dimy] = imageCrop.shape
