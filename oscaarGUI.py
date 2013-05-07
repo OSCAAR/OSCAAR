@@ -679,6 +679,7 @@ class EphFrame(wx.Frame):
         self.initUI()
     
     def initUI(self):
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
@@ -880,6 +881,9 @@ class EphFrame(wx.Frame):
         outputPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'eventReport.html')
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
+        
+    def onDestroy(self, event):
+        self.GetParent().ephGUIOpen = False
 
 app = wx.App(False)
 #### Runs the GUI ####
