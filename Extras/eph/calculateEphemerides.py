@@ -688,6 +688,10 @@ def jd2gd(jd,returnString=False):
     off by a day or two, depending on how far back you go. For example, 11 March 
     1609 converted to JD will be off by two days. 20th and 21st century seem to 
     be fine, though.
+
+    Note from Brett Morris: This conversion routine matches up to the "Numerical 
+    Recipes" in C version from 2010-2100 CE, so I think we'll be ok for oscaar's
+    purposes.
     """
     jd=jd+0.5
     Z=int(jd)

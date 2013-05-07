@@ -1,10 +1,15 @@
 name: Kitt Peak National Observatory
-latitude: deg:min:sec
+latitude: 31:57:29.9
 longitude: -111:35:48.1
 elevation: 2097.0
 temperature: 10.0
 min_horizon: 15:00:00
-start_date: (2013,04,01,00,00,00)
-end_date: (2013,05,01,00,00,00)
+start_date: (2013,06,06,00,00,00)
+end_date: (2013,06,06,00,00,00)
 v_limit: 15
 depth_limit: 0.000
+calc_transits: True
+calc_eclipses: True
+html_out: True
+text_out: True
+twilight: -12
