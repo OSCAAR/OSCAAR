@@ -24,7 +24,7 @@ from sys import argv
 
 def calculateEphemerides(parFile,rootPath):
     pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
-    pklDatabasePaths = glob(getcwd()+sep+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
+    pklDatabasePaths = glob(rootPath+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
     csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
     #parFile = 'umo.par'
 
@@ -73,7 +73,7 @@ def calculateEphemerides(parFile,rootPath):
        directory then use it, if not, grab the data from exoplanets.org in one big CSV file and make one.
        If the old archive is >14 days old, grab a fresh version of the database from exoplanets.org.
     '''
-    if glob(csvDatabasePath) == []:
+    if glob(rootPath+csvDatabasePath) == []:
         print 'No local copy of exoplanets.org database. Downloading one...'
         rawCSV = urlopen('http://www.exoplanets.org/csv-files/exoplanets.csv').read()
         saveCSV = open(rootPath+csvDatabasePath,'w')
@@ -81,7 +81,7 @@ def calculateEphemerides(parFile,rootPath):
         saveCSV.close()
     else: 
         '''If the local copy of the exoplanets.org database is >14 days old, download a new one'''
-        secondsSinceLastModification = time() - getmtime(csvDatabasePath) ## in seconds
+        secondsSinceLastModification = time() - getmtime(rootPath+csvDatabasePath) ## in seconds
         daysSinceLastModification = secondsSinceLastModification/(60*60*24*30)
         if daysSinceLastModification > 14:
             print 'Your local copy of the exoplanets.org database is >14 days old. Downloading a fresh one...'
