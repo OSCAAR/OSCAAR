@@ -20,7 +20,7 @@ def paddedStr(num,pad):
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
   
-def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=2.75, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False):
+def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=2.8, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False):
     '''Method for aperture photometry. 
     
        INPUTS: image - numpy array image
@@ -66,13 +66,16 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOut
     annulusRadiusInner = annulusInnerRadiusFactor*apertureRadius 
     annulusRadiusOuter = annulusOuterRadiusFactor*apertureRadius
 
+    ## From the full image, cut out just the bit around the star that we're interested in
     imageCrop = image[xCentroid-annulusRadiusOuter+1:xCentroid+annulusRadiusOuter+2,yCentroid-annulusRadiusOuter+1:yCentroid+annulusRadiusOuter+2]
-    [dimx,dimy] = imageCrop.shape
-    XX, YY = np.meshgrid(np.arange(dimx),np.arange(dimy))
+    [dimy,dimx] = imageCrop.shape
+    XX, YY = np.meshgrid(np.arange(dimy),np.arange(dimx))    
     x = (XX - annulusRadiusOuter)**2
     y = (YY - annulusRadiusOuter)**2
+    ## Assemble arrays marking the pixels marked as either source or background pixels
     sourceIndices = x + y <= apertureRadius**2
     skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
+    
     rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
     rawError = np.sqrt(np.sum(imageCrop[sourceIndices]*ccdGain) + np.median(imageCrop[skyIndices])) ## Poisson-uncertainty
 
