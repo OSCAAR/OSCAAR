@@ -16,6 +16,8 @@ import subprocess
 #import oscaar
 from os.path import expanduser
 
+
+
 def homeDir():
     '''Look for the `.homeDir file` in the current directory. If it is in
        in the current working directory, do nothing. Otherwise, go up a 
@@ -57,9 +59,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Creates and initializes the GUI ####
     def InitUI(self):
         #### Defines the menubar ####
-        self.masterFlatOpen = False
-        self.ephGUIOpen = False
-        self.aboutOpen = False
+        global masterFlatOpen
+        global ephGUIOpen
+        global aboutOpen
+        masterFlatOpen = False
+        ephGUIOpen = False
+        aboutOpen = False
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
         self.oscaarMenu = wx.Menu()
@@ -223,14 +228,16 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         subprocess.Popen([ds9Loc, regionsName])
         
     def openMasterFlatGUI(self, event):
-        if self.masterFlatOpen == False:
-            self.masterFlatOpen = True
-            MasterFlatFrame(self)
+        global masterFlatOpen
+        if masterFlatOpen == False:
+            masterFlatOpen = True
+            MasterFlatFrame(None)
         
     def openEphGUI(self,event):
-        if self.ephGUIOpen == False:
-            self.ephGUIOpen = True
-            EphFrame(self)
+        global ephGUIOpen
+        if ephGUIOpen == False:
+            ephGUIOpen = True
+            EphFrame(None)
             
 
     #####Opens the webpage for the documentation when help is pressed#####
@@ -426,9 +433,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         webbrowser.open_new_tab("http://var2.astro.cz/ETD/predictions.php") ##Change to documentation
 
     def aboutOscaar(self, event):
-        if self.aboutOpen == False:
-            AboutFrame(parent = self, id = -1)
-            self.aboutOpen = True
+        global aboutOpen
+        if aboutOpen == False:
+            AboutFrame(parent = None, id = -1)
+            aboutOpen = True
 
 class OverWriteFrame(wx.Frame):
     def __init__(self, path, parent, id):
@@ -499,7 +507,8 @@ class MasterFlatFrame(wx.Frame):
         self.Show(True)
 
     def destroyed(self, event):
-        self.GetParent().masterFlatOpen = False
+        global masterFlatOpen
+        masterFlatOpen = False
 
     def addPathChoice(self, sizer, row, label, btn, textCtrl, message):
         sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
@@ -628,7 +637,8 @@ class AboutFrame(wx.Frame):
         self.Show()
     
     def onDestroy(self,event):
-        self.parent.aboutOpen = False
+        global aboutOpen
+        aboutOpen = False
     def exit(self,event):
         self.Destroy()
     def openRepo(self, event):
@@ -883,7 +893,8 @@ class EphFrame(wx.Frame):
         self.Destroy()
         
     def onDestroy(self, event):
-        self.GetParent().ephGUIOpen = False
+        global ephGUIOpen
+        ephGUIOpen = False
 
 app = wx.App(False)
 #### Runs the GUI ####
