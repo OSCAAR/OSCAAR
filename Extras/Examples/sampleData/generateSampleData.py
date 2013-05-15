@@ -31,6 +31,8 @@ compBX = [100-starDimensions/2,100+starDimensions/2]
 starsY = [imageDimensionY/2-starDimensions/2,imageDimensionY/2+starDimensions/2]
 
 ## Set times, model params
+
+## Ingress: 2013-05-15;10:06:30; egress: 2013-05-15;11:02:35
 jd0 = 2456427.88890
 exposureTime = 45/(60*60*24.) ## Convert s -> hr
 #times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)/ 1.580400
@@ -42,7 +44,15 @@ modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                 0.30, 0.00, 0.0, np.mean(times,dtype=np.float64), 2.0]
 print times
 modelLightCurve = genModel.simulateLC(times,modelParams)
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+def format_coord(x, y):
+	'''Function to also give data value on mouse over with imshow.'''
+	col = int(x+0.5)
+	row = int(y+0.5)
+	return 'x=%1.8f, y=%1.8f' % (x, y)
 plt.plot(times,modelLightCurve)
+ax1.format_coord = format_coord
 plt.show()
 
 ## Simulate dark frames with shot noise
