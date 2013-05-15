@@ -1,9 +1,8 @@
 '''
-Generate sample data to test oscaar with.
+Generate/overwrite sample data to test oscaar with.
 
-Compile and run with: 
-    % gcc -shared -o c/transit1forLMLS.so c/transit1forLMLS.c -framework Python ; python generateSampleData.py
-
+Requires that the C library is compiled, see instructions: 
+https://github.com/OSCAAR/OSCAAR/wiki/Generating-Sample-Data
 
 Core developer: Brett Morris
 '''
@@ -12,6 +11,9 @@ import numpy as np
 import pyfits
 from matplotlib import pyplot as plt
 import generateModelLC as genModel
+from shutil import rmtree
+from os import mkdir
+from glob import glob
 
 plotModel = False
 NdataImages = 200          ## Number of data images to generate
@@ -23,7 +25,10 @@ starDimensions = 4       ## pixel dimensions of the stars
 skyBackground = 500      ## background counts from sky brightness
 darkBackground = 100     ## background counts from detector
 
-import os; os.system('rm images/*')
+## Delete images directory, make a new one
+if len(glob('images')) > 0:
+	rmtree('images')
+mkdir('images')
 
 ## Pixel positions of the stars (x,y)
 targetX = [20-starDimensions/2,20+starDimensions/2]
@@ -40,10 +45,8 @@ exposureTime = 45/(60*60*24.) ## Convert s -> hr
 #times -= np.mean(times)
 # [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0,percentOfOrbit]
 times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)
-print np.mean(times,dtype=np.float64)
 modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                 0.30, 0.00, 0.0, np.mean(times,dtype=np.float64), 2.0]
-print times
 modelLightCurve = genModel.simulateLC(times,modelParams)
 if plotModel: 
 	fig = plt.figure()
