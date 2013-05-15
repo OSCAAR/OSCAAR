@@ -22,6 +22,8 @@ outputs/oscaarDataBase.npz
 outputs/oscaarDataBase.pkl
 outputs/notes.txt
 Extras/eph/*.py?
+Extras/Examples/sampleData/*.py?
+Extras/Examples/sampleData/images/*
 Docs/documentation20130204/*.log
 Docs/documentation20130204/*.aux
 Docs/documentation20130204/*.out

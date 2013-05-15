@@ -1,8 +1,46 @@
 /*
- * transit1forLMLS.c
- *
- *  Created on: May 9, 2013
- *      Author: bmmorris
+ 
+ INTRO:
+	 transit1forLMLS.c is an *experimental* transit light curve modeling
+	 routine. It is a near-translation of Eric Agol's IDL routines, written 
+	 in C for speed and for nonproprietary use (i.e., open source) since 
+	 IDL is not free.
+
+ NOTES: 
+	 We'll consider this routine experimental for now, though it 
+	 passes the early tests that have been thrown at it thus far.
+ 
+	 It agrees with Eric Agol's routines to single precision as of 14 May 
+     2013, and performs about 7% faster than the IDL routine in the 
+	 generalized case. In the special case where eccentricity=0, there is 
+	 potential for a runtime speed-up by a factor of two that is not yet (but 
+	 nearly) implemented.
+ 
+	 Currently, this script relies on the Numerical Recipes utils available in
+	 the public domain at http://www.nr.com/public-domain.html
+ 
+	 The "getRealTime.c" include is a is/was used for measuring runtimes in C, 
+	 written by David Robert Nadeau available on the Creative Commons 
+     Attribution 3.0 Unported License. See the first few lines of 
+     "getRealTime.c" for more details. This file is not required to run 
+	 occultquad().
+
+ Core Developer: Brett Morris (NASA GSFC)
+ 
+ CITATIONS: 
+	 These routines are based on the work in Mandel & Agol (2002),
+	 so please cite this paper if you make use of these routines
+	 in your research.
+ 
+	 Eric Agol (currently at UW) has posted analogous routines in IDL
+	 and FORTRAN on his website. A lot of this code is inspired heavily
+	 by those routines. Here's a URL to those routines, as of May 2013:
+	 http://www.astro.washington.edu/users/agol/transit.html
+	 
+	 This implementation of occultquad() was also in part inspired
+	 by Gil Nachmani's MATLAB occultquad() routine, which is available
+	 on Eric's website as well (same URL).
+ 
  */
 
 
@@ -12,29 +50,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include "getRealTime.c"
-//#include "idl_export.h"         /* IDL external definitions */
 
 #define pi 3.14159265358979311600
-//#define pi 3.14159265
 
-void occultquad(float *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, float *F);
-
-
-float *linspaceOLD(float beginningPhase, float endPhase, int Npoints)
-// Replicate the function "linspace" from MATLAB
-{
-	float *t;
-	int ii;
-	t = vector(0,Npoints);
-
-	for (ii=1; ii<Npoints+1; ii++)
-	{
-		t[ii-1] = beginningPhase + (float)(endPhase - beginningPhase)*ii/(Npoints+1);
-	//	printf("t[ii]=%f\n",t[ii]);
-	}
-	return t;
-}
-
+void occultquad(double *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, double *F);
 float *linspace(float beginningPhase, float endPhase, int Npoints)
 // Replicate the function "linspace" from MATLAB
 {
@@ -50,12 +69,12 @@ float *linspace(float beginningPhase, float endPhase, int Npoints)
 	return t;
 }
 
-float *divideThrough(float *array, float lengthArray, float constant)
+double *divideThrough(double *array, int lengthArray, double constant)
 // Divide `array` of length `lengthArray` through by `constant` and save in `newArray`
 {
-	float *newArray;
+	double *newArray;
 	int i;
-	newArray = vector(0,lengthArray);
+	newArray = dvector(0,lengthArray);
 	for (i=0; i<lengthArray; i++)
 	{
 		newArray[i] = array[i]/constant;
@@ -64,12 +83,12 @@ float *divideThrough(float *array, float lengthArray, float constant)
 }
 
 
-float *subtractThrough(float *array, float lengthArray, float constant)
+double *subtractThrough(double *array, int lengthArray, double constant)
 // Subtract `array` of length `lengthArray` through by `constant` and save in `newArray`
 {
-	float *newArray;
+	double *newArray;
 	int i;
-	newArray = vector(0,lengthArray);
+	newArray = dvector(0,lengthArray);
 	for (i=0; i<lengthArray; i++)
 	{
 		newArray[i] = array[i]-constant;
@@ -78,12 +97,12 @@ float *subtractThrough(float *array, float lengthArray, float constant)
 }
 
 
-float printVector(float *array, float lengthArray)
+float printVector(double *array, float lengthArray)
 {
 	int i;
 	for (i=0; i<lengthArray; i++)
 	{
-		printf("array: %f\n",array[i]);
+		printf("array: %.10f\n",array[i]);
 	}
 	return 0.0;
 }
@@ -110,11 +129,11 @@ int writeVectorToFile(float *vector, int vectorLength, char *name)
 double PI(double n, double k)
 {
 	//Computes the complete elliptical integral of the third kind using the algorithm of Bulirsch (1965):
-	// Translation of Drake's "ellpic_bulirsch"
+	// Translation of Eric's "ellpic_bulirsch"
 	double m0, kc, c, p, d, e, f, dpi, quantity, g;
 	int continueLoop;
 
-	dpi = pi;//3.1415927;
+	dpi = pi;
 
 	kc = sqrt(1.0-k*k);
 	p = n+1.0;
@@ -144,7 +163,7 @@ double PI(double n, double k)
 
 double K(double k)
 {
-	// Translation of Drake's "ellk"
+	// Translation of Eric's "ellk"
 	// Computes polynomial approximation for the complete elliptic integral
 	// of the first kind (Hasting's approximation):
 
@@ -168,7 +187,7 @@ double K(double k)
 
 double E(double k)
 {
-	// Translation of Drake's "ellec"
+	// Translation of Eric's "ellec"
 	// Computes polynomial approximation for the complete elliptic integral
 	// of the second kind (Hasting's approximation):
 	double m1, a1, a2, a3, a4, b1, b2, b3, b4, ee1, ee2;
@@ -202,20 +221,17 @@ double heaviside(double x)
 
 double lam1(double p, double z, double a, double b, double k, double q)
 {
-	double lam1, en;//pi = 3.141592654
-	en=1.0/a-1.0; // transit_orb_drake inspired :  en=1.d0/a-1.d0
-
-	//lam1 = 1.0/9.0/pi/sqrt(p*z) * ( ((1-b)*(2*b+a-3)-3*q*(b-2))*K(k) + 4*p*z*(z*z+7*p*p-4)*E(k)-3*q/a*PI(en,k) );
-	lam1 = (((1.0-b)*(2.0*b+a-3.0)-3.0*q*(b-2.0))*K(k)+4.0*p*z*(z*z+7.0*p*p-4.0)*E(k)-3.0*q/a*PI(en,k))/9.0/pi/sqrt(p*z); // transit_orb_drake inspired
-	// lambdad(indx)=(((1.d0-b)*(2.d0*b+a-3.d0)-3.d0*q*(b-2.d0))*ellk(k)+4.d0*p*zz*(zz^2+7.d0*p^2-4.d0)*ellec(k)-3.d0*q/a*ellpic_bulirsch(en,k))/9.d0/!dpi/sqrt(p*zz)
+	double lam1, en;
+	en=1.0/a-1.0; // Eric Agol inspired:  en=1.d0/a-1.d0
+	lam1 = (((1.0-b)*(2.0*b+a-3.0)-3.0*q*(b-2.0))*K(k)+4.0*p*z*(z*z+7.0*p*p-4.0)*E(k)-3.0*q/a*PI(en,k))/9.0/pi/sqrt(p*z); // Eric Agol's code inspired
 	return lam1;
 }
 
 double lam2(double p, double z, double a, double b, double k, double q)
 {
-	double lam2;// pi = 3.141592654;
-	double invk = 2.0*sqrt(p*z/(1.0-a)); // transit_orb_drake inspired
-	double en=b/a-1.0;					// transit_orb_drake inspired
+	double lam2;
+	double invk = 2.0*sqrt(p*z/(1.0-a)); // Eric Agol's code inspired
+	double en=b/a-1.0;					// Eric Agol's code inspired
 	lam2 = 2.0/9.0/pi/sqrt(1-a) * ( (1-5*z*z+p*p+q*q)*K(invk) + (1-a)*(z*z+7*p*p-4)*E(invk)-3*q/a*PI(en,invk) );
 	return lam2;
 }
@@ -223,8 +239,8 @@ double lam2(double p, double z, double a, double b, double k, double q)
 double lam3(double p, double k0, double k1)
 {
 	double lam3 = 1.0/3.0 + 16*p/9.0/pi*(2*p*p-1)*E(0.5/p) - (1-4*p*p)*(3-8*p*p)/9.0/pi/p*K(0.5/p);
-	k0 = acos(1.0-0.5/(p*p)); // transit_orb_drake inspired
-	k1 = acos(0.5/p);// transit_orb_drake inspired
+	k0 = acos(1.0-0.5/(p*p)); // Eric Agol's code inspired
+	k1 = acos(0.5/p);		  // Eric Agol's code inspired
 	return lam3;
 }
 
@@ -254,7 +270,7 @@ double eta2(double p, double z)
 
 double eta1(double p, double z, double a, double b, double k1, double k0)
 {
-	double eta1;//, pi = 3.141592654;
+	double eta1;
 	eta1 = 0.5/pi*(k1+2.0*eta2(p,z)*k0-0.25*(1.0+5.0*p*p+z*z)*sqrt((1.0-a)*(b-1.0)));
 	return eta1;
 
@@ -357,41 +373,24 @@ double occultuni(double z, double w)
 }
 
 
-void occultquad(float *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, float *F)
+void occultquad(double *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, double *F)
 {
-	/*
-% Based on Mandel & Agol's Model for Quadratic Limb Darkening
-% Mandel K. & Agol E. 2002, ApJ, 580, L171; please cite this
-% paper if you make use of this in your research.  Also, a
-% thanks to Gil Nachmani who wrote this routine would be appreciated.
-
-% [phi,F] are the observed phase and relative flux
-% p is the planet's radius in units of the star's radius (Rs)
-% ap is the planet's orbital radius in units of Rs, assuming zero eccentricity
-% P is the planet''s period in days
-% i is the inclination of the orbit in degrees
-% gamma1, gamma2 are the Quadratic Limb Darkening coefficients:
-% I(r) = 1-gamma1*(1-mu)-gamma2*(1-mu)^2, where: mu=cos(th)=sqrt(1-r^2);
-% E.g. gamma1=0.296, gamma2=0.34 for HD209458
-% n is the number of phase points in the resulting lightcurve
-% percentOfOrbit is the percentage of orbital phase to be used for the flux
-% calculations, e.g. for full orbit use 100(%).
-	*/
 	double t0overP;
 	//double startTime, endTime;
 	//startTime = getRealTime(); // Start time
-	float *Z, *phi; int ii;
+	double *Z, *phi; int ii;
 	int Npoints = (int)n;
-	Z = vector(0,Npoints);
-	phi = vector(0,Npoints);
+	Z = dvector(0,Npoints);
+	phi = dvector(0,Npoints);
 
-	phi = divideThrough(t,Npoints,P); // divide by period
+    //printVector(t,Npoints);
+    t = subtractThrough(t,Npoints,t0);
+    //t = divideThrough(t,Npoints,P);
+    t0 = 0.0;
+    //printVector(t,Npoints);
+    phi = divideThrough(t,Npoints,P); // divide by period
 	t0overP = t0/P;
-	//phi = subtractThrough(phi,Npoints,t0);
-	phi = subtractThrough(phi,Npoints,t0overP);
-
-	//printf("p:%f   ap:%f   P:%f   i:%f   gamma1:%f   gamma2:%f  e:%f  longPericenter:%f   t0:%f   n:%f  pi:%f\n",p,ap,P,i,gamma1,gamma2,e,longPericenter,t0,n,pi);
-	
+	phi = subtractThrough(phi,Npoints,t0);	//phi = subtractThrough(phi,Npoints,t0overP);
 	double ti;//, pi = 3.14159265;
 	//double c1, c2, c3, c4, c0, omega;
 	double omega;
@@ -425,7 +424,8 @@ void occultquad(float *t, float p, float ap, float P, float i, float gamma1, flo
 			m = 2.0*pi/P*(ti-tp); // changed `t` to `ti`
 			f = kepler(m,e1);
 			radius = ap*(1.0 - e1*e1)/(1.0 + e1*cos(f));
-			Z[ii] = radius*sqrt(1.0-(sin(i*pi/180.0)*sin(longPericenter*pi/180.0+f))*(sin(i*pi/180.0)*sin(longPericenter*pi/180.0+f))); //transit_orb_drake inspired
+			Z[ii] = radius*sqrt(1.0-(sin(i*pi/180.0)*sin(longPericenter*pi/180.0+f))*(sin(i*pi/180.0)*sin(longPericenter*pi/180.0+f))); //Eric Agol's code inspired
+            //printf("m:%.10f   z:%.10f\n",m,Z[ii]);
 		} else {
 			//printf("%.12f\n",ti);
 			Z[ii] = ap*sqrt(sin(2*pi/P*ti)*sin(2*pi/P*ti) + (cos(pi/180*i)*cos(2*pi/P*ti))*(cos(pi/180*i)*cos(2*pi/P*ti))); // MATLAB VERSION
@@ -439,7 +439,7 @@ void occultquad(float *t, float p, float ap, float P, float i, float gamma1, flo
 	c0=1-c1-c2-c3-c4;*/
 	//omega = c0/(0+4)+c1/(1+4)+c2/(2+4)+c3/(3+4)+c4/(4+4);
 	//omega=1.d0-u1/3.d0-u2/6.d0
-	omega=1.0-gamma1/3.0-gamma2/6.0;// transit_orb_drake inspired
+	omega=1.0-gamma1/3.0-gamma2/6.0;// Eric Agol's code inspired
 
 	int j = 0;
 	double z, a, b, k, q, k1, k0, lam_e, F0;
@@ -450,7 +450,7 @@ void occultquad(float *t, float p, float ap, float P, float i, float gamma1, flo
 		//F0 = occultuni(z,p);
 		//z,w,muo1
 		//printf("F0:%f\n",F0);
-		//lam_e = 1.0-F0; // transit_orb_drake inspired
+		//lam_e = 1.0-F0; // Eric Agol's code inspired
 
 	    a = (z-p)*(z-p);
 	    b = (z+p)*(z+p);
@@ -528,7 +528,7 @@ void occultquad(float *t, float p, float ap, float P, float i, float gamma1, flo
 	    }
 
 	    ////F[j] =  1 - 1.0/(4*omega)*( (1-c2)*lam_e + c2*(lam_d+2.0/3.0*heaviside(p-z)) - c4*eta_d );
-	    F[j] = 1.0-((1.0-gamma1-2.0*gamma2)*lam_e+(gamma1+2.0*gamma2)*(lam_d+2.0/3.0*heaviside(p-z))+gamma2*eta_d)/omega; // transit_orb_drake inspired
+	    F[j] = 1.0-((1.0-gamma1-2.0*gamma2)*lam_e+(gamma1+2.0*gamma2)*(lam_d+2.0/3.0*heaviside(p-z))+gamma2*eta_d)/omega; // Eric Agol's code inspired
 	    /* omega=1.d0-u1/3.d0-u2/6.d0
 		F=1.d0-((1.d0-u1-2.d0*u2)*lambdae+(u1+2.d0*u2)*(lambdad+2.d0/3.d0*(p gt z))+u2*etad)/omega*/
 
