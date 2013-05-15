@@ -5,10 +5,10 @@ Path to regions file: ../Extras/Examples/sampleData/stars.reg
 Output Path: ../Outputs/oscaarDataBase
 Ingress: 2013-05-15;10:06:30
 Egress: 2013-05-15;11:02:35
-Plot Tracking: off
+Plot Tracking: on
 Plot Photometry: off
 Smoothing Constant: 3
 CCD Gain: 1.0
 Radius: 4.5
-Tracking Zoom: 10
+Tracking Zoom: 15
 Init GUI: on

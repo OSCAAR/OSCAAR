@@ -24,6 +24,8 @@ outputs/notes.txt
 Extras/eph/*.py?
 Extras/Examples/sampleData/*.py?
 Extras/Examples/sampleData/images/*
+Extras/Examples/sampleData/c/build
+Extras/Examples/sampleData/c/*.so
 Docs/documentation20130204/*.log
 Docs/documentation20130204/*.aux
 Docs/documentation20130204/*.out

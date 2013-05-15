@@ -13,6 +13,7 @@ import pyfits
 from matplotlib import pyplot as plt
 import generateModelLC as genModel
 
+plotModel = False
 NdataImages = 200          ## Number of data images to generate
 NdarkImages = 3          ## Number of dark frames to generate
 NflatImages = 3          ## Number of flat fields to generate
@@ -44,16 +45,17 @@ modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                 0.30, 0.00, 0.0, np.mean(times,dtype=np.float64), 2.0]
 print times
 modelLightCurve = genModel.simulateLC(times,modelParams)
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-def format_coord(x, y):
-	'''Function to also give data value on mouse over with imshow.'''
-	col = int(x+0.5)
-	row = int(y+0.5)
-	return 'x=%1.8f, y=%1.8f' % (x, y)
-plt.plot(times,modelLightCurve)
-ax1.format_coord = format_coord
-plt.show()
+if plotModel: 
+	fig = plt.figure()
+	ax1 = fig.add_subplot(111)
+	def format_coord(x, y):
+		'''Function to also give data value on mouse over with imshow.'''
+		col = int(x+0.5)
+		row = int(y+0.5)
+		return 'x=%1.8f, y=%1.8f' % (x, y)
+	plt.plot(times,modelLightCurve)
+	ax1.format_coord = format_coord
+	plt.show()
 
 ## Simulate dark frames with shot noise
 for i in range(NdarkImages):
@@ -76,22 +78,24 @@ for i in range(0,NdataImages):
         np.random.normal(np.zeros([imageDimensionY,imageDimensionX]),np.sqrt(skyBackground))
     
     ## Create two box-shaped stars with simulated photon noise
-    targetBrightness = 3000*modelLightCurve[i]  ## Scale brightness with the light curve
+    targetBrightness = 3*3000*modelLightCurve[i]  ## Scale brightness with the light curve
     target = targetBrightness +\
         np.random.normal(np.zeros([starDimensions,starDimensions]),np.sqrt(targetBrightness))
     
-    compBrightnessA = 2500
-    compBrightnessB = 2700
+    compBrightnessA = 3*2500
+    compBrightnessB = 3*2700
     compA = compBrightnessA +\
         np.random.normal(np.zeros([starDimensions,starDimensions]),np.sqrt(compBrightnessA))
     compB = compBrightnessB +\
         np.random.normal(np.zeros([starDimensions,starDimensions]),np.sqrt(compBrightnessB))
     
     
-    ## Add stars onto the simulated image
-    simulatedImage[starsY[0]:starsY[1],targetX[0]:targetX[1]] += target
-    simulatedImage[starsY[0]:starsY[1],compAX[0]:compAX[1]] += compA
-    simulatedImage[starsY[0]:starsY[1],compBX[0]:compBX[1]] += compB
+    ## Add stars onto the simulated image with some position jitter
+    randomPositionJitterX = np.sign(np.random.uniform(-2,2))	## +/- 2 pixel position jitter
+    randomPositionJitterY = np.sign(np.random.uniform(-2,2))	## +/- 2 pixel position jitter
+    simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,targetX[0]+randomPositionJitterX:targetX[1]+randomPositionJitterX] += target
+    simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compAX[0]+randomPositionJitterX:compAX[1]+randomPositionJitterX] += compA
+    simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compBX[0]+randomPositionJitterX:compBX[1]+randomPositionJitterX] += compB
 
     ## Force counts to integers, save.
     #simulatedImage = np.transpose(simulatedImage)
