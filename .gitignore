@@ -14,6 +14,8 @@ Code/oscaar/*.py?
 Code/oscaar/astronometry/*.py?
 Code/oscaar/photometry/*.py?
 Code/oscaar/transiter/*.py?
+Code/setup.py
+Code/oscaar/c/*.so
 Extras/eph/exoplanets.csv
 Extras/eph/exoplanetDB.pkl
 Extras/eph/eventReport.html
