@@ -1,12 +1,4 @@
 .DS_Store
-time_out
-track_out
-filelists
-reducedOut
-file1.txt
-file2.txt
-aper_out
-plots
 *.py?
 Code/*.py?
 Code/outputs/*
