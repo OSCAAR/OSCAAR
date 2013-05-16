@@ -5,95 +5,46 @@ from matplotlib import pyplot as plt
 from scipy import optimize
 
 '''
-	Compile the c/transit1forLMLS.c file with:
-		$ gcc -shared -o transit1forLMLS.so transit1forLMLS.c -framework Python
-	in the OSCAAR/Code/c/ directory.
-
-	Constraining inclination on 0=<i=<180 so that we're not always trapped up against the limiting case near
-	i=90, but converting saved value into standard 0<=i<=90 form.
-
-	Successor to test3e.py. Notes from that file: 
-
-	   This set of fixed parameters may yield the most reliable measurements for
-	   a/R_s, R_p/R_s, i and t_0. Produces successful fits over a wide range of 
-	   noisiness in the false data.
+	Open the data pickle generated after running oscaar and 
+    do a L-M least-squares fit to the light curve. Calculate
+    uncertainties in the extracted system parameters with the
+    prayer-bead method.
 '''
-
-## Resources on using ctypes:
-# http://docs.python.org/2/library/ctypes.html#ctypes.c_float
-# http://www.scipy.org/Cookbook/Ctypes#head-0c422ad0dcf3a37f8c16d4cfd85e37e1f7290214
-# http://docs.scipy.org/doc/numpy/reference/routines.ctypeslib.html
-
 
 ## Run parameters: 
 plotFit = True		## Plot light curve fit
 animatePB = False 	## Plot each prayer-bead iteration
 
-## Set the system properties
-Npoints = 200;
-p = 0.1179;				## R_p/R_s
-ap = 14.71;				## a/R_s
-P = 1.580400; 			## Period
-i = 87.0;				## Inclination (degrees)
-gamma1 = 0.20;			## linear limb-darkening
-gamma2 = 0.20;			## quad limb-darkening
-e = 0.00;				## eccentricity
-longPericenter = 0.0; 	## Longitude of pericenter
-t0 = 0.003;				## midtransit time
-n = Npoints;				## number of points in light curve
-percentOfOrbit = 2.0;	## phase range to plot over (*100)
-
-
-###################################################################################################
-## Ctypes definitions from C-libraries
-lib = np.ctypeslib.load_library('c/transit1forLMLS','.') 	## Loads transit1torturetest.so as a library
-occultquad = lib.occultquad
-occultquad.argtypes = [np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS'),	#t
-						  # np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS'),	#phi
-						   ctypes.c_float,	# p
-						   ctypes.c_float,	# ap
-						   ctypes.c_float,	# P
-						   ctypes.c_float,	# i
-						   ctypes.c_float,	# gamma1
-						   ctypes.c_float,	# gamma2
-						   ctypes.c_double,	# e
-						   ctypes.c_double, # longPericenter
-						   ctypes.c_double, # t0
-						   ctypes.c_float,	# n
-						   np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')]	# F
-## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
-## NOTE!: If vector input is going to be a vector of C-floats, use np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')
-##        If vector input is going to be a vector of C-doubles, use np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')
-
-## The arguments of occultquad are: occultquad(float *t, float *phi, float p, float ap, float P, float i, float gamma1, 
-##											   float gamma2, double e, double longPericenter, double t0, float n, float *F);
-
-occultquad.restype = None	## Put the return type of the function here. If "return void" in C func, restype=None
-
-#################################################################
-## Create simulated data to try to fit
-
-## The "Npoints" arguement in the definition of `t` in the main() function of the .c code 
-## indicates the number of points, but the equivalent argument in np.arange() is the
-## increment size between points. Calculate the interval between the points
-## by dividing the range of points over the number of points within the range
-NpointsInT = (P*percentOfOrbit/100.0 - -1.0*P*percentOfOrbit/100.0)/Npoints	
-t = np.arange(-1.0*P*percentOfOrbit/100.0,P*percentOfOrbit/100.0,NpointsInT,dtype=np.float32)
+import generateModelLC as generateModel
+import oscaar   ## Soft link that points to the oscaar module
+dataBank = oscaar.load("../../../outputs/oscaarDataBase.pkl")
+t = times = dataBank.getTimes()
+F = dataBank.lightCurve
+Npoints = len(t)
+n = Npoints
 
 ## np.require() will force the ndarrays to the right dtype as assigned in the `argtypes` list.
-t = np.require(t,np.float32)
-F = np.empty_like(t,dtype=np.float32)
-occultquad(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
+t = np.require(t,np.float64)
+#F = np.empty_like(t,dtype=np.float32)
+#occultquad(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
 
-simulatedUncertainty = 5e-3#5e-3
-fakeData = np.copy(F) + np.random.normal(0,simulatedUncertainty,len(F))
+simulatedUncertainty = 2e-3#5e-3
 sigmas = np.zeros_like(F) + simulatedUncertainty
 
 # Enter Initial Parameters to vary
 initParamNames = ['R_p/R_s','a/R_s','inc','t_0']
-initParams = [1.0*p,  1.0*ap, 1.0*i,  -1.0*t0]
-actualParams = [p, ap, i, t0]
-data = fakeData
+actualParams = [0.1179,14.71,90.0,np.mean(times)]
+p = 0.1179
+ap = 14.71
+P = 1.580400
+i = 90.0
+gamma1 = 0.23
+gamma2 = 0.30
+e = 0
+longPericenter = 0.00
+t_0 = np.mean(times)
+initParams = [ p, ap, i, np.mean(times,dtype=np.float64)]
+data = np.copy(F)
 
 def fitfunc(p,t=t,P=P,gamma1=gamma1,gamma2=gamma2,e=e,longPericenter=longPericenter):
     '''Fixed parameters: P, gamma1, gamma2, e, longPericenter
@@ -102,7 +53,9 @@ def fitfunc(p,t=t,P=P,gamma1=gamma1,gamma2=gamma2,e=e,longPericenter=longPericen
        then subtract it from 180 to return a value on 0=<i<90'''
     if p[2] >= 0 and p[2] <= 180:
     	if p[2] > 90: p[2] = 180 - p[2] ## 90 - (p[2] - 90)
-        occultquad(t,p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3],n,F)
+        #occultquad(t,p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3],n,F)
+        modelParams = [p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3]]
+        F = generateModel.simulateLC(times,modelParams)
         return F
     ## else: return None        #(implied without implementation)
 def errfunc(p, uncertainties, y): 
@@ -126,13 +79,12 @@ bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.fl
 if bestFitP[2] > 90: 180 - bestFitP[2]
 
 fluxFit = np.copy(fitfunc(bestFitP)) ## THIS WORKS ONLY IF USING NP.COPY, OTHERWISE COMPUTE fitfunc(bestFitP) EACH TIME
-residuals = fluxFit-fakeData
-
+residuals = fluxFit-data
 
 ###############################################################
 ## Use prayer-bead method to estimate uncertainties in fit params
 
-if animatePB:
+if animatePB:   ## Show plot for each iteration in the prayer-bead algorithm?
 	plt.ion()
 	fig = plt.figure()
 
@@ -164,7 +116,6 @@ Nsigmas = np.abs(bestFitP - actualParams) / uncertainties
 for i in range(len(bestFitP)):
 	print "%s = %.4f +/- %.4f (True Value=%.4f; i.e. measured within %f sigma)" % (initParamNames[i],bestFitP[i],uncertainties[i],actualParams[i],Nsigmas[i])
 
-
 #################################################################
 ## Plot the results
 
@@ -172,7 +123,7 @@ if plotFit:
 	fig = plt.figure(figsize=(8,10))
 	ax1 = fig.add_subplot(211)
 	ax2 = fig.add_subplot(212,sharex=ax1)
-	ax1.errorbar(t,fakeData,yerr=sigmas,fmt='o',label='Data')
+	ax1.errorbar(t,data,yerr=sigmas,fmt='o',label='Data')
 	ax1.plot(t,fitfunc(initParams),':',linewidth=3.5,label='Init params')
 	ax1.plot(t,fluxFit,linewidth=2.5,label='Fit')
 	ax1.set_title("Light Curve")

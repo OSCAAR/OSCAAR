@@ -19,12 +19,14 @@
 	 Currently, this script relies on the Numerical Recipes utils available in
 	 the public domain at http://www.nr.com/public-domain.html
  
-	 The "getRealTime.c" include is a is/was used for measuring runtimes in C, 
-	 written by David Robert Nadeau available on the Creative Commons 
-     Attribution 3.0 Unported License. See the first few lines of 
-     "getRealTime.c" for more details. This file is not required to run 
-	 occultquad().
-
+            ***Important note for calling C functions from Python***
+     To import functions from this file into Python code with the ctypes module,
+     the C function to be called must have a function prototype defined, i.e.,
+     there must be a function definition without a body in the first few lines
+     of the code. For example, occultquad() is available for calling from Python
+     because its prototype is declared after the #includes with: 
+     "void occultquad(double *t, float p,...". This is the function prototype. 
+ 
  Core Developer: Brett Morris (NASA GSFC)
  
  CITATIONS: 
@@ -49,11 +51,11 @@
 #include "nrutil.c"
 #include <stdlib.h>
 #include <time.h>
-#include "getRealTime.c"
 
 #define pi 3.14159265358979311600
 
 void occultquad(double *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, double *F);
+
 float *linspace(float beginningPhase, float endPhase, int Npoints)
 // Replicate the function "linspace" from MATLAB
 {
@@ -82,7 +84,6 @@ double *divideThrough(double *array, int lengthArray, double constant)
 	return newArray;
 }
 
-
 double *subtractThrough(double *array, int lengthArray, double constant)
 // Subtract `array` of length `lengthArray` through by `constant` and save in `newArray`
 {
@@ -95,7 +96,6 @@ double *subtractThrough(double *array, int lengthArray, double constant)
 	}
 	return newArray;
 }
-
 
 float printVector(double *array, float lengthArray)
 {
@@ -124,7 +124,6 @@ int writeVectorToFile(float *vector, int vectorLength, char *name)
 
   return 0;
 }
-
 
 double PI(double n, double k)
 {
@@ -276,7 +275,6 @@ double eta1(double p, double z, double a, double b, double k1, double k0)
 
 }
 
-
 double ekepler(double m, double e)
 {
 	double ekep,eps,pi2,ms,d3,e0,f0,f1,f2,f3,d1,d2;
@@ -322,7 +320,6 @@ int printVector2(float *vector, int Npoints)
 		string[i] = (char) vector[i];
 	}
 	printf("%s",string);
-	//return string;
 	return 0;
 }
 
@@ -376,18 +373,13 @@ double occultuni(double z, double w)
 void occultquad(double *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, double *F)
 {
 	double t0overP;
-	//double startTime, endTime;
-	//startTime = getRealTime(); // Start time
 	double *Z, *phi; int ii;
 	int Npoints = (int)n;
 	Z = dvector(0,Npoints);
 	phi = dvector(0,Npoints);
 
-    //printVector(t,Npoints);
     t = subtractThrough(t,Npoints,t0);
-    //t = divideThrough(t,Npoints,P);
     t0 = 0.0;
-    //printVector(t,Npoints);
     phi = divideThrough(t,Npoints,P); // divide by period
 	t0overP = t0/P;
 	phi = subtractThrough(phi,Npoints,t0);	//phi = subtractThrough(phi,Npoints,t0overP);
@@ -396,9 +388,7 @@ void occultquad(double *t, float p, float ap, float P, float i, float gamma1, fl
 	double omega;
 	for (ii=0; ii<Npoints; ii++)
 	{
-		ti = t[ii];
 		/*
-		 *
 		; Input parameters (x) are:
 		; x(0) = P  (units of day)
 		; x(1) = inc = inclination angle (degrees)
@@ -414,20 +404,19 @@ void occultquad(double *t, float p, float ap, float P, float i, float gamma1, fl
 		; x(11)= slope of linear fit
 		; x(12)= intercept of linear fit
 		 */
-		if (0 == 0)	{	// USE FAST VERSION OR DRAKES VERSION
+		ti = t[ii];
+		if (0 == 0)	{	// Use MATLAB version or Erics version. If true, Eric's version.
 			double f1,e1,tp, m, f, radius;
 			f1 = 1.50*pi-longPericenter*pi/180;
 
 			e1 = e;
 			tp = t0+P*sqrt(1.0 - e1*e1)/2.0/pi*(e1*sin(f1)/(1.0+e1*cos(f1))-2.0/sqrt(1.0 - e1*e1)*atan((sqrt(1.0 - e1*e1)*tan(0.5*f1))/(1.0+e1)));
 
-			m = 2.0*pi/P*(ti-tp); // changed `t` to `ti`
+			m = 2.0*pi/P*(ti-tp);
 			f = kepler(m,e1);
 			radius = ap*(1.0 - e1*e1)/(1.0 + e1*cos(f));
 			Z[ii] = radius*sqrt(1.0-(sin(i*pi/180.0)*sin(longPericenter*pi/180.0+f))*(sin(i*pi/180.0)*sin(longPericenter*pi/180.0+f))); //Eric Agol's code inspired
-            //printf("m:%.10f   z:%.10f\n",m,Z[ii]);
 		} else {
-			//printf("%.12f\n",ti);
 			Z[ii] = ap*sqrt(sin(2*pi/P*ti)*sin(2*pi/P*ti) + (cos(pi/180*i)*cos(2*pi/P*ti))*(cos(pi/180*i)*cos(2*pi/P*ti))); // MATLAB VERSION
 		}
 	}
@@ -446,17 +435,9 @@ void occultquad(double *t, float p, float ap, float P, float i, float gamma1, fl
 	for (j=0;j<Npoints;j++)
 	{
 		z = Z[j];
-
-		//F0 = occultuni(z,p);
-		//z,w,muo1
-		//printf("F0:%f\n",F0);
-		//lam_e = 1.0-F0; // Eric Agol's code inspired
-
 	    a = (z-p)*(z-p);
 	    b = (z+p)*(z+p);
 	    k = sqrt((1.0-a)/4.0/z/p);
-	    //printf("a:%f,  z:%f,  k:%f,   p:%f\n",a,z,k,p);
-	    //printf("z:%f,   k:%f\n",z,k);
 	    q = p*p-z*z;
 	    k1=acos((1-p*p+z*z)/2/z);
 	    k0=acos((p*p+z*z-1)/2/p/z);
@@ -471,13 +452,9 @@ void occultquad(double *t, float p, float ap, float P, float i, float gamma1, fl
 	    } else if (z<=p-1) {
 	        lam_e = 1;
 	    }
-	    //printf("z=%f    phi[j]=%f\n",z,phi[j]);
-	   // printf("z  >= 0.5+fabs(p-0.5): %f >= %f   ;    z<1+p: %f<%f  \n",z,0.5+fabs(p-0.5),z,1+p);
-	    //printf("z>=1+p: %f>=%f       fabs(phi[j]) < (p+1.0)/ap/2.0/pi:  %f < %f\n",z,1+p,fabs(phi[j]),(p+1.0)/ap/2.0/pi);
 	    double lam_d, eta_d;
 	    // Evaluate lambda_d and eta_d from MA2002 Table (1)
 	    if (z>=1+p || p==0 || fabs(phi[j])>(p+1.0)/ap/2.0/pi) { // Case 1
-	    	//printf("fabs(phi[j])>(p+1.0)/ap/2.0/pi: %s ;  LHS: %f     RHS: %f \n",fabs(phi[j])>(p+1.0)/ap/2.0/pi ? "True" : "False",fabs(phi[j]),(p+1.0)/ap/2.0/pi);
 	    	lam_d = 0.0;
 	        eta_d = 0.0;
 	        //printf("Case 1\n");
@@ -487,7 +464,7 @@ void occultquad(double *t, float p, float ap, float P, float i, float gamma1, fl
 			eta_d = eta2(p,z);
 		   // printf("Case 3 \n");
 			//printf("Case 3\n");
-		  } else if (z>=fabs(1.0-p) && z<1+p) { // Case 2   Translation from transit_orb_drake
+		  } else if (z>=fabs(1.0-p) && z<1+p) { // Case 2 
 	        lam_d = lam1(p,z,a,b,k,q);
 	        eta_d = eta1(p,z,a,b,k1,k0);
 	        //printf("  Case 2 \n");
@@ -531,59 +508,6 @@ void occultquad(double *t, float p, float ap, float P, float i, float gamma1, fl
 	    F[j] = 1.0-((1.0-gamma1-2.0*gamma2)*lam_e+(gamma1+2.0*gamma2)*(lam_d+2.0/3.0*heaviside(p-z))+gamma2*eta_d)/omega; // Eric Agol's code inspired
 	    /* omega=1.d0-u1/3.d0-u2/6.d0
 		F=1.d0-((1.d0-u1-2.d0*u2)*lambdae+(u1+2.d0*u2)*(lambdad+2.d0/3.d0*(p gt z))+u2*etad)/omega*/
-
-
-	    //printf("%.15f\n",F[j]);
-	    //printf("z=%f   phi[j]=%f    F[j]= %.10f\n",z,phi[j],F[j]);
-
 	}
 	//return 0;
-	//endTime = getRealTime(); // Start time
-	//printf("Elapsed time in occultquad: %fs\n",endTime-startTime);
 }
-
-/*int main()
-{
-	//printf("Running transit1torturetest.c...\n");
-	float *t, *phi, *F;
-	int Npoints = 1000;
-
-	// Trial orbital parameters
-	float p, ap, P, i, gamma1, gamma2,percentOfOrbit, e, longPericenter,t0;
-	int n;
-	p = 0.1179;	// R_p/R_s
-	ap = 14.71;	//  a/R_s
-	P = 1.580400;
-	i = 90.0;
-	gamma1 = 0.20;
-	gamma2 = 0.20;
-	e = 0.00;
-	longPericenter = 0.0;
-	t0 = 0.0;
-	n = Npoints;
-	percentOfOrbit = 2.20;
-
-	t = linspace(-1.0*P*percentOfOrbit/100.0,P*percentOfOrbit/100.0,Npoints); // make vector of `Npoints` elements ranging from -1 to 1
-	phi = divideThrough(t,Npoints,P); // divide by period
-	F = vector(0,Npoints);
-
-	occultquad(t,phi,p,ap,P,i,gamma1,gamma2,e,longPericenter,t0,n,F);
-	int j, Niterations = 0;//50000;
-	double startTime, endTime,elapsedTime;
-	startTime = getRealTime(); // Start time
-
-	for (j=0;j<Niterations-1;j++)
-	{
-		occultquad(t,phi,p,ap,P,i,gamma1,gamma2,e,longPericenter,t0,n,F);
-		//printf("F[j]=%f\n",F[j]);
-	}
-
-	endTime = getRealTime();// End time
-	writeVectorToFile(t,Npoints,"Ctimes.txt");
-	writeVectorToFile(F,Npoints,"lightCurve.txt");
-	elapsedTime = endTime - startTime;
-	printf("elapsedTime: %.20f\n",elapsedTime);
-	return 0;
-}
-
-*/

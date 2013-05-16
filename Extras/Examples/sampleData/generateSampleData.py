@@ -10,7 +10,7 @@ Core developer: Brett Morris
 import numpy as np
 import pyfits
 from matplotlib import pyplot as plt
-import generateModelLC as genModel
+import generateModelLC as generateModel
 from shutil import rmtree
 from os import mkdir
 from glob import glob
@@ -25,7 +25,8 @@ starDimensions = 4       ## pixel dimensions of the stars
 skyBackground = 500      ## background counts from sky brightness
 darkBackground = 100     ## background counts from detector
 
-## Delete images directory, make a new one
+## Delete `images` directory, if there is one, and
+##      make a fresh one.
 if len(glob('images')) > 0:
 	rmtree('images')
 mkdir('images')
@@ -37,17 +38,15 @@ compBX = [100-starDimensions/2,100+starDimensions/2]
 starsY = [imageDimensionY/2-starDimensions/2,imageDimensionY/2+starDimensions/2]
 
 ## Set times, model params
-
 ## Ingress: 2013-05-15;10:06:30; egress: 2013-05-15;11:02:35
 jd0 = 2456427.88890
 exposureTime = 45/(60*60*24.) ## Convert s -> hr
-#times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)/ 1.580400
-#times -= np.mean(times)
+
 # [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0,percentOfOrbit]
 times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)
 modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
-                0.30, 0.00, 0.0, np.mean(times,dtype=np.float64), 2.0]
-modelLightCurve = genModel.simulateLC(times,modelParams)
+                0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
+modelLightCurve = generateModel.simulateLC(times,modelParams)
 if plotModel: 
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
@@ -55,7 +54,7 @@ if plotModel:
 		'''Function to also give data value on mouse over with imshow.'''
 		col = int(x+0.5)
 		row = int(y+0.5)
-		return 'x=%1.8f, y=%1.8f' % (x, y)
+		return 'JD=%1.8f, Relative Flux=%1.8f' % (x, y)
 	plt.plot(times,modelLightCurve)
 	ax1.format_coord = format_coord
 	plt.show()
@@ -94,8 +93,8 @@ for i in range(0,NdataImages):
     
     
     ## Add stars onto the simulated image with some position jitter
-    randomPositionJitterX = np.sign(np.random.uniform(-2,2))	## +/- 2 pixel position jitter
-    randomPositionJitterY = np.sign(np.random.uniform(-2,2))	## +/- 2 pixel position jitter
+    randomPositionJitterX = np.sign(np.random.uniform(-1,1))	## +/- 1 pixel stellar centroid position jitter
+    randomPositionJitterY = np.sign(np.random.uniform(-1,1))	## +/- 1 pixel stellar centroid position jitter
     simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,targetX[0]+randomPositionJitterX:targetX[1]+randomPositionJitterX] += target
     simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compAX[0]+randomPositionJitterX:compAX[1]+randomPositionJitterX] += compA
     simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compBX[0]+randomPositionJitterX:compBX[1]+randomPositionJitterX] += compB
