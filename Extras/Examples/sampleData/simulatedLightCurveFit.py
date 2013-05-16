@@ -1,9 +1,3 @@
-
-import numpy as np
-import ctypes
-from matplotlib import pyplot as plt
-from scipy import optimize
-
 '''
 	Open the data pickle generated after running oscaar and 
     do a L-M least-squares fit to the light curve. Calculate
@@ -11,12 +5,21 @@ from scipy import optimize
     prayer-bead method.
 '''
 
+import numpy as np
+import ctypes
+from matplotlib import pyplot as plt
+from scipy import optimize
+
+## Import oscaar directory using relative paths
+import os, sys
+lib_path = os.path.abspath('../../../Code/')
+sys.path.append(lib_path)
+import oscaar
+
 ## Run parameters: 
 plotFit = True		## Plot light curve fit
 animatePB = False 	## Plot each prayer-bead iteration
 
-import generateModelLC as generateModel
-import oscaar   ## Soft link that points to the oscaar module
 dataBank = oscaar.load("../../../outputs/oscaarDataBase.pkl")
 t = times = dataBank.getTimes()
 F = dataBank.lightCurve
@@ -55,7 +58,7 @@ def fitfunc(p,t=t,P=P,gamma1=gamma1,gamma2=gamma2,e=e,longPericenter=longPericen
     	if p[2] > 90: p[2] = 180 - p[2] ## 90 - (p[2] - 90)
         #occultquad(t,p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3],n,F)
         modelParams = [p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3]]
-        F = generateModel.simulateLC(times,modelParams)
+        F = oscaar.occultquad(times,modelParams)
         return F
     ## else: return None        #(implied without implementation)
 def errfunc(p, uncertainties, y): 

@@ -56,11 +56,13 @@ from os import mkdir
 from glob import glob
 from matplotlib import pyplot as plt
 
-## This import assumes that the "generateModelLC.py"
-##   script is available in the same directory as 
-##   generateSampleData.py. 
-import generateModelLC as generateModel 
-
+## Import oscaar directory using relative paths
+## ** This assumes that you haven't moved the 
+## OSCAAR/Extras/Examples/sampleData directory
+import os, sys
+lib_path = os.path.abspath('../../../Code/')
+sys.path.append(lib_path)
+import oscaar
 
 #################################################################
 ## Tweak these parameters, if you like!
@@ -100,7 +102,7 @@ times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)
 # [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
 modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                 0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
-modelLightCurve = generateModel.simulateLC(times,modelParams)
+modelLightCurve = oscaar.occultquad(times,modelParams)
 if plotModel: 
 	fig = plt.figure()
 	ax1 = fig.add_subplot(111)
@@ -135,7 +137,6 @@ for i in range(NflatImages):
 
 ## Create master flat now using oscaar's standard flat maker
 if createMasterFlatNow:
-    import oscaar
     flatPaths = glob('images/simulatedImg-???f.fits')
     flatDarkPaths = glob('images/simulatedImg-???d.fits')   ## Use the same darks
     masterFlatSavePath = 'images/masterFlat.fits'   ## Where to save the master
