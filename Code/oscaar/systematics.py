@@ -55,10 +55,13 @@ def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
         fig.canvas.set_window_title('oscaar2.0 - Master Flat') 
         plt.show()
 
-    ## Write out both a Numpy pickle (.NPY) and a FITS file
-    np.save(masterFlatSavePath+'.npy',masterFlat)
-    pyfits.writeto(masterFlatSavePath+'.fits',masterFlat)
-
+    ## Write out a FITS file
+    #np.save(masterFlatSavePath+'.npy',masterFlat)
+    if masterFlatSavePath.endswith('.fits') or masterFlatSavePath.endswith('.fit'):
+        pyfits.writeto(masterFlatSavePath,masterFlat)
+    else: 
+        pyfits.writeto(masterFlatSavePath+'.fits',masterFlat)
+        
 def twilightFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
     '''
     Make a master flat using a series of images taken at twilight
