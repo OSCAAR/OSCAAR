@@ -68,15 +68,14 @@ def ut2jdSplitAtT(ut):
     jd = years + fracOfDay
     return jd
 
-
-def regressionScale(comparisonFlux,targetFlux,time,ingress,egress):
-	'''
+def regressionScale(comparisonFlux,targetFlux,time,ingress,egress,returncoeffs=False):
+    '''
     Use a least-squares regression to stretch and offset a comparison star fluxes
     to scale them to the relative intensity of the target star. Only do this regression
     considering the out-of-transit portions of the light curve.
-    
+
     INPUTS: comparisonFlux - Flux of a comparison star
-    
+
             targetFlux - Flux of the target star
             
             time - List of times for each flux measurement in JD
@@ -88,11 +87,14 @@ def regressionScale(comparisonFlux,targetFlux,time,ingress,egress):
     RETURNS: scaledVector - rescaled version of the comparisonFlux vector using the
                             above described process
     '''
-	outOfTransit = (time < ingress) + (time > egress)
-	regressMatrix = np.vstack([comparisonFlux[outOfTransit], np.ones_like(targetFlux[outOfTransit])]).T
-	m,c = LA.lstsq(regressMatrix,targetFlux[outOfTransit])[0]
-	scaledVector = m*comparisonFlux + c
-	return scaledVector
+    outOfTransit = (time < ingress) + (time > egress)
+    regressMatrix = np.vstack([comparisonFlux[outOfTransit]]).T
+    m = LA.lstsq(regressMatrix,targetFlux[outOfTransit])[0]
+    scaledVector = m*comparisonFlux 
+    if returncoeffs:
+        return scaledVector,m
+    else:
+        return scaledVector
 
 def chiSquared(vector1,vector2):
     '''Return chi-squared of two vectors'''

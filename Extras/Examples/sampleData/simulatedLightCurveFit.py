@@ -21,8 +21,9 @@ plotFit = True		## Plot light curve fit
 animatePB = False 	## Plot each prayer-bead iteration
 
 dataBank = oscaar.load("../../../outputs/oscaarDataBase.pkl")
-t = times = dataBank.getTimes()
+t = times = np.require(dataBank.getTimes(),dtype=np.float64)
 F = dataBank.lightCurve
+sigmas = dataBank.lightCurveError
 Npoints = len(t)
 n = Npoints
 
@@ -30,23 +31,20 @@ n = Npoints
 t = np.require(t,np.float64)
 #F = np.empty_like(t,dtype=np.float32)
 #occultquad(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
-
-simulatedUncertainty = 2e-3#5e-3
-sigmas = np.zeros_like(F) + simulatedUncertainty
-
 # Enter Initial Parameters to vary
 initParamNames = ['R_p/R_s','a/R_s','inc','t_0']
-actualParams = [0.1179,14.71,90.0,np.mean(times)]
+actualParams = np.array([0.1179,14.71,90.0,np.mean(times)])
 p = 0.1179
 ap = 14.71
 P = 1.580400
 i = 90.0
 gamma1 = 0.23
 gamma2 = 0.30
-e = 0
+e = 0.0
 longPericenter = 0.00
-t_0 = np.mean(times)
+t_0 = np.mean(times,dtype=np.float64)
 initParams = [ p, ap, i, np.mean(times,dtype=np.float64)]
+bestFitP = np.empty_like(initParams)
 data = np.copy(F)
 
 def fitfunc(p,t=t,P=P,gamma1=gamma1,gamma2=gamma2,e=e,longPericenter=longPericenter):
@@ -71,16 +69,21 @@ def errfunc(p, uncertainties, y):
        Note: This isn't the most rigorous way to constrain parameter space, it's sort of a 
        hack, but it seems to work at least some of the time.'''
     global lastSuccessfulError, firstError
+    #print p
     if fitfunc(p) != None:      
+       # print 'success'
         error = (fitfunc(p) - y)/uncertainties
-        if all(p == initParams): firstError = error
+        if all(p == initParams) or all(p == bestFitP): firstError = error
         #lastSuccessfulError = error
-    else: error = 1.05*firstError;
+    else: 
+        error = 1.05*firstError;
+        #print 'fail'
     return error
-
-bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=np.finfo(np.float32).eps,maxfev=100*100*(len(data)+1))[0]
+#plt.plot(times,fitfunc(initParams))
+#plt.show()
+bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
 if bestFitP[2] > 90: 180 - bestFitP[2]
-
+#print 'bestFitP:',bestFitP
 fluxFit = np.copy(fitfunc(bestFitP)) ## THIS WORKS ONLY IF USING NP.COPY, OTHERWISE COMPUTE fitfunc(bestFitP) EACH TIME
 residuals = fluxFit-data
 
@@ -93,26 +96,31 @@ if animatePB:   ## Show plot for each iteration in the prayer-bead algorithm?
 
 PBparameterTraces = np.zeros([len(fluxFit),len(bestFitP)])
 for i in range(0,len(fluxFit)):
-	if i == 0: 
-		modelPlusResiduals = fluxFit + residuals
-		shiftedSigmas = sigmas
-	else: 
-		modelPlusResiduals = fluxFit + shiftedResiduals
-	
-	data = modelPlusResiduals 	## Add the shifted residuals to the best fit model
-	PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(sigmas,data.astype(np.float64)),epsfcn=np.finfo(np.float32).eps,maxfev=100*100*(len(data)+1))[0]
-	PBparameterTraces[i,:] = PBiterationBestFitPs	## record the best fit parameters
-	shiftedResiduals = np.roll(residuals,i)		## shift the residuals over one, repeat
-	shiftedSigmas = np.roll(sigmas,i)
-	
-	if animatePB:
-		plt.clf()
-		plt.title('Shifting residuals for prayer-bead analysis...')
-		plt.plot(t,fluxFit,'r',linewidth=2.5)
-		plt.errorbar(t,modelPlusResiduals,yerr=sigmas,fmt='bo')
-		plt.draw()
+    if i == 0: 
+        modelPlusResiduals = fluxFit + residuals
+        shiftedSigmas = sigmas
+    else: 
+        modelPlusResiduals = fluxFit + shiftedResiduals
+
+    data = np.copy(modelPlusResiduals) 	## Add the shifted residuals to the best fit model
+    bestFitP =  (1.0*np.array(bestFitP,dtype=np.float64)).tolist()
+    PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),epsfcn=np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
+
+    PBparameterTraces[i,:] = PBiterationBestFitPs	## record the best fit parameters
+    shiftedResiduals = np.roll(residuals,i)		## shift the residuals over one, repeat
+    shiftedSigmas = np.roll(sigmas,i)
+    if animatePB:
+        plt.clf()
+        plt.title('Shifting residuals for prayer-bead analysis...')
+        plt.plot(t,fluxFit,'r',linewidth=2.5)
+        plt.errorbar(t,modelPlusResiduals,yerr=sigmas,fmt='bo')
+        plt.plot(t,fitfunc(PBiterationBestFitPs),'g',linewidth=2.5)
+        #plt.plot(fluxFit-fitfunc(PBiterationBestFitPs),linewidth=2)
+        plt.draw()
 if animatePB: plt.close()
 uncertainties = np.std(PBparameterTraces,axis=0)	## Std of the best fits for each param is ~ the uncertainty on each param
+plt.plot(PBparameterTraces[:,3])
+plt.show()
 
 print "\nLevenberg-Marquardt Least-Squares Fit:"
 Nsigmas = np.abs(bestFitP - actualParams) / uncertainties

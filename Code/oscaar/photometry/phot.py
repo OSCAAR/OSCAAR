@@ -76,8 +76,8 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOut
     sourceIndices = x + y <= apertureRadius**2
     skyIndices = (x + y <= annulusRadiusOuter**2)*(x + y >= annulusRadiusInner**2)
     
-    rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))
-    rawError = np.sqrt(np.sum(imageCrop[sourceIndices]*ccdGain) + np.median(imageCrop[skyIndices])) ## Poisson-uncertainty
+    rawFlux = np.sum(imageCrop[sourceIndices] - np.median(imageCrop[skyIndices]))*ccdGain
+    rawError = np.sqrt(np.sum(imageCrop[sourceIndices]*ccdGain) + np.median(ccdGain*imageCrop[skyIndices])) ## Poisson-uncertainty
 
     if plots:
         def format_coord(x, y):

@@ -24,16 +24,16 @@ def occultquad(t,modelParams):
     lib = np.ctypeslib.load_library(oscaarModuleDir+os.sep+'c'+os.sep+'transit1forLMLS','.') 	## Loads .so library
     occultquadC = lib.occultquad
     occultquadC.argtypes = [np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS'),	#t
-                               ctypes.c_float,	# p
-                               ctypes.c_float,	# ap
-                               ctypes.c_float,	# P
-                               ctypes.c_float,	# i
-                               ctypes.c_float,	# gamma1
-                               ctypes.c_float,	# gamma2
+                               ctypes.c_double,	# p
+                               ctypes.c_double,	# ap
+                               ctypes.c_double,	# P
+                               ctypes.c_double,	# i
+                               ctypes.c_double,	# gamma1
+                               ctypes.c_double,	# gamma2
                                ctypes.c_double,	# e
                                ctypes.c_double, # longPericenter
                                ctypes.c_double, # t0
-                               ctypes.c_float,	# n
+                               ctypes.c_double,	# n
                                np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')]	# F
     ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
     ## NOTE!: If vector input is going to be a vector of C-floats, use np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')
@@ -47,7 +47,7 @@ def occultquad(t,modelParams):
     #################################################################
    
     ## np.require() will force the ndarrays to the right dtype as assigned in the `argtypes` list.
-    n = len(t)
+    n = np.float64(len(t))
     t = np.require(t,np.float64)
     F = np.empty_like(t,dtype=np.float64)
     occultquadC(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data

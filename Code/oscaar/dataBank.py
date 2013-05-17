@@ -49,13 +49,14 @@ class dataBank:
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
+        self.targetKey = '000'
         for i in range(0,len(init_x_list)):
             self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
                             'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
-                            'scaledFlux':np.copy(zeroArray), 'chisq':0}
+                            'scaledFlux':np.copy(zeroArray), 'scaledError':np.copy(zeroArray), 'chisq':0}
             self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
             self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
-            self.keys.append(paddedStr(i,3))    
+            self.keys.append(paddedStr(i,3))
         
     def getDict(self):
         '''Return master dictionary of all star data'''
@@ -142,19 +143,27 @@ class dataBank:
     def scaleFluxes(self):
         '''
         When all fluxes have been collected, run this to re-scale the fluxes of each
-        comparison star to the flux of the target star. 
+        comparison star to the flux of the target star. Do the same transformation on the errors.
         '''
         for star in self.allStarsDict:
-            self.allStarsDict[star]['scaledFlux'] = regressionScale(self.getFluxes(star),self.getFluxes('000'),self.getTimes(),self.ingress,self.egress)
+            if star != self.targetKey:
+                self.allStarsDict[star]['scaledFlux'], m = regressionScale(self.getFluxes(star),self.getFluxes(self.targetKey),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
+                print m
+                self.allStarsDict[star]['scaledError'] = np.abs(m)*self.getErrors(star)
 
     def getScaledFluxes(self,star):
         '''Return the scaled fluxes for one star, where the star parameter is the 
            key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledFlux'])
+
+    def getScaledErrors(self,star):
+        '''Return the scaled fluxes for one star, where the star parameter is the 
+           key for the star of interest.'''
+        return np.array(self.allStarsDict[star]['scaledError'])
         
     def calcChiSq(self):
         for star in self.allStarsDict:
-            self.allStarsDict[star]['chisq'] = chiSquared(self.getFluxes('000'),self.getFluxes(star))
+            self.allStarsDict[star]['chisq'] = chiSquared(self.getFluxes(self.targetKey),self.getFluxes(star))
         chisq = []
         for star in self.allStarsDict:
             chisq.append(self.allStarsDict[star]['chisq'])
@@ -190,17 +199,17 @@ class dataBank:
         
         ## Begin regression technique
         numCompStars =  len(self.allStarsDict) - 1
-        targetFullLength = len(self.getScaledFluxes('000'))
-        target = self.getScaledFluxes('000')[self.outOfTransit()]
+        targetFullLength = len(self.getScaledFluxes(self.targetKey))
+        target = self.getFluxes(self.targetKey)[self.outOfTransit()]
         compStars = np.zeros([targetFullLength,numCompStars])
         compStarsOOT = np.zeros([len(target),numCompStars])
         compErrors = np.copy(compStars)
         columnCounter = 0
         for star in self.allStarsDict:
-            if star != '000' and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
+            if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
                 compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
-                compErrors[:,columnCounter] = self.getErrors(star).astype(np.float64)
+                compErrors[:,columnCounter] = self.getScaledErrors(star).astype(np.float64)
                 columnCounter += 1
             elif (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
                 print 'Star '+str(star)+' excluded from regression'
@@ -213,13 +222,11 @@ class dataBank:
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
         print 'Default weight:',1./numCompStars
-        #return np.dot(bestFitP,compStars.T), np.sqrt(np.dot((bestFitP/ccdGain)**2,(compErrors.T/compStars.T)**2))#np.sqrt(np.dot(np.ones([columnCounter],dtype=float),(compErrors.T/compStars.T)**2))
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
-        #self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((1/np.sqrt(compStars.T*ccdGain))**2))) 
-        self.meanComparisonStarError = np.sqrt(np.dot((bestFitP/ccdGain)**2,((np.sqrt(compStars.T*ccdGain)/(compStars.T*ccdGain))**2))) 
+        self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
         return self.meanComparisonStar, self.meanComparisonStarError  
 
-    def computeLightCurve(self,meanComparisonStar):
+    def computeLightCurve(self,meanComparisonStar,meanComparisonStarError):
         '''
         Divide the target star flux by the mean comparison star to yield a light curve,
         save the light curve into the dataBank object.
@@ -229,8 +236,9 @@ class dataBank:
         RETURNS: self.lightCurve - The target star divided by the mean comparison 
                                    star, i.e., the light curve.
         '''
-        self.lightCurve = self.getFluxes('000')/meanComparisonStar
-        return self.lightCurve
+        self.lightCurve = self.getFluxes(self.targetKey)/meanComparisonStar
+        self.lightCurveError = np.sqrt(self.lightCurve**2 * ( (self.getErrors(self.targetKey)/self.getFluxes(self.targetKey))**2 + (meanComparisonStarError/meanComparisonStar)**2 ))
+        return self.lightCurve, self.lightCurveError
 
     def getPhotonNoise(self):
         '''

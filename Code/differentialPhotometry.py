@@ -17,6 +17,7 @@ from oscaar import photometry
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
+
 plt.ion()
 import datetime
 
@@ -61,12 +62,14 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
         ## Measure the flux and uncertainty, assuming the previously found stellar centroid
         flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, \
                                                 plots=data.photPlots)
-        
+
         data.storeFlux(star,expNumber,flux,error)           ## Store the flux and uncertainty
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
         if data.trackPlots or data.photPlots: plt.draw()   
+
     if statusBarAx != None and expNumber % 15 == 0: 
         plt.draw()
+
 plt.close()
 #plt.ioff()
 
@@ -74,7 +77,7 @@ times = data.getTimes()
 data.scaleFluxes()
 meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
 #chisq = data.getAllChiSq()
-lightCurve = data.computeLightCurve(meanComparisonStar)
+lightCurve, lightCurveErroroptimize.leastsq = data.computeLightCurve(meanComparisonStar,meanComparisonStarError)
 
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
 photonNoise = data.getPhotonNoise()
