@@ -1,5 +1,4 @@
-OSCAAR 2.0 beta
-================================
+![Wiki Banner][http://www.astro.umd.edu/~bmorris3/oscaar/wikiBanner.png]
 
 Welcome to OSCAAR 2.0 (still pre-)beta! In the works for over a year, it includes a rewrite of most of the underlying code, making it more powerful and faster. We've also included a GUI for the first time - giving you access to all of the features of OSCAAR without too much mess. 
 
