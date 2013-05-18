@@ -102,6 +102,7 @@ times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)
 # [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
 modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                 0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
+np.savetxt('modelParams.txt',modelParams)
 modelLightCurve = oscaar.occultquad(times,modelParams)
 if plotModel: 
 	fig = plt.figure()

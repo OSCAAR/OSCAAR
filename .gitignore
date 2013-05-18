@@ -11,7 +11,7 @@ Code/oscaar/c/*.so
 Code/oscaar/c/build
 Extras/eph/exoplanets.csv
 Extras/eph/exoplanetDB.pkl
-Extras/eph/eventReport.html
+Extras/eph/*.html
 Extras/eph/eventReport.txt
 outputs/oscaarDataBase.npz
 outputs/oscaarDataBase.pkl
@@ -21,6 +21,7 @@ Extras/Examples/sampleData/*.py?
 Extras/Examples/sampleData/images/*
 Extras/Examples/sampleData/c/build
 Extras/Examples/sampleData/c/*.so
+Extras/Examples/sampleData/modelParams.txt
 Docs/documentation20130204/*.log
 Docs/documentation20130204/*.aux
 Docs/documentation20130204/*.out

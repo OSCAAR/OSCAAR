@@ -1,0 +1,106 @@
+body {
+	font-family: helvetica, arial, sans-serif;
+    padding: 2em;
+	background-color: black;
+	margin-left: auto;
+	margin-right: auto;
+	width: 70em;
+	margin-bottom: auto;
+    color: white;
+}
+
+h1 {
+	text-align: center;
+}
+
+.headinfo {
+	text-align: center;
+	font-size: 80%;
+	margin-left: 0em;
+}
+
+.small{
+    font-size: 8pt;
+    font-style: normal;
+}
+
+.linkList {
+	list-style-type: none;
+	padding-left: 4em; 
+}
+
+#eph td {
+	padding-left: 0.8em;
+	padding-right: 0.8em;
+    text-align: center; 
+}
+
+#eph tr:hover {
+	background-color: #D8D8D8;
+}
+
+#eph th {
+	background-color: #801919;
+	color: #FFFFFF;
+}
+
+/* Color the rows with alternating color */
+#eph tbody tr:nth-child(odd) {
+ background-color: 	#A01F1F;/*#E0F5FF/*#D6EBFF/*#DAE6F0; /* darker */
+}
+#eph tr:nth-child(even) {
+ background-color: 	#B34C4C; /* light */
+}
+
+#eph tbody tr:nth-child(odd):hover {
+ background-color:		#E68A5C; /* darker */
+}
+#eph tr:nth-child(even):hover {
+ background-color: 	#E68A5C; /* light */
+}
+
+/* Center the table */
+table.sortable {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1em;
+    font-size: 12pt;
+}
+
+table.daynight {
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 10pt;
+    background-color: #A01F1F;
+}
+
+div {
+	display: block;
+	/*margin-top: 2em;*/
+	padding: 1.5em;
+	border: solid;
+	border-color: white;
+	border-radius: 0.5em;
+	background-color: 	#330000;
+}
+
+a {
+	/* color: rgb(86,86,86); */
+	color: 	#D6EBFF;
+	text-decoration: none;
+	font-size: 105%
+}
+a:hover{
+	color: #000099;
+	text-decoration: underline
+}
+
+p {
+	margin-left: 2em;
+	margin-right: 2em;
+}
+
+
+li {
+	line-height: 1.2em;
+}

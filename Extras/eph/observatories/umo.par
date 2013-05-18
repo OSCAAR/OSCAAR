@@ -4,12 +4,12 @@ longitude: -76:56:13.92
 elevation: 20.0
 temperature: 15.0
 min_horizon: 23:00:00
-start_date: (2013,4,30,22,0,0)
-end_date: (2013,8,01,22,0,0)
+start_date: (2013,5,20,22,0,0)
+end_date: (2013,6,01,22,0,0)
 v_limit: 12.1
 depth_limit: 0.008
 calc_transits: True
-calc_eclipses: False
+calc_eclipses: True
 html_out: True
-text_out: False
+text_out: True
 twilight: -6

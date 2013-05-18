@@ -33,17 +33,10 @@ t = np.require(t,np.float64)
 #occultquad(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
 # Enter Initial Parameters to vary
 initParamNames = ['R_p/R_s','a/R_s','inc','t_0']
-actualParams = np.array([0.1179,14.71,90.0,np.mean(times)])
-p = 0.1179
-ap = 14.71
-P = 1.580400
-i = 90.0
-gamma1 = 0.23
-gamma2 = 0.30
-e = 0.0
-longPericenter = 0.00
-t_0 = np.mean(times,dtype=np.float64)
-initParams = [ p, ap, i, np.mean(times,dtype=np.float64)]
+modelParams = np.loadtxt('modelParams.txt')
+print modelParams
+[p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
+initParams = actualParams = np.require([p, ap, i, t0],dtype=np.float64)
 bestFitP = np.empty_like(initParams)
 data = np.copy(F)
 
@@ -81,7 +74,7 @@ def errfunc(p, uncertainties, y):
     return error
 #plt.plot(times,fitfunc(initParams))
 #plt.show()
-bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
+bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
 if bestFitP[2] > 90: 180 - bestFitP[2]
 #print 'bestFitP:',bestFitP
 fluxFit = np.copy(fitfunc(bestFitP)) ## THIS WORKS ONLY IF USING NP.COPY, OTHERWISE COMPUTE fitfunc(bestFitP) EACH TIME
@@ -104,7 +97,7 @@ for i in range(0,len(fluxFit)):
 
     data = np.copy(modelPlusResiduals) 	## Add the shifted residuals to the best fit model
     bestFitP =  (1.0*np.array(bestFitP,dtype=np.float64)).tolist()
-    PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),epsfcn=np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
+    PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
 
     PBparameterTraces[i,:] = PBiterationBestFitPs	## record the best fit parameters
     shiftedResiduals = np.roll(residuals,i)		## shift the residuals over one, repeat

@@ -23,6 +23,12 @@ from copy import deepcopy
 from sys import argv
 
 def calculateEphemerides(parFile,rootPath):
+    '''
+    :INPUTS:
+        parFile     --      path to the parameter file
+        rootPath    --      path to the exoplanet database pickle and raw .csv, and all other outputs
+    '''
+
     pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
     pklDatabasePaths = glob(rootPath+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
     csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
@@ -456,7 +462,7 @@ def calculateEphemerides(parFile,rootPath):
             '    <head>',\
             '        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />',\
             '        <title>Ephemeris</title>',\
-            '        <link rel="stylesheet" href="./stylesheetEphem.css" type="text/css" />',\
+            '        <link rel="stylesheet" href="stylesheetEphem.css" type="text/css" />',\
             '         <script type="text/javascript">',\
             '          function changeCSS(cssFile, cssLinkIndex) {',\
             '            var oldlink = document.getElementsByTagName("link").item(cssLinkIndex);',\
@@ -477,7 +483,7 @@ def calculateEphemerides(parFile,rootPath):
             '       Click the column headers to sort. ',\
             '        <table class="daynight" id="eph">',\
             '        <tr><th colspan=2>Toggle Color Scheme</th></tr>',\
-            '        <tr><td><a href="#" onclick="changeCSS(\'./stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\''+rootPath+'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
+            '        <tr><td><a href="#" onclick="changeCSS(\'stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
             '        </table>'])
 
         tableheader = '\n'.join([
