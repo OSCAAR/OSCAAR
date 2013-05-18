@@ -77,15 +77,10 @@ times = data.getTimes()
 data.scaleFluxes()
 meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
 #chisq = data.getAllChiSq()
-lightCurve, lightCurveErroroptimize.leastsq = data.computeLightCurve(meanComparisonStar,meanComparisonStarError)
+lightCurve, lightCurveError = data.computeLightCurve(meanComparisonStar,meanComparisonStarError)
 
 binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
 photonNoise = data.getPhotonNoise()
-print np.std(lightCurve[data.outOfTransit()])
-print np.mean(photonNoise[data.outOfTransit()])
-
 
 oscaar.save(data,outputPath)
 #data.plot(pointsPerBin=20)
-
-#execfile('plotPickle.py')

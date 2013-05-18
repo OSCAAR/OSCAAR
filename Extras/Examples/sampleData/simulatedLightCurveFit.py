@@ -72,11 +72,17 @@ def errfunc(p, uncertainties, y):
         error = 1.05*firstError;
         #print 'fail'
     return error
+
+#plt.errorbar(times,data,yerr=sigmas,fmt='.')
 #plt.plot(times,fitfunc(initParams))
 #plt.show()
+<<<<<<< HEAD
 bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
+=======
+bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
+>>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
 if bestFitP[2] > 90: 180 - bestFitP[2]
-#print 'bestFitP:',bestFitP
+print 'bestFitP:',bestFitP
 fluxFit = np.copy(fitfunc(bestFitP)) ## THIS WORKS ONLY IF USING NP.COPY, OTHERWISE COMPUTE fitfunc(bestFitP) EACH TIME
 residuals = fluxFit-data
 
@@ -97,7 +103,11 @@ for i in range(0,len(fluxFit)):
 
     data = np.copy(modelPlusResiduals) 	## Add the shifted residuals to the best fit model
     bestFitP =  (1.0*np.array(bestFitP,dtype=np.float64)).tolist()
+<<<<<<< HEAD
     PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
+=======
+    PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
+>>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
 
     PBparameterTraces[i,:] = PBiterationBestFitPs	## record the best fit parameters
     shiftedResiduals = np.roll(residuals,i)		## shift the residuals over one, repeat
