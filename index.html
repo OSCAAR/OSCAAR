@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="OSCAAR : Open Source differential photometry Code for Accelerating Amateur Research (acronym meaning is fluid)" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>OSCAAR</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/OSCAAR/OSCAAR">View on GitHub</a>
+
+          <h1 id="project_title">OSCAAR</h1>
+          <h2 id="project_tagline">Open Source differential photometry Code for Accelerating Amateur Research (acronym meaning is fluid)</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/OSCAAR/OSCAAR/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/OSCAAR/OSCAAR/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>What is oscaar?</h3>
+
+<p>oscaar is an open source code project aimed specifically at helping you begin to study transiting extrasolar planets with differential photometry. Because this analysis tool is widely applicable to other interesting astrophysical phenomena, you will also find it applicable to variable star and asteroid rotation light curve production.</p>
+
+<h3>Who is oscaar for?</h3>
+
+<p>oscaar is useful for observers from small and large observatories alike, and users with any level of coding experience. No coding experience or PhD in astrophysics necessary!</p>
+
+<p>While oscaar has been adapted for professional use by astronomers at NASA Goddard Space Flight Center, the University of Maryland and the University of Leiden, it is written to be as accessible and easy to read as possible, so that a user who is unfamiliar with Python or new to programming altogether can see what the code does and how to mold it to their needs. While those new to exoplanet observations will enjoy using oscaar in its "out-of-the-box" form to churn out light curves, oscaar is intended to be an open and sturdy scaffolding upon which you can build a highly customized differential photometry pipeline if you choose. </p>
+
+<h3>What does it do?</h3>
+
+<p>oscaar was originally designed to take a series of raw images from your observatory and produce light curves, particularly for transiting extrasolar planet observations. You tell it which star is the target of your observations and which other stars in the field you'd like to compare it to, and oscaar it will track the stars as they drift on your detector and do aperture photometry on each star. After comparing the variations in flux of each of the stars to each other, it will determine which flux variations are intrinsic to the target object, allowing you to detect the decrease in brightness of a star as a planet passes in front of it (or other photometric studies).</p>
+
+<h3>Getting Started</h3>
+
+<p>After you make sure that your system has the <a href="Dependencies">required dependencies</a>, you're ready to download oscaar from our <a href="https://github.com/OSCAAR/OSCAAR/">Code page</a>. As of writing this wiki page, we're still in alpha release phase so we haven't bundled a stable beta or v2.0 release for you to download. Check back for updates, and if you have any questions, feel free to email us at <a href="mailto:oscaarUMD@gmail.com">oscaarUMD@gmail.com</a></p>
+
+<h4><a href="https://github.com/OSCAAR/OSCAAR/wiki/Generating-Sample-Data">Sample Data</a></h4>
+
+<p>We wanted you to be able to try oscaar "out-of-the-box", and since we know that not everyone has data conveniently lying around to experiment on, we've written a [[sample data generator | Generating-Sample-Data]] that creates simulated images with realistic noise and a transit event that you can try to recover with oscaar.</p>
+
+<h3>Troubleshooting</h3>
+
+<p>We are trying to take full advantage of GitHub's infrastructure for facilitating an open source community, so we've been using the <a href="https://github.com/OSCAAR/OSCAAR/issues?state=open">Issue Tracking tool</a> to log bugs as we find them and to take suggestions for enhancements. If you have a stubborn problem, even if you think it's your fault, post a new issue here and find help from an oscaar team member.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">OSCAAR maintained by <a href="https://github.com/OSCAAR">OSCAAR</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
