@@ -64,112 +64,116 @@ lib_path = os.path.abspath('../../../Code/')
 sys.path.append(lib_path)
 import oscaar
 
-#################################################################
-## Tweak these parameters, if you like!
-NdataImages = 200        ## Number of data images to generate
-NdarkImages = 3          ## Number of dark frames to generate
-NflatImages = 3          ## Number of flat fields to generate
-flatFieldCounts = 20000  ## Approx counts per pixel in flat field
-imageDimensionX = 120    ## Pixel dimensions of each image
-imageDimensionY = 40
-starDimensions = 4       ## Pixel dimensions of the stars
-skyBackground = 500      ## Background counts from sky brightness
-darkBackground = 100     ## Background counts from detector
-targetFluxOOT = 10000    ## Flux (in counts) from each pixel of the unocculted target star (out-of-transit)
-relativeFluxCompA = 0.85 ## Flux from comp A relative to target
-relativeFluxCompB = 0.95 ## Flux from comp B relative to target
-plotModel = False        ## Plot the injected transit light curve
-createMasterFlatNow = True  ## Use oscaar to create a master flat from the freshly generated flat frames
-## Isn't it nice to control the signal to noise?
-#################################################################
-
-## Delete `images` directory, if there is one, and
-##      make a fresh one.
-if len(glob('images')) > 0: rmtree('images')
-mkdir('images')
-
-## Pixel positions of the stars (x,y)
-targetX = [20-starDimensions/2,20+starDimensions/2]
-compAX = [60-starDimensions/2,60+starDimensions/2]
-compBX = [100-starDimensions/2,100+starDimensions/2]
-starsY = [imageDimensionY/2-starDimensions/2,imageDimensionY/2+starDimensions/2]
-
-## Set ingress/egress times, transiting system parameters 
-## In GD: Ingress = 2013-05-15;10:06:30; egress = 2013-05-15;11:02:35
-jd0 = 2456427.88890 
-exposureTime = 45/(60*60*24.) ## Convert s -> hr
-times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)
-# [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
-modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
-                0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
-np.savetxt('modelParams.txt',modelParams)
-modelLightCurve = oscaar.occultquad(times,modelParams)
-if plotModel: 
-	fig = plt.figure()
-	ax1 = fig.add_subplot(111)
-	def format_coord(x, y):
-		'''Function to also give data value on mouse over with imshow.'''
-		return 'JD=%1.6f, Flux=%1.6f' % (x, y)
-	ax1.set_xlabel('Time (JD)')
-	ax1.set_ylabel('Relative Flux')
-	ax1.set_title('Injected Light Curve')
-	ax1.plot(times,modelLightCurve)
-	ax1.format_coord = format_coord
-	plt.show()
-
-## For producing random arrays, initialize reference arrays with the proper shapes
-imageShapedMatrix = np.zeros([imageDimensionY,imageDimensionX])
-starShapedMatrix = np.zeros([starDimensions,starDimensions])
-
-## Simulate dark frames with shot noise
-for i in range(NdarkImages):
-    darkFrame = darkBackground + np.random.normal(imageShapedMatrix,np.sqrt(darkBackground))
-    darkFrame = np.require(darkFrame,dtype=int)   ## Require integer counts
-    pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'d.fits',darkFrame)
-
-## Simulate ideal flat frames (perfectly flat)
-for i in range(NflatImages):
-    ## Flats will be completely flat -- ie, we're pretending that we have a 
-    ##      perfect optical path with no spatial flux variations.
-    flatField = np.zeros([imageDimensionY,imageDimensionX]) +  flatFieldCounts
-    flatField = np.require(flatField,dtype=int)## Require integer counts
-    pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'f.fits',flatField)
-
-
-## Create master flat now using oscaar's standard flat maker
-if createMasterFlatNow:
-    flatPaths = glob('images/simulatedImg-???f.fits')
-    flatDarkPaths = glob('images/simulatedImg-???d.fits')   ## Use the same darks
-    masterFlatSavePath = 'images/masterFlat.fits'   ## Where to save the master
-    oscaar.standardFlatMaker(flatPaths,flatDarkPaths,masterFlatSavePath,plots=False)
-
-
-## Create data images
-for i in range(NdataImages):
-    ## Produce image with sky and dark background with simulated photon noise for each source
-    simulatedImage = darkBackground + skyBackground +\
-        np.random.normal(imageShapedMatrix,np.sqrt(darkBackground)) +\
-        np.random.normal(imageShapedMatrix,np.sqrt(skyBackground))
+def main():
+    #################################################################
+    ## Tweak these parameters, if you like!
+    NdataImages = 200        ## Number of data images to generate
+    NdarkImages = 3          ## Number of dark frames to generate
+    NflatImages = 3          ## Number of flat fields to generate
+    flatFieldCounts = 20000  ## Approx counts per pixel in flat field
+    imageDimensionX = 120    ## Pixel dimensions of each image
+    imageDimensionY = 40
+    starDimensions = 4       ## Pixel dimensions of the stars
+    skyBackground = 500      ## Background counts from sky brightness
+    darkBackground = 100     ## Background counts from detector
+    targetFluxOOT = 10000    ## Flux (in counts) from each pixel of the unocculted target star (out-of-transit)
+    relativeFluxCompA = 0.85 ## Flux from comp A relative to target
+    relativeFluxCompB = 0.95 ## Flux from comp B relative to target
+    plotModel = False        ## Plot the injected transit light curve
+    createMasterFlatNow = True  ## Use oscaar to create a master flat from the freshly generated flat frames
+    ## Isn't it nice to control the signal to noise?
+    #################################################################
     
-    ## Create two box-shaped stars with simulated photon noise
-    targetBrightness = targetFluxOOT*modelLightCurve[i]  ## Scale brightness with the light curve
-    target = targetBrightness + np.random.normal(starShapedMatrix,np.sqrt(targetBrightness))
+    ## Delete `images` directory, if there is one, and
+    ##      make a fresh one.
+    if len(glob('images')) > 0: rmtree('images')
+    mkdir('images')
     
-    compBrightnessA = targetFluxOOT*relativeFluxCompA
-    compBrightnessB = targetFluxOOT*relativeFluxCompB
-    compA = compBrightnessA + np.random.normal(starShapedMatrix,np.sqrt(compBrightnessA))
-    compB = compBrightnessB + np.random.normal(starShapedMatrix,np.sqrt(compBrightnessB))
+    ## Pixel positions of the stars (x,y)
+    targetX = [20-starDimensions/2,20+starDimensions/2]
+    compAX = [60-starDimensions/2,60+starDimensions/2]
+    compBX = [100-starDimensions/2,100+starDimensions/2]
+    starsY = [imageDimensionY/2-starDimensions/2,imageDimensionY/2+starDimensions/2]
     
-    ## Add stars onto the simulated image with some position jitter
-    randomPositionJitterX = np.sign(np.random.uniform(-1,1))	## +/- 1 pixel stellar centroid position jitter
-    randomPositionJitterY = np.sign(np.random.uniform(-1,1))	## +/- 1 pixel stellar centroid position jitter
-    simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,targetX[0]+randomPositionJitterX:targetX[1]+randomPositionJitterX] += target
-    simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compAX[0]+randomPositionJitterX:compAX[1]+randomPositionJitterX] += compA
-    simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compBX[0]+randomPositionJitterX:compBX[1]+randomPositionJitterX] += compB
-
-    ## Force counts to integers, save.
-    simulatedImage = np.require(simulatedImage,dtype=int)   ## Require integer counts before save
-
-    header = pyfits.Header()
-    header.append(('JD',times[i],'Simulated Time (Julian Date)'))
-    pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'r.fits',simulatedImage,header=header)
+    ## Set ingress/egress times, transiting system parameters 
+    ## In GD: Ingress = 2013-05-15;10:06:30; egress = 2013-05-15;11:02:35
+    jd0 = 2456427.88890 
+    exposureTime = 45/(60*60*24.) ## Convert s -> hr
+    times = np.arange(jd0,jd0+exposureTime*NdataImages,exposureTime)
+    # [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+    modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
+                    0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
+    np.savetxt('modelParams.txt',modelParams)
+    modelLightCurve = oscaar.occultquad(times,modelParams)
+    if plotModel: 
+    	fig = plt.figure()
+    	ax1 = fig.add_subplot(111)
+    	def format_coord(x, y):
+    		'''Function to also give data value on mouse over with imshow.'''
+    		return 'JD=%1.6f, Flux=%1.6f' % (x, y)
+    	ax1.set_xlabel('Time (JD)')
+    	ax1.set_ylabel('Relative Flux')
+    	ax1.set_title('Injected Light Curve')
+    	ax1.plot(times,modelLightCurve)
+    	ax1.format_coord = format_coord
+    	plt.show()
+    
+    ## For producing random arrays, initialize reference arrays with the proper shapes
+    imageShapedMatrix = np.zeros([imageDimensionY,imageDimensionX])
+    starShapedMatrix = np.zeros([starDimensions,starDimensions])
+    
+    ## Simulate dark frames with shot noise
+    for i in range(NdarkImages):
+        darkFrame = darkBackground + np.random.normal(imageShapedMatrix,np.sqrt(darkBackground))
+        darkFrame = np.require(darkFrame,dtype=int)   ## Require integer counts
+        pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'d.fits',darkFrame)
+    
+    ## Simulate ideal flat frames (perfectly flat)
+    for i in range(NflatImages):
+        ## Flats will be completely flat -- ie, we're pretending that we have a 
+        ##      perfect optical path with no spatial flux variations.
+        flatField = np.zeros([imageDimensionY,imageDimensionX]) +  flatFieldCounts
+        flatField = np.require(flatField,dtype=int)## Require integer counts
+        pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'f.fits',flatField)
+    
+    
+    ## Create master flat now using oscaar's standard flat maker
+    if createMasterFlatNow:
+        flatPaths = glob('images/simulatedImg-???f.fits')
+        flatDarkPaths = glob('images/simulatedImg-???d.fits')   ## Use the same darks
+        masterFlatSavePath = 'images/masterFlat.fits'   ## Where to save the master
+        oscaar.standardFlatMaker(flatPaths,flatDarkPaths,masterFlatSavePath,plots=False)
+    
+    
+    ## Create data images
+    for i in range(NdataImages):
+        ## Produce image with sky and dark background with simulated photon noise for each source
+        simulatedImage = darkBackground + skyBackground +\
+            np.random.normal(imageShapedMatrix,np.sqrt(darkBackground)) +\
+            np.random.normal(imageShapedMatrix,np.sqrt(skyBackground))
+        
+        ## Create two box-shaped stars with simulated photon noise
+        targetBrightness = targetFluxOOT*modelLightCurve[i]  ## Scale brightness with the light curve
+        target = targetBrightness + np.random.normal(starShapedMatrix,np.sqrt(targetBrightness))
+        
+        compBrightnessA = targetFluxOOT*relativeFluxCompA
+        compBrightnessB = targetFluxOOT*relativeFluxCompB
+        compA = compBrightnessA + np.random.normal(starShapedMatrix,np.sqrt(compBrightnessA))
+        compB = compBrightnessB + np.random.normal(starShapedMatrix,np.sqrt(compBrightnessB))
+        
+        ## Add stars onto the simulated image with some position jitter
+        randomPositionJitterX = np.sign(np.random.uniform(-1,1))	## +/- 1 pixel stellar centroid position jitter
+        randomPositionJitterY = np.sign(np.random.uniform(-1,1))	## +/- 1 pixel stellar centroid position jitter
+        simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,targetX[0]+randomPositionJitterX:targetX[1]+randomPositionJitterX] += target
+        simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compAX[0]+randomPositionJitterX:compAX[1]+randomPositionJitterX] += compA
+        simulatedImage[starsY[0]+randomPositionJitterY:starsY[1]+randomPositionJitterY,compBX[0]+randomPositionJitterX:compBX[1]+randomPositionJitterX] += compB
+    
+        ## Force counts to integers, save.
+        simulatedImage = np.require(simulatedImage,dtype=int)   ## Require integer counts before save
+    
+        header = pyfits.Header()
+        header.append(('JD',times[i],'Simulated Time (Julian Date)'))
+        pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'r.fits',simulatedImage,header=header)
+        
+if __name__ == '__main__':
+    main()
