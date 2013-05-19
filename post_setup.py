@@ -79,6 +79,6 @@ def complile_C():
     os.chdir(olddir)
     
 if __name__ == '__main__':
-    time.sleep(1)
+    time.sleep(.5)
     download_ds9()
     complile_C()
