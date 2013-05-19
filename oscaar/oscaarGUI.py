@@ -35,10 +35,10 @@ def homeDir():
         os.chdir(originalDirectory)
 
 
-os.chdir(os.path.join(os.path.dirname(__file__),'code'))
-if os.getcwd() not in sys.path:
-    sys.path.insert(0, os.getcwd())
-import oscaar
+#os.chdir(os.path.join(os.path.dirname(__file__),'code'))
+#if os.getcwd() not in sys.path:
+#    sys.path.insert(0, os.getcwd())
+import oscaar.code.oscaar as oscaarx
 
 APP_EXIT = 1
 
@@ -78,7 +78,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
         homeDir()
         #print os.getcwd()
-        self.logo = wx.Image(os.getcwd()+ '/code/oscaar/images/logo4.png', wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'code/oscaar/images/logo4.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         self.SetBackgroundColour(wx.Colour(233,233,233))
@@ -141,7 +141,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.masterFlatButton.Bind(wx.EVT_BUTTON, self.openMasterFlatGUI)
         self.sizer.Add(self.notesField, (11, 1), (2,2), wx.ALIGN_CENTER, 7)
         self.sizer.Add(self.notesLabel, (11, 0 ), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.setDefaults(None, 'code/init.par')
+        self.setDefaults(None, os.path.join(os.path.dirname(__file__),'code/init.par'))
 
         # Code to make Run button default for main window
         self.run = wx.Button(self, -1, 'Run')
@@ -213,7 +213,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
-        ds9 = os.pardir + '/OSCAAR/extras/ds9'
+        ds9 = os.path.join(os.path.dirname(__file__),'extras/ds9')
         ds9Loc = ds9 + '/' + sys.platform + '/ds9'
         regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
         subprocess.Popen([ds9Loc, regionsName])
@@ -245,7 +245,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
         homeDir()
-        os.chdir('code')
+        os.chdir(os.path.join(os.path.dirname(__file__),'code'))
         global worker
         worker = None
         notes = open('outputs/notes.txt', 'a')
@@ -543,9 +543,9 @@ class MasterFlatFrame(wx.Frame):
             OverwFlatFrame(pathCorrected,self,-1)
         else:
             if self.standardFlat:
-                oscaar.standardFlatMaker(self.flatpaths, self.flatdarkpaths, self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
+                oscaarx.standardFlatMaker(self.flatpaths, self.flatdarkpaths, self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             else: 
-                oscaar.twilightFlatMaker(self.flatpaths, self.flatdarkpaths, self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
+                oscaarx.twilightFlatMaker(self.flatpaths, self.flatdarkpaths, self.masterFlatPathCtrl.GetValue(), self.plotsRadioBox.GetSelection() == 0)
             self.Destroy()
 
 class OverwFlatFrame(wx.Frame):
@@ -570,9 +570,9 @@ class OverwFlatFrame(wx.Frame):
         #print self.parent.standardFlat.GetValue()
         if self.parent.standardFlat:
 #        if self.standardFlat.GetValue():
-            oscaar.standardFlatMaker(self.parent.flatpaths, self.parent.flatdarkpaths, self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsRadioBox.GetSelection() == 0)
+            oscaarx.standardFlatMaker(self.parent.flatpaths, self.parent.flatdarkpaths, self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsRadioBox.GetSelection() == 0)
         else: 
-            oscaar.twilightFlatMaker(self.parent.flatpaths, self.parent.flatdarkpaths, self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsRadioBox.GetSelection() == 0)
+            oscaarx.twilightFlatMaker(self.parent.flatpaths, self.parent.flatdarkpaths, self.parent.masterFlatPathCtrl.GetValue(), self.parent.plotsRadioBox.GetSelection() == 0)
 
         self.parent.Destroy()
         
@@ -607,7 +607,7 @@ class AboutFrame(wx.Frame):
                      'Naveed Chowdhury (UMD)',\
                      'Jared King (UMD)',\
                      'Steven Knoll (UMD)',\
-                     'Luuk Visser (Leiden University)'])
+                     'Luuk Visser (Leiden University/TU Delft)'])
         
         self.titleText = wx.StaticText(parent = self, id = -1, label = titleText, pos=(0,75),style = wx.ALIGN_CENTER)
         self.viewRepoButton = wx.Button(parent = self, id = -1, label = 'Open Code Repository (GitHub)')
@@ -661,7 +661,7 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         homeDir()
-        os.chdir('code')
+        os.chdir(os.path.join(os.path.dirname(__file__),'code'))
         execfile('differentialPhotometry.py')
 
 class PlotThread(threading.Thread):
@@ -671,7 +671,7 @@ class PlotThread(threading.Thread):
 
     def run(self):
         homeDir()
-        os.chdir('code')
+        os.chdir(os.path.join(os.path.dirname(__file__),'code'))
         execfile('plotPickle.py')
         
 class EphFrame(wx.Frame):
@@ -689,7 +689,7 @@ class EphFrame(wx.Frame):
         self.ctrlList = []
         self.ephSizer = wx.GridBagSizer(5,5)
         homeDir()
-        obsList = glob('Extras' + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
+        obsList = glob(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
         nameList = []
         #for i in obsList:
         #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
@@ -784,7 +784,7 @@ class EphFrame(wx.Frame):
             homeDir()
             '''This is a hack so as to display the observatory names in the drop down menu but to
                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
-            obsList = glob('Extras' + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
+            obsList = glob(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
             nameList = []
             #for i in obsList:
             #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
@@ -872,14 +872,14 @@ class EphFrame(wx.Frame):
         newobs.close()
         
     def calculate(self, event):
-        path = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'observatories' +os.sep+ self.filename.GetValue() + '.par')
+        path = str(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'observatories' +os.sep+ self.filename.GetValue() + '.par')
         self.saveFile(str(path))
         namespace = {}
-        execfile(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'calculateEphemerides.py',namespace)
+        execfile(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'calculateEphemerides.py',namespace)
         globals().update(namespace)
-        rootPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep)
+        rootPath = str(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep)
         calculateEphemerides(path,rootPath)
-        outputPath = str(os.getcwd() + os.sep + 'Extras' + os.sep + 'eph' + os.sep + 'eventReport.html')
+        outputPath = str(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'eventReport.html')
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
         
