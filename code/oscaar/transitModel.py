@@ -1,0 +1,54 @@
+'''
+	transitModel.py defines the function occultquad(), which 
+    loads the C library containing the function of the same 
+    name so that analytical transit light curves can be 
+    produced in python by passing pythonic arguments to the C code. 
+'''
+import numpy as np
+import ctypes
+import os
+## Resources on using ctypes:
+# http://docs.python.org/2/library/ctypes.html#ctypes.c_float
+# http://www.scipy.org/Cookbook/Ctypes#head-0c422ad0dcf3a37f8c16d4cfd85e37e1f7290214
+# http://docs.scipy.org/doc/numpy/reference/routines.ctypeslib.html
+
+## Save the absolute path to this document, so as to successfully
+## call the C library stored in the oscaar/c/ directory
+oscaarModuleDir = os.path.split(os.path.abspath(__file__))[0]
+
+def occultquad(t,modelParams):
+    [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
+
+    ###################################################################################################
+    ## Ctypes definitions from C-libraries
+    lib = np.ctypeslib.load_library(oscaarModuleDir+os.sep+'c'+os.sep+'transit1forLMLS','.') 	## Loads .so library
+    occultquadC = lib.occultquad
+    occultquadC.argtypes = [np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS'),	#t
+                               ctypes.c_double,	# p
+                               ctypes.c_double,	# ap
+                               ctypes.c_double,	# P
+                               ctypes.c_double,	# i
+                               ctypes.c_double,	# gamma1
+                               ctypes.c_double,	# gamma2
+                               ctypes.c_double,	# e
+                               ctypes.c_double, # longPericenter
+                               ctypes.c_double, # t0
+                               ctypes.c_double,	# n
+                               np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')]	# F
+    ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
+    ## NOTE!: If vector input is going to be a vector of C-floats, use np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')
+    ##        If vector input is going to be a vector of C-doubles, use np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')
+
+    ## The arguments of occultquad are: occultquad(float *t, float *phi, float p, float ap, float P, float i, float gamma1, 
+    ##											   float gamma2, double e, double longPericenter, double t0, float n, float *F);
+
+    occultquadC.restype = None	## Put the return type of the function here. If "return void" in C func, restype=None
+
+    #################################################################
+   
+    ## np.require() will force the ndarrays to the right dtype as assigned in the `argtypes` list.
+    n = np.float64(len(t))
+    t = np.require(t,np.float64)
+    F = np.empty_like(t,dtype=np.float64)
+    occultquadC(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
+    return F
