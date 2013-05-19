@@ -2,21 +2,12 @@ import threading
 import wx
 import os
 import sys
-import datetime
-import calendar
-from time import strftime
-from time import strptime
 from glob import glob
-from scipy import ndimage
-import numpy as np
-import math
+from time import strftime
 import webbrowser
-import time
 import subprocess
 #import oscaar
 from os.path import expanduser
-
-
 
 def homeDir():
     '''Look for the `.homeDir file` in the current directory. If it is in
@@ -44,7 +35,8 @@ def homeDir():
                 '******************************************************************\n'
         os.chdir(originalDirectory)
 
-os.chdir('code')
+
+os.chdir(os.path.join(os.path.dirname(__file__),'code'))
 if os.getcwd() not in sys.path:
     sys.path.insert(0, os.getcwd())
 import oscaar
