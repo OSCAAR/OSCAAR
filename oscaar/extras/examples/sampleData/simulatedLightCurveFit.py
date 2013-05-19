@@ -6,21 +6,18 @@
 '''
 
 import numpy as np
-import ctypes
+#import ctypes
 from matplotlib import pyplot as plt
 from scipy import optimize
 
-## Import oscaar directory using relative paths
-import os, sys
-lib_path = os.path.abspath('../../../Code/')
-sys.path.append(lib_path)
-import oscaar
+import os
+import oscaar.code.oscaar as oscaarx
 
 ## Run parameters: 
 plotFit = True		## Plot light curve fit
 animatePB = False 	## Plot each prayer-bead iteration
 
-dataBank = oscaar.load("../../../outputs/oscaarDataBase.pkl")
+dataBank = oscaarx.load(os.path.join(os.path.dirname(__file__),os.path.abspath("../../../outputs/oscaarDataBase.pkl")))
 t = times = np.require(dataBank.getTimes(),dtype=np.float64)
 F = dataBank.lightCurve
 sigmas = dataBank.lightCurveError
@@ -33,7 +30,7 @@ t = np.require(t,np.float64)
 #occultquad(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
 # Enter Initial Parameters to vary
 initParamNames = ['R_p/R_s','a/R_s','inc','t_0']
-modelParams = np.loadtxt('modelParams.txt')
+modelParams = np.loadtxt(os.path.join(os.path.dirname(__file__),'modelParams.txt'))
 print modelParams
 [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
 initParams = actualParams = np.require([p, ap, i, t0],dtype=np.float64)
@@ -49,7 +46,7 @@ def fitfunc(p,t=t,P=P,gamma1=gamma1,gamma2=gamma2,e=e,longPericenter=longPericen
     	if p[2] > 90: p[2] = 180 - p[2] ## 90 - (p[2] - 90)
         #occultquad(t,p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3],n,F)
         modelParams = [p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3]]
-        F = oscaar.occultquad(times,modelParams)
+        F = oscaarx.occultquad(times,modelParams)
         return F
     ## else: return None        #(implied without implementation)
 def errfunc(p, uncertainties, y): 
@@ -76,11 +73,11 @@ def errfunc(p, uncertainties, y):
 #plt.errorbar(times,data,yerr=sigmas,fmt='.')
 #plt.plot(times,fitfunc(initParams))
 #plt.show()
-<<<<<<< HEAD
+#<<<<<<< HEAD
 bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
-=======
+#=======
 bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
->>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
+#>>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
 if bestFitP[2] > 90: 180 - bestFitP[2]
 print 'bestFitP:',bestFitP
 fluxFit = np.copy(fitfunc(bestFitP)) ## THIS WORKS ONLY IF USING NP.COPY, OTHERWISE COMPUTE fitfunc(bestFitP) EACH TIME
@@ -99,15 +96,15 @@ for i in range(0,len(fluxFit)):
         modelPlusResiduals = fluxFit + residuals
         shiftedSigmas = sigmas
     else: 
-        modelPlusResiduals = fluxFit + shiftedResiduals
+        modelPlusResiduals = fluxFit + shiftedResiduals # undifined name?!?!
 
     data = np.copy(modelPlusResiduals) 	## Add the shifted residuals to the best fit model
     bestFitP =  (1.0*np.array(bestFitP,dtype=np.float64)).tolist()
-<<<<<<< HEAD
+#<<<<<<< HEAD
     PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
-=======
+#=======
     PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
->>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
+#>>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
 
     PBparameterTraces[i,:] = PBiterationBestFitPs	## record the best fit parameters
     shiftedResiduals = np.roll(residuals,i)		## shift the residuals over one, repeat
