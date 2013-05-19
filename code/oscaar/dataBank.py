@@ -253,7 +253,7 @@ class dataBank:
         '''
         Parses init.par
         '''
-        init = open('init.par', 'r').read().splitlines()
+        init = open(os.path.join(os.path.dirname(__file__),'../init.par'), 'r').read().splitlines()
         for line in init:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)
