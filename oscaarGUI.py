@@ -6,7 +6,6 @@ from glob import glob
 from time import strftime
 import webbrowser
 import subprocess
-#import oscaar
 from os.path import expanduser
 
 def homeDir():

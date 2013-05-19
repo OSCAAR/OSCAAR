@@ -1,0 +1,12 @@
+# To install all the prerequisites 
+numpy
+scipy
+pyfits
+wxPython
+matplotlib
+
+
+
+# Optional
+git
+pyephem
