@@ -1,22 +1,29 @@
 '''oscaar v2.0 
    Module for differential photometry
-   Developed by Brett Morris, 2011-2013'''
+   Developed by Brett Morris, 2011-2013 & minor modifications by Luuk Visser 
+'''
 import numpy as np
-from numpy import linalg as LA
+#from numpy import linalg as LA
 import pyfits
 from matplotlib import pyplot as plt
-import matplotlib.cm as cm
-from scipy import ndimage, optimize
-from time import sleep
-import shutil
-from glob import glob
-from re import split
-import cPickle
-from shutil import copy
+#import matplotlib.cm as cm
+from scipy import optimize
+#from time import sleep
+#import shutil
+#from glob import glob
+#from re import split
+#import cPickle
+#from shutil import copy
 import os
 from IO import *
 from other import *
 from mathMethods import *
+
+import oscaar
+oscaarpath = os.path.dirname(oscaar.__file__)
+oscaarpathplus = os.path.join(oscaarpath,'extras')
+del oscaar
+        
 class dataBank:
     '''
         Methods for storing information from each star in Python dictionaries.
@@ -261,13 +268,15 @@ class dataBank:
                 if inline[0] == 'Path to Dark Frames': 
                     darkpaths = []
                     for path in str(inline[1].split('#')[0].strip()).split(','):
-                        darkpaths.append(glob(path)[0])
+                        path = os.path.join(oscaarpathplus,os.path.abspath(path))
+                        darkpaths.append(path)
                     self.darksPath = np.sort(darkpaths)
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Path to data images':
                     impaths = []
                     for path in str(inline[1].split('#')[0].strip()).split(','):
-                        impaths.append(glob(path)[0])
+                        path = os.path.join(oscaarpathplus,os.path.abspath(path))
+                        impaths.append(path)
                     self.imagesPaths = np.sort(impaths)
                 elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Ingress':  self.ingress = ut2jd(str(inline[1].split('#')[0].strip()))
@@ -281,12 +290,15 @@ class dataBank:
                 elif inline[0] == 'Smoothing Constant': self.smoothConst = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
                 elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
+                
+        self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(self.outputPath))
+        self.flatPath = os.path.join(oscaarpathplus,os.path.abspath(self.flatPath))
 
     def parseObservatory(self):
         '''
         Parses observatory.par
         '''
-        obs = open('observatory.par', 'r').read().splitlines()
+        obs = open(os.path.join(os.path.dirname(__file__),'../observatory.par'), 'r').read().splitlines()
         for line in obs:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)
@@ -321,4 +333,3 @@ class dataBank:
         #plt.draw()
         print 'showing'
         plt.show()
-
