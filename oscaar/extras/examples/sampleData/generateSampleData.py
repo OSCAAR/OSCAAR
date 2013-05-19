@@ -60,7 +60,7 @@ from matplotlib import pyplot as plt
 ## ** This assumes that you haven't moved the 
 ## OSCAAR/Extras/Examples/sampleData directory
 import os, sys
-lib_path = os.path.abspath('../../../Code/')
+lib_path = os.path.join(os.path.dirname(__file__),os.path.abspath('../../../Code/'))
 sys.path.append(lib_path)
 import oscaar
 
@@ -86,8 +86,8 @@ def main():
     
     ## Delete `images` directory, if there is one, and
     ##      make a fresh one.
-    if len(glob('images')) > 0: rmtree('images')
-    mkdir('images')
+    if len(glob(os.path.join(os.path.dirname(__file__),'images'))) > 0: rmtree(os.path.join(os.path.dirname(__file__),'images'))
+    mkdir(os.path.join(os.path.dirname(__file__),'images'))
     
     ## Pixel positions of the stars (x,y)
     targetX = [20-starDimensions/2,20+starDimensions/2]
@@ -103,7 +103,7 @@ def main():
     # [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
     modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                     0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
-    np.savetxt('modelParams.txt',modelParams)
+    np.savetxt(os.path.join(os.path.dirname(__file__),'modelParams.txt'),modelParams)
     modelLightCurve = oscaar.occultquad(times,modelParams)
     if plotModel: 
     	fig = plt.figure()
@@ -126,7 +126,7 @@ def main():
     for i in range(NdarkImages):
         darkFrame = darkBackground + np.random.normal(imageShapedMatrix,np.sqrt(darkBackground))
         darkFrame = np.require(darkFrame,dtype=int)   ## Require integer counts
-        pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'d.fits',darkFrame)
+        pyfits.writeto(os.path.join(os.path.dirname(__file__),'images/simulatedImg-'+str(i).zfill(3)+'d.fits'),darkFrame)
     
     ## Simulate ideal flat frames (perfectly flat)
     for i in range(NflatImages):
@@ -134,14 +134,14 @@ def main():
         ##      perfect optical path with no spatial flux variations.
         flatField = np.zeros([imageDimensionY,imageDimensionX]) +  flatFieldCounts
         flatField = np.require(flatField,dtype=int)## Require integer counts
-        pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'f.fits',flatField)
+        pyfits.writeto(os.path.join(os.path.dirname(__file__),'images/simulatedImg-'+str(i).zfill(3)+'f.fits'),flatField)
     
     
     ## Create master flat now using oscaar's standard flat maker
     if createMasterFlatNow:
-        flatPaths = glob('images/simulatedImg-???f.fits')
-        flatDarkPaths = glob('images/simulatedImg-???d.fits')   ## Use the same darks
-        masterFlatSavePath = 'images/masterFlat.fits'   ## Where to save the master
+        flatPaths = glob(os.path.join(os.path.dirname(__file__),'images/simulatedImg-???f.fits'))
+        flatDarkPaths = glob(os.path.join(os.path.dirname(__file__),'images/simulatedImg-???d.fits'))   ## Use the same darks
+        masterFlatSavePath = os.path.join(os.path.dirname(__file__),'images/masterFlat.fits')   ## Where to save the master
         oscaar.standardFlatMaker(flatPaths,flatDarkPaths,masterFlatSavePath,plots=False)
     
     
@@ -173,7 +173,7 @@ def main():
     
         header = pyfits.Header()
         header.append(('JD',times[i],'Simulated Time (Julian Date)'))
-        pyfits.writeto('images/simulatedImg-'+str(i).zfill(3)+'r.fits',simulatedImage,header=header)
+        pyfits.writeto(os.path.join(os.path.dirname(__file__),'images/simulatedImg-'+str(i).zfill(3)+'r.fits'),simulatedImage,header=header)
         
 if __name__ == '__main__':
     main()
