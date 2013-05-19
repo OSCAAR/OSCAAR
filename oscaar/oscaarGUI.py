@@ -157,6 +157,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetSize(setSize)
         self.SetMinSize(setSize)
         self.SetTitle('OSCAAR')
+        iconloc = os.path.join(os.path.dirname(__file__),'code/oscaar/images/logo4noText.ico')
+        icon1 = wx.Icon(iconloc, wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon1)
         self.Centre()
         self.Show(True)
 
@@ -583,7 +586,7 @@ class AboutFrame(wx.Frame):
         wx.Frame.__init__(self, parent, id, 'About oscaar')
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.SetSize((525, 440))
-        else: self.SetSize((460,440))
+        else: self.SetSize((410,460))
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
