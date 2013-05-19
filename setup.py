@@ -115,7 +115,7 @@ def setup_package():
         packages=get_packages(),
         include_package_data = True,
         zip_safe = False,
-        long_description=open(os.path.join(os.path.dirname(__file__),'README')).read(),
+        long_description=open(os.path.join(os.path.dirname(__file__),'oscaar','README')).read(),
         download_url='https://github.com/OSCAAR/OSCAAR/archive/master.zip',
         classifiers=[
           'Development Status :: 4 - Beta',
