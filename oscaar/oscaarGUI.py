@@ -236,8 +236,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
-        homeDir()
-        os.chdir('docs')
+#        homeDir()
+        os.chdir(os.path.join(os.path.dirname(__file__),'docs'))
         if sys.platform == 'linux2': ##Haven't tested this
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
         elif sys.platform == 'darwin':
@@ -247,7 +247,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-        homeDir()
+#        homeDir()
         os.chdir(os.path.join(os.path.dirname(__file__),'code'))
         global worker
         worker = None
@@ -590,8 +590,8 @@ class AboutFrame(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
-        homeDir()
-        self.logo = wx.Image(os.getcwd()+'/code/oscaar/images/logo4noText.png', wx.BITMAP_TYPE_ANY)
+#        homeDir()
+        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'code/oscaar/images/logo4noText.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
