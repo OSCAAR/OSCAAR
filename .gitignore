@@ -11,7 +11,9 @@ Code/oscaar/c/*.so
 Code/oscaar/c/build
 Extras/eph/exoplanets.csv
 Extras/eph/exoplanetDB.pkl
-Extras/eph/*.html
+Extras/eph/ephOutputs/*.html
+Extras/eph/ephOutputs/*.txt
+Extras/eph/ephOutputs/*.csv
 Extras/eph/eventReport.txt
 outputs/oscaarDataBase.npz
 outputs/oscaarDataBase.pkl
