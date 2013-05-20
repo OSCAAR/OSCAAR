@@ -799,7 +799,7 @@ class EphFrame(wx.Frame):
             
             for ind in range(0,len(nameList)):
                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
-            obsPath = os.getcwd() +os.sep+ openFile
+            obsPath = os.path.join(os.path.dirname(__file__),openFile)
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
         obsFilename = obsPath[obsPath.rfind(os.sep)+1:obsPath.rfind('.')]
