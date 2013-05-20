@@ -21,6 +21,7 @@ from time import time
 from os.path import getmtime
 from copy import deepcopy
 from sys import argv
+import os.path
 
 def calculateEphemerides(parFile,rootPath):
     '''
@@ -398,7 +399,7 @@ def calculateEphemerides(parFile,rootPath):
         '''Write out a text report with the transits/eclipses. Write out the time of 
            ingress, egress, whether event is transit/eclipse, elapsed in time between
            ingress/egress of the temporally isolated events'''
-        report = open(rootPath+'eventReport.txt','w')
+        report = open(os.path.join(rootPath,'eventReport.txt'),'w')
         allKeys = []
         for key in events:
             allKeys.append(key)
@@ -451,7 +452,7 @@ def calculateEphemerides(parFile,rootPath):
         '''Write out a text report with the transits/eclipses. Write out the time of 
            ingress, egress, whether event is transit/eclipse, elapsed in time between
            ingress/egress of the temporally isolated events'''
-        report = open(rootPath+'eventReport.html','w')
+        report = open(os.path.join(rootPath,'eventReport.html'),'w')
         allKeys = []
         for key in events:
             allKeys.append(key)

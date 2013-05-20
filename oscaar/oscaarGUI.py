@@ -875,14 +875,14 @@ class EphFrame(wx.Frame):
         newobs.close()
         
     def calculate(self, event):
-        path = str(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'observatories' +os.sep+ self.filename.GetValue() + '.par')
+        path = os.path.join(os.path.dirname(__file__),'extras','eph','observatories',self.filename.GetValue() + '.par')
         self.saveFile(str(path))
         namespace = {}
-        execfile(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'calculateEphemerides.py',namespace)
+        execfile(os.path.join(os.path.dirname(__file__),'extras','eph','calculateEphemerides.py'),namespace)
         globals().update(namespace)
-        rootPath = str(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep)
+        rootPath = str(os.path.join(os.path.dirname(__file__),'extras','eph','ephOutputs'))
         calculateEphemerides(path,rootPath)
-        outputPath = str(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'eventReport.html')
+        outputPath = str(os.path.join(os.path.dirname(__file__),'extras','eph','ephOutputs','eventReport.html'))
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
         
