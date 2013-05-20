@@ -16,6 +16,7 @@ minimum_matplotlib_version = "1.0"
 minimum_pyfits_version = "2.4.0" # lower versions may work (not tested)
 minimum_scipy_version = "0.10" # lower versions may work (not tested)
 minimum_wxpython_version = "2.0" # lower versions may work (not tested)
+sysplatform = sys.platform
 
 """ Currently only Python 2.7.x is supported """
 if sys.version_info[:2] != (2, 7):
@@ -58,12 +59,15 @@ if pyfits.__version__ < minimum_pyfits_version:
     sys.exit(1)  
     
 try:
-    import wxPython
+	if sysplatform == 'darwin' or 'linux2':
+		import wx
+	else: # (assuming in this case that sysplatform == 'win32'):
+		import wxPython
 except:
     raise RuntimeError("wxPython not found")
-if wxPython.__version__ < minimum_wxpython_version:
+if wx.__version__ < minimum_wxpython_version:
     print("*Error*: wxPython version is lower than needed: %s < %s" %
-          (wxPython.__version__, minimum_wxpython_version))
+          (wx.__version__, minimum_wxpython_version))
     sys.exit(1)  
   
 """ Walk through the subdirs and add all non-python scripts to MANIFEST.in """

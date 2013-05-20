@@ -48,7 +48,7 @@ def download_ds9():
         z = zipfile.ZipFile(fh)
     else:
         import tarfile
-        z = tarfile.TarFile(fh) 
+        z = tarfile.open(file_name) 
 
     if os.path.exists(oscaardirds9) == False:
         os.mkdir(oscaardirds9)
