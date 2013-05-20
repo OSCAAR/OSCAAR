@@ -1,6 +1,0 @@
-This file is stored in the top-level directory of the 
-OSCAAR code, i.e., at the same level as the Code, Docs,
-and Extras directories. DO NOT REMOVE THIS FILE FROM
- THIS LOCATION. The oscaarGUI.py script that controls 
-the user interface anchors itself in its directory 
-changing gymnastics by the path of this file.
