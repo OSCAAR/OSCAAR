@@ -50,6 +50,8 @@ def download_ds9():
         import tarfile
         z = tarfile.open(file_name) 
 
+    if os.path.exists(os.path.dirname(oscaardirds9)) == False:
+        os.mkdir(os.path.dirname(oscaardirds9))
     if os.path.exists(oscaardirds9) == False:
         os.mkdir(oscaardirds9)
         
