@@ -69,8 +69,7 @@ def download_ds9():
 def complile_C():
     import oscaar
     oscaardir = oscaar.__file__
-    oscaardirC = os.path.join(os.path.dirname(oscaardir),'code','oscaar','c')
-    
+    oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
     olddir = os.getcwd()
     os.chdir(oscaardirC)
     
