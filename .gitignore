@@ -45,3 +45,7 @@ oscaar/docs/documentation20130204/*.aux
 oscaar/docs/documentation20130204/*.out
 oscaar/docs/documentation20130204/*.gz
 oscaar/docs/documentation20130204/*.toc
+oscaar/extras/ds9/
+oscaar/extras/eph/ephOutput
+oscaar/c/build
+oscaar/c/*.so

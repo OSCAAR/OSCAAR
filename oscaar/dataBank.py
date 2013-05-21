@@ -260,24 +260,30 @@ class dataBank:
         '''
         Parses init.par
         '''
-        init = open(os.path.join(os.path.dirname(__file__),'../init.par'), 'r').read().splitlines()
+        init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
         for line in init:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames': 
-                    darkpaths = []
-                    for path in str(inline[1].split('#')[0].strip()).split(','):
-                        path = os.path.join(oscaarpathplus,os.path.abspath(path))
-                        darkpaths.append(path)
-                    self.darksPath = np.sort(darkpaths)
+                	if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
+                		self.darksPath = np.sort(glob(inline[1].split('#')[0].strip()))
+                	else: 
+		                darkpaths = []
+		                for path in str(inline[1].split('#')[0].strip()).split(','):
+		                    path = os.path.join(oscaarpathplus,os.path.abspath(path))
+		                    darkpaths.append(path)
+		                self.darksPath = np.sort(darkpaths)
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Path to data images':
-                    impaths = []
-                    for path in str(inline[1].split('#')[0].strip()).split(','):
-                        path = os.path.join(oscaarpathplus,os.path.abspath(path))
-                        impaths.append(path)
-                    self.imagesPaths = np.sort(impaths)
+ 					if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
+						self.imagesPaths = np.sort(glob(inline[1].split('#')[0].strip()))
+					else: 
+						impaths = []
+						for path in str(inline[1].split('#')[0].strip()).split(','):
+						    path = os.path.join(oscaarpathplus,os.path.abspath(path))
+						    impaths.append(path)
+						self.imagesPaths = np.sort(impaths)
                 elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Ingress':  self.ingress = ut2jd(str(inline[1].split('#')[0].strip()))
                 elif inline[0] == 'Egress':  self.egress = ut2jd(str(inline[1].split('#')[0].strip()))
@@ -294,11 +300,17 @@ class dataBank:
         self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(self.outputPath))
         self.flatPath = os.path.join(oscaarpathplus,os.path.abspath(self.flatPath))
 
+	def wilds(self,inputString):
+		if any(np.array(glob(inputString)) == inputString):
+			return ','.join(glob(inputString))
+		else: 
+			return 
+
     def parseObservatory(self):
         '''
         Parses observatory.par
         '''
-        obs = open(os.path.join(os.path.dirname(__file__),'../observatory.par'), 'r').read().splitlines()
+        obs = open(os.path.join(os.path.dirname(__file__),'observatory.par'), 'r').read().splitlines()
         for line in obs:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)

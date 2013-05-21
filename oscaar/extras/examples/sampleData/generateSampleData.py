@@ -56,11 +56,8 @@ from os import mkdir
 from glob import glob
 from matplotlib import pyplot as plt
 
-## Import oscaar directory using relative paths
-## ** This assumes that you haven't moved the 
-## OSCAAR/Extras/Examples/sampleData directory
 import os
-import oscaar.code.oscaar as oscaarx
+import oscaar
 
 def main():
     #################################################################
@@ -102,7 +99,7 @@ def main():
     modelParams = [ 0.1179, 14.71, 1.580400, 90.0, 0.23, \
                     0.30, 0.00, 0.0, np.mean(times,dtype=np.float64)]
     np.savetxt(os.path.join(os.path.dirname(__file__),'modelParams.txt'),modelParams)
-    modelLightCurve = oscaarx.occultquad(times,modelParams)
+    modelLightCurve = oscaar.occultquad(times,modelParams)
     if plotModel: 
     	fig = plt.figure()
     	ax1 = fig.add_subplot(111)
@@ -140,7 +137,7 @@ def main():
         flatPaths = glob(os.path.join(os.path.dirname(__file__),'images/simulatedImg-???f.fits'))
         flatDarkPaths = glob(os.path.join(os.path.dirname(__file__),'images/simulatedImg-???d.fits'))   ## Use the same darks
         masterFlatSavePath = os.path.join(os.path.dirname(__file__),'images/masterFlat.fits')   ## Where to save the master
-        oscaarx.standardFlatMaker(flatPaths,flatDarkPaths,masterFlatSavePath,plots=False)
+        oscaar.standardFlatMaker(flatPaths,flatDarkPaths,masterFlatSavePath,plots=False)
     
     
     ## Create data images

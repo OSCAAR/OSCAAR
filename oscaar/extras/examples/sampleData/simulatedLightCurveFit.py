@@ -11,13 +11,12 @@ from matplotlib import pyplot as plt
 from scipy import optimize
 
 import os
-import oscaar.code.oscaar as oscaarx
-
+import oscaar
 ## Run parameters: 
 plotFit = True		## Plot light curve fit
 animatePB = False 	## Plot each prayer-bead iteration
 
-dataBank = oscaarx.load(os.path.join(os.path.dirname(__file__),os.path.abspath("../../../outputs/oscaarDataBase.pkl")))
+dataBank = oscaar.load(os.path.join(os.path.dirname(__file__),os.path.abspath("../../../../outputs/oscaarDataBase.pkl")))
 t = times = np.require(dataBank.getTimes(),dtype=np.float64)
 F = dataBank.lightCurve
 sigmas = dataBank.lightCurveError
@@ -46,7 +45,7 @@ def fitfunc(p,t=t,P=P,gamma1=gamma1,gamma2=gamma2,e=e,longPericenter=longPericen
     	if p[2] > 90: p[2] = 180 - p[2] ## 90 - (p[2] - 90)
         #occultquad(t,p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3],n,F)
         modelParams = [p[0],p[1],P,p[2],gamma1,gamma2,e,longPericenter,p[3]]
-        F = oscaarx.occultquad(times,modelParams)
+        F = oscaar.occultquad(times,modelParams)
         return F
     ## else: return None        #(implied without implementation)
 def errfunc(p, uncertainties, y): 

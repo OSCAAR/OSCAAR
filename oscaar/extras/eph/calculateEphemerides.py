@@ -31,7 +31,7 @@ def calculateEphemerides(parFile,rootPath):
     '''
 
     pklDatabaseName = 'exoplanetDB.pkl'     ## Name of exoplanet database C-pickle
-    pklDatabasePaths = glob(rootPath+pklDatabaseName)   ## list of files with the name pklDatabaseName in cwd
+    pklDatabasePaths = glob(os.path.join(rootPath,pklDatabaseName))   ## list of files with the name pklDatabaseName in cwd
     csvDatabasePath = 'exoplanets.csv'  ## Path to the text file saved from exoplanets.org
     #parFile = 'umo.par'
 
