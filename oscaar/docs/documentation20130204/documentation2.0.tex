@@ -1,34 +1,38 @@
 % Report section types:  \part{}, \chapter{}, \section{}, \subsection{}, \subsubsection{}, \paragraph{}, \subparagraph{}.
 % Article section types: \part{}, \section{}, \subsection{}, \subsubsection{}, \paragraph{}, \subparagraph{}.
 \documentclass[a4paper]{article}
-
+\usepackage{float}
 \marginparsep = 0pt
 \marginparwidth = 0pt
-\oddsidemargin = 0.5in
-\textwidth = 5.25in
+\textwidth=6.5in
+\oddsidemargin = 0.0in
+\evensidemargin = 0.0in
 \usepackage{graphicx}
-%\documentclass{report}
 %\usepackage{fontspec}
 \usepackage{hyperref}
-%\setmainfont[Ligatures=TeX]{TeX Gyre Bonum}
-%\setsansfont[Ligatures=TeX,Scale=MatchLowercase]{Latin Modern Sans}
-%\setmonofont[Scale=MatchLowercase]{Inconsolata}
-%\setmainfont[Numbers=Lining]{TeX Gyre Pagella}
-\usepackage{lmodern}
+
+%\usepackage{lmodern}
+\usepackage{cmbright}
+\usepackage[T1]{fontenc}
+
 \linespread{1.1}% spread lines out a little
 \frenchspacing % remove extra space after punctuation
-%:
-\begin{document}
-\title{\textbf{oscaar}: Open Source Differential Photometry Code for Amateur Astronomical Research}
-\author{Brett Morris}
-\maketitle
-\tableofcontents
-%\setcounter{tocdepth}{1}
-\section{Introduction}
 
 \newcommand{\oscaar}{$ \mathtt{oscaar}$ }
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\init}{\code{init.par}\ }
+
+\begin{document}
+\title{\textbf{OSCAAR}: Open Source Differential Photometry Code for Amateur Astronomical Research}
+\author{Brett Morris and the OSCAAR Team}
+\maketitle
+\begin{center}
+\includegraphics[scale=0.3]{imgs/logoHUGEtile.png}
+\end{center}
+\pagebreak
+\tableofcontents
+\pagebreak
+\section{Introduction}
 
 \oscaar's core is a differential photometry package built for users of any experience level at observatories of any size. The process of differential photometry can be applied to many astrophysical phenomena including transiting extrasolar planets, variable stars, rotating asteroids and more. This package is prepared specially for transiting exoplanet observations, though often other photometric observations can be analyzed with \oscaar without any tweaking to the source code.
 
@@ -40,7 +44,7 @@ Here we summarize the contents of this documentation. If you are new to photomet
 
 There are several packages in addition to Python that must be installed on your machine before running \oscaar. Most of these packages have been around for some time in the astronomical community. They are all free and available for download via links below. We apologize for the number of packages that are necessary to download, but we have decided that these packages enable for the most efficient open-source distro that we can provide.  \\ \\
 \noindent
-\indent \href{http://www.python.org/getit/}{\textbf{Python 2.7.X}}: The core language of oscaar \\
+\indent \href{http://www.python.org/getit/}{\textbf{Python 2.7}}: The core language of oscaar \\
 \indent \href{http://new.scipy.org/download.html}{\textbf{NumPy 1.6.0-py2.7}}: A Python module for efficient scientific computations \\
 \indent \href{http://www.stsci.edu/resources/software_hardware/pyfits/}{\textbf{PyFITS 2.4.0}}: A Python module for handling FITS files \\
 \indent \href{http://matplotlib.sourceforge.net/index.html}{\textbf{Matplotlib 1.X-py2.7}}: A Python module for plotting\\
@@ -52,8 +56,7 @@ PyEphem is not required to run differential photometric analysis with \oscaar bu
 
 \subsubsection{Disclaimer}
 
-Though the modules used in this package have been stable historically and probably will not go away any time soon, the \oscaar Team does not take any immediate responsibility for problems that arise as a result of changes to future versions of these modules. 
-
+Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in newer versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues})
 \section{Collecting Data} \label{sec:collectingData}
 
 \subsection{Picking A Target}
@@ -72,7 +75,7 @@ Stellarium also has great ``Flip Scene'' buttons that allow you to mirror flip y
 
 \subsection{Telescope Tracking}
 
-Differential photometry is generally done on a series of images of the same patch of the sky over a long period of time. You'll need a telescope that is well polar-aligned so that the telescope's tracking keeps the stars in nearly the same spot on your detector throughout the duration of your observations. It is an unreasonable challenge to align most small telescopes well enough to track a star perfectly over several hours, so \oscaar is built to monitor and correct for the drift in star positions on the detector over time. Just make sure your target object and a few comparison stars stay in the field throughout the whole observation\footnote{If you need to re-center your target in the middle of an observation, \oscaar will only be able to continue to track the stars without special code tweaking if you change the stars' centroid positions by a few pixels (i.e., $\sim$2 or 3 pixels) at a time in between each exposure. The current version of \oscaar is not resilient against sudden discontinuous tracking anomalies.}. The star tracking algorithm follows each star individually over time. If your photometric target is an asteroid, for example, that moves relative to the comparison stars over time, \oscaar will happily track the asteroid and the comparison stars independently. 
+Differential photometry is generally done on a series of images of the same patch of the sky over a long period of time. You'll need a telescope that is well polar-aligned so that the telescope's tracking keeps the stars in nearly the same spot on your detector throughout the duration of your observations. It is a tremendous challenge to align most small telescopes well enough to track a star perfectly over several hours, so \oscaar is built to monitor and correct for the drift in star positions on the detector over time. Just make sure your target object and a few comparison stars stay in the field throughout the whole observation\footnote{If you need to re-center your target in the middle of an observation, \oscaar will only be able to continue to track the stars without special code tweaking if you change the stars' centroid positions by a few pixels (i.e., $\sim$2 or 3 pixels) at a time in between each exposure. \textbf{The current version of \oscaar is not resilient against sudden discontinuous tracking anomalies.}}. The star tracking algorithm follows each star individually over time. If your photometric target is an asteroid, for example, that moves relative to the comparison stars over time, \oscaar will happily track the asteroid and the comparison stars independently. 
 
 \subsection{Defocusing} \label{sec:defocusing}
 
@@ -80,10 +83,12 @@ In precision photometry, relying on individual pixels is dangerous. Pixel defect
 
 Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaar is written to accurately track stars of unconventional shapes. At the University of Maryland Observatory, we make most of our measurements on a 6in refractor. We defocus the stars until they look like small donuts (the hole is an artifact of the optical path of the refractor), and we've found that our photometry comes out best this way. \oscaar won't complain if your stars are donut-shaped, Gaussian or somewhere in between. 
 
-\begin{figure}[h]
+\begin{figure}[H]
+\begin{center}
 \includegraphics[scale=0.34]{imgs/focusing.png}
 \caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
 \label{fig:defocus}
+\end{center}
 \end{figure}
 
 One must keep in mind that by spreading out the light over many pixels, the counts measured by each pixel is lower. As a result, defocusing is most helpful when observing bright objects. If the source you are observing is bright enough, you can defocus significantly without losing too much signal. However, it is important to note that the quality of your light curve will be directly related to how much more signal than noise you detected, as we will discuss in Section \ref{sec:photonNoise}. Use defocusing sparingly (or not at all) when imaging dim targets\footnote{For example, we use a sharp focus for stars dimmer than $V=10$ on our 152mm refractor at the University of Maryland Observatory.}.
@@ -119,7 +124,7 @@ There must be at least one comparison star in order to do differential photometr
 
 Photometry of bright stars is always preferable to dim stars, but of course there are more dim stars than bright stars in most of the images you will take. In order to avoid uncertainty introduced noise with very dim stars, pick control stars with peak intensities more than double the average background intensity in the area surrounding the star. 
 
-Different transiting exoplanets change the brightnesses of their host stars by different amounts. This parameter is called ``\textbf{depth}" and is often measured in units of millimagnitudes (mmag). The greater the depth of a transit, the more likely you will be capable to detect the transit. Since some of these depths are so small, it might is a good idea to perfect measuring \href{https://sites.google.com/site/aavsosppsection/}{short period pulsating (SPP) variable stars} with high amplitude luminosity oscillations (like \href{http://www.aavso.org/vsx/index.php?view=detail.top&oid=4356}{YZ Boo}) before you move on to exoplanets. Once you characterize your ability to measure the large intrinsic variations of variable stars, you will be able to characterize your ability to detect the small depth regime of transiting exoplanets. 
+Different transiting exoplanets change the brightnesses of their host stars by different amounts. This parameter is called ``\textbf{depth}" and is often measured in units of millimagnitudes (mmag). The greater the depth of a transit, the more likely you will be capable to detect the transit. Since some of these depths are so small, you might try measuring \href{https://sites.google.com/site/aavsosppsection/}{short period pulsating (SPP) variable stars} with high amplitude luminosity oscillations (like \href{http://www.aavso.org/vsx/index.php?view=detail.top&oid=4356}{YZ Boo}) before you move on to exoplanets. Once you characterize your ability to measure the large intrinsic variations of variable stars, you will be able to characterize your ability to detect the small depth regime of transiting exoplanets. 
 
 \subsection{Imaging Software}
 A bunch of imaging packages could suite your needs for photometry with \oscaar. At the University of Maryland Observatory, we use \href{http://www.cyanogen.com/maxim_main.php}{MaxIm DL} to handle our imaging. Any imaging software that enables you to take a time-series of CCD images will do. 
@@ -134,14 +139,13 @@ The first step in running ocaar 2.0 is to execute the oscaarGui.py python file w
 
 You will now be shown some initial parameters that you must set in order to run \oscaar.
 
-%\subsection{Pickling your FITS files}
 
 \subsection{Locating Your Stars with DS9}
 
 The first and most intensive task you'll have to do to prepare \oscaar  for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of SAO Image DS9 (see Section \ref{sec:systemRequirements} to download). 
 
 To begin, start DS9 and open the first image from the series of images you will process. You can also start DS9 from within \oscaar by clicking \code{Open DS9} button. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
-\begin{figure}[h]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.2]{imgs/ds9.png}
 \caption{Using DS9 to locate the target and comparison stars.}
@@ -160,7 +164,7 @@ In the \oscaar GUI, click \code{Browse} in the \code{Path to Regions File} field
 	
 \subsection{Making a Master Flat}
 Now that you have properly set the path to the darks and the data images, you must now make your master flat. First click the ``Master Flat Maker'' button at the bottom of the \oscaar window, and a dialog box should pop up that looks like Figure \ref{fig:flats}.
-\begin{figure}[h]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/flatMaker.png}
 \caption{\oscaar's Master flat maker allows you to make master flats out of raw images.}
@@ -174,22 +178,21 @@ There are two options for how you can make your flat, either  the ``Standard'' o
 
 Now click the \code{Run} button on the master flat maker and close it when it is done. You should now choose the output file when selecting the path to the master flat frame in the main \oscaar GUI. 
 
-
 \subsection{Running Parameters}
 The next step in running \oscaar is to properly set all of the initial running parameters. These have default values set, but these may need to be modified for your particular data set.
 
-\subsubsection{Smoothing Constant}
-
-
-\begin{figure}[h]
+\subsubsection{Smoothing Constant} \label{sec:smoothingconst}
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.20]{imgs/sums.png}
 \caption{Sums along the columns and rows around a star.}
 \label{fig:sumsExample}
 \end{center}	
 \end{figure}
+By default, oscaar v2.0 tracks stars with a fun algorithm described in Section \ref{sec:trackSmooth}. This algorithm finds the centroid of the star by looking for certain features in the first derivative of the spatial intensity profile of the image of the star. These ``intensity profiles'' are the sums of pixel counts along the rows and columns near the star being tracked, see Figure \ref{fig:sumsExample} for an example. In order to find the centroids accurately using this method, it helps to smooth out the stars by blurring the image artificially, so that background noise and bad pixels are not incorrectly  interpreted as features of the stellar intensity profile. Of course, the artificial smoothing is non-destructive; the images used to measure photometry are not smoothed. 
 
-\begin{figure}[h]
+Since it is not uncommon to defocus telescopes for photometry, you may want more or less smoothing in your images. The running parameter \code{Smoothing Constant} adjusts how much smoothing is applied in the tracking algorithm. \code{Smoothing Constant = 0} will not smooth the image at all (not recommended), and values around $\sim3$ will be significantly smeared (non-integer values are accepted). See Figure \ref{fig:smoothExample} to see what how various values of the \code{Smoothing Constant} affect a raw stellar intensity profile.
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.45]{imgs/smooth.eps}
 \caption{A range of \code{Smoothing Constant} values from 0 to 3 are applied to the stellar intensity profile along the columns surrounding one star (see Figure \ref{fig:sumsExample} for the origin of the intensity profile).}
@@ -197,19 +200,10 @@ The next step in running \oscaar is to properly set all of the initial running p
 \end{center}	
 \end{figure}
 
-\subsubsection{Tracking and Photometry Plots}
+\subsubsection{Tracking and Photometry Plots} \label{sec:trackandphotplots}
+In order to visualize the effects of the running parameters that you entered on the photometric process, you can have oscaar plot visualizations of various procedures as they are executed. This will add significantly to the runtime of your analysis, as the plotting package \code{matplotlib} is not as fast as \oscaar's algorithms, however it will enable you to hone in on which running parameters you need, and allow you to troubleshoot if the results produced by oscaar are not what you expected. There are two plot settings to choose from: \code{Track plots} and \code{Photometry plots}.  \code{Track plots} will show you the centroid solutions as they are calculated in real time, along with some guide lines, see Figure \ref{fig:trackingExamples} for an example. 
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.45]{imgs/trackingExample.eps}
-\caption{\textbf{Stellar Centroid Tracking}: The top row of plots show the sum of intensities in each pixel along the columns a well-focus star, similar to Figure \ref{fig:sumsExample}, and the bottom row shows the same for a highly defocused star (see discussion on defocusing in Section \ref{sec:defocusing}). The plots on the left show the counts on the detector summed along the columns of pixels, and smoothed with non-zero smoothing constants. The plots on the right show the first spatial derivative of the intensity profiles, with clear extrema at the pixel locations corresponding to the points of greatest positive and negative slope in the intensity profiles. A quadratic is fit to the three points closest to each of the extrema, yielding sub-pixel precision measurements on the coordinates of the extrema (marked above with the dotted vertical red lines). The midpoint between these best-fit extrema is taken as the stellar centroid, marked with the solid vertical red line in the plots above. This process is repeated for the other axis (sum along the rows) to get the other of the two centroid coordinates for each star.}
-\label{fig:sumRowsAndCols}
-\end{center}	
-\end{figure}
-
-
-
-\begin{figure}[h]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackPlots.png}
 \caption{\code{Track plots} set to \code{True} and \code{Photometry plots} set to \code{False}. The leftmost image shows the star with a cross-hair indicating the centroid, also circled in magenta (the radius of this circle is not meaningful). The plots on the right indicate the sums of the intensities in pixels along the rows and columns, in the transparent curves. The solid curves represent the smoothed intensity profiles, which are used to find the centroid. The bold vertical lines mark the best-fit stellar centroid in each axis.}
@@ -217,34 +211,42 @@ The next step in running \oscaar is to properly set all of the initial running p
 \end{center}	
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/aperPlots.png}
-\caption{\code{Photometry plots} set \code{True} and \code{Track plots} set to \code{False}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two concentric circles (red) mark the ``sky annulus,'' within which the sky background is measured.  }
+\caption{\code{Photometry plots} set \code{True} and \code{Track plots} set to \code{False}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two outer concentric circles (red) circumscribe the ``sky annulus,'' within which the sky background is measured. }
 \label{fig:photPlots}
 \end{center}	
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackAperPlots.png}
-\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot.}
+\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image -- see for example how broad the smoothed profile is compared to the raw flux. }
 \label{fig:trackAndPhotPlots}
 \end{center}	
 \end{figure}
 
-
-
 \subsubsection{Track Zoom}
 \oscaar tracks each star through consecutive exposures by looking for the each centroid near to the detector location that it had in the previous exposure. Since the stars will drift somewhat from frame to frame if your telescope is not perfectly aligned, we define a width around the previous centroid within which to search for the centroid in the following frame. The ideal width of this search box will depend on the plate scale of your device, how defocused the telescope is, how poor the alignment is, etc. 
 
-
+See, for example, Figure \ref{fig:trackingExamples}. The \code{Track Zoom} parameter here was 20 pixels, as you can tell by the width of the image sampled along both axes. The limiting factor in how small the \code{Track Zoom} parameter should be is how far the star will move between this exposure and the next. The columns/rows where the slope of the intensity profile is at extrema (see the vertical dotted lines in Figure \ref{fig:trackingExamples}) need to fall inside of the image when cropped down to the size of \code{Track Zoom}. If the stellar centroid moved by 10 pixels in the next exposure for the star and zoom in Figure \ref{fig:trackingExamples}, \oscaar would not be able to find one of the extrema required to find the stellar centroid, and the tracking algorithm would not produce meaningful centroid estimates.
 
 \subsubsection{CCD Gain}
-
+The gain of a CCD is a hardware parameter that is specific to your CCD and the possible settings that you have set on it. Without getting too much into detector physics, CCDs essentially convert photons to electrons, amplify the number of electrons, and then count the amplified electrons. The number of amplified electrons counted is often more briefly referred to as the number of ``counts'', or less transparently as ``analog-to-digital units (ADU)''. If we want to be precise about how we propagate uncertainties, we need to know how many electrons were on each pixel before amplification, so the detector gain comes into our calculations. 
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.25]{imgs/ds9gain.png}
+\caption{\textbf{Finding the gain}: Here's what the FITS header looks like when viewed in DS9, produced by Elizabeth Warner's 152mm refractor with an SBIG ST-10 CCD at the University of Maryland Observatory. The detector gain, labeled on this CCD as ``\code{EGAIN}'' is highlighted with a red box.}
+\label{fig:trackAndPhotPlots}
+\end{center}	
+\end{figure}
+To find the gain of your detector, open one of your images in DS9. Click through the drop down menus from \code{File > Display Fits Header}. The Fits Header is a text file within each FITS file that records some notes on every exposure you take. Often there will be a line called \code{EGAIN} in there, with a comment resembling ``/ Electronic gain in e-/ADU''. This is the gain parameter to enter into oscaar. 
 
 \subsubsection{Aperture Radius} \label{sec:aperRad}
+The \code{Aperture Radius} is the radius measured outward from the stellar centroid within which we will measure the flux from the source. The \code{Aperture Radius} should fully enclose the source, and if possible, not extend any farther than necessary (though determining what is ``necessary'' may require some experimentation). 
 
+In the duration of an observation, changes in earth's atmosphere can cause the ``width'' of a star on your detector to be larger or smaller than it was at the beginning of the night. If the star gets wider over time, the dim outer edges of the star may begin to exceed the boundaries that you set by the \code{Aperture Radius}, and some of the flux will not be counted. The differential photometry script would interpret this as the star getting dimmer, which would ruin your light curve. Therefore, when selecting the \code{Aperture Radius} parameter, we suggest that you experiment with it. Try one value with the \code{Tracking Plots} turned on (see Section \ref{sec:trackandphotplots} for details) and watch the apertures as they are applied to the images of the stars. Try a few different values (they need not be integers), and pick the smallest aperture that is sure to catch the whole star. 
 
 \subsubsection{Notes}
 This text field is meant for you to enter any notes you might want to know later. All of your running parameters will be saved in the data file so you won't need to copy them here, but if you want to label the run in any particular way, there's a sweet little box here specifically for that purpose.
@@ -254,19 +256,49 @@ If you are observing a transiting exoplanet, \oscaar can do its most precise pho
 
 Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour scale, in Universal Time. Seconds are insignificant.
 
+\section{Algorithm Notes}
+\subsection{\code{oscaar.photometry.phot()}}
 
+
+
+\subsection{\code{oscaar.astrometry.trackSmooth()}} \label{sec:trackSmooth}
+The ``\textbf{point spread function}'' (PSF) for a particular observing setup is the shape of the image of a perfect point source (like a star, for example), which in practice is never a perfect ``point'' -- it will always have some radial spread. For well-focused telescopes, the PSF usually resembles an Airy function, which can be well-approximated by a Gaussian. However, as suggested in Section \ref{sec:defocusing}, you may not always want to focus the telescope perfectly. Each telescope will produce a different PSF when significantly defocused, so assuming a Gaussian PSF would prevent us from using \oscaar on defocused observations. This was a problem that we found with \oscaar v1.0, so we developed a new method with some excellent advice from Professor Drake Deming.
+
+\code{trackSmooth()} does centroid-finding by summing up the intensity of the pixels near the star along both the rows and columns. The sums along the rows and columns will produce intensity profiles in two axes similar to Figure \ref{fig:sumsExample}. One feature of these profiles that holds for even strongly defocused PSFs is the sharp rise and decline in the intensity of the star on either side of the stellar centroid. Typically there is a well-defined absolute maximum and minimum in the first derivative of the sum along the columns, as in Figure \ref{fig:sumRowsAndCols}. The trick here is to take the midpoint between those extrema as the centroid, since searching for maxima and minima are computationally cheap. 
+
+In order to increase our centroid precision, we then use a little linear algebra to fit a quadratic to the three pixels nearest the maximum or minimum. The midpoints between the apexes of the best-fit quadratic near the maximum and minimum is taken as the centroid. This process is repeated for the sums along the rows and the columns to get the centroid in both axes. 
+
+Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine -- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
+
+\subsection{\code{oscaar.calcMeanComparison()}}
+\subsection{\code{oscaar.scaleFluxes()}}
+\subsection{\code{oscaar.computeLightCurve()}}
+\subsection{\code{}}
+\subsection{\code{}}
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.45]{imgs/trackingExample.eps}
+\caption{\textbf{Stellar Centroid Tracking}: The top row of plots show the sum of intensities in each pixel along the columns a well-focus star, similar to Figure \ref{fig:sumsExample}, and the bottom row shows the same for a highly defocused star (see discussion on defocusing in Section \ref{sec:defocusing}). The plots on the left show the counts on the detector summed along the columns of pixels, and smoothed with non-zero smoothing constants. The plots on the right show the first spatial derivative of the intensity profiles, with clear extrema at the pixel locations corresponding to the points of greatest positive and negative slope in the intensity profiles. A quadratic is fit to the three points closest to each of the extrema, yielding sub-pixel precision on the coordinates of the extrema (marked above with the dotted vertical red lines). The midpoint between these best-fit extrema is taken as the stellar centroid, marked with the solid vertical red line in the plots above. This process is repeated for the other axis (sum along the rows) to get the other of the two dimensional centroid coordinates for each star.}
+\label{fig:sumRowsAndCols}
+\end{center}	
+\end{figure}
+
+\section{Troubleshooting} \label{sec:issues}
+If you notice a problem in \oscaar or can't get something to function properly, feel free to submit an issue on \href{https://github.com/OSCAAR/OSCAAR/issues?state=open}{our Issue Tracker on GitHub}. 
 
 \section{Contributing to \oscaar}
-This version of \oscaar was made by four people, and we're proud of the work we've done. But \oscaar can still be improved and we need your help! \oscaar is used in more than 10 countries by amateurs and professionals alike, and in order to keep up with the demands of providing a user-friendly differential photometry code for an international audience, we'd love to have your help if you can: code in Python, or provide any feedback at all. If you'd like to help but don't know where to begin, please feel free to contact us at \href{mailto:oscaarUMD@gmail.com}{oscaarUMD@gmail.com}. We'd love to work together! 
+This version of \oscaar was made by a very small group people, and we're proud of the work we've done. But \oscaar can still be improved and we need your help! \oscaar is used around the world by amateurs and professionals alike, and in order to keep up with the demands of providing a user-friendly differential photometry code for an international audience, we'd love to have your help if you can code in Python, or provide any feedback at all. If you'd like to help but don't know where to begin, please feel free to contact us at \href{mailto:oscaarUMD@gmail.com}{oscaarUMD@gmail.com}. 
+
+\oscaar started as one of Brett Morris's independent undergraduate research projects at the University of Maryland, and since then has fueled independent research projects for several other undergraduates. If you are an undergraduate studying astronomy, physics or computer science and would like to contribute to oscaar, we encourage you to reach out to us. We'd love to work together! 
 
 We keep the \href{https://github.com/OSCAAR/OSCAAR}{source code on GitHub}, a popular open source code repository site. There you can find the code in its most up-to-date (alpha, beta, and stable) form, the \href{https://github.com/OSCAAR/OSCAAR/issues?state=open}{Issue Tracker} where known issues are logged and new issues or comments can be posted.
 
 
-
-
 \section{Acknowledgements}
 \oscaar has come a long way from the first 1,000 lines of code that Brett Morris wrote in 2011. It could not have gotten there without the help of the following colleagues: 
-Drake Deming, Avi Mandell, Daniel Galdi, Sam Gross, Luuk Visser, Harley Katz, Elizabeth Warner, Alberto Bolatto.
+Professor Drake Deming, Dr. Avi Mandell, Daniel Galdi, Sam Gross, Luuk Visser, Harley Katz, Elizabeth Warner, Dr. Alberto Bolatto.
 
 	
 \end{document}
