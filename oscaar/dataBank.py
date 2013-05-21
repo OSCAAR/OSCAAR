@@ -266,7 +266,7 @@ class dataBank:
                 inline = line.split(':', 1)
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames': 
-                	if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
+                	if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
                 		self.darksPath = np.sort(glob(inline[1].split('#')[0].strip()))
                 	else: 
 		                darkpaths = []
@@ -276,7 +276,9 @@ class dataBank:
 		                self.darksPath = np.sort(darkpaths)
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Path to data images':
- 					if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
+# 					if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
+					if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
+
 						self.imagesPaths = np.sort(glob(inline[1].split('#')[0].strip()))
 					else: 
 						impaths = []

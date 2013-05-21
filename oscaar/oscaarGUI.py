@@ -252,7 +252,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #os.chdir(os.path.join(os.path.dirname(__file__)))
         global worker
         worker = None
-        notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'wa')
+        notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
 
