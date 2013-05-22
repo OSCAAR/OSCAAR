@@ -49,10 +49,10 @@ def normalizedata(time,data,lL,lR,rL,rR):
 
 
 
-def fittransit(NormFlux):
-    Rp=np.sqrt(1-min(NormFlux))
-    b1=0.001
-    vel=0.025
+def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
+    Rp=Rp
+    b1=aRstar*np.cos(np.pi*inc/180)
+    vel=02*np.pi*aRstar*dt/Period
     midtrantime=np.size(NormFlux)/2
     #gam1=0.5
     #gam2=0.3
@@ -62,7 +62,7 @@ def fittransit(NormFlux):
         xdata=xd.astype(np.float64),
         ydata=NormFlux.astype(np.float64),
         p0=(Rp,b1,vel,midtrantime),
-	)
+    )
     return fit,success
 
 def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
@@ -224,8 +224,8 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	print "Inclination: ",incFIT
         print "Semi - Major Axis / Stellar Radius: ",aRs
         print "Mid-Transit Time [MJD]",
-        pyplot.plot(time,NormFlux,linestyle='None',marker='.')
-        pyplot.plot(time,transiter(np.arange(np.size(NormFlux)),fit[0],fit[1],fit[2],fit[3]))
+        pyplot.plot(timedays,NormFlux,linestyle='None',marker='.')
+        pyplot.plot(timedays,transiterout(np.arange(np.size(NormFlux)),fit[0],fit[1],fit[2],fit[3]))
         pyplot.show()
         
 	return Flux,Rp,aRstarFIT,incFIT,aRstar,midtrantime
