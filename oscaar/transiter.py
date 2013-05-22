@@ -6,9 +6,20 @@ from scipy import optimize,fmin,special
 from uncertainties import ufloat,umath
 from matplotlib import pyplot
 import oscaar
+
+#transiter.py --- transiter.py is a transit light curve model written by Nolan Matthews
+#using analytic expressions written by Mandel & Agol (2002). The code computes the
+#curve for a quadratically limb-darkened star. To convert from model parameters to
+#orbital/planetary parameters, expressions from Winn (2000) are used to calculate
+#the inclination angle and semi-major axis to stellar radius ratio. 
+
+#Unofficial Copyright; transiter.py is free to be used and distributed by others. 
+
+#Function defining a quadratic line.
 def quadbline(x,a,b,c):
     return a*x**2+b*x+c
 
+#Heaviside Step Function
 def heavyside(x):
     if x < 0:
         heavyside=0.0
@@ -18,6 +29,8 @@ def heavyside(x):
         heavyside=1.0
     return heavyside;
 
+#Function that normalizes the data usiung a quadratic baseline. Points on the left
+#baseline from lL to lR and after egress from rL to rR are chosen. 
 def normalizedata(time,data,lL,lR,rL,rR):
     #Pick points on the left and right baseline                     
     Lbline=data[lL:lR]
@@ -48,14 +61,15 @@ def normalizedata(time,data,lL,lR,rL,rR):
     return NormFlux,time_days,time
 
 
-
+#Function that fits the light-curve model to a data set, given some input parameters for the planet. 
 def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
-    Rp=Rp
+    
     b1=aRstar*np.cos(np.pi*inc/180)
     vel=2*np.pi*aRstar*dt/Period
     midtrantime=np.size(NormFlux)/2
     #gam1=0.5
     #gam2=0.3
+    
     xd=np.arange(np.size(NormFlux))
     print Rp,b1,vel,midtrantime
     fit,success=optimize.curve_fit(transiterout,
@@ -202,22 +216,20 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	aRstar=(2*delta**0.25*P/(np.pi*dt*umath.sqrt(Ttot**2-Tfull**2)))#*umath.sqrt(1-ecc**2)/(1+ecc*sin(arg_periapsis*pi/180.))
 	#bmodel=umath.sqrt((1-(Tfull/Ttot)**2)/((1-umath.sqrt(delta))**2-(Tfull/Ttot)**2 * (1+umath.sqrt(delta))**2)) #Not too sure why this doesn't work
 	inc=(180/np.pi)*umath.acos(b1/aRstar)
-    #print bmodel
-    
-    
+	#print bmodel
+	
 	poutnames=('Rp','b1','vel','midtrantime','gam1','gam2')
 	for iz in range(0,np.size(fit)):
 		print poutnames[iz],fit[iz],np.sqrt(success[iz][iz])
-
+		
 	print "--------------------------------"
 	aRstarFIT=vel*P/(dt*2*np.pi)
 	incFIT=(180/np.pi)*umath.acos(b1/aRstarFIT)
-    #midtrantime_convert=midtrantime*dt*24*3600+time_days[0]
-    #midtrantime_MJD=timedays[midtrantime]+54964.00111764
-    #timebetween = timedays[int(midtrantime.nominal_value)+1]-timedays[int(midtrantime.nominal_value)]
+	#midtrantime_convert=midtrantime*dt*24*3600+time_days[0]
+	#midtrantime_MJD=timedays[midtrantime]+54964.00111764
+	#timebetween = timedays[int(midtrantime.nominal_value)+1]-timedays[int(midtrantime.nominal_value)]
 	#print timebetween*dt
-        
-    #print "Midtrantime",midtrantime_convert.std_dev()#midtrantime_MJD
+	#print "Midtrantime",midtrantime_convert.std_dev()#midtrantime_MJD
 	print "aRstarFIT",aRstarFIT
 	print "inclination",incFIT
 	print "frac. rad.", Rp
@@ -230,8 +242,7 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	print "Mid-Transit Time [MJD]",
 	pyplot.plot(timedays,NormFlux,linestyle='None',marker='.')
 	pyplot.plot(timedays,transiterout(np.arange(np.size(NormFlux)),fit[0],fit[1],fit[2],fit[3]))
-	pyplot.show()
-        
+	pyplot.show()    
 	return Flux,Rp,aRstarFIT,incFIT,aRstar,midtrantime
 
 
