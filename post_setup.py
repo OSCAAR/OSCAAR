@@ -7,13 +7,48 @@ import time
 """ Function to download the ds9 version for current platform.
     URLs are tested working on 5-19-2013 """            
 def download_ds9():
+    print
     import oscaar
     oscaardir = oscaar.__file__
     oscaardirds9 = os.path.join(os.path.dirname(oscaardir),'extras','ds9',sys.platform)
     
+    sysplatform = sys.platform
+    
+    if os.path.exists(os.path.dirname(oscaardirds9)) == True:
+        print "It seems like DS9 is already installed in the OSCAAR directory.\nPress any key to install it again (3s):",
+        if sysplatform == 'darwin' or sysplatform == 'linux2':
+            from select import select
+            timeout = 3
+            rlist, wlist, xlist = select([sys.stdin], [], [], timeout)
+            if rlist:
+                print 'Reinstall selected!'
+                pass
+            else:
+                print 'Skipping DS9 installation!'
+                return
+        elif sys.platform == 'win32':
+            import msvcrt
+            timeout = 3
+            startTime = time.time()
+            inp = None
+            while True:
+                if msvcrt.kbhit():
+                    inp = msvcrt.getch()
+                    break
+                elif time.time() - startTime > timeout:
+                    break
+            if inp:
+                print 'Reinstall selected!'
+                pass
+            else:
+                print 'Skipping DS9 installation!'
+                return
+    else:
+        pass
+            
     print 'Downloading platform specific DS9:'
 
-    sysplatform = sys.platform
+    
     if sysplatform == 'darwin':
         url = "http://hea-www.harvard.edu/RD/ds9/download/darwinsnowleopard/ds9.darwinsnowleopard.7.2.tar.gz"
     elif sysplatform == 'linux2':
@@ -67,6 +102,8 @@ def download_ds9():
     
 """ Compile C files in c dir of oscaar"""
 def complile_C():
+    print
+    print 'Start compiling C code for sample generation..'
     import oscaar
     oscaardir = oscaar.__file__
     oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
@@ -80,5 +117,6 @@ def complile_C():
     os.chdir(olddir)
     
 if __name__ == '__main__':
-    download_ds9()
+    if sys.argv[-1] == 'install' or sys.argv[-1] == os.path.abspath(__file__): 
+        download_ds9()
     complile_C()

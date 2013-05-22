@@ -136,12 +136,12 @@ def setup_package():
 def to_do_at_exit():
     delete_manifest()
     del_dir('build')
-    del_dir('dist')
+    if sys.argv[-1] == 'install': 
+        del_dir('dist')
     del_dir('OSCAAR.egg-info')
         
     'Installation finished. Starting DS9 downloader and C code builder\n'
-    #subprocess.Popen(['python', 'post_setup.py'])
-    subprocess.check_call(['python', 'post_setup.py'])
+    subprocess.check_call(['python', 'post_setup.py',sys.argv[-1]])
     
 atexit.register(to_do_at_exit)
     
