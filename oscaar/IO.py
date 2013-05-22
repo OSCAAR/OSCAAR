@@ -61,12 +61,12 @@ def save(data,outputPath):
     
             outputPath - Path for the saved numpy-pickle.
     '''
-    if glob(outputPath) > 0 or glob(outputPath+'/oscaarDataBase.pkl') > 0 or glob(outputPath+'.pkl') > 0: ## Over-write check
-        print 'WARNING: overwriting the most recent oscaarDataBase.pkl'
+    if glob(outputPath) > 0 or glob(outputPath+os.sep+'oscaarDataBase.pkl') > 0 or glob(outputPath+'.pkl') > 0: ## Over-write check
+        print 'WARNING: could potentially overwrite the most recent oscaarDataBase.pkl'
     
     if outputPath.endswith('.pkl'):
         outputName = outputPath
-    elif outputPath[-1] == '/': 
+    elif outputPath[-1] == os.sep: 
         outputName = outputPath+'oscaarDataBase.pkl'
     else: 
         outputName = outputPath+'.pkl'

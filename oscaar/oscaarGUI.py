@@ -279,7 +279,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Tracking Zoom: ' + self.trackZoomTxt.GetValue() + '\n')
         init.write('Init GUI: on')
         init.close()
-        init = open('init.par', 'r').read().splitlines()
+        init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
         if self.validityCheck():
             if self.outputOverwriteCheck(self.outputTxt.GetValue()):
                 self.Destroy()

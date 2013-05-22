@@ -16,7 +16,7 @@ import oscaar
 plotFit = True		## Plot light curve fit
 animatePB = False 	## Plot each prayer-bead iteration
 
-dataBank = oscaar.load(os.path.join(os.path.dirname(__file__),os.path.abspath("../../../../outputs/oscaarDataBase.pkl")))
+dataBank = oscaar.load(os.path.join(os.path.dirname(__file__),os.path.abspath("../../../outputs/oscaarDataBase.pkl")))
 t = times = np.require(dataBank.getTimes(),dtype=np.float64)
 F = dataBank.lightCurve
 sigmas = dataBank.lightCurveError
@@ -72,11 +72,8 @@ def errfunc(p, uncertainties, y):
 #plt.errorbar(times,data,yerr=sigmas,fmt='.')
 #plt.plot(times,fitfunc(initParams))
 #plt.show()
-#<<<<<<< HEAD
 bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
-#=======
-bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
-#>>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
+#bestFitP = optimize.leastsq(errfunc,initParams[:],args=(sigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
 if bestFitP[2] > 90: 180 - bestFitP[2]
 print 'bestFitP:',bestFitP
 fluxFit = np.copy(fitfunc(bestFitP)) ## THIS WORKS ONLY IF USING NP.COPY, OTHERWISE COMPUTE fitfunc(bestFitP) EACH TIME
@@ -99,11 +96,8 @@ for i in range(0,len(fluxFit)):
 
     data = np.copy(modelPlusResiduals) 	## Add the shifted residuals to the best fit model
     bestFitP =  (1.0*np.array(bestFitP,dtype=np.float64)).tolist()
-#<<<<<<< HEAD
     PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),epsfcn=10*np.finfo(np.float64).eps,xtol=np.finfo(np.float64).eps,maxfev=100*100*(len(data)+1))[0]
-#=======
-    PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
-#>>>>>>> 4ea13351c2cdb376c1132d08a75b082f840b0d23
+#    PBiterationBestFitPs = optimize.leastsq(errfunc,bestFitP[:],args=(shiftedSigmas,data.astype(np.float64)),xtol=np.finfo(np.float64).eps,epsfcn=10*np.finfo(np.float64).eps,maxfev=100*(len(data)+1))[0]
 
     PBparameterTraces[i,:] = PBiterationBestFitPs	## record the best fit parameters
     shiftedResiduals = np.roll(residuals,i)		## shift the residuals over one, repeat
@@ -118,7 +112,7 @@ for i in range(0,len(fluxFit)):
         plt.draw()
 if animatePB: plt.close()
 uncertainties = np.std(PBparameterTraces,axis=0)	## Std of the best fits for each param is ~ the uncertainty on each param
-plt.plot(PBparameterTraces[:,3])
+#plt.plot(PBparameterTraces[:,3])
 plt.show()
 
 print "\nLevenberg-Marquardt Least-Squares Fit:"

@@ -1,6 +1,5 @@
 .DS_Store
 *.py?
-<<<<<<< HEAD
 oscaar/code/*.py?
 oscaar/code/outputs/*
 oscaar/code/oscaar/*.py?
@@ -14,7 +13,6 @@ oscaar/extras/eph/exoplanets.csv
 oscaar/extras/eph/exoplanetDB.pkl
 oscaar/extras/eph/*.html
 oscaar/extras/eph/eventReport.txt
-=======
 Code/*.py?
 Code/outputs/*
 Code/oscaar/*.py?
@@ -30,7 +28,6 @@ Extras/eph/ephOutputs/*.html
 Extras/eph/ephOutputs/*.txt
 Extras/eph/ephOutputs/*.csv
 Extras/eph/eventReport.txt
->>>>>>> 954ae2f6a296fa7d30d8b2d7c12eef10732c693f
 outputs/oscaarDataBase.npz
 outputs/oscaarDataBase.pkl
 outputs/notes.txt
@@ -49,3 +46,7 @@ oscaar/extras/ds9/
 oscaar/extras/eph/ephOutput
 oscaar/c/build
 oscaar/c/*.so
+oscaar/init.par
+oscaar/observatory.par
+oscaar/outputs/*.pkl
+oscaar/outputs/*.txt
