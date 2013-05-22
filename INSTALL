@@ -4,7 +4,6 @@ In the same directory as this INSTALL file, execute
 
 python setup.py install
 
-
 from a Unix/Linux shell or the Windows command prompt. 
 If you're machine runs Windows and you've never run a
 Python script from the command prompt before, you'll 
