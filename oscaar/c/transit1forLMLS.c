@@ -57,6 +57,11 @@
 //void occultquad(double *t, float p, float ap, float P, float i, float gamma1, float gamma2, double e, double longPericenter, double t0, float n, double *F);
 void occultquad(double *t, double p, double ap, double P, double i, double gamma1, double gamma2, double e, double longPericenter, double t0, double n, double *F);
 
+// Elliptic integregral approximations
+double E(double k);
+double PI(double n, double k);
+double K(double k);
+
 float *linspace(float beginningPhase, float endPhase, int Npoints)
 // Replicate the function "linspace" from MATLAB
 {

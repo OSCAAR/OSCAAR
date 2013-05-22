@@ -14,7 +14,7 @@ import os
 import oscaar
 ## Run parameters: 
 plotFit = True		## Plot light curve fit
-animatePB = False 	## Plot each prayer-bead iteration
+animatePB = True 	## Plot each prayer-bead iteration
 
 dataBank = oscaar.load(os.path.join(os.path.dirname(__file__),os.path.abspath("../../../outputs/oscaarDataBase.pkl")))
 t = times = np.require(dataBank.getTimes(),dtype=np.float64)

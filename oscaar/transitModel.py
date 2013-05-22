@@ -52,3 +52,57 @@ def occultquad(t,modelParams):
     F = np.empty_like(t,dtype=np.float64)
     occultquadC(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
     return F
+
+def ellipk(k):
+    ###################################################################################################
+    ## Ctypes definitions from C-libraries
+    lib = np.ctypeslib.load_library(oscaarModuleDir+os.sep+'c'+os.sep+'transit1forLMLS','.') 	## Loads .so library
+    Kfunction = lib.K
+    Kfunction.argtypes = [ctypes.c_double]	
+    ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
+    ## NOTE!: If vector input is going to be a vector of C-floats, use np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')
+    ##        If vector input is going to be a vector of C-doubles, use np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')
+
+    ## The arguments of occultquad are: occultquad(float *t, float *phi, float p, float ap, float P, float i, float gamma1, 
+    ##											   float gamma2, double e, double longPericenter, double t0, float n, float *F);
+
+    Kfunction.restype = ctypes.c_double	## Put the return type of the function here. If "return void" in C func, restype=None
+
+    #################################################################
+    return Kfunction(k)
+
+def ellipe(k):
+    ###################################################################################################
+    ## Ctypes definitions from C-libraries
+    lib = np.ctypeslib.load_library(oscaarModuleDir+os.sep+'c'+os.sep+'transit1forLMLS','.') 	## Loads .so library
+    Efunction = lib.E
+    Efunction.argtypes = [ctypes.c_double]	
+    ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
+    ## NOTE!: If vector input is going to be a vector of C-floats, use np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')
+    ##        If vector input is going to be a vector of C-doubles, use np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')
+
+    ## The arguments of occultquad are: occultquad(float *t, float *phi, float p, float ap, float P, float i, float gamma1, 
+    ##											   float gamma2, double e, double longPericenter, double t0, float n, float *F);
+
+    Efunction.restype = ctypes.c_double	## Put the return type of the function here. If "return void" in C func, restype=None
+
+    #################################################################
+    return Efunction(k)
+
+def ellippi(n,k):
+    ###################################################################################################
+    ## Ctypes definitions from C-libraries
+    lib = np.ctypeslib.load_library(oscaarModuleDir+os.sep+'c'+os.sep+'transit1forLMLS','.') 	## Loads .so library
+    PIfunction = lib.PI
+    PIfunction.argtypes = [ctypes.c_double,ctypes.c_double]	
+    ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
+    ## NOTE!: If vector input is going to be a vector of C-floats, use np.ctypeslib.ndpointer(np.float32,flags='aligned,C_CONTIGUOUS')
+    ##        If vector input is going to be a vector of C-doubles, use np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS')
+
+    ## The arguments of occultquad are: occultquad(float *t, float *phi, float p, float ap, float P, float i, float gamma1, 
+    ##											   float gamma2, double e, double longPericenter, double t0, float n, float *F);
+
+    PIfunction.restype = ctypes.c_double	## Put the return type of the function here. If "return void" in C func, restype=None
+
+    #################################################################
+    return PIfunction(n,k)
