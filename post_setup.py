@@ -80,10 +80,5 @@ def complile_C():
     os.chdir(olddir)
     
 if __name__ == '__main__':
-    time.sleep(.5)
     download_ds9()
     complile_C()
-    
-## When executed in Unix shell, the shell may not present the user with a fresh
-## prompt. By pressing enter (or any key) they'll get the prompt back. 
-print 'If you see this message, press Enter.'

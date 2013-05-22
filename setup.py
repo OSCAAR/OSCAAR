@@ -139,8 +139,9 @@ def to_do_at_exit():
     del_dir('dist')
     del_dir('OSCAAR.egg-info')
         
-    'Installation finished. Starting DS9 downloader and C code builder'
-    subprocess.Popen(['python', 'post_setup.py'])
+    'Installation finished. Starting DS9 downloader and C code builder\n'
+    #subprocess.Popen(['python', 'post_setup.py'])
+    subprocess.check_call(['python', 'post_setup.py'])
     
 atexit.register(to_do_at_exit)
     
