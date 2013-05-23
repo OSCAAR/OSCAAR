@@ -71,7 +71,7 @@ def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
     #gam2=0.3
     
     xd=np.arange(np.size(NormFlux))
-    print Rp,b1,vel,midtrantime
+
     fit,success=optimize.curve_fit(transiterout,
                                    xdata=xd.astype(np.float64),
                                    ydata=NormFlux.astype(np.float64),
@@ -80,6 +80,8 @@ def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
     return fit,success
 
 def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
+    mpmath.prec=80
+    print Rp,b1,vel,midtrantime
     
     Rs=1.0
     p=Rp/Rs
@@ -120,9 +122,9 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                 Kk=mpmath.ellipk(m)
                 Ek=mpmath.ellipe(m)
                 Pik=mpmath.ellippi(n2,m)
-                #Kk=oscaar.transitModel.ellipk(m)
-                #Ek=oscaar.transitModel.ellipe(m)
-                #Pik=oscaar.transitModel.ellippi(n2,m)
+                #Kk=oscaar.transitModel.ellipk(k)
+                #Ek=oscaar.transitModel.ellipe(k)
+                #Pik=oscaar.transitModel.ellippi(n2,k)
                 
                 K0=np.arccos((p**2+z**2-1)/(2*p*z))
                 K1=np.arccos((1-p**2+z**2)/(2*z))
@@ -198,10 +200,15 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	print Ing
 	
 	#Get values and uncertainties from the fit
-	Rp=ufloat(fit[0],np.sqrt(success[0][0]))
-	b1=ufloat(fit[1],np.sqrt(success[1][1]))
-	vel=ufloat(fit[2],np.sqrt(success[2][2]))
-	midtrantime=ufloat(fit[3],np.sqrt(success[3][3]))
+	Rp=fit[0]
+	b1=fit[1]
+	vel=fit[2]
+	midtrantime=fit[3]
+	
+	#Rp=ufloat(fit[0],np.sqrt(success[0][0]))
+	#b1=ufloat(fit[1],np.sqrt(success[1][1]))
+	#vel=ufloat(fit[2],np.sqrt(success[2][2]))
+	#midtrantime=ufloat(fit[3],np.sqrt(success[3][3]))
 	#gam1=ufloat((fit[4],np.sqrt(success[4][4])))
 	#gam2=ufloat((fit[5],np.sqrt(success[5][5])))
 	
@@ -214,13 +221,13 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	dt=timedays[2]-timedays[1]
 	
 	aRstar=(2*delta**0.25*P/(np.pi*dt*umath.sqrt(Ttot**2-Tfull**2)))#*umath.sqrt(1-ecc**2)/(1+ecc*sin(arg_periapsis*pi/180.))
-	#bmodel=umath.sqrt((1-(Tfull/Ttot)**2)/((1-umath.sqrt(delta))**2-(Tfull/Ttot)**2 * (1+umath.sqrt(delta))**2)) #Not too sure why this doesn't work
+	#bmnodel=umath.sqrt((1-(Tfull/Ttot)**2)/((1-umath.sqrt(delta))**2-(Tfull/Ttot)**2 * (1+umath.sqrt(delta))**2)) #Not too sure why this doesn't work
 	inc=(180/np.pi)*umath.acos(b1/aRstar)
 	#print bmodel
 	
-	poutnames=('Rp','b1','vel','midtrantime','gam1','gam2')
-	for iz in range(0,np.size(fit)):
-		print poutnames[iz],fit[iz],np.sqrt(success[iz][iz])
+	#poutnames=('Rp','b1','vel','midtrantime','gam1','gam2')
+	#for iz in range(0,np.size(fit)):
+	#	print poutnames[iz],fit[iz],np.sqrt(success[iz][iz])
 		
 	print "--------------------------------"
 	aRstarFIT=vel*P/(dt*2*np.pi)
