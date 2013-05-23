@@ -80,13 +80,12 @@ def create_manifest():
 			for filename in filenames:
 				if filename.endswith(('.py', '.pyc')) == False:
 				  matches.append(os.path.join(root, filename))
-				  
-	#print 'FILES:',map(os.path.abspath,glob(os.path.join('.','*.txt')))
-	#for root_plus_filename in map(os.path.abspath,glob(os.path.join('.','*.txt'))):
-	#	matches.append(root_plus_filename)
-	#	print 'TEXT FILES:',root_plus_filename
-		
+
+	"""Manually add extra files from the top-level directory"""
 	matches.append(os.path.join(os.path.dirname(__file__),'post_setup.py'))
+	matches.append(os.path.join(os.path.dirname(__file__),'INSTALL.txt'))
+	matches.append(os.path.join(os.path.dirname(__file__),'LICENSE.txt'))
+
 	with open('MANIFEST.in', 'w') as f:
 		f.writelines(("include %s\n" % l.replace(' ','?') for l in matches))
 
@@ -140,8 +139,7 @@ def setup_package():
 	  ],
 	)
 
-print 'INSTALL FILE',os.path.join(os.path.dirname(os.path.abspath(__file__)),'INSTALL.txt')
-print 'INSTALL FILE',os.path.dirname(os.path.abspath(__file__))
+
 def to_do_at_exit():
 	delete_manifest()
 	del_dir('build')
