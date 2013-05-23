@@ -1,6 +1,6 @@
 [![OSCAAR Logo](http://www.astro.umd.edu/~bmorris3/oscaar/READMEheader.png)](http://oscaar.github.io)
 
-**If you're new to oscaar, we strongly recommend that you check out our [prettier and more detailed wiki](https://github.com/OSCAAR/OSCAAR/wiki) rather than reading this little README.**
+**If you're new to oscaar, we strongly recommend that you check out our [prettier and more detailed GitPage](http://oscaar.github.io) rather than reading this little README.**
 
 OSCAAR supports Mac OS 10.6 and above, Ubuntu 12.04 and Windows. It requires Python 2.7 and several additional packages listed on our [Dependencies wiki page](https://github.com/OSCAAR/OSCAAR/wiki/Dependencies).
 
