@@ -80,7 +80,11 @@ def create_manifest():
 			for filename in filenames:
 				if filename.endswith(('.py', '.pyc')) == False:
 				  matches.append(os.path.join(root, filename))
-
+	for root, dirnames, filenames in os.walk('docs'):
+		if ('.git' in str(root)) == False:
+			for filename in filenames:
+				if filename.endswith(('.py', '.pyc')) == False:
+				  matches.append(os.path.join(root, filename))
 	"""Manually add extra files from the top-level directory"""
 	matches.append(os.path.join(os.path.dirname(__file__),'post_setup.py'))
 	matches.append(os.path.join(os.path.dirname(__file__),'INSTALL.txt'))
