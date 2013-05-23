@@ -1,5 +1,4 @@
 import numpy as np
-import cmath
 from sympy import mpmath
 import pyfits
 from scipy import optimize,fmin,special
@@ -60,7 +59,6 @@ def normalizedata(time,data,lL,lR,rL,rR):
     show()
     return NormFlux,time_days,time
 
-
 #Function that fits the light-curve model to a data set, given some input parameters for the planet. 
 def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
     
@@ -78,6 +76,7 @@ def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
                                    p0=(Rp,b1,vel,midtrantime),
                                    )
     return fit,success
+
 
 def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
     print Rp,b1,vel,midtrantime
