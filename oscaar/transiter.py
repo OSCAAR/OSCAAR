@@ -80,7 +80,6 @@ def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
     return fit,success
 
 def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
-    mpmath.prec=80
     print Rp,b1,vel,midtrantime
     
     Rs=1.0
@@ -119,13 +118,12 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                 m=k**2
                 n2=(a-1)/a
                 
-                Kk=mpmath.ellipk(m)
-                Ek=mpmath.ellipe(m)
+                #Kk=mpmath.ellipk(m)
+                #Ek=mpmath.ellipe(m)
                 Pik=mpmath.ellippi(n2,m)
-                #Kk=oscaar.transitModel.ellipk(k)
-                #Ek=oscaar.transitModel.ellipe(k)
-                #Pik=oscaar.transitModel.ellippi(n2,k)
-                
+                Kk=oscaar.transitModel.ellipk(np.sqrt(m))
+                Ek=oscaar.transitModel.ellipe(np.sqrt(m))
+                #Pik=oscaar.transitModel.ellippi(n2,np.sqrt(m))
                 K0=np.arccos((p**2+z**2-1)/(2*p*z))
                 K1=np.arccos((1-p**2+z**2)/(2*z))
                 
@@ -146,11 +144,11 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
             elif p<= z <= 1-p:
                 
                 lamE = p**2
-                k=(1-a)/(4*z*p)
-                
-                Kinv=mpmath.ellipk(1/k)
-                Einv=mpmath.ellipe(1/k)
-                Pinv=mpmath.ellippi((a-b)/a,1/k)
+                k=np.sqrt((1-a)/(4*z*p))
+                m=k**2
+                Kinv=mpmath.ellipk(1/m)
+                Einv=mpmath.ellipe(1/m)
+                Pinv=mpmath.ellippi((a-b)/a,1/m)
                 #Kinv=oscaar.transitModel.ellipk(1/k)
                 #Einv=oscaar.transitModel.ellipe(1/k)
                 #Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
