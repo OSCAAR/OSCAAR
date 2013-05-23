@@ -667,8 +667,8 @@ class WorkerThread(threading.Thread):
 #        homeDir()
         #os.chdir(os.path.join(os.path.dirname(__file__)))
         #execfile('differentialPhotometry.py')
-		import differentialPhotometry
-		
+        import differentialPhotometry
+        
 class PlotThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -694,7 +694,7 @@ class EphFrame(wx.Frame):
         self.ctrlList = []
         self.ephSizer = wx.GridBagSizer(5,5)
 #        homeDir()
-        obsList = glob(os.path.join(os.path.dirname(__file__),'extras') + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
+        obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
         nameList = []
         #for i in obsList:
         #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
@@ -789,7 +789,7 @@ class EphFrame(wx.Frame):
 #            homeDir()
             '''This is a hack so as to display the observatory names in the drop down menu but to
                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
-            obsList = glob(os.path.join(os.path.dirname(oscaar.__file__),'extras') + os.sep + 'eph' + os.sep + 'observatories'+os.sep+'*')
+            obsList = glob(os.path.join(os.path.dirname(oscaar.__file__),'extras','eph','observatories','*.par'))
             nameList = []
             #for i in obsList:
             #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
