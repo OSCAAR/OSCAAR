@@ -1,4 +1,4 @@
-![OSCAAR Logo](http://www.astro.umd.edu/~bmorris3/oscaar/READMEheader.png)
+[![OSCAAR Logo](http://www.astro.umd.edu/~bmorris3/oscaar/READMEheader.png)](http://oscaar.github.io)
 
 **If you're new to oscaar, we strongly recommend that you check out our [prettier and more detailed wiki](https://github.com/OSCAAR/OSCAAR/wiki) rather than reading this little README.**
 
