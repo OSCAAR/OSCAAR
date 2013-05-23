@@ -1,6 +1,5 @@
 import numpy as np
 from sympy import mpmath
-import pyfits
 from scipy import optimize,fmin,special
 from uncertainties import ufloat,umath
 from matplotlib import pyplot
@@ -50,10 +49,6 @@ def normalizedata(time,data,lL,lR,rL,rR):
     NormFlux=data[lL:rR]/quadbline(np.arange(lL,rR),a,b,c)
     time_days=time[lL:rR]
 
-    #Preparing the intial guesses for the fit routine
-    Rp_guess=1-min(NormFlux)
-
-
     #Check to see if it was normalized correctly
     plot(NormFlux)
     show()
@@ -69,23 +64,28 @@ def fittransit(NormFlux,Rp,aRstar,inc,dt,Period):
     #gam2=0.3
     
     xd=np.arange(np.size(NormFlux))
-
+    
+    print "Performing Fit using input guesses of,"
+    print "Rp/Rs = ",Rp
+    print "a/Rs = ",aRstar
+    print "inclination = ",inc
+    print "Period = ",Period
     fit,success=optimize.curve_fit(transiterout,
                                    xdata=xd.astype(np.float64),
                                    ydata=NormFlux.astype(np.float64),
-                                   p0=(Rp,b1,vel,midtrantime),
+                                   p0=(Rp,b1,vel,midtrantime)
                                    )
     return fit,success
 
-
-def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
-    print Rp,b1,vel,midtrantime
+#Light-Curve model using input parameters, Rp=planetary/stellar radius
+#ratio, b1=impact parameter, vel=planetary velocity, midtrantime=,
+#Mid-Transit time. 
+def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):    
+    p=Rp/1.0
+    gam1=0.25
+    gam2=0.45
     
-    Rs=1.0
-    p=Rp/Rs
-    gam1=0.23
-    gam2=0.3
-    
+    #Make Edit Changes
     c2=gam1+2*gam2
     c4=-gam2
     c0=1-c2-c4
@@ -114,51 +114,37 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                     Egr.append(i)
                 
                 k=np.sqrt((1-a)/(4*z*p))
-                m=k**2
                 n2=(a-1)/a
                 
-                #Kk=mpmath.ellipk(m)
-                #Ek=mpmath.ellipe(m)
-                Pik=mpmath.ellippi(n2,m)
-                Kk=oscaar.transitModel.ellipk(np.sqrt(m))
-                Ek=oscaar.transitModel.ellipe(np.sqrt(m))
+                Kk=mpmath.ellipk(k**2)
+                Ek=mpmath.ellipe(k**2)
+                Pik=mpmath.ellippi(n2,k**2)
+                #Kk=oscaar.transitModel.ellipk(np.sqrt(m))
+                #Ek=oscaar.transitModel.ellipe(np.sqrt(m))
                 #Pik=oscaar.transitModel.ellippi(n2,np.sqrt(m))
                 K0=np.arccos((p**2+z**2-1)/(2*p*z))
                 K1=np.arccos((1-p**2+z**2)/(2*z))
                 
-                f1=p**2*K0
-                f2=np.sqrt((4*z**2-(1+z**2-p**2)**2)/4)
-                lamE=(1/np.pi)*(f1+K1-f2)
-                
-                one1=1/(9*np.pi*np.sqrt(p*z))
-                one2=(1-b)*(2*b+a-3)-3*q*(b-2)
-                one3=4*p*z*(z**2+7*p**2-4)
-                lam1=one1*(one2*Kk+one3*Ek-3*(q/a)*Pik) 
-                
+                lamE=(1/np.pi)*(p**2*K0+K1-np.sqrt((4*z**2-(1+z**2-p**2)**2)/4))
+                lam1=(1/(9*np.pi*np.sqrt(p*z)))*(((1-b)*(2*b+a-3)-3*q*(b-2))*Kk+4*p*z*(z**2+7*p**2-4)*Ek-3*(q/a)*Pik) 
                 eta1=(1/(2*np.pi))*(K1+2*eta2*K0-0.25*(1+5*p**2+z**2)*np.sqrt((1-a)*(b-1)))
                 
-                fx1=1/(4*Om)
-                Flux[i]=1-fx1*((1-c2)*lamE+c2*(lam1+(2/3)*0*(p-z))-c4*eta1)
+                Flux[i]=1-(4*Om)**-1*((1-c2)*lamE+c2*(lam1+(2/3)*0*(p-z))-c4*eta1)
                 
-            elif p<= z <= 1-p:
+            elif p<=z<=1-p:
                 
                 lamE = p**2
                 k=np.sqrt((1-a)/(4*z*p))
-                m=k**2
-                Kinv=mpmath.ellipk(1/m)
-                Einv=mpmath.ellipe(1/m)
-                Pinv=mpmath.ellippi((a-b)/a,1/m)
+                Kinv=mpmath.ellipk(1/k**2)
+                Einv=mpmath.ellipe(1/k**2)
+                Pinv=mpmath.ellippi((a-b)/a,1/k**2)
                 #Kinv=oscaar.transitModel.ellipk(1/k)
                 #Einv=oscaar.transitModel.ellipe(1/k)
                 #Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
                 
-                two1=2/(9*np.pi*np.sqrt(1-a))
-                two2=1-5*z**2+p**2+q**2
-                two3=(1-a)*(z**2+7*p**2-4)
-                lam2=two1*(two2*Kinv+two3*Einv-3*(q/a)*Pinv)
+                lam2=(2/(9*np.pi*np.sqrt(1-a)))*((1-5*z**2+p**2+q**2)*Kinv+(1-a)*(z**2+7*p**2-4)*Einv-3*(q/a)*Pinv)
                 
-                fx1=1/(4*Om)
-                Flux[i]=1-fx1*((1-c2)*lamE+c2*(lam2+(2/3))-c4*eta2)
+                Flux[i]=1-(4*Om)**-1*((1-c2)*lamE+c2*(lam2+(2/3))-c4*eta2)
         
             elif 0 <= z <= 0.5-abs(p-0.5):
                 lamE = p**2
@@ -171,21 +157,19 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                 #Kinv=oscaar.transitModel.ellipk(1/k)
                 #Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
                 
-                two1=2/(9*np.pi*np.sqrt(1-a))
-                two2=1-5*z**2+p**2+q**2
-                two3=(1-a)*(z**2+7*p**2-4)
-                lam2=two1*(two2*Kinv+two3*Einv-3*(q/a)*Pinv)
+                lam2=(2/(9*np.pi*np.sqrt(1-a)))*((1-5*z**2+p**2+q**2)*Kinv+(1-a)*(z**2+7*p**2-4)*Einv-3*(q/a)*Pinv)
                 
                 hh=heavyside(p-z)
                 fx1=1/(4*Om)
                 Flux[i]=1-fx1*((1-c2)*lamE+c2*(lam2+(2.0/3.0)*hh)-c4*eta2)
 
-    else:
+    else: #If the input parameters goes beyond a constraint
         Flux=np.zeros(np.size(x))
-    if fitting==True:
+    if fitting==True: 
         return Flux,Ing,Egr
     else:
         return Flux
+
 
 def find_nearest(array,value):
     idx = (abs(array-value)).argmin()
@@ -194,7 +178,7 @@ def find_nearest(array,value):
 #Get the values on the output fit parameters
 def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	Flux,Ing,Egr=transiterout(np.arange(0,np.size(NormFlux)),fit[0],fit[1],fit[2],fit[3],fitting=True)
-	print Ing
+	print "Converting model to orbital parameters . . . "
 	
 	#Get values and uncertainties from the fit
 	Rp=fit[0]
@@ -244,9 +228,8 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	print "Inclination: ",incFIT
 	print "Semi - Major Axis / Stellar Radius: ",aRs
 	print "Mid-Transit Time [MJD]",
+	
 	pyplot.plot(timedays,NormFlux,linestyle='None',marker='.')
 	pyplot.plot(timedays,transiterout(np.arange(np.size(NormFlux)),fit[0],fit[1],fit[2],fit[3]))
 	pyplot.show()    
 	return Flux,Rp,aRstarFIT,incFIT,aRstar,midtrantime
-
-
