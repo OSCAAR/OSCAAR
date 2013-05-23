@@ -1,7 +1,7 @@
 import numpy as np
-from sympy import mpmath
+#from sympy import mpmath
 from scipy import optimize,fmin,special
-from uncertainties import ufloat,umath
+#from uncertainties import ufloat,umath
 from matplotlib import pyplot
 import oscaar
 
