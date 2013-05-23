@@ -10,19 +10,18 @@ from matplotlib import pyplot as plt
 from scipy import optimize
 #from time import sleep
 #import shutil
-#from glob import glob
+from glob import glob
 #from re import split
 #import cPickle
 #from shutil import copy
 import os
+import oscaar
 from IO import *
 from other import *
 from mathMethods import *
-
-import oscaar
-oscaarpath = os.path.dirname(oscaar.__file__)
+oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
 oscaarpathplus = os.path.join(oscaarpath,'extras')
-del oscaar
+
         
 class dataBank:
     '''
@@ -260,7 +259,7 @@ class dataBank:
         '''
         Parses init.par
         '''
-        init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
+        init = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'init.par'), 'r').read().splitlines()
         for line in init:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)
@@ -287,8 +286,8 @@ class dataBank:
 						    impaths.append(path)
 						self.imagesPaths = np.sort(impaths)
                 elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
-                elif inline[0] == 'Ingress':  self.ingress = ut2jd(str(inline[1].split('#')[0].strip()))
-                elif inline[0] == 'Egress':  self.egress = ut2jd(str(inline[1].split('#')[0].strip()))
+                elif inline[0] == 'Ingress':  self.ingress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
+                elif inline[0] == 'Egress':  self.egress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
                 elif inline[0] == 'Radius':   self.apertureRadius = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Tracking Zoom':   self.trackingZoom = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'CCD Gain':    self.ccdGain = float(inline[1].split('#')[0].strip())
@@ -312,7 +311,7 @@ class dataBank:
         '''
         Parses observatory.par
         '''
-        obs = open(os.path.join(os.path.dirname(__file__),'observatory.par'), 'r').read().splitlines()
+        obs = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'observatory.par'), 'r').read().splitlines()
         for line in obs:
             if line.split() > 1 and line[0] != '#':
                 inline = line.split(':', 1)
@@ -324,19 +323,19 @@ class dataBank:
                 ##elif inline[0] == '':
                 
     def plot(self,pointsPerBin=10):
-        plt.clf()
+        plt.close()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('oscaar2.0') 
         print 'plotting'
         times = self.getTimes()
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
-        lightCurve = self.computeLightCurve(meanComparisonStar)
+        lightCurve, lightCurveErr = self.computeLightCurve(meanComparisonStar, meanComparisonStarError)
         binnedTime, binnedFlux, binnedStd = medianBin(times,lightCurve,pointsPerBin)
         photonNoise = self.getPhotonNoise()
 
-        plt.plot(times,lightCurve,'k.')
-        plt.plot(times[self.outOfTransit()],photonNoise[self.outOfTransit()]+1,'b',linewidth=2)
-        plt.plot(times[self.outOfTransit()],1-photonNoise[self.outOfTransit()],'b',linewidth=2)
+        plt.errorbar(times,lightCurve,yerr=lightCurveErr,fmt='k.',ecolor='gray')
+        #plt.plot(times[self.outOfTransit()],photonNoise[self.outOfTransit()]+1,'b',linewidth=2)
+        #plt.plot(times[self.outOfTransit()],1-photonNoise[self.outOfTransit()],'b',linewidth=2)
         plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
         plt.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
         plt.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
@@ -346,4 +345,5 @@ class dataBank:
         #fig.canvas.draw()
         #plt.draw()
         print 'showing'
+        plt.ioff()
         plt.show()

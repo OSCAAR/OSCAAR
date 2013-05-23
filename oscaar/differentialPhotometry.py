@@ -83,4 +83,4 @@ binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
 photonNoise = data.getPhotonNoise()
 
 oscaar.save(data,outputPath)
-#data.plot(pointsPerBin=20)
+data.plot(pointsPerBin=10)

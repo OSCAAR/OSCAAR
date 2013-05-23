@@ -664,11 +664,8 @@ class WorkerThread(threading.Thread):
         self.start()
 
     def run(self):
-#        homeDir()
-        #os.chdir(os.path.join(os.path.dirname(__file__)))
-        #execfile('differentialPhotometry.py')
-        import differentialPhotometry
-        
+        diffPhotCall = "from oscaar import differentialPhotometry"
+        subprocess.call(['python','-c',diffPhotCall])
 class PlotThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -877,14 +874,14 @@ class EphFrame(wx.Frame):
         newobs.close()
         
     def calculate(self, event):
-        path = os.path.join(os.path.dirname(oscaar.__file__),'extras','eph','observatories',self.filename.GetValue() + '.par')
+        path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
         self.saveFile(str(path))
         namespace = {}
-        execfile(os.path.join(os.path.dirname(oscaar.__file__),'extras','eph','calculateEphemerides.py'),namespace)
+        execfile(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','calculateEphemerides.py'),namespace)
         globals().update(namespace)
-        rootPath = str(os.path.join(os.path.dirname(oscaar.__file__),'extras','eph','ephOutputs'))
+        rootPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'))
         calculateEphemerides(path,rootPath)
-        outputPath = str(os.path.join(os.path.dirname(oscaar.__file__),'extras','eph','ephOutputs','eventReport.html'))
+        outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
         
