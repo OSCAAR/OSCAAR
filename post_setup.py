@@ -103,7 +103,7 @@ def download_ds9():
 """ Compile C files in c dir of oscaar"""
 def complile_C():
     print
-    print 'Start compiling C code for sample generation..'
+    print 'Start compiling C code for light curve modeling..'
     import oscaar
     oscaardir = oscaar.__file__
     oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
@@ -117,6 +117,6 @@ def complile_C():
     os.chdir(olddir)
     
 if __name__ == '__main__':
+    complile_C()
     if sys.argv[-1] == 'install' or sys.argv[-1] == os.path.abspath(__file__): 
         download_ds9()
-    complile_C()
