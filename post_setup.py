@@ -11,7 +11,7 @@ import time
 def download_ds9():
     print
     import oscaar
-    oscaardir = oscaar.__file__
+    oscaardir = os.path.abspath(oscaar.__file__)
     oscaardirds9 = os.path.join(os.path.dirname(oscaardir),'extras','ds9',sys.platform)
     
     sysplatform = sys.platform
@@ -107,7 +107,7 @@ def complile_C():
     print
     print 'Start compiling C code for light curve modeling..'
     import oscaar
-    oscaardir = oscaar.__file__
+    oscaardir = os.path.abspath(oscaar.__file__)
     oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
     olddir = os.getcwd()
     os.chdir(oscaardirC)
