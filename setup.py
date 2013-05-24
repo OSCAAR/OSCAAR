@@ -7,6 +7,7 @@ import os
 import sys
 import shutil
 from setuptools import setup
+#from distribute import setup
 import subprocess
 import atexit
 from glob import glob 
