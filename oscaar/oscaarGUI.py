@@ -787,7 +787,7 @@ class EphFrame(wx.Frame):
 #            homeDir()
             '''This is a hack so as to display the observatory names in the drop down menu but to
                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
-            obsList = glob(os.path.join(os.path.dirname(oscaar.__file__),'extras','eph','observatories','*.par'))
+            obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
             nameList = []
             #for i in obsList:
             #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
@@ -799,11 +799,11 @@ class EphFrame(wx.Frame):
             
             for ind in range(0,len(nameList)):
                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
-            obsPath = os.path.join(os.path.dirname(oscaar.__file__),openFile)
+            obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
-        obsFilename = obsPath[obsPath.rfind(os.sep)+1:obsPath.rfind('.')]
-        self.filename.SetValue(obsFilename)
+        #obsFilename = obsPath[obsPath.rfind(os.sep)+1:obsPath.rfind('.')]
+        #self.filename.SetValue(obsFilename)
         obsPath = file(obsPath, 'r')
         for line in obsPath:
             if line.split(':',1) > 1 and line[0] != '#':
