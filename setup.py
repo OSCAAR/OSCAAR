@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
-""" Made by Luuk Visser, University of Leiden and Delft University of 
-	Technology. Initial version (5-19-2013). """
+"""Made by Luuk Visser (UL/TUD), with tweaks by Brett Morris (NASA GSFC/UMD)"""
 	
 import os
 import sys
 import shutil
 from setuptools import setup
-#from distribute import setup
 import subprocess
 import atexit
-from glob import glob 
 
 """ Checking for all required packages and if these are recent enough """
 minimum_numpy_version = "1.6"
@@ -24,6 +21,7 @@ sysplatform = sys.platform
 if sys.version_info[:2] != (2, 7):
 	raise RuntimeError("must use python 2.7.x")
 
+"""  Check if the package dependancies/requirements are fulfilled """
 try:
 	import numpy as np
 except:
@@ -120,17 +118,21 @@ def setup_package():
 	create_manifest()
 	setup(
 		name = "OSCAAR",
-		version = "2.0prebeta",
-		author = "Core Developer: Brett Morris. Contributors: Daniel Galdi, Nolan Matthews, Sam Gross, Luuk Visser",
+		version = "2.0beta",
+		author = "Core Developer: Brett Morris. Contributors: "+\
+                      "Daniel Galdi, Nolan Matthews, Sam Gross, Luuk Visser",
 		author_email = "oscaarUMD@gmail.com",
-		description = ("oscaar is an open source project aimed at helping you begin to study transiting extrasolar planets with differential photometry."),
-		license = 'LICENSE',
+		description = ("oscaar is an open source project aimed at "+\
+                      "helping you begin to study transiting extrasolar "+\
+                      "planets with differential photometry."),
+		license = 'LICENSE.txt',
 		keywords = "oscaar transit astronomy photometry exoplanets",
 		url = "https://github.com/OSCAAR/OSCAAR/wiki",
 		packages=get_packages(),
 		include_package_data = True,
 		zip_safe = False,
-		long_description=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'oscaar','README')).read(),
+		long_description=open(os.path.join(os.path.dirname(\
+                      os.path.abspath(__file__)),'oscaar','README')).read(),
 		download_url='https://github.com/OSCAAR/OSCAAR/archive/master.zip',
 		classifiers=[
 		  'Development Status :: 4 - Beta',
@@ -145,6 +147,8 @@ def setup_package():
 	)
 
 
+""" At exit delete temporary files, and run post setup script if argument is
+    'install' """
 def to_do_at_exit():
 	delete_manifest()
 	del_dir('build')
@@ -153,10 +157,10 @@ def to_do_at_exit():
 	if sys.argv[-1] == 'install': 
 		del_dir('dist')
 		
-		'Installation finished. Starting DS9 downloader and C code builder\n'
+		'Installation finished. Starting DS9 downloader and compile C\n'
 		subprocess.check_call(['python', 'post_setup.py',sys.argv[-1]])
-	
-		
+
+""" Set function to be executed at exit of code (when script is finished) """
 atexit.register(to_do_at_exit)
 	
 if __name__ == '__main__':
