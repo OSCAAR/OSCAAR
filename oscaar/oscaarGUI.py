@@ -216,10 +216,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     #####Opens DS9 to create a regions file when button is pressed#####
     def openDS9(self, event):
-        ds9 = os.path.join(os.path.dirname(__file__),'extras','ds9')
-        ds9Loc = ds9 + '/' + sys.platform + '/ds9'
-        regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
-        subprocess.Popen([ds9Loc, regionsName])
+        ds9 = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','ds9',sys.platform,'ds9')
+        #ds9Loc = ds9 + '/' + sys.platform + '/ds9'
+        #regionsName =  ds9 + '/testFits.fit'  ##if it is beneficial, we could use glob to get the users actual image here
+        #subprocess.Popen([ds9Loc, regionsName])
+        subprocess.Popen([ds9])
         
     def openMasterFlatGUI(self, event):
         global masterFlatOpen
