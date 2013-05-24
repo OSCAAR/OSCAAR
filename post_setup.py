@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
 import os
 import sys
 import urllib2
 import time
+time.sleep(0.5)
+
+save_path = sys.path[:]
+sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
+import oscaar
+sys.path = save_path
+oscaardir = os.path.abspath(oscaar.__file__)
 
 """ Function to download the ds9 version for current platform.
     URLs are tested working on 5-19-2013 """            
 def download_ds9():
     print
-    import oscaar
-    oscaardir = os.path.abspath(oscaar.__file__)
+#    import oscaar
+#    oscaardir = os.path.abspath(oscaar.__file__)
     oscaardirds9 = os.path.join(os.path.dirname(oscaardir),'extras','ds9',sys.platform)
     
     sysplatform = sys.platform
@@ -106,14 +111,14 @@ def download_ds9():
 def complile_C():
     print
     print 'Start compiling C code for light curve modeling..'
-    import oscaar
-    oscaardir = os.path.abspath(oscaar.__file__)
+    
     oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
     olddir = os.getcwd()
     os.chdir(oscaardirC)
     
     import subprocess
-    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace'])
+    cresult = subprocess.Popen(['python', 'setup.py','build_ext'])
+#    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace','--compiler=msvc'])
     cresult.wait()
     
     os.chdir(olddir)
