@@ -6,39 +6,6 @@ from glob import glob
 from time import strftime
 import webbrowser
 import subprocess
-#from os.path import expanduser
-
-#def homeDir():
-#    '''Look for the `.homeDir file` in the current directory. If it is in
-#       in the current working directory, do nothing. Otherwise, go up a 
-#       level through parent directories until the `.homeDir` file is in the
-#       current working directory. If it is never reached, go back 
-#       to the original current working directory and prompt the user. '''
-#    originalDirectory = os.getcwd()
-#    userHomeDirectory = expanduser("~")    
-#    ## This is the user's home directory. Assume that they will not put the oscaar
-#    ## working directory at any levels higher than this.
-#    
-#    while len(glob('./.homeDir'))  == 0 and len(os.getcwd()) > len(userHomeDirectory):
-#        os.chdir(os.pardir)
-#    if len(os.getcwd()) == len(userHomeDirectory):
-#        print '\n******************************************************************\n'+\
-#                'WARNING: oscaar.homeDir() has walked backward through to your user  \n'+\
-#                'home directory and has not found the top-level directory for OSCAAR. \n'+\
-#                'The current working directory will now be changed back to the \n'+\
-#                'current working directory before oscaar.homeDir() was called. \n'+\
-#                'This error can be caused by deleting the OSCAAR/.homeDir file, \n'+\
-#                'which indicates the top-level oscaar directory. It is permissible\n'+\
-#                'to change the name of the OSCAAR directory as long as .homeDir is\n'+\
-#                'still located in that directory.\n'+\
-#                '******************************************************************\n'
-#        os.chdir(originalDirectory)
-
-
-#os.chdir(os.path.join(os.path.dirname(__file__),'code'))
-#if os.getcwd() not in sys.path:
-#    sys.path.insert(0, os.getcwd())
-#import oscaar.code.oscaar as oscaarx
 import oscaar
 APP_EXIT = 1
 
@@ -76,8 +43,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
-#        homeDir()
-        #print os.getcwd()
         self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
@@ -234,10 +199,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             ephGUIOpen = True
             EphFrame(None)
             
-
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
-#        homeDir()
         os.chdir(os.path.join(os.path.dirname(__file__),'docs'))
         if sys.platform == 'linux2': ##Haven't tested this
             os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
@@ -248,9 +211,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-#        homeDir()
-        #os.chdir(os.path.join(os.path.dirname(__file__),'code'))
-        #os.chdir(os.path.join(os.path.dirname(__file__)))
         global worker
         worker = None
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
@@ -592,8 +552,7 @@ class AboutFrame(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.SetBackgroundColour(wx.Colour(227,227,227))
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), style=wx.ALIGN_CENTER)
-#        homeDir()
-        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'code/oscaar/images/logo4noText.png'), wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.path.join(os.path.dirname(os.path.abspath(__file__)),'images/logo4noText.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
@@ -673,7 +632,6 @@ class PlotThread(threading.Thread):
         self.start()
 
     def run(self):
-#        homeDir()
         os.chdir(os.path.join(os.path.dirname(__file__)))
         execfile('plotPickle.py')
         
@@ -691,7 +649,6 @@ class EphFrame(wx.Frame):
         self.SetTitle('Ephemerides')
         self.ctrlList = []
         self.ephSizer = wx.GridBagSizer(5,5)
-#        homeDir()
         obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
         nameList = []
         #for i in obsList:
@@ -784,7 +741,6 @@ class EphFrame(wx.Frame):
             self.filename.SetValue('Enter Filename for Observatory')
             self.name.SetValue('Enter Name of Observatory')
         else:
-#            homeDir()
             '''This is a hack so as to display the observatory names in the drop down menu but to
                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
             obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
