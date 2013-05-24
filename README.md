@@ -7,3 +7,6 @@ OSCAAR supports Mac OS 10.6 and above, Ubuntu 12.04 and Windows. It requires Pyt
 OSCAAR 2.0 is under active development. Code will change and break rapidly and without notice. We welcome your input and suggestions as we develop new features. Please submit them through the [Issue Tracker](https://github.com/OSCAAR/OSCAAR/issues) (click "New Issue" in the top right, and enter your suggestions).
 
 Core Developer: Brett Morris (NASA GSFC/UMD). Contributors: Daniel Galdi (UMD), Nolan Matthews (UMD), Luuk Visser (UL/TUD), Sam Gross (UMD)
+
+Have a question? Please feel free to [contact us](mailto:oscaarteam@gmail.com).
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/7bf676f68b5b347639ec11e4d9ba5185 "githalytics.com")](http://githalytics.com/OSCAAR/OSCAAR)
