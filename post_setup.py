@@ -108,7 +108,7 @@ def complile_C():
     print 'Start compiling C code for light curve modeling..'
     import oscaar
     oscaardir = os.path.abspath(oscaar.__file__)
-    oscaardirC = os.path.join(os.path.dirname(os.abspath(oscaardir)),'c')
+    oscaardirC = os.path.join(os.path.dirname(os.oscaardir),'c')
     olddir = os.getcwd()
     os.chdir(oscaardirC)
     
