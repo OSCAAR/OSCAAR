@@ -1,5 +1,5 @@
 '''
-	transitModel.py defines the function occultquad(), which 
+    transitModel.py defines the function occultquad(), which 
     loads the C library containing the function of the same 
     name so that analytical transit light curves can be 
     produced in python by passing pythonic arguments to the C code. 
@@ -16,8 +16,8 @@ import os
 ## call the C library stored in the oscaar/c/ directory
 oscaarModuleDir = os.path.split(os.path.abspath(__file__))[0]
 
-def occultquad(t,modelParams):
-    [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
+def occultquad(t,p,ap,i,t0,gamma1=0.23,gamma2=0.45,P=1.58,e=0.0,longPericenter=0.0):
+    #[p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
 
     ###################################################################################################
     ## Ctypes definitions from C-libraries
