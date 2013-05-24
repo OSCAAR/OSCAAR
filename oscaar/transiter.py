@@ -116,12 +116,12 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                 k=np.sqrt((1-a)/(4*z*p))
                 n2=(a-1)/a
                 
-                Kk=mpmath.ellipk(k**2)
-                Ek=mpmath.ellipe(k**2)
-                Pik=mpmath.ellippi(n2,k**2)
-                #Kk=oscaar.transitModel.ellipk(np.sqrt(m))
-                #Ek=oscaar.transitModel.ellipe(np.sqrt(m))
-                #Pik=oscaar.transitModel.ellippi(n2,np.sqrt(m))
+                #Kk=mpmath.ellipk(k**2)
+                #Ek=mpmath.ellipe(k**2)
+                #Pik=mpmath.ellippi(n2,k**2)
+                Kk=oscaar.transitModel.ellipk(np.sqrt(m))
+                Ek=oscaar.transitModel.ellipe(np.sqrt(m))
+                Pik=oscaar.transitModel.ellippi(n2,np.sqrt(m))
                 K0=np.arccos((p**2+z**2-1)/(2*p*z))
                 K1=np.arccos((1-p**2+z**2)/(2*z))
                 
@@ -135,12 +135,12 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                 
                 lamE = p**2
                 k=np.sqrt((1-a)/(4*z*p))
-                Kinv=mpmath.ellipk(1/k**2)
-                Einv=mpmath.ellipe(1/k**2)
-                Pinv=mpmath.ellippi((a-b)/a,1/k**2)
-                #Kinv=oscaar.transitModel.ellipk(1/k)
-                #Einv=oscaar.transitModel.ellipe(1/k)
-                #Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
+                #Kinv=mpmath.ellipk(1/k**2)
+                #Einv=mpmath.ellipe(1/k**2)
+                #Pinv=mpmath.ellippi((a-b)/a,1/k**2)
+                Kinv=oscaar.transitModel.ellipk(1/k)
+                Einv=oscaar.transitModel.ellipe(1/k)
+                Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
                 
                 lam2=(2/(9*np.pi*np.sqrt(1-a)))*((1-5*z**2+p**2+q**2)*Kinv+(1-a)*(z**2+7*p**2-4)*Einv-3*(q/a)*Pinv)
                 
@@ -150,12 +150,12 @@ def transiterout(x,Rp,b1,vel,midtrantime,fitting=False):
                 lamE = p**2
                 k=((1-a)/(4*z*p))
                 
-                Einv=mpmath.ellipe(1/k)
-                Kinv=mpmath.ellipk(1/k)
-                Pinv=mpmath.ellippi((a-b)/a,1/k)
-                #Einv=oscaar.transitModel.ellipe(1/k)
-                #Kinv=oscaar.transitModel.ellipk(1/k)
-                #Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
+                #Einv=mpmath.ellipe(1/k)
+                #Kinv=mpmath.ellipk(1/k)
+                #Pinv=mpmath.ellippi((a-b)/a,1/k)
+                Einv=oscaar.transitModel.ellipe(1/k)
+                Kinv=oscaar.transitModel.ellipk(1/k)
+                Pinv=oscaar.transitModel.ellippi((a-b)/a,1/k)
                 
                 lam2=(2/(9*np.pi*np.sqrt(1-a)))*((1-5*z**2+p**2+q**2)*Kinv+(1-a)*(z**2+7*p**2-4)*Einv-3*(q/a)*Pinv)
                 
@@ -194,16 +194,16 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 	#gam2=ufloat((fit[5],np.sqrt(success[5][5])))
 	
 	P=period
-	ecc_corr=np.sqrt(1-ecc**2)/(1+ecc*umath.sin(arg_periapsis*np.pi/180.))
+	#ecc_corr=np.sqrt(1-ecc**2)/(1+ecc*umath.sin(arg_periapsis*np.pi/180.))
 	Ttot=(Egr[np.size(Egr)-1]-Ing[0])*ecc_corr
 	Tfull=(Egr[0]-Ing[np.size(Ing)-1])*ecc_corr
 	#delta=ufloat((1-Flux[fit[3]],1-Flux[fit[3]]+sqrt(success[3][3])))
 	delta=Rp**2
 	dt=timedays[2]-timedays[1]
 	
-	aRstar=(2*delta**0.25*P/(np.pi*dt*umath.sqrt(Ttot**2-Tfull**2)))#*umath.sqrt(1-ecc**2)/(1+ecc*sin(arg_periapsis*pi/180.))
+	#aRstar=(2*delta**0.25*P/(np.pi*dt*umath.sqrt(Ttot**2-Tfull**2)))#*umath.sqrt(1-ecc**2)/(1+ecc*sin(arg_periapsis*pi/180.))
 	#bmnodel=umath.sqrt((1-(Tfull/Ttot)**2)/((1-umath.sqrt(delta))**2-(Tfull/Ttot)**2 * (1+umath.sqrt(delta))**2)) #Not too sure why this doesn't work
-	inc=(180/np.pi)*umath.acos(b1/aRstar)
+	#inc=(180/np.pi)*umath.acos(b1/aRstar)
 	#print bmodel
 	
 	#poutnames=('Rp','b1','vel','midtrantime','gam1','gam2')
@@ -212,7 +212,7 @@ def output_params(timedays,NormFlux,fit,success,period,ecc,arg_periapsis):
 		
 	print "--------------------------------"
 	aRstarFIT=vel*P/(dt*2*np.pi)
-	incFIT=(180/np.pi)*umath.acos(b1/aRstarFIT)
+	#incFIT=(180/np.pi)*umath.acos(b1/aRstarFIT)
 	#midtrantime_convert=midtrantime*dt*24*3600+time_days[0]
 	#midtrantime_MJD=timedays[midtrantime]+54964.00111764
 	#timebetween = timedays[int(midtrantime.nominal_value)+1]-timedays[int(midtrantime.nominal_value)]
