@@ -9,3 +9,5 @@ OSCAAR 2.0 is under active development. Code will change and break rapidly and w
 Core Developer: Brett Morris (NASA GSFC/UMD). Contributors: Daniel Galdi (UMD), Nolan Matthews (UMD), Luuk Visser (UL/TUD), Sam Gross (UMD)
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/7bf676f68b5b347639ec11e4d9ba5185 "githalytics.com")](http://githalytics.com/OSCAAR/OSCAAR)
+
+Have a question? Please feel free to [contact us](mailto:oscaarteam@gmail.com).
