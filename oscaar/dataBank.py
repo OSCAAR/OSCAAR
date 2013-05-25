@@ -3,17 +3,11 @@
    Developed by Brett Morris, 2011-2013 & minor modifications by Luuk Visser 
 '''
 import numpy as np
-#from numpy import linalg as LA
 import pyfits
 from matplotlib import pyplot as plt
-#import matplotlib.cm as cm
 from scipy import optimize
-#from time import sleep
-#import shutil
 from glob import glob
-#from re import split
-#import cPickle
-#from shutil import copy
+
 import os
 import oscaar
 from IO import *
@@ -324,26 +318,26 @@ class dataBank:
                 
     def plot(self,pointsPerBin=10):
         plt.close()
-        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-        fig.canvas.set_window_title('oscaar2.0') 
-        print 'plotting'
+
+
         times = self.getTimes()
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
         lightCurve, lightCurveErr = self.computeLightCurve(meanComparisonStar, meanComparisonStarError)
         binnedTime, binnedFlux, binnedStd = medianBin(times,lightCurve,pointsPerBin)
-        photonNoise = self.getPhotonNoise()
 
-        plt.errorbar(times,lightCurve,yerr=lightCurveErr,fmt='k.',ecolor='gray')
-        #plt.plot(times[self.outOfTransit()],photonNoise[self.outOfTransit()]+1,'b',linewidth=2)
-        #plt.plot(times[self.outOfTransit()],1-photonNoise[self.outOfTransit()],'b',linewidth=2)
-        plt.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', markersize=6,linewidth=2)
-        plt.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-        plt.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-        plt.title('Light Curve')
-        plt.xlabel('Time (JD)')
-        plt.ylabel('Relative Flux')
-        #fig.canvas.draw()
-        #plt.draw()
-        print 'showing'
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        axis.errorbar(times,lightCurve,yerr=lightCurveErr,fmt='k.',ecolor='gray')
+        axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title('Light Curve')
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Relative Flux')
         plt.ioff()
         plt.show()
