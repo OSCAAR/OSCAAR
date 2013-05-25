@@ -32,8 +32,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menubar.Append(self.helpMenu, '&Help')
         menubar.Append(self.oscaarMenu, '&Oscaar')
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
-        self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
-        self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, 'init.par'), self.menuDefaults)
+        #self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
+        #self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, 'init.par'), self.menuDefaults)
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.aboutOscaarButton = self.oscaarMenu.Append(-1, 'About oscaar', 'About oscaar')
@@ -201,13 +201,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
-        os.chdir(os.path.join(os.path.dirname(__file__),'docs'))
-        if sys.platform == 'linux2': ##Haven't tested this
-            os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
-        elif sys.platform == 'darwin':
-            os.system("open OscaarDocumentation-20110917.pdf")
-        elif sys.platform == 'win32':
-            os.startfile('OscaarDocumentation-20110917.pdf')
+        documentationURL = 'https://github.com/OSCAAR/OSCAAR/tree/master/docs/documentationInProgress'
+        webbrowser.open_new_tab(documentationURL)
+        #os.chdir(os.path.join(os.path.dirname(__file__),'docs','documentationInProgress'))
+        #if sys.platform == 'linux2':
+            #os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
+        #elif sys.platform == 'darwin':
+            #os.system("open OscaarDocumentation-20110917.pdf")
+        #elif sys.platform == 'win32':
+            #os.startfile('OscaarDocumentation-20110917.pdf')
         
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
@@ -545,9 +547,9 @@ class OverwFlatFrame(wx.Frame):
 class AboutFrame(wx.Frame):
     def __init__(self, parent, id):
         self.parent = parent
-        wx.Frame.__init__(self, parent, id, 'About oscaar')
+        wx.Frame.__init__(self, parent, id, 'About OSCAAR')
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-            self.SetSize((525, 440))
+            self.SetSize((525, 525))
         else: self.SetSize((410,460))
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.SetBackgroundColour(wx.Colour(227,227,227))
@@ -560,18 +562,18 @@ class AboutFrame(wx.Frame):
         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
         ### WARNING: Do not post your name here or remove someone elses without consulting Brett Morris.
-        titleText = '\n'.join(['oscaar v2.0beta',\
+        titleText = '\n'.join(['OSCAAR 2.0 beta',\
                      'Open Source differential photometry Code for Amateur Astronomical Research',\
-                     'Created by Brett Morris (NASA GSFC/UMD)\n'])
+                     'Created by Brett M. Morris (NASA GSFC/UMD)\n'])
         contribText = '\n'.join(['Other Contributors:',\
+                     'Daniel Galdi (UMD)',\
+                     'Luuk Visser (LU/TUD)',\
                      'Nolan Matthews (UMD)',\
                      'Harley Katz (UMD)',\
-                     'Daniel Galdi (UMD)',\
                      'Sam Gross (UMD)',\
                      'Naveed Chowdhury (UMD)',\
                      'Jared King (UMD)',\
-                     'Steven Knoll (UMD)',\
-                     'Luuk Visser (Leiden University/TU Delft)'])
+                     'Steven Knoll (UMD)'])
         
         self.titleText = wx.StaticText(parent = self, id = -1, label = titleText, pos=(0,75),style = wx.ALIGN_CENTER)
         self.viewRepoButton = wx.Button(parent = self, id = -1, label = 'Open Code Repository (GitHub)')

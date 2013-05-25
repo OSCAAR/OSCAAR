@@ -25,6 +25,7 @@ or for more tutorials on our wiki
 https://github.com/OSCAAR/OSCAAR/wiki
 
 If you've successfully installed OSCAAR, you can open 
-the GUI with the follow command 
+the GUI with the follow command (*when not in the same
+directory that you installed OSCAAR from*)
 
 python -c "from oscaar import oscaarGUI"
