@@ -1,5 +1,4 @@
-% Report section types:  \part{}, \chapter{}, \section{}, \subsection{}, \subsubsection{}, \paragraph{}, \subparagraph{}.
-% Article section types: \part{}, \section{}, \subsection{}, \subsubsection{}, \paragraph{}, \subparagraph{}.
+% Use 8.5 x 11 standard A4 paper for printing optimization in US
 \documentclass[a4paper]{article}
 \usepackage{float}
 \marginparsep = 0pt
@@ -8,23 +7,18 @@
 \oddsidemargin = 0.0in
 \evensidemargin = 0.0in
 \usepackage{graphicx}
-%\usepackage{fontspec}
 \usepackage{hyperref}
-
-%\usepackage{lmodern}
-\usepackage{cmbright}
+\usepackage{cmbright}	% Font: Computer Modern Bright
 \usepackage[T1]{fontenc}
-
 \linespread{1.1}% spread lines out a little
 \frenchspacing % remove extra space after punctuation
-
-\newcommand{\oscaar}{$ \mathtt{oscaar}$ }
+\newcommand{\oscaar}{$ \mathtt{OSCAAR}$ }
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\init}{\code{init.par}\ }
 
 \begin{document}
 \title{\textbf{OSCAAR}: Open Source Differential Photometry Code for Amateur Astronomical Research}
-\author{Brett Morris and the OSCAAR Team}
+\author{Brett M. Morris and the OSCAAR Team}
 \maketitle
 \begin{center}
 \includegraphics[scale=0.3]{imgs/logoHUGEtile.png}
@@ -131,7 +125,7 @@ A bunch of imaging packages could suite your needs for photometry with \oscaar. 
 
 Observing software like MaxIm DL allow you to choose your imaging \textbf{binning}, which enables the detector to read-out pixels in groups. For example, a $2\times2$ binning will take a square of four pixels and save them as one composite pixel. This reduces the read-out time, the size of the output files, and the run time of scripts that have to read and manipulate those images. We recommend that you use $2\times2$ binning when you can for these reasons. It is often unimportant to save images at the full-resolution of the detector, especially when you are using defocusing anyway, as described in Section \ref{sec:defocusing}. 
 
-\section{Running \oscaar v2.0}
+\section{Running \oscaar v2.0} \label{sec:run}
 
 The first step in running ocaar 2.0 is to execute the oscaarGui.py python file which is located in the OSCAAR folder that you downloaded. This should bring you to a screen that looks something like this:
 
@@ -140,7 +134,7 @@ The first step in running ocaar 2.0 is to execute the oscaarGui.py python file w
 You will now be shown some initial parameters that you must set in order to run \oscaar.
 
 
-\subsection{Locating Your Stars with DS9}
+\subsection{Locating Your Stars with DS9} \label{sec:locatingStars}
 
 The first and most intensive task you'll have to do to prepare \oscaar  for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of SAO Image DS9 (see Section \ref{sec:systemRequirements} to download). 
 
@@ -189,7 +183,7 @@ The next step in running \oscaar is to properly set all of the initial running p
 \label{fig:sumsExample}
 \end{center}	
 \end{figure}
-By default, oscaar v2.0 tracks stars with a fun algorithm described in Section \ref{sec:trackSmooth}. This algorithm finds the centroid of the star by looking for certain features in the first derivative of the spatial intensity profile of the image of the star. These ``intensity profiles'' are the sums of pixel counts along the rows and columns near the star being tracked, see Figure \ref{fig:sumsExample} for an example. In order to find the centroids accurately using this method, it helps to smooth out the stars by blurring the image artificially, so that background noise and bad pixels are not incorrectly  interpreted as features of the stellar intensity profile. Of course, the artificial smoothing is non-destructive; the images used to measure photometry are not smoothed. 
+By default, oscaar v2.0 tracks stars with a fun algorithm described in Section \ref{sec:trackSmooth}. This algorithm finds the centroid of the star by looking for certain features in the first numerical derivative of the spatial intensity profile of the image of the star. These ``intensity profiles'' are the sums of pixel counts along the rows and columns near the star being tracked, see Figure \ref{fig:sumsExample} for an example. In order to find the centroids accurately using this method, it helps to smooth out the stars by blurring the image artificially, so that background noise and bad pixels are not incorrectly  interpreted as features of the stellar intensity profile. Of course, the artificial smoothing is non-destructive; the images used to measure photometry are not smoothed. 
 
 Since it is not uncommon to defocus telescopes for photometry, you may want more or less smoothing in your images. The running parameter \code{Smoothing Constant} adjusts how much smoothing is applied in the tracking algorithm. \code{Smoothing Constant = 0} will not smooth the image at all (not recommended), and values around $\sim3$ will be significantly smeared (non-integer values are accepted). See Figure \ref{fig:smoothExample} to see what how various values of the \code{Smoothing Constant} affect a raw stellar intensity profile.
 \begin{figure}[H]
@@ -223,7 +217,7 @@ In order to visualize the effects of the running parameters that you entered on 
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackAperPlots.png}
 \caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image -- see for example how broad the smoothed profile is compared to the raw flux. }
-\label{fig:trackAndPhotPlots}
+\label{fig:trackAndPhotPlot}
 \end{center}	
 \end{figure}
 
@@ -238,7 +232,7 @@ The gain of a CCD is a hardware parameter that is specific to your CCD and the p
 \begin{center}
 \includegraphics[scale=0.25]{imgs/ds9gain.png}
 \caption{\textbf{Finding the gain}: Here's what the FITS header looks like when viewed in DS9, produced by Elizabeth Warner's 152mm refractor with an SBIG ST-10 CCD at the University of Maryland Observatory. The detector gain, labeled on this CCD as ``\code{EGAIN}'' is highlighted with a red box.}
-\label{fig:trackAndPhotPlots}
+\label{fig:ccdGain}
 \end{center}	
 \end{figure}
 To find the gain of your detector, open one of your images in DS9. Click through the drop down menus from \code{File > Display Fits Header}. The Fits Header is a text file within each FITS file that records some notes on every exposure you take. Often there will be a line called \code{EGAIN} in there, with a comment resembling ``/ Electronic gain in e-/ADU''. This is the gain parameter to enter into oscaar. 
@@ -249,10 +243,10 @@ The \code{Aperture Radius} is the radius measured outward from the stellar centr
 In the duration of an observation, changes in earth's atmosphere can cause the ``width'' of a star on your detector to be larger or smaller than it was at the beginning of the night. If the star gets wider over time, the dim outer edges of the star may begin to exceed the boundaries that you set by the \code{Aperture Radius}, and some of the flux will not be counted. The differential photometry script would interpret this as the star getting dimmer, which would ruin your light curve. Therefore, when selecting the \code{Aperture Radius} parameter, we suggest that you experiment with it. Try one value with the \code{Tracking Plots} turned on (see Section \ref{sec:trackandphotplots} for details) and watch the apertures as they are applied to the images of the stars. Try a few different values (they need not be integers), and pick the smallest aperture that is sure to catch the whole star. 
 
 \subsubsection{Notes}
-This text field is meant for you to enter any notes you might want to know later. All of your running parameters will be saved in the data file so you won't need to copy them here, but if you want to label the run in any particular way, there's a sweet little box here specifically for that purpose.
+This text field is meant for you to enter any notes you might want to know later. All of your running parameters will be saved in the data file so you won't need to copy them here, but if you want to label the run in any particular way, there's a great little box here specifically for that purpose.
 
-\subsubsection{Ingress and Egress Times}
-If you are observing a transiting exoplanet, \oscaar can do its most precise photometry if it knows when your target is ``in-transit'', meaning the planet is occulting the disk of star, or ``out-of-transit'', meaning the planet is not occulting the star. This is because it uses mathematical techniques that look for changes in each comparison star compared to the target star in order to determine which comparison stars are the best to use. If you compared the target to comparisons while the planet was in-transit, there would be a real (and important) difference between the two that we want to measure accurately. For this reason we input the ingress and egress times and only compare the target and comparison stars during out-of-transit exposures.
+\subsubsection{Ingress and Egress Times} \label{sec:ingEgr}
+If you are observing a transiting exoplanet, \oscaar can do its most precise photometry if it knows when your target is ``in-transit'', meaning the planet is occulting the disk of star, or ``out-of-transit'', meaning the planet is not occulting the star. This is because it uses mathematical techniques that look for changes in each comparison star compared to the target star in order to determine which comparison stars are the best to use (see Section \ref{sec:calcMeanComp}). If you compared the target to comparisons while the planet was in-transit, there would be a real (and important) difference between the two that we want to measure accurately. For this reason we input the ingress and egress times and only compare the target and comparison stars during out-of-transit exposures.
 
 Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour scale, in Universal Time. Seconds are insignificant.
 
@@ -260,23 +254,10 @@ Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour
 \subsection{\code{oscaar.photometry.phot()}}
 
 
-
 \subsection{\code{oscaar.astrometry.trackSmooth()}} \label{sec:trackSmooth}
 The ``\textbf{point spread function}'' (PSF) for a particular observing setup is the shape of the image of a perfect point source (like a star, for example), which in practice is never a perfect ``point'' -- it will always have some radial spread. For well-focused telescopes, the PSF usually resembles an Airy function, which can be well-approximated by a Gaussian. However, as suggested in Section \ref{sec:defocusing}, you may not always want to focus the telescope perfectly. Each telescope will produce a different PSF when significantly defocused, so assuming a Gaussian PSF would prevent us from using \oscaar on defocused observations. This was a problem that we found with \oscaar v1.0, so we developed a new method with some excellent advice from Professor Drake Deming.
 
-\code{trackSmooth()} does centroid-finding by summing up the intensity of the pixels near the star along both the rows and columns. The sums along the rows and columns will produce intensity profiles in two axes similar to Figure \ref{fig:sumsExample}. One feature of these profiles that holds for even strongly defocused PSFs is the sharp rise and decline in the intensity of the star on either side of the stellar centroid. Typically there is a well-defined absolute maximum and minimum in the first derivative of the sum along the columns, as in Figure \ref{fig:sumRowsAndCols}. The trick here is to take the midpoint between those extrema as the centroid, since searching for maxima and minima are computationally cheap. 
-
-In order to increase our centroid precision, we then use a little linear algebra to fit a quadratic to the three pixels nearest the maximum or minimum. The midpoints between the apexes of the best-fit quadratic near the maximum and minimum is taken as the centroid. This process is repeated for the sums along the rows and the columns to get the centroid in both axes. 
-
-Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine -- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
-
-\subsection{\code{oscaar.calcMeanComparison()}}
-\subsection{\code{oscaar.scaleFluxes()}}
-\subsection{\code{oscaar.computeLightCurve()}}
-\subsection{\code{}}
-\subsection{\code{}}
-
-
+\code{trackSmooth()} does centroid-finding by summing up the intensity of the pixels near the star along both the rows and columns. The sums along the rows and columns will produce intensity profiles in two axes similar to Figure \ref{fig:sumsExample}. One feature of these profiles that holds for even strongly defocused PSFs is the sharp rise and decline in the intensity of the star on either side of the stellar centroid. Typically there is a well-defined absolute maximum and minimum in the first numerical derivative of the sum along the columns, as in Figure \ref{fig:sumRowsAndCols}. The trick here is to take the midpoint between those extrema as the centroid, since searching for maxima and minima are computationally cheap. 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.45]{imgs/trackingExample.eps}
@@ -284,6 +265,84 @@ Observational data is never clean. There may be dead pixels or hot pixels that w
 \label{fig:sumRowsAndCols}
 \end{center}	
 \end{figure}
+In order to increase our centroid precision, we then use a little linear algebra to fit a quadratic to the three pixels nearest the maximum or minimum. The midpoints between the apexes of the best-fit quadratic near the maximum and minimum is taken as the centroid. This process is repeated for the sums along the rows and the columns to get the centroid in both axes. 
+
+Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine -- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
+
+
+\subsection{The \code{dataBank} Object}
+Storing and managing all of the data that comes with differential photometry scripts can be a nightmare, so we've developed the \code{dataBank} class to keep things organized. Python is an \href{https://en.wikipedia.org/wiki/Object-oriented_programming}{\textit{object oriented} language}, which means we can make \textit{objects} in it. For programmers new to objects, we'll review them a little in the next section. 
+
+\subsubsection{Quick Introduction to Object-Oriented Programming}
+One way to think about objects in terms of their use within \oscaar is that they are a name given to a template for a collection data and functions that can be run on those data. For example, let's imagine an object called the \code{car} object. The template of data storage structures and methods that can be used on them is often defined in a separate file, so we'll imagine that each of these methods are written in a separate file. Of course, this file does not actually exist anywhere in the \oscaar package and the following pseudocode will not work if you try to run it unless you wrote out the definitions for this \code{car} object. 
+
+The first thing we'll do with the \code{car} object is \textit{initialize} it, which means to assign an \textit{instance} of the object to variable. We'd do that like this in Python:
+\begin{verbatim}
+>>> batmobile = car()	## Initialize an instance of the car object
+\end{verbatim}
+Then we can store values into the template that's already defined for the \code{car} object. For example, let's imagine that the \code{car} object has a property that stores the number of tires that this particular \code{car} object has that we'd like to set using one of the \code{car} object's \textit{methods}. A \textit{method} is a function that works on values within an \textit{object}. We could return the number of tires using the \code{get\_number\_tires()} method and set it using the \code{set\_number\_tires()}. In our example, we could do
+\begin{verbatim}
+>>> N_tires = 4
+>>> batmobile.set_number_tires(N_tires)	## Use a method on a object by doing object.method()
+>>> print batmobile.get_number_tires()
+4
+\end{verbatim}
+The methods for each object have access to the data that you've stored in that object. So from here, we could use the \code{get\_number\_axles()} method that would look up the number of tires that we stored in the \code{batmobile} instance of the \code{car} object using the \code{set\_number\_tires()} method, which divides that number of tires by two:
+\begin{verbatim}
+>>> Naxles =  batmobile.get_number_axles()
+>>> print Naxles
+2
+\end{verbatim}
+Objects are used in \oscaar to help organize data and execute functions on those data without asking the user to name and manage arrays that handle all of the fluxes, the uncertainties on those fluxes, the stellar centroid positions, etc. This helps to keep your code clean to keep things modular. For instance, let's say that Batman blew out a tire, so his number of tires is now 3. The \code{get\_number\_axles()} only divides the number of tires by two, and which will return 1.5 axles now. We know he still has at least two axles though since he has more than two tires, so we'll write and use a more sophisticated method \code{get\_number\_axles\_special()} that will divide the number of tires by two and round up to the nearest integer. Then we'd only need to change the call to the \code{get\_number\_axles()} method to \code{get\_number\_axles\_special()}, which is quick and easy to implement and experiment with.
+
+One of the goals of \oscaar is to have lots of different methods for each task so that you can try different ways of reducing your data without having to change out large chunks of code. If you used \code{trackSmooth()} to find stellar centroids (covered in Section \ref{sec:trackSmooth}), but thought a routine that fits two-dimensional gaussians to the images of the stars would work better, you could write a method for the \code{dataBank} class that would take the same input parameters as \code{trackSmooth()} and return the same outputs. Then all you would have to do is change the word ``trackSmooth'' to the name of your gaussian fitting method in the \code{differentialPhotometry.py} script to use the new algorithm. All of the other parts of the code could stay the same and it would be easy to change back to \code{trackSmooth()} if you wanted to. 
+
+\subsubsection{\code{dataBank.calcMeanComparison()}} \label{sec:calcMeanComp}
+
+In order to make a transit light curve, we want to divide each flux measurement of the target star by the flux of a star that has no intrinsic flux variations, and ideally a star of similar spectral type to the target. How are we to know which star is the right one to use as a comparison star? To make matters worse, your detector may not be evenly responsive over the whole of the imaging surface, so stars that fall near or far away from the target star on the detector may be better to use as comparisons than others. 
+
+We often take the mean of a bunch of comparison stars so that they can collectively make a ``composite'' comparison star, or ``mean'' comparison star, in the wording of the name of this algorithm. If one star varies a little bit or falls on a worse part of the detector, it may not introduce significant variability into the mean of the comparison stars since it gets diluted by a the non-varying fluxes of the other stars. 
+
+Let's consider the case with two comparison stars. Ideally, we would have to perfect comparison stars imaged by a perfect detector. Their spatial positions on the CCD would not affect the measurements of their fluxes and they would have no intrinsic flux variations. In this case, the vector of mean comparison star fluxes $\mathbf{f}_{\bar{C}}$, (though unnecessary) could be produced by taking the fluxes of each comparison star $\mathbf{f}_{C,0}$ and $\mathbf{f}_{C,1}$, and taking the average: 
+\begin{equation} \label{eqn:idealcomps}
+\mathbf{f}_{\bar{C}} = a \cdot \mathbf{f}_{C,0}  + b \cdot \mathbf{f}_{C,1}
+\end{equation}
+where $a$ and $b$ here are scalar multiplier coefficients for the vectors of fluxes, with $a = b = 0.5$ in this case. We would then proceed to calculate the light curve $\mathbf{f}_{relative}$ by simple division
+\begin{equation}
+\mathbf{f}_{relative}  = \frac{\mathbf{f}_{T}}{\mathbf{f}_{\bar{C}}}
+\end{equation}
+where $\mathbf{f}_{T}$ is the vector of target fluxes. 
+
+Now let's say that the image of the first comparison star fell on a few dead pixels on the detector, or that it has some slight intrinsic variability that does not make it a good comparison star. If we were to use Equation \ref{eqn:idealcomps} with $a = b = 0.5$ we'd be considering the first and second comparison stars with equal weight in making the mean comparison star. A more useful ``mean'' comparison star wouldn't use the mean of the two comparison stars, rather it would take some other linear combination of the fluxes with different coefficients to make the composite comparison star $\mathbf{f}_{\bar{C}}$. In this case, we would multiply the first comparison star fluxes $\mathbf{f}_{C,0}$ by a small coefficient, perhaps $a = 0.2$, and since $a + b = 1$, $b=0.8$. This will ``put a heavier weight on'' the fluxes of the second comparison star in the calculation of the mean comparison star, and should produce a better light curve. 
+
+The \code{dataBank.calcMeanComparison()} algorithm takes the fluxes of each normalized comparison star with fluxes $\mathbf{f}_{C,i}$ and tries different weights on each star. It will minimize the difference between the out-of-transit portions of the target star fluxes and the mean comparison star fluxes by varying a set of coefficients $\mathbf{c}_i$ that get multiplied by each comparison star flux such that $\Sigma_i c_i = 1$.
+\begin{eqnarray} 
+\mathbf{f}_{\bar{C}} &=& c_0 \cdot \mathbf{f}_{C,0}  + c_1 \cdot \mathbf{f}_{C,1} + c_2 \cdot \mathbf{f}_{C,2} + ...\\
+    &=& \Sigma_i ~ c_i \cdot \mathbf{f}_{C,i}
+\end{eqnarray}
+The vector of the uncertainties of the composite comparison star fluxes $\sigma \mathbf{f}_{\bar{C}}$ is then
+\begin{eqnarray} 
+\sigma \mathbf{f}_{\bar{C}} &=& \sqrt{ \left( c_0 \cdot \mathbf{f}_{C,0} \right)^2  + \left(  c_1 \cdot \mathbf{f}_{C,1} \right)^2+ \left( c_2 \cdot \mathbf{f}_{C,2} \right)^2+ ...} \\
+     &=& \sqrt{ \Sigma_i ~ c_i^2 \cdot \mathbf{f}_{C,i}^2}
+\end{eqnarray}
+Of course, the out-of-transit exposures are the only ones used in this calculation because there is an important intrinsic flux variation in the target star during transit (that we're trying to see!). If we ran this regression technique to compare the target star to comparison stars on exposures taken during the transit, the algorithm would find the linear combination of target stars that best match the variability of the target star, and it would effectively seek to cancel out the transit. This is why we enter the ingress and egress times into \oscaar (see Section \ref{sec:ingEgr}), so that we can identify which exposures to use in these comparisons. 
+
+This method also effectively cleans up after us if we choose bad comparison stars, as laid out in Section \ref{sec:locatingStars}. Let's say we chose a dim star that had a brighter nearby companion. The tracking algorithm may be able to accurately find the centroid of the dim star that we intended to use as a comparison star for a few exposures or maybe even for half of the exposures, but it may eventually ``see'' the brighter star nearby and start tracking its centroid instead. When this occurs, the flux measured for this comparison star will suddenly jump up discontinuously at the exposure when the centroid of the brighter star was found. The discontinuous flux jump in fluxes of this comparison star will be very dissimilar to continuous, telluric variations that effect the target star on a night with decent weather. The \code{dataBank.calcMeanComparison()} algorithm will find that only very small coefficients for the flux of this comparison star will produce a good composite comparison star, essentially giving this star no weight in the composite comparison star, counting it out. 
+
+
+\subsubsection{\code{dataBank.computeLightCurve()}} \label{sec:computeLightCurve}
+We calculate the light curve vector $\mathbf{f}_{relative}$ by simple division of the flux of the target star $\mathbf{f}_{T}$ by the flux of the composite comparison star $\mathbf{f}_{C}$, generated using \code{dataBank.calcMeanComparison()} (see Section \ref{sec:calcMeanComp}).
+\begin{equation}
+\mathbf{f}_{relative}  = \frac{\mathbf{f}_{T}}{\mathbf{f}_{\bar{C}}}
+\end{equation}
+The errors for each light curve flux are calculated by propagating of uncertainties. If $\sigma \mathbf{f}_{\bar{C}}$ is the vector of uncertainties in the composite comparison star fluxes and $\sigma \mathbf{f}_{T}$ is the vector of uncertainties in the fluxes of the target star, the uncertainties in the light curve fluxes $\sigma \mathbf{f}_{relative}$ are
+\begin{equation}
+\sigma \mathbf{f}_{relative}  = | \mathbf{f}_{relative} |  \sqrt{ \left(\frac{\sigma \mathbf{f}_{T}}{\mathbf{f}_{T}} \right)^2 + \left(\frac{\sigma \mathbf{f}_{\bar{C}}}{\mathbf{f}_{\bar{C}}} \right)^2 }.
+\end{equation}
+
+
+\subsection{\code{oscaar.scaleFluxes()}}
+
 
 \section{Troubleshooting} \label{sec:issues}
 If you notice a problem in \oscaar or can't get something to function properly, feel free to submit an issue on \href{https://github.com/OSCAAR/OSCAAR/issues?state=open}{our Issue Tracker on GitHub}. 
