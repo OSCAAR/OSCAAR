@@ -7,7 +7,7 @@ with this command:
    % python setup.py build_ext --inplace
    
 in the OSCAAR/Extras/Examples/sampleData/c directory
-test
+
 '''
 
 from distutils.core import setup, Extension
