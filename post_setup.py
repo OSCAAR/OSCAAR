@@ -117,7 +117,8 @@ def complile_C():
     os.chdir(oscaardirC)
     
     import subprocess
-    cresult = subprocess.Popen(['python', 'setup.py','build_ext'])
+    '''Build the c-library in place'''
+    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace'])
 #    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace','--compiler=msvc'])
     cresult.wait()
     
