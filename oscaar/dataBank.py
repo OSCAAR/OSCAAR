@@ -36,11 +36,11 @@ class dataBank:
         self.parseInit() ## parse init.par using the parseInit() method
         self.parseObservatory()
         assert len(self.imagesPaths) > 1, 'Must have at least one data image'
-
-        if self.flatPath != 'None':
+        print 'self.flatPath',self.flatPath
+        if self.flatPath != '':
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
-        elif self.flatPath == 'None':
+        else:
             print 'Using an isotropic ("placebo") master-flat (array of ones)'
             dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
             self.masterFlat = np.ones([dim1,dim2])
@@ -211,7 +211,7 @@ class dataBank:
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
                 compErrors[:,columnCounter] = self.getScaledErrors(star).astype(np.float64)
                 columnCounter += 1
-            elif (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
+            elif star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
                 print 'Star '+str(star)+' excluded from regression'
                 columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
@@ -293,7 +293,7 @@ class dataBank:
                 elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
                 
         self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(self.outputPath))
-        self.flatPath = os.path.join(oscaarpathplus,os.path.abspath(self.flatPath))
+        #self.flatPath = os.path.join(os.path.abspath(self.flatPath))
 
 	def wilds(self,inputString):
 		if any(np.array(glob(inputString)) == inputString):
