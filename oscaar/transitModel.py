@@ -14,16 +14,19 @@ import os
 
 ## Save the absolute path to this document, so as to successfully
 ## call the C library stored in the oscaar/c/ directory
-oscaarModuleDir = os.path.split(os.path.abspath(__file__))[0]
-
+#oscaarModuleDir = os.path.split(os.path.abspath(oscaar.__file__))[0]
+transitModelDir = os.path.dirname(os.path.abspath(__file__))
+#print __file__ , os.path.abspath(__file__) , os.path.dirname(os.path.abspath(__file__))
 #def occultquad(t,p,ap,i,t0,gamma1=0.23,gamma2=0.45,P=1.58,e=0.0,longPericenter=0.0):
+
 def occultquad(t,modelParams):
     [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
     #[p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
 
     ###################################################################################################
     ## Ctypes definitions from C-libraries
-    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','transit1forLMLS'),'.') 	## Loads .so library
+    lib = np.ctypeslib.load_library(os.path.join(transitModelDir,'c','transit1forLMLS.so'),'.') 	## Loads .so library
+    #lib = np.ctypeslib.load_library('transit1forLMLS.so','.')
     occultquadC = lib.occultquad
     occultquadC.argtypes = [np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS'),	#t
                                ctypes.c_double,	# p
