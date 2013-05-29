@@ -855,7 +855,20 @@ class EphFrame(wx.Frame):
     def onDestroy(self, event):
         global ephGUIOpen
         ephGUIOpen = False
-
+		
+class InvalidPath1(wx.Frame):
+    def __init__(self, path, parent, id):
+        wx.Frame.__init__(self, parent, id, 'Invalid Output File')
+        self.SetSize((350,100))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.paths = wx.StaticText(self, -1, "The following is an invalid output file: " + path)
+        self.okButton = wx.Button(self, -1, 'Okay', pos = (125,30))
+        self.okButton.Bind(wx.EVT_BUTTON, self.onOkay)
+        self.Centre()
+        self.Show()
+        
+    def onOkay(self, event):
+        self.Destroy()
 
 
 class LoadOldPklFrame(wx.Frame):
@@ -909,8 +922,8 @@ class LoadOldPklFrame(wx.Frame):
 
         self.bestSize = self.GetBestSizeTuple()
         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-
 		## Standard oscaar GUI params
+        self.SetTitle('OSCAAR')
         self.SetBackgroundColour(wx.Colour(233,233,233))
         self.SetSizer(self.sizer)
         self.bestSize = self.GetBestSizeTuple()
@@ -944,42 +957,63 @@ class LoadOldPklFrame(wx.Frame):
         
     def addButton(self, row, colStart, button):
         self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
-		
+
+    def validityCheck(self):
+        pathTxt = self.pklPathTxt.GetValue();
+        invalidsString = ""
+        if not self.correctOutputFile(pathTxt):
+            invalidsString += pathTxt;
+        if invalidsString == "":
+            return True
+        else:
+             InvalidPath1(invalidsString, None, -1)
+        return False
+
+    def correctOutputFile(self, pathname):
+        if pathname.endswith('.pkl'):
+                return True
+        return False
+
     def plotLightCurve(self, event):
-        print 'Loading file: '+self.pklPathTxt.GetValue() 
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
 
-        subprocess.Popen(['python','-c',commandstring])
-        #self.Destroy()
-		
+            subprocess.Popen(['python','-c',commandstring])
+            #self.Destroy()
+
     def plotRawFlux(self, event):
-        print 'Loading file: '+self.pklPathTxt.GetValue() 
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
 
-        subprocess.Popen(['python','-c',commandstring])
+            subprocess.Popen(['python','-c',commandstring])
 		
     def plotCentroidPosition(self, event):
-        print 'Loading file: '+self.pklPathTxt.GetValue() 
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
 
-        subprocess.Popen(['python','-c',commandstring])
+            subprocess.Popen(['python','-c',commandstring])
 
     def plotScaledFluxes(self, event):
-        print 'Loading file: '+self.pklPathTxt.GetValue() 
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
 
-        subprocess.Popen(['python','-c',commandstring])
+            subprocess.Popen(['python','-c',commandstring])
 
     def plotComparisonStarWeightings(self, event):
-        print 'Loading file: '+self.pklPathTxt.GetValue() 
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
 
-        subprocess.Popen(['python','-c',commandstring])
+            subprocess.Popen(['python','-c',commandstring])
 		
     def onDestroy(self, event):
         global loadOldPklOpen
