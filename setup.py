@@ -5,7 +5,6 @@
 import os
 import sys
 import shutil
-from setuptools import setup
 import subprocess
 import atexit
 
@@ -19,56 +18,62 @@ sysplatform = sys.platform
 
 """ Currently only Python 2.7.x is supported """
 if sys.version_info[:2] != (2, 7):
-	raise RuntimeError("must use python 2.7.x")
+    raise RuntimeError("must use python 2.7.x")
 
 """  Check if the package dependancies/requirements are fulfilled """
 try:
-	import numpy as np
+    from setuptools import setup
 except:
-	raise RuntimeError("Numpy not found")
+    raise RuntimeError("Setuptools not found, setup cannot continue without it")
+    
+try:
+    import numpy as np
+except:
+    raise RuntimeError("Numpy not found")
 if np.__version__ < minimum_numpy_version:
-	print("*Error*: NumPy version is lower than needed: %s < %s" %
+    print("*Error*: NumPy version is lower than needed: %s < %s" %
 		  (np.__version__, minimum_numpy_version))
-	sys.exit(1)
+    sys.exit(1)
 
 try:
-	import scipy
+    import scipy
 except:
-	raise RuntimeError("Scipy not found")
+    raise RuntimeError("Scipy not found")
 if scipy.__version__ < minimum_scipy_version:
-	print("*Error*: Scipy version is lower than needed: %s < %s" %
+    print("*Error*: Scipy version is lower than needed: %s < %s" %
 		  (scipy.__version__, minimum_scipy_version))
-	sys.exit(1)  
+    sys.exit(1)  
 	
 try:
-	import matplotlib
+    import matplotlib
 except:
-	raise RuntimeError("matplotlib not found")
+    raise RuntimeError("matplotlib not found")
 if matplotlib.__version__ < minimum_matplotlib_version:
-	print("*Error*: matplotlib version is lower than needed: %s < %s" %
+    print("*Error*: matplotlib version is lower than needed: %s < %s" %
 		  (matplotlib.__version__, minimum_matplotlib_version))
-	sys.exit(1)
+    sys.exit(1)
 	
 try:
-	import pyfits
+    import pyfits
 except:
-	raise RuntimeError("PyFITS not found")
+    raise RuntimeError("PyFITS not found")
 if pyfits.__version__ < minimum_pyfits_version:
-	print("*Error*: PyFITS version is lower than needed: %s < %s" %
+    print("*Error*: PyFITS version is lower than needed: %s < %s" %
 		  (pyfits.__version__, minimum_pyfits_version))
-	sys.exit(1)  
+    sys.exit(1)  
 	
 try:
-	if sysplatform == 'darwin' or 'linux2':
-		import wx
-	else: # (assuming in this case that sysplatform == 'win32'):
-		import wxPython
+    if sysplatform == 'darwin' or 'linux2':
+         import wx
+    else:
+         """ (assuming in this case that sysplatform == 'win32' """
+         import wxPython
 except:
-	raise RuntimeError("wxPython not found")
+    raise RuntimeError("wxPython not found")
 if wx.__version__ < minimum_wxpython_version:
-	print("*Error*: wxPython version is lower than needed: %s < %s" %
+    print("*Error*: wxPython version is lower than needed: %s < %s" %
 		  (wx.__version__, minimum_wxpython_version))
-	sys.exit(1)  
+    sys.exit(1)  
   
 """ Walk through the subdirs and add all non-python scripts to MANIFEST.in """
 def create_manifest():	
