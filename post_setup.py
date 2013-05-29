@@ -3,6 +3,7 @@ import os
 import sys
 import urllib2
 import time
+import shutil
 time.sleep(0.5)
 
 save_path = sys.path[:]
@@ -109,20 +110,22 @@ def download_ds9():
     
 """ Compile C files in c dir of oscaar"""
 def complile_C():
-    print
-    print 'Start compiling C code for light curve modeling..'
-    
-    oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
-    olddir = os.getcwd()
-    os.chdir(oscaardirC)
-    
-    import subprocess
-    '''Build the c-library in place'''
-    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace'])
-#    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace','--compiler=msvc'])
-    cresult.wait()
-    
-    os.chdir(olddir)
+    if sys.platform == 'win32': ## If running Windows, use the precompiled C binary
+        shutil.move(os.path.join(oscaardir,'c','windowsBinaries','transit1forLMLS.so'),os.path.join(oscaardir,'c','transit1forLMLS.so'))
+    else:                       ## Otherwise use python setup to compile a shared library (works on unix based machines)
+        print 'Start compiling C code for light curve modeling..'
+        
+        oscaardirC = os.path.join(os.path.dirname(oscaardir),'c')
+        olddir = os.getcwd()
+        os.chdir(oscaardirC)
+        
+        import subprocess
+        '''Build the c-library in place'''
+        cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace'])
+    #    cresult = subprocess.Popen(['python', 'setup.py','build_ext','--inplace','--compiler=msvc'])
+        cresult.wait()
+        
+        os.chdir(olddir)
     
 if __name__ == '__main__':
     complile_C()
