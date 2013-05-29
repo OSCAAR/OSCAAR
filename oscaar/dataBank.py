@@ -150,7 +150,9 @@ class dataBank:
                 self.allStarsDict[star]['scaledFlux'], m = regressionScale(self.getFluxes(star),self.getFluxes(self.targetKey),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
                 print m
                 self.allStarsDict[star]['scaledError'] = np.abs(m)*self.getErrors(star)
-
+            if star == self.targetKey:	## (Keep the target star the same)
+                self.allStarsDict[star]['scaledFlux'] = self.allStarsDict[star]['rawFlux']
+                self.allStarsDict[star]['scaledError'] = self.allStarsDict[star]['rawError']
     def getScaledFluxes(self,star):
         '''Return the scaled fluxes for one star, where the star parameter is the 
            key for the star of interest.'''
@@ -205,11 +207,13 @@ class dataBank:
         compStarsOOT = np.zeros([len(target),numCompStars])
         compErrors = np.copy(compStars)
         columnCounter = 0
+        acceptedCompStarKeys = []
         for star in self.allStarsDict:
             if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
                 compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
                 compErrors[:,columnCounter] = self.getScaledErrors(star).astype(np.float64)
+                acceptedCompStarKeys.append(int(star))
                 columnCounter += 1
             elif star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
                 print 'Star '+str(star)+' excluded from regression'
@@ -222,6 +226,8 @@ class dataBank:
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
         print 'Default weight:',1./numCompStars
+        
+        self.comparisonStarWeights = np.vstack([acceptedCompStarKeys,bestFitP])
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
         self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
         return self.meanComparisonStar, self.meanComparisonStarError  
@@ -341,3 +347,106 @@ class dataBank:
         axis.set_ylabel('Relative Flux')
         plt.ioff()
         plt.show()
+
+    def plotLightCurve(self,pointsPerBin=10):
+
+		binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,pointsPerBin)
+        
+		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+		fig.canvas.set_window_title('OSCAAR')
+		axis = fig.add_subplot(111)
+		def format_coord(x, y):
+			'''Function to give data value on mouse over plot.'''
+			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+		axis.format_coord = format_coord 
+		axis.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
+		axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+		axis.set_title('Light Curve')
+		axis.set_xlabel('Time (JD)')
+		axis.set_ylabel('Relative Flux')
+		plt.ioff()
+		plt.show()
+
+    def plotRawFluxes(self,pointsPerBin=10):
+
+		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+		fig.canvas.set_window_title('OSCAAR')
+		axis = fig.add_subplot(111)
+		def format_coord(x, y):
+			'''Function to give data value on mouse over plot.'''
+			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+		axis.format_coord = format_coord 
+		for star in self.allStarsDict:
+			axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'],yerr=self.allStarsDict[star]['rawError'],fmt='o')
+
+		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+		axis.set_title('Raw Fluxes')
+		axis.set_xlabel('Time (JD)')
+		axis.set_ylabel('Counts')
+		plt.ioff()
+		plt.show()
+
+
+    def plotScaledFluxes(self,pointsPerBin=10):
+
+		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+		fig.canvas.set_window_title('OSCAAR')
+		axis = fig.add_subplot(111)
+		def format_coord(x, y):
+			'''Function to give data value on mouse over plot.'''
+			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+		axis.format_coord = format_coord 
+		for star in self.allStarsDict:
+			axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'],yerr=self.allStarsDict[star]['scaledError'],fmt='o')
+
+		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+		axis.set_title('Raw Fluxes')
+		axis.set_xlabel('Time (JD)')
+		axis.set_ylabel('Counts')
+		plt.ioff()
+		plt.show()
+
+    def plotCentroidsTrace(self,pointsPerBin=10):
+
+		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+		fig.canvas.set_window_title('OSCAAR')
+		axis = fig.add_subplot(111)
+		def format_coord(x, y):
+			'''Function to give data value on mouse over plot.'''
+			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+		axis.format_coord = format_coord 
+		for star in self.allStarsDict:
+			axis.plot(self.allStarsDict[star]['y-pos'],self.allStarsDict[star]['x-pos'])
+
+		axis.set_title('Tracing Stellar Centroids')
+		axis.set_xlabel('X')
+		axis.set_ylabel('Y')
+		plt.ioff()
+		plt.show()
+
+    def plotComparisonWeightings(self):
+		weights = self.comparisonStarWeights
+		weights = np.sort(weights,axis=1)
+		print weights
+		width = 0.5
+		indices = weights[0,:]
+		coefficients = weights[1,:]
+		ind = np.arange(len(indices))
+		fig = plt.figure()
+		ax = fig.add_subplot(111)
+		ax.set_xlim([0,len(indices)+1])
+		ax.set_xticks(indices+width/2)
+		ax.set_xticklabels(["Star "+str(i) for i in range(len(weights[0,:]))])
+		ax.set_xlabel('Comparison Star')
+		ax.set_ylabel('Normalized Weighting')
+		ax.set_title('Comparison Star Weights into the Composite Comparison Star')
+		ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
+
+		ax.bar(indices,coefficients,width,color='w')
+
+		plt.show()
+
