@@ -20,9 +20,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         global masterFlatOpen
         global ephGUIOpen
         global aboutOpen
+        global loadOldPklOpen
         masterFlatOpen = False
         ephGUIOpen = False
         aboutOpen = False
+        loadOldPklOpen = False
         menubar = wx.MenuBar()
         fileMenu = wx.Menu()
         self.oscaarMenu = wx.Menu()
@@ -40,6 +42,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.aboutOscaar, self.aboutOscaarButton)
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
+
+        self.loadPklItem = self.oscaarMenu.Append(-1, 'Load old output', 'Load old output')
+        self.Bind(wx.EVT_MENU, self.loadOldPklPressed, self.loadPklItem)
+        
+        
         self.SetMenuBar(menubar)
         self.sizer = wx.GridBagSizer(7, 7)        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
@@ -143,7 +150,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
-        textCtrl.SetForegroundColour(wx.Colour(180,180,180))
+        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
@@ -151,7 +158,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7)
         self.sizer.Add(button, (row, 6), (1,1), wx.TOP, 7)
-        textCtrl.SetForegroundColour(wx.Colour(180,180,180))
+        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
@@ -203,14 +210,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def helpPressed(self, event):
         documentationURL = 'https://github.com/OSCAAR/OSCAAR/tree/master/docs/documentationInProgress'
         webbrowser.open_new_tab(documentationURL)
-        #os.chdir(os.path.join(os.path.dirname(__file__),'docs','documentationInProgress'))
-        #if sys.platform == 'linux2':
-            #os.system("/usr/bin/xdg-open OscaarDocumentation-20110917.pdf")
-        #elif sys.platform == 'darwin':
-            #os.system("open OscaarDocumentation-20110917.pdf")
-        #elif sys.platform == 'win32':
-            #os.startfile('OscaarDocumentation-20110917.pdf')
-        
+
+
+	#####Opens the webpage for the documentation when help is pressed#####
+    def loadOldPklPressed(self, event):
+        global loadOldPklOpen
+        if loadOldPklOpen == False:
+            LoadOldPklFrame(parent = None, id = -1)
+            loadOldPklOpen = True
+		        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
         global worker
@@ -848,6 +856,90 @@ class EphFrame(wx.Frame):
         global ephGUIOpen
         ephGUIOpen = False
 
+
+
+class LoadOldPklFrame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        super(LoadOldPklFrame, self).__init__(*args, **kwargs)
+        self.initUI()
+
+    def initUI(self):
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)		## Define quit behavior
+        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
+            self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+
+        ## Set title in new window
+        self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        self.title = wx.StaticText(self, -1, 'Load old outputs (.pkl)')
+        self.title.SetFont(self.titleFont)
+
+        ## Set up the size of the new window
+        self.ctrlList = []
+        self.sizer = wx.GridBagSizer(7,7)
+        self.bestSize = self.GetBestSizeTuple()
+        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
+
+
+        textCtrlSize = (400,25)
+        self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
+        self.pklPathBtn = wx.Button(self, -1, 'Browse')
+        self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
+
+        self.generatePlotsButton = wx.Button(self,-1,label = 'Generate plots', size = (110,25))
+        self.addButton(7,2, self.generatePlotsButton)
+        self.Bind(wx.EVT_BUTTON, self.generatePlots)
+
+        self.bestSize = self.GetBestSizeTuple()
+        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
+
+		## Standard oscaar GUI params
+        self.SetBackgroundColour(wx.Colour(233,233,233))
+        self.SetSizer(self.sizer)
+        self.bestSize = self.GetBestSizeTuple()
+        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
+        self.Centre()
+        self.Show()
+        
+    #####Functions for event handling#####
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+        if fileDialog:
+            dlg = wx.FileDialog(self, message = message, style = saveDialog)
+        else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            filenames = dlg.GetPaths()
+            textControl.Clear()
+            for i in range(0,len(filenames)):
+                if i != len(filenames)-1:
+                    textControl.WriteText(filenames[i] + ',')
+                else:
+                    textControl.WriteText(filenames[i])
+        dlg.Destroy()    
+        
+    def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
+        label.SetFont(self.labelFont)
+        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7)
+        self.sizer.Add(button, (row, 6), (1,1), wx.TOP, 7)
+        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
+        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
+        #textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
+        
+    def addButton(self, row, colStart, button):
+        self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
+
+    def generatePlots(self, event):
+		print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+		commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plot()"
+
+		subprocess.Popen(['python','-c',commandstring])
+		#self.Destroy()
+
+    def onDestroy(self, event):
+        global loadOldPklOpen
+        loadOldPklOpen = False
+        
 app = wx.App(False)
 #### Runs the GUI ####
 OscaarFrame(None)
