@@ -886,25 +886,25 @@ class LoadOldPklFrame(wx.Frame):
         self.pklPathBtn = wx.Button(self, -1, 'Browse')
         self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
 
-        self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (110,25))
-        self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (110,25))
-        self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (160,25))
-        self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (110,25))
-        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison Star Weightings', size = (160,25))
+        self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (130,25))
+        self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
+        self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
+        self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
+        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison Star Weightings', size = (200,25))
 		
-        self.addButton(7,0, self.plotLightCurveButton)
+        self.addButton(3,-1, self.plotLightCurveButton)
         self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
 
-        self.addButton(7,1, self.plotRawFluxButton)
+        self.addButton(3,0, self.plotRawFluxButton)
         self.plotRawFluxButton.Bind(wx.EVT_BUTTON, self.plotRawFlux)		
         
-        self.addButton(7,2, self.plotCentroidPositionsButton)
+        self.addButton(3,1, self.plotCentroidPositionsButton)
         self.plotCentroidPositionsButton.Bind(wx.EVT_BUTTON, self.plotCentroidPosition)
 
-        self.addButton(7,3, self.plotScaledFluxesButton)
+        self.addButton(3,2, self.plotScaledFluxesButton)
         self.plotScaledFluxesButton.Bind(wx.EVT_BUTTON, self.plotScaledFluxes)
 
-        self.addButton(7,4, self.plotComparisonStarWeightingsButton)
+        self.addButton(3,3, self.plotComparisonStarWeightingsButton)
         self.plotComparisonStarWeightingsButton.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings)
 
         self.bestSize = self.GetBestSizeTuple()
@@ -936,8 +936,8 @@ class LoadOldPklFrame(wx.Frame):
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
         label.SetFont(self.labelFont)
         self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7)
-        self.sizer.Add(button, (row, 6), (1,1), wx.TOP, 7)
+        self.sizer.Add(textCtrl, (row, 1), (1,3), wx.TOP, 7)
+        self.sizer.Add(button, (row, 4), (1,1), wx.TOP, 7)
         textCtrl.SetForegroundColour(wx.Colour(120,120,120))
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
         #textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
