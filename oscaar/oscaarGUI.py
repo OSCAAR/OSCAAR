@@ -886,9 +886,26 @@ class LoadOldPklFrame(wx.Frame):
         self.pklPathBtn = wx.Button(self, -1, 'Browse')
         self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
 
-        self.generatePlotsButton = wx.Button(self,-1,label = 'Generate plots', size = (110,25))
-        self.addButton(7,2, self.generatePlotsButton)
-        self.Bind(wx.EVT_BUTTON, self.generatePlots)
+        self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (110,25))
+        self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (110,25))
+        self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (160,25))
+        self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (110,25))
+        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison Star Weightings', size = (160,25))
+		
+        self.addButton(7,0, self.plotLightCurveButton)
+        self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
+
+        self.addButton(7,1, self.plotRawFluxButton)
+        self.plotRawFluxButton.Bind(wx.EVT_BUTTON, self.plotRawFlux)		
+        
+        self.addButton(7,2, self.plotCentroidPositionsButton)
+        self.plotCentroidPositionsButton.Bind(wx.EVT_BUTTON, self.plotCentroidPosition)
+
+        self.addButton(7,3, self.plotScaledFluxesButton)
+        self.plotScaledFluxesButton.Bind(wx.EVT_BUTTON, self.plotScaledFluxes)
+
+        self.addButton(7,4, self.plotComparisonStarWeightingsButton)
+        self.plotComparisonStarWeightingsButton.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings)
 
         self.bestSize = self.GetBestSizeTuple()
         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
@@ -927,15 +944,43 @@ class LoadOldPklFrame(wx.Frame):
         
     def addButton(self, row, colStart, button):
         self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
+		
+    def plotLightCurve(self, event):
+        print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-    def generatePlots(self, event):
-		print 'Loading file: '+self.pklPathTxt.GetValue() 
+        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
 
-		commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plot()"
+        subprocess.Popen(['python','-c',commandstring])
+        #self.Destroy()
+		
+    def plotRawFlux(self, event):
+        print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-		subprocess.Popen(['python','-c',commandstring])
-		#self.Destroy()
+        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
 
+        subprocess.Popen(['python','-c',commandstring])
+		
+    def plotCentroidPosition(self, event):
+        print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
+
+        subprocess.Popen(['python','-c',commandstring])
+
+    def plotScaledFluxes(self, event):
+        print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
+
+        subprocess.Popen(['python','-c',commandstring])
+
+    def plotComparisonStarWeightings(self, event):
+        print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+        commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
+
+        subprocess.Popen(['python','-c',commandstring])
+		
     def onDestroy(self, event):
         global loadOldPklOpen
         loadOldPklOpen = False

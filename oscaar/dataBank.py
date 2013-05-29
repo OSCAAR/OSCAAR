@@ -404,7 +404,7 @@ class dataBank:
         
 		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
 		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-		axis.set_title('Raw Fluxes')
+		axis.set_title('Scaled Fluxes')
 		axis.set_xlabel('Time (JD)')
 		axis.set_ylabel('Counts')
 		plt.ioff()
