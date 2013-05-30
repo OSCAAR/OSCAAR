@@ -436,11 +436,12 @@ class dataBank:
 		indices = weights[0,:]
 		coefficients = weights[1,:]
 		ind = np.arange(len(indices))
-		fig = plt.figure()
+		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+		fig.canvas.set_window_title('OSCAAR')
 		ax = fig.add_subplot(111)
 		ax.set_xlim([0,len(indices)+1])
 		ax.set_xticks(indices+width/2)
-		ax.set_xticklabels(["Star "+str(i) for i in range(len(weights[0,:]))])
+		ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
 		ax.set_xlabel('Comparison Star')
 		ax.set_ylabel('Normalized Weighting')
 		ax.set_title('Comparison Star Weights into the Composite Comparison Star')

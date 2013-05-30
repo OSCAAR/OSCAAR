@@ -903,7 +903,7 @@ class LoadOldPklFrame(wx.Frame):
         self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
         self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
         self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
-        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison Star Weightings', size = (200,25))
+        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (200,25))
 		
         self.addButton(3,-1, self.plotLightCurveButton)
         self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
