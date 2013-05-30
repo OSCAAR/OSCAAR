@@ -13,6 +13,7 @@
 \linespread{1.1}% spread lines out a little
 \frenchspacing % remove extra space after punctuation
 \newcommand{\oscaar}{$ \mathtt{OSCAAR}$ }
+\newcommand{\gui}{$ \mathtt{oscaarGUI}$ }
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\init}{\code{init.par}\ }
 
@@ -127,20 +128,53 @@ A bunch of imaging packages could suite your needs for photometry with \oscaar. 
 
 Observing software like MaxIm DL allow you to choose your imaging \textbf{binning}, which enables the detector to read-out pixels in groups. For example, a $2\times2$ binning will take a square of four pixels and save them as one composite pixel. This reduces the read-out time, the size of the output files, and the run time of scripts that have to read and manipulate those images. We recommend that you use $2\times2$ binning when you can for these reasons. It is often unimportant to save images at the full-resolution of the detector, especially when you are using defocusing anyway, as described in Section \ref{sec:defocusing}. 
 
-\section{Running \oscaar v2.0} \label{sec:run}
+\section{The \oscaar GUI} \label{sec:run}
 
-The first step in running ocaar 2.0 is to execute the oscaarGui.py python file which is located in the OSCAAR folder that you downloaded. This should bring you to a screen that looks something like this:
+\oscaar can be run from a graphical user interface that we call the \gui. It's designed to control the running parameters that control the science algorithms so that you can tweak different features in the code by interacting with the GUI. The GUI included in \oscaar 2.0 was developed using the \code{wxPython} package, primarily by Daniel Galdi (UMD).
 
-****Insert Screencap here****
+\subsection{Choosing Your Input Files}
 
-You will now be shown some initial parameters that you must set in order to run \oscaar.
+The first step to running \oscaar from the \gui is to select which files will use. \oscaar allows you to access your data files a few different ways. Let's take a look at the \oscaar GUI:
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.35]{imgs/GUI.png}
+\caption{The \oscaar graphical user interface (GUI).}
+\label{fig:gui}
+\end{center}	
+\end{figure}
+Our first task is to select the ``path to dark frames.'' A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
 
+The imaging software that you use may allow you to save each image from your CCD with a pre-formatted name and an iterating index for each image. For example, in our sample data set we simulate this behavior by giving all of the dark frames names with the pattern ``simulatedImg-000d.fits'', ``simulatedImg-001d.fits'', ``simulatedImg-002d.fits'', etc. You could press the \code{Browse} button in the \gui and then hold shift and click through every dark frame that you want to select, our you could use a nifty shortcut...
+
+If you press the \code{Browse} button and select one of the dark frames, the text box to the left of the \code{Browse} will be filled with the path to that file. Let's say that this text box is filled with 
+\\\\
+\noindent``\code{C:$\backslash$folderA$\backslash$folderB$\backslash$simulatedImg-000d.fits}''. 
+\\\\
+\noindent We can use the ``?'' character to indicate a wildcard, so that any file that satisfies the rest of the pattern with any character in place of the ``?'' will be accepted. For the above example, if we enter 
+\\\\
+\noindent ``\code{C:$\backslash$folderA$\backslash$folderB$\backslash$simulatedImg-???d.fits}'' 
+\\\\
+\noindent we will get back all of the files that have that pattern with any numbers (or letters) in place of the question marks. 
+
+Let's say all of the images in ``folderB'' are dark images, and you want to just select all of those files. You can use the ``*'' character in place of the name of the file, and all files in the directory will be selected, for example, 
+\\\\
+\noindent ``\code{C:$\backslash$folderA$\backslash$folderB$\backslash$*}'' 
+\\\\
+\noindent will grab all files in ``folderB''. But what if there was a text file or some other non-FITS file in ``folderB''? In that case, you can specify the file extension and/or last few characters so that you get the right file, like this: 
+\\\\
+\noindent ``\code{C:$\backslash$folderA$\backslash$folderB$\backslash$*.fits}'', 
+\\\\
+\noindent which will catch all FITS files in ``folderB''.
+
+Go ahead and fill in these fields for the dark frame and data image paths. When you use any of these rules, \oscaar will figure out all files that match and use those files for you. The next time you load the \gui, the files that were grabbed will be listed in the text box, separated by commas. 
+
+The ``Output Path'' field asks you to pick a path to the file that \oscaar will produce with the results of all of its algorithms. Pick a place where you can put this output data file.
 
 \subsection{Locating Your Stars with DS9} \label{sec:locatingStars}
 
-The first and most intensive task you'll have to do to prepare \oscaar  for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of SAO Image DS9 (see Section \ref{sec:systemRequirements} to download). 
+The next task you'll have to do to prepare \oscaar for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of \href{http://hea-www.harvard.edu/RD/ds9/site/Home.html}{SAOImage DS9}. 
 
-To begin, start DS9 and open the first image from the series of images you will process. You can also start DS9 from within \oscaar by clicking \code{Open DS9} button. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
+To begin, click the \code{Open DS9} button at the bottom of the GUI (see Figure \ref{fig:gui}) to start DS9 and open the first image from the series of images you will process. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.2]{imgs/ds9.png}
@@ -148,16 +182,10 @@ To begin, start DS9 and open the first image from the series of images you will 
 \label{fig:ds9}
 \end{center}	
 \end{figure}
-The first star that you select will be treated as the target star, and any subsequent choices will be comparison stars. Repeat this process for as many comparison stars as you like (try to keep it under 25 for speed). Avoid picking stars near any obvious defects on the detector, any stars less than 150 pixels from the edge of the image, or stars with a neighboring star close nearby. 
+The first star that you select will be treated as the target star, and any subsequent choices will be comparison stars. Repeat this process for as many comparison stars as you like (try to use as few as possible for speed). Avoid picking stars near any obvious defects on the detector, any stars less than 150 pixels from the edge of the image, or stars with a neighboring star close nearby. 
 
-When you're done choosing control stars, go to \code{Regions} \textgreater  \code{Save Regions...} and save a regions file in a directory where you will be able to find it later. This file will contain the pixel coordinates of the stars at the beginning of the observation, which tells \oscaar which stars to track. You may want to check that the test star is in fact the first star in the regions file. Open the regions file in a text editor and check that the first line resembling ``\code{circle(100,600,10)}'' has the proper (x,y) pixel coordinates and radius (in this example, the position is (100,600) with a radius of 10). If the first circle coordinate line does not point to the target star, find the circle coordinate that does, move that line to the top of the list, and save the file.
+When you're done choosing control stars, go to \code{Regions} \textgreater  \code{Save Regions...} and save a regions file in a directory where you will be able to find it later. This file will contain the pixel coordinates of the stars at the beginning of the observation, which tells \oscaar which stars to track. You may want to check that the test star is in fact the first star in the regions file. Open the regions file in a text editor and check that the first line resembling ``\code{circle(100,600,10)}'' has the proper (x,y) pixel coordinates and radius (in this example, the position is (100,600) with a radius of 10). If the first circle coordinate line does not point to the target star, find the circle coordinate that does, move that line to the top of the list, and save the file. Select this regions file (with the ``.reg'' extension) from the \code{Browse} button of the \gui for the ``Path to Regions File'' field.
 
-In the \oscaar GUI, click \code{Browse} in the \code{Path to Regions File} field and enter the path to the regions file you just made.
-
-\subsubsection{Locating Your Data}
-
-	\oscaar  is built to find files by their paths. To properly set the image paths, you should click the browse button next to the dark images path field and choose all of the dark image files that you wish to be processed. To do this, select your first file, then hold the \code{Ctrl} key on Windows or the \code{Command} key on Mac and click every file you would like to select. Alternatively, if they are all listed consecutively, you can click the first file, hold shift, and then click the last one. Now click the ``Open'' button and all of your dark images should be listed separated by commas. Do the same for your data images in the \code{Data Images} field of the \oscaar GUI.
-	
 \subsection{Making a Master Flat}
 Now that you have properly set the path to the darks and the data images, you must now make your master flat. First click the ``Master Flat Maker'' button at the bottom of the \oscaar window, and a dialog box should pop up that looks like Figure \ref{fig:flats}.
 \begin{figure}[H]
@@ -172,7 +200,7 @@ Now you must set the paths to the flat images and the dark flat images in the sa
 
 There are two options for how you can make your flat, either  the ``Standard'' or ``Twilight'' flat type. The standard flat maker algorithm is a simple mean combination of the flat frames that you enter into the flat maker GUI. If you took dome flats or bright sky flats, this is the right option for you. If you took flats at twilight as the sun was setting and the sky background was your ``screen'', the twilight flat algorithm will fit a linear function to the intensity of each pixel over time, and use the intercept as the normalization factor for the flat. The twilight flat algorithm is much slower than the standard method, because those linear fits are computationally expensive in an interpreted language like Python. We hope to code up alternative versions of these routines that you can experiment with on your dataset, some of which may access much faster, compiled code in C or Cython.
 
-Now click the \code{Run} button on the master flat maker and close it when it is done. You should now choose the output file when selecting the path to the master flat frame in the main \oscaar GUI. 
+Now click the \code{Run} button on the master flat maker and close it when it is done. You should now choose the master flat file that you generated when selecting the ``Path to Master Flat'' in the \gui. 
 
 \subsection{Running Parameters}
 The next step in running \oscaar is to properly set all of the initial running parameters. These have default values set, but these may need to be modified for your particular data set.
@@ -251,6 +279,24 @@ This text field is meant for you to enter any notes you might want to know later
 If you are observing a transiting exoplanet, \oscaar can do its most precise photometry if it knows when your target is ``in-transit'', meaning the planet is occulting the disk of star, or ``out-of-transit'', meaning the planet is not occulting the star. This is because it uses mathematical techniques that look for changes in each comparison star compared to the target star in order to determine which comparison stars are the best to use (see Section \ref{sec:calcMeanComp}). If you compared the target to comparisons while the planet was in-transit, there would be a real (and important) difference between the two that we want to measure accurately. For this reason we input the ingress and egress times and only compare the target and comparison stars during out-of-transit exposures.
 
 Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour scale, in Universal Time. Seconds are insignificant.
+
+\subsection{Results}
+After you click \code{Run} and \oscaar has completed its differential photometry calculations, a light curve will pop up, like this one:
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.25]{imgs/lightcurve.png}
+\caption{Sample light curve generated at the end of a successful \oscaar run, using sample data produced by \code{generateSampleData.py}}
+\label{fig:lightcurve}
+\end{center}	
+\end{figure}
+The black points represent the relative flux of the target star compared to the comparisons, with some uncertainty (see Figure \ref{fig:lightcurve}). The red squares bin up the black points into large bins so you can see the overall trends in noisy data. The vertical dotted lines mark the ingress and egress times that you set in Section \ref{sec:ingEgr}. 
+
+The plot is generated with the Python package \code{matplotlib}, which supports some great interactive features. If you click the magnifying glass icon in the bottom left of the window, you can click anywhere on the plot and drag a box over a region that you'd like to zoom into. Press the home icon to return to the original view of the plot. Click the crossed-arrows icon to use the cursor to move the plot around in its box, or right click and drag to squeeze or stretch the plot. If you find that your experimentation has given you a view of the data that you'd like to hold on to, click the floppy-disk icon to save a hard copy of the plot (acceptable formats: ps, emf, gif, svg, eps, jpeg, raw, bmp, jpg, tiff, pdf, tif, png, and more). 
+
+
+\subsection{Loading Previously Saved Results}
+There should now be a file where you placed the ``Output Path''. If you want to look to see the raw data, or the data in various stages of processing, you can click the ``Oscaar'' drop down menu (next to \code{File} and \code{Help} at the top), and select ``Load old outputs''. The small window that pops up allows you to pick the old output file that you generated and then plot its contents in various ways. This can be useful for troubleshooting, if your light curve doesn't look the way you think it should. Light curves can be bad if the raw fluxes of one of the stars was measured improperly, for instance, so clicking the ``Plot Raw Fluxes'' button will produce a plot of the raw fluxes for each star, which may help you to debug. 
+
 
 \section{Algorithm Notes}
 \subsection{\code{oscaar.photometry.phot()}}
