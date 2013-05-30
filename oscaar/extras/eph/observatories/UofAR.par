@@ -9,7 +9,7 @@ end_date: (2013,06,26,00,00,00)
 v_limit: 12.0
 depth_limit: 0.008
 calc_transits: True
-calc_eclipses: True
+calc_eclipses: False
 html_out: True
-text_out: True
+text_out: False
 twilight: -6
