@@ -236,12 +236,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 		        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
-        global worker
-        worker = None
+        global worker ##Declaration of the worker thread
+        worker = None ##initialize threads to None
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
 
+	##Only write notes if the notes field has been changed
         if self.notesField.GetValue() == 'Enter notes to be saved here':
             notes.write('\nNo notes entered.')
         else: 
@@ -249,16 +250,20 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
         notes.close()
         init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
-        #Write to init.par
+        ##Write to init.par
+	##init.par is parsed by the photometry script for the initial parameters
+	##Copy image path fields from gui to init.par
         self.darkFits = self.addStarFits(init, 'Path to Dark Frames: ', self.darkPathTxt.GetValue())
         self.imgFits = self.addStarFits(init, 'Path to data images: ', self.imagPathTxt.GetValue())
         self.flatFits = self.addStarFits(init, 'Path to Master-Flat Frame: ', self.flatPathTxt.GetValue())
         self.regFits = self.addStarFits(init, 'Path to regions file: ', self.regPathTxt.GetValue())
         init.write('Output Path: ' + self.outputTxt.GetValue() + '\n')
+	##Write the ingress and egress time with the correct format to init.par
         self.parseTime(self.ingressDate.GetValue(), self.ingressTime.GetValue(), 'Ingress: ',  init)
         self.parseTime(self.egressDate.GetValue(), self.egressTime.GetValue(), 'Egress: ', init)
         self.checkRB(self.radioTrackPlotOn, 'Plot Tracking: ', init)
         self.checkRB(self.photPlotsOn, 'Plot Photometry: ', init)
+	##Copy all TextCtrl fields into init.par
         init.write('Smoothing Constant: ' + self.smoothingConstTxt.GetValue() + '\n')
         init.write('CCD Gain: ' + self.ccdGainTxt.GetValue() + '\n')
         init.write('Radius: ' + self.radiusTxt.GetValue() + '\n')
@@ -266,12 +271,16 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write('Init GUI: on')
         init.close()
         init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
+	##Calls validity check, which opens a frame if fields are entered improperly
         if self.validityCheck():
+	    ##If it is valid and you are going to overwrite other output, it will allow you to back out
             if self.outputOverwriteCheck(self.outputTxt.GetValue()):
+		##destroy oscaarFrame and run photometry script in separate thread to avoid freezing up the GUI
                 self.Destroy()
                 if not worker:
                     worker = WorkerThread()
     
+    ##This function takes a field and paths separated by commas and writes the field name and the comma separated list of paths
     def addStarFits(self, init, field, path):
         pathList = []
         for impath in path.split(','):
@@ -290,6 +299,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write(field + initText + '\n')
         return pathList
     
+    ##Checks to make sure the user has entered valid parameters
     def validityCheck(self):
         darkFrames = self.darkFits
         imageFiles = self.imgFits
@@ -305,10 +315,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 invalidsString += ", "
             invalidsString += "Image Files"
             commaNeeded = True
-        #if not self.containsFit(flatFrames) and self.flatFits!='None':
-        #    if commaNeeded:
-        #        invalidsString += ", "
-        #    invalidsString += "Flat Frames"
         if not self.containsReg(regionsFile):
             if commaNeeded:
                 invalidsString += ", "
