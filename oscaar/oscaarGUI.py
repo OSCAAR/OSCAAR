@@ -17,7 +17,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     #### Creates and initializes the GUI ####
     def InitUI(self):
         #### Defines the menubar ####
-        global masterFlatOpen
+        global masterFlatOpen ##Global variables to ensure one instance of each frame open at a time
         global ephGUIOpen
         global aboutOpen
         global loadOldPklOpen
@@ -25,17 +25,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         ephGUIOpen = False
         aboutOpen = False
         loadOldPklOpen = False
-        menubar = wx.MenuBar()
-        fileMenu = wx.Menu()
-        self.oscaarMenu = wx.Menu()
+        menubar = wx.MenuBar() ##This is the main menubar where all menus are attached
+        fileMenu = wx.Menu()  ##File menu for quit
+        self.oscaarMenu = wx.Menu()  ##Menu for oscaar features
         self.helpMenu = wx.Menu()
+	##Append menu options to different menus:
         menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit\tCtrl+Q', 'Quit application') ##provides a way to quit
         menubar.Append(fileMenu, '&File')
         menubar.Append(self.helpMenu, '&Help')
         menubar.Append(self.oscaarMenu, '&Oscaar')
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
-        #self.menuDefaults = self.oscaarMenu.Append(-1, 'Set Defaults', 'Set Defaults')
-        #self.Bind(wx.EVT_MENU, lambda event: self.setDefaults(event, 'init.par'), self.menuDefaults)
+	##Initialize and menu items and bind them to a function
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
         self.Bind(wx.EVT_MENU, self.predictions, self.linkToPredictions)
         self.aboutOscaarButton = self.oscaarMenu.Append(-1, 'About oscaar', 'About oscaar')
@@ -48,8 +48,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
         
         self.SetMenuBar(menubar)
-        self.sizer = wx.GridBagSizer(7, 7)        
+        self.sizer = wx.GridBagSizer(7, 7) ##The sizer organizes gui items in a grid, all items are added to the sizer        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
+	##Adds logo image to the gui
         self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
@@ -62,9 +63,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
         self.radioTrackPlotOff = wx.RadioButton(self, label = "Off")
         
-        textCtrlSize = (530,25)
-        
+        textCtrlSize = (530,25) ##Tuple defining default TextCtrl size
+	
+	##Dark images path displayed in darkPathTxt TextCtrl, size is set to default size
         self.darkPathTxt = wx.TextCtrl(self, size = textCtrlSize)
+	##Defines browse button for dark images path
         self.darkPathBtn = wx.Button(self, -1, 'Browse')
         self.flatPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.flatPathBtn = wx.Button(self, -1, 'Browse')
@@ -72,19 +75,22 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.imagPathBtn = wx.Button(self, -1, 'Browse')
         self.regPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.regPathBtn = wx.Button(self, -1, 'Browse')
+	
+	##Text Control and RadioButton declarations
         self.smoothingConstTxt = wx.TextCtrl(self, value = '0')
         self.radiusTxt = wx.TextCtrl(self, value = '0')
         self.trackZoomTxt = wx.TextCtrl(self, value = '0')
         self.ccdGainTxt = wx.TextCtrl(self, value = '0')
-        self.photPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP)
+        self.photPlotsOn = wx.RadioButton(self, label = 'On', style = wx.RB_GROUP) ##Only one button from each "RB_GROUP" can be selected
         self.photPlotsOff = wx.RadioButton(self, label = 'Off')
         self.ingressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
         self.ingressTime = wx.TextCtrl(self, value = '00:00:00')
         self.egressDate = wx.TextCtrl(self, value = 'YYYY/MM/DD')
         self.egressTime = wx.TextCtrl(self, value = '00:00:00') ## TimeCtrl to pick the egress time
         self.ds9Button = wx.Button(self, -1, 'Open DS9', size = (90, 25)) ## Button to open ds9
-        self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25), pos = (505, 433))
-        self.ephButton = wx.Button(self,-1, 'Ephemeris')
+        self.masterFlatButton = wx.Button(self, -1, 'Master Flat Maker', size = (130,25), pos = (505, 433)) ## Open master flat maker GUI
+        self.ephButton = wx.Button(self,-1, 'Ephemeris')  ## Open Ephemeris GUI
+	##Large TextCtrl that allows you to enter notes for a transit
         self.notesField = wx.TextCtrl(self, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
         self.notesLabel = wx.StaticText(self, label = 'Notes')
         self.notesLabel.SetFont(self.labelFont)
@@ -92,6 +98,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.outputTxt = wx.TextCtrl(self, value = 'outputs', size = textCtrlSize)
     
         ##### Add items to sizer for organization #####
+	## First parameter is always the row in which the item is placed
+	## Second to last parameter of addPathChoice represents whether there will be single file select, if it is false there will be multiple
         self.addPathChoice(2, self.darkPathTxt, self.darkPathBtn, wx.StaticText(self, -1, 'Path to Dark Frames: '), 'Choose Path to Dark Frames', False, None)
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Master Flat: '), 'Choose Path to Flat Frames', True, wx.FD_OPEN)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False, None)
@@ -120,45 +128,50 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #setDefault(self.run)
         #self.run.SetFocus()
         
+	## Add the run button to the sizer ##
         self.sizer.Add(self.run, (12,6), wx.DefaultSpan, wx.ALIGN_CENTER, 7)
         self.run.Bind(wx.EVT_BUTTON, self.runOscaar)
+	## Set the sizer's dimensions ##
         self.sizer.SetDimension(5, 5, 550, 500)
+	## Set OscaarFrame's sizer to the sizer all the items are added to ##
         self.SetSizer(self.sizer)
-        self.bestSize = self.GetBestSizeTuple()
-        setSize = (self.bestSize[0]+20,self.bestSize[1]+20) ##Not sure if this looks okay on os x and linux.
+        self.bestSize = self.GetBestSizeTuple() ##These three lines set the frame size to be appropriate regardless of os
+        setSize = (self.bestSize[0]+20,self.bestSize[1]+20) 
         self.SetSize(setSize)
-        self.SetMinSize(setSize)
-        self.SetTitle('OSCAAR')
+        self.SetMinSize(setSize) ##Set minimum size so that all gui items are always visible
+        self.SetTitle('OSCAAR') ##Set the frame's title
         iconloc = os.path.join(os.path.dirname(__file__),'images','logo4noText.ico')
         icon1 = wx.Icon(iconloc, wx.BITMAP_TYPE_ICO)
-        self.SetIcon(icon1)
+        self.SetIcon(icon1) ##Set frame's icon
         self.Centre()
         self.Show(True)
 
-    #### Allows quitting from the file menu. (Fixes cmd-Q on OS X) ####
+    #### Allows quitting from the file menu. (Fixes cmd-Q on OS X), Bound to the exit menu item ####
     def OnQuit(self, e): 
         self.Close()
 
     #### Neater creation of control items ####
+    #### All control items (TextCtrls, Buttons, etc.) are passed into these functions to be added to sizer ####
     def addButtonPair(self, row, colStart, button1, button2, label):
-        label.SetFont(self.labelFont)
+        label.SetFont(self.labelFont) ##Set font type for each button created
         self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##border of 8 pixels on the top and left
         self.sizer.Add(button1, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
         self.sizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     def addTextCtrl(self, row, colStart, textCtrl, label):
         label.SetFont(self.labelFont)
-        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+        self.sizer.Add(label, (row, colStart), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##Adds a text field and a label to the sizer
         self.sizer.Add(textCtrl, (row, colStart+1), wx.DefaultSpan, wx.TOP, 7)
-        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
-        textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
+        textCtrl.SetForegroundColour(wx.Colour(120,120,120)) ##Set Color of TextCtrl text
+        textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl)) ##Updates color if text is changed.
 
     def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
         label.SetFont(self.labelFont)
-        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7)
+        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7) ##Add label to sizer
+        self.sizer.Add(textCtrl, (row, 1), (1,5), wx.TOP, 7) ##Add TextCtrl to sizer
         self.sizer.Add(button, (row, 6), (1,1), wx.TOP, 7)
-        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
+        textCtrl.SetForegroundColour(wx.Colour(120,120,120)) ##Set text color
+	## Bind the browse button to browseButtonEvent with parameters entered
         button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
         textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
 
@@ -194,12 +207,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         #subprocess.Popen([ds9Loc, regionsName])
         subprocess.Popen([ds9])
         
+    #### Bound to the masterFlatButton button, opens the MasterFlatFrame
     def openMasterFlatGUI(self, event):
         global masterFlatOpen
         if masterFlatOpen == False:
             masterFlatOpen = True
             MasterFlatFrame(None)
         
+    #### Bound to the openEphGui button, opens the Ephemeris GUI
     def openEphGUI(self,event):
         global ephGUIOpen
         if ephGUIOpen == False:
