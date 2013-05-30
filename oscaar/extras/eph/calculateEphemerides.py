@@ -187,6 +187,12 @@ def calculateEphemerides(parFile,rootPath):
 		inList = map(str,inList)
 		return inList[0]+'/'+inList[1]+'/'+inList[2]+' '+inList[3].zfill(2)+':'+inList[4].zfill(2)+':'+inList[5].zfill(2)
 
+	def list2datestrCSV(inList):
+		'''Converse function to datestr2list'''
+		inList = map(str,inList)
+		return inList[0]+'/'+inList[1]+'/'+inList[2]+','+inList[3].zfill(2)+':'+inList[4].zfill(2)+':'+inList[5].zfill(2)
+
+
 	def list2datestrHTML(inList,alt,direction):
 		'''Converse function to datestr2list'''
 		inList = map(str,inList)
@@ -263,10 +269,6 @@ def calculateEphemerides(parFile,rootPath):
 		elif az >= 202.5 and az < 247.5:  return 'SW'
 		elif az >= 247.5 and az < 292.5:  return 'W'	
 		elif az >= 292.5 and az < 337.5:  return 'NW'
-	#	if (az >= 0 and az < 45) or (az >= 315 and az < 360): return 'N'
-	#	elif az >= 45 and az < 135:  return 'E'
-	#	elif az >= 135 and az < 225: return 'S'
-	#	elif az >= 225 and az < 315: return 'W'
 
 	def ingressEgressAltAz(planet,observatory,ingress,egress):
 		altitudes = []
@@ -347,7 +349,7 @@ def calculateEphemerides(parFile,rootPath):
 					if aboveHorizonForEvent(planet,observatory,ingress,egress) and eventAfterTwilight(planet,observatory,ingress,egress,twilightType):
 						ingressAlt,ingressDir,egressAlt,egressDir = ingressEgressAltAz(planet,observatory,ingress,egress)
 						eclipseInfo = [planet,eclipseEpoch,duration(planet)/2,'eclipse',ingressAlt,ingressDir,egressAlt,egressDir]
-						eclipses[str(day)].append(transitInfo)	
+						eclipses[str(day)].append(eclipseInfo)	
 
 			except ephem.NeverUpError:
 				if str(planet) not in planetsNeverUp:
@@ -387,16 +389,29 @@ def calculateEphemerides(parFile,rootPath):
 	if calcEclipses: mergeDictionaries(eclipses)
 
 	if textOut: 
-		'''Write out a text report with the transits/eclipses. Write out the time of 
-		   ingress, egress, whether event is transit/eclipse, elapsed in time between
-		   ingress/egress of the temporally isolated events'''
-		report = open(os.path.join(rootPath,'eventReport.txt'),'w')
-		allKeys = []
-		for key in events:
-			allKeys.append(key)
-
+		allKeys = events.keys()
 		allKeys = np.array(allKeys)[np.argsort(allKeys)]
+		report = open(os.path.join(rootPath,'eventReport.csv'),'w')
+		firstLine = 'Planet,Event,Ingress Date, Ingress Time (UT) ,Altitude at Ingress,Azimuth at Ingress,Egress Date, Egress Time (UT) ,Altitude at Egress,Azimuth at Egress,V mag,Depth,Duration,RA,Dec,Const.,Mass,Semimajor Axis (AU),Radius (R_J)\n'
+		report.write(firstLine)
+
 		for key in allKeys:
+			def writeCSVtransit():
+				middle = ','.join([planet[0],str(planet[3]),list2datestrCSV(jd2gd(float(planet[1]-planet[2]))),planet[4],planet[5],\
+										   list2datestrCSV(jd2gd(float(planet[1]+planet[2]))),planet[6],planet[7],trunc(V(str(planet[0])),2),\
+										   trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RA(planet[0]),dec(planet[0]),constellation(planet[0]),\
+										   mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
+				line = middle+'\n'
+				report.write(line)
+			
+			def writeCSVeclipse():
+				middle = ','.join([planet[0],str(planet[3]),list2datestrCSV(jd2gd(float(planet[1]-planet[2]))),planet[4],planet[5],\
+										   list2datestrCSV(jd2gd(float(planet[1]+planet[2]))),planet[6],planet[7],trunc(V(str(planet[0])),2),\
+										   trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RA(planet[0]),dec(planet[0]),constellation(planet[0]),\
+										   mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
+				line = middle+'\n'
+				report.write(line)
+
 			if np.shape(events[key])[0] > 1:
 				elapsedTime = []
 				
@@ -417,36 +432,32 @@ def calculateEphemerides(parFile,rootPath):
 						double = True
 						elapsedTime.append(ephem.Date(list2datestr(jd2gd(float(planet[1]-planet[2])))) - \
 							 ephem.Date(list2datestr(jd2gd(float(nextPlanet[1]+nextPlanet[2])))))
-				
-				if double:
-					report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\t'+'>1 event'+'\t'+str(np.max(elapsedTime)*24.0)+'\t'+'\n')
-				else:
-					report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
+
 				for planet in events[key]:
 					if calcTransits and planet[3] == 'transit':
-						report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
+						writeCSVtransit()
 					if calcEclipses and planet[3] == 'eclipse':
-						report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
+						writeCSVeclipse()		  
 
-				report.write('\n')
 			elif np.shape(events[key])[0] == 1:
 				planet = events[key][0]
-				report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
 				if calcTransits and planet[3] == 'transit':
-						report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
+						writeCSVtransit()
 				if calcEclipses and planet[3] == 'eclipse':
-						report.write('\t'+str(planet[0])+'\t'+str(planet[3])+'\t'+list2datestr(jd2gd(float(planet[1]-planet[2]))).split('.')[0]+'\t'+list2datestr(jd2gd(float(planet[1]+planet[2]))).split('.')[0]+'\n')
-				report.write('\n')
+						writeCSVeclipse()
+			   # report.write('\n')
+
 		report.close()
+	#print exoplanetDB['HD 209458 b']
+	print 'calculateEphemerides.py: Done'
+
 
 	if htmlOut: 
 		'''Write out a text report with the transits/eclipses. Write out the time of 
 		   ingress, egress, whether event is transit/eclipse, elapsed in time between
 		   ingress/egress of the temporally isolated events'''
 		report = open(os.path.join(rootPath,'eventReport.html'),'w')
-		allKeys = []
-		for key in events:
-			allKeys.append(key)
+		allKeys = events.keys()
 		## http://www.kryogenix.org/code/browser/sorttable/
 		htmlheader = '\n'.join([
 			'<!doctype html>',\
@@ -539,24 +550,17 @@ def calculateEphemerides(parFile,rootPath):
 						elapsedTime.append(ephem.Date(list2datestr(jd2gd(float(planet[1]-planet[2])))) - \
 							 ephem.Date(list2datestr(jd2gd(float(nextPlanet[1]+nextPlanet[2])))))
 				
-				#if double:
-				#	report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\t'+'>1 event'+'\t'+str(np.max(elapsedTime)*24.0)+'\t'+'\n')
-				#else:
-				#	report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
 				for planet in events[key]:
 					if calcTransits and planet[3] == 'transit':
 						writeHTMLtransit()
 					if calcEclipses and planet[3] == 'eclipse':
 						writeHTMLeclipse()		  
-				#report.write('\n')
 			elif np.shape(events[key])[0] == 1:
 				planet = events[key][0]
-				#report.write(list2datestr(jd2gd(float(key)+1)).split(' ')[0]+'\n')
 				if calcTransits and planet[3] == 'transit':
 						writeHTMLtransit()
 				if calcEclipses and planet[3] == 'eclipse':
 						writeHTMLeclipse()
-			   # report.write('\n')
 		report.write(tablefooter)
 		report.write(htmlfooter)
 		report.close()
