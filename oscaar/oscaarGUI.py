@@ -959,19 +959,24 @@ class LoadOldPklFrame(wx.Frame):
         self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
 
     def validityCheck(self):
-        pathTxt = self.pklPathTxt.GetValue();
-        invalidsString = ""
-        if not self.correctOutputFile(pathTxt):
-            invalidsString += pathTxt;
-        if invalidsString == "":
-            return True
+        invalidString = ""
+        pathTxt = self.pklPathTxt.GetValue()
+        if pathTxt:
+            if not self.correctOutputFile(pathTxt):
+                invalidstring += pathTxt;
+            if invalidString == "":
+                return True
+            else:
+                 InvalidPath1(invalidString, None, -1)
+            return False
         else:
-             InvalidPath1(invalidsString, None, -1)
-        return False
+            InvalidPath1(invalidString,None,-1)
 
     def correctOutputFile(self, pathname):
+        if pathname == '':
+            return False
         if pathname.endswith('.pkl'):
-                return True
+            return True
         return False
 
     def plotLightCurve(self, event):
