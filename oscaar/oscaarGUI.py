@@ -679,7 +679,7 @@ class EphFrame(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 	self.subTitleFont = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.SetTitle('Ephemerides')
