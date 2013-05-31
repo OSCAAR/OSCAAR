@@ -208,15 +208,17 @@ class dataBank:
         compErrors = np.copy(compStars)
         columnCounter = 0
         acceptedCompStarKeys = []
+        compStarKeys = []
         for star in self.allStarsDict:
             if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
                 compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
                 compErrors[:,columnCounter] = self.getScaledErrors(star).astype(np.float64)
-                acceptedCompStarKeys.append(int(star))
+                compStarKeys.append(int(star))
                 columnCounter += 1
             elif star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
                 print 'Star '+str(star)+' excluded from regression'
+                compStarKeys.append(int(star))
                 columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
         def errfunc(p,target): 
@@ -227,7 +229,7 @@ class dataBank:
         print '\nBest fit regression coefficients:',bestFitP
         print 'Default weight:',1./numCompStars
         
-        self.comparisonStarWeights = np.vstack([acceptedCompStarKeys,bestFitP])
+        self.comparisonStarWeights = np.vstack([compStarKeys,bestFitP])
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
         self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
         return self.meanComparisonStar, self.meanComparisonStarError  
