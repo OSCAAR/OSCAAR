@@ -17,13 +17,12 @@ from oscaar import photometry
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
-
-plt.ion()
-import datetime
+plt.ion()	## Turn on interactive plots
 
 data = oscaar.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
 outputPath = data.outputPath
+N_exposures = len(data.getPaths())
 
 ## Prepare systematic corrections: dark frame, flat field
 meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
@@ -32,9 +31,11 @@ masterFlat = data.masterFlat
 ## Tell oscaar what figure settings to use 
 plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   
 
-## MAIN LOOP FOR PHOTOMETRY
-for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
+## Main loop: iterate through each exposures
+for expNumber in range(0,N_exposures):  
+	
     if statusBarAx != None and expNumber % 15 == 0: 
+    	'''Prepare some plotting settings here'''
         plt.cla()
         statusBarAx.set_title('oscaar2.0 is running...')
         statusBarAx.set_xlim([0,100])
@@ -44,8 +45,9 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
 
     print '\n'+'Loading file: '+data.getPaths()[expNumber]
     image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
-    data.storeTime(expNumber)                                               ## Get the exposure time from the header
+    data.storeTime(expNumber)                                   ## Store the exposure time from the FITS header
     
+    ## Iterate through each star in each exposure
     for star in allStars:
         if expNumber == 0:
             est_x = allStars[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
@@ -59,28 +61,30 @@ for expNumber in range(0,len(data.getPaths())):  ## For each exposure:
                                                          zoom=data.trackingZoom, plots=data.trackPlots)
         data.storeCentroid(star,expNumber,x,y)              ## Store the centroid positions
 
-        ## Measure the flux and uncertainty, assuming the previously found stellar centroid
+        ## Measure the flux and uncertainty, centered on the previously found stellar centroid
         flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, \
                                                 plots=data.photPlots)
 
-        data.storeFlux(star,expNumber,flux,error)           ## Store the flux and uncertainty
+        data.storeFlux(star,expNumber,flux,error)           ## Store the flux and uncertainty in the data object
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
-        if data.trackPlots or data.photPlots: plt.draw()   
+        if data.trackPlots or data.photPlots: plt.draw()	## More plotting settings 
 
-    if statusBarAx != None and expNumber % 15 == 0: 
+    if statusBarAx != None and expNumber % 15 == 0: 		## More plotting settings
         plt.draw()
 
 plt.close()
-#plt.ioff()
 
-times = data.getTimes()
-data.scaleFluxes()
+## Compute the scaled fluxes of each comparison star
+data.scaleFluxes()		
+
+## Calculate a composite comparison star by combining all comparisons
 meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
-#chisq = data.getAllChiSq()
+
+## Calculate the light curve
 lightCurve, lightCurveError = data.computeLightCurve(meanComparisonStar,meanComparisonStarError)
 
-binnedTime, binnedFlux, binnedStd = oscaar.medianBin(times,lightCurve,10)
-photonNoise = data.getPhotonNoise()
-
+## Save the dataBank object for later use
 oscaar.save(data,outputPath)
-data.plot(pointsPerBin=10)
+
+## Plot the resulting light curve
+data.plotLightCurve(pointsPerBin=N_exposures/20)
