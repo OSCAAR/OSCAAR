@@ -687,8 +687,6 @@ class EphFrame(wx.Frame):
         self.ephSizer = wx.GridBagSizer(5,5)
         obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
         nameList = []
-        #for i in obsList:
-        #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
         for file in obsList:        ## Gather all available observatory names
             openfile = open(file,'r').read().splitlines()
             for line in openfile: 
@@ -720,14 +718,11 @@ class EphFrame(wx.Frame):
         self.calcButton = wx.Button(self,-1,label = 'Calculate', size = (110,25))
 	self.advancedOptions = wx.StaticText(self, -1, 'Advanced Options')
 	self.advancedOptions.SetFont(self.subTitleFont)
-	self.line = wx.Window(self, size = (80,15))
         self.ephSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
         self.ephSizer.Add(self.selectObsLbl, (1,0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         self.ephSizer.Add(self.observatory, (1,1), (1,3), wx.TOP | wx.LEFT, 7)
 	self.ephSizer.Add(self.advancedOptions, (6,0), (1,2), wx.TOP | wx.LEFT, 7)
-	
-	self.dc = wx.MemoryDC
-        
+	        
         self.addTextCtrl(2,0, self.name, wx.StaticText(self,-1,'Name of Observatory: '), (1,2))
         self.addTextCtrl(3,0, self.filename, wx.StaticText(self,-1,'Enter File Name: '), (1,2))
         self.addDateCtrl(4,0, self.startSemDate,wx.StaticText(self, -1, "Start of Obs, UT (YYYY/MM/DD): "))
@@ -796,6 +791,8 @@ class EphFrame(wx.Frame):
             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
+	filename = obsPath.split('\\')[len(obsPath.split('\\'))-1]
+	self.filename.SetValue(filename)
         obsPath = file(obsPath, 'r')
         for line in obsPath:
             if line.split(':',1) > 1 and line[0] != '#':
