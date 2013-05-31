@@ -791,7 +791,7 @@ class EphFrame(wx.Frame):
             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
-	filename = obsPath.split('\\')[len(obsPath.split('\\'))-1]
+	filename = obsPath.split('\\')[len(obsPath.split('\\'))-1].split('.')[0]
 	self.filename.SetValue(filename)
         obsPath = file(obsPath, 'r')
         for line in obsPath:
