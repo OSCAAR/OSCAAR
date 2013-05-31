@@ -679,7 +679,7 @@ class EphFrame(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 	self.subTitleFont = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.SetTitle('Ephemerides')
@@ -791,8 +791,8 @@ class EphFrame(wx.Frame):
             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
     def loadValues(self, obsPath):
-	filename = obsPath.split('\\')[len(obsPath.split('\\'))-1].split('.')[0]
-	self.filename.SetValue(filename)
+	filename = os.path.split(obsPath)
+	self.filename.SetValue(filename[1].split('.')[0])
         obsPath = file(obsPath, 'r')
         for line in obsPath:
             if line.split(':',1) > 1 and line[0] != '#':
