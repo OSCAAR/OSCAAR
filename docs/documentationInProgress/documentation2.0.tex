@@ -18,7 +18,7 @@
 \newcommand{\init}{\code{init.par}\ }
 
 \begin{document}
-\title{\textbf{OSCAAR}: Open Source Differential Photometry Code for Amateur Astronomical Research}
+\title{\textbf{OSCAAR}: Open Source differential photometry Code for Amateur Astronomical Research}
 \author{Brett M. Morris and the OSCAAR Team}
 \maketitle
 \begin{center}
@@ -319,31 +319,37 @@ Observational data is never clean. There may be dead pixels or hot pixels that w
 
 
 \subsection{The \code{dataBank} Object}
-Storing and managing all of the data that comes with differential photometry scripts can be a nightmare, so we've developed the \code{dataBank} class to keep things organized. Python is an \href{https://en.wikipedia.org/wiki/Object-oriented_programming}{\textit{object oriented} language}, which means we can make \textit{objects} in it. For programmers new to objects, we'll review them a little in the next section. 
+Storing and managing all of the data that comes with differential photometry scripts can be a nightmare, so we've developed the \code{dataBank} class to keep things organized. Python is an \href{https://en.wikipedia.org/wiki/Object-oriented_programming}{\textit{object oriented} language}, which means we can make \textit{objects} in it. Objects in \oscaar allow us to organize our data and the functions that we will use on those data (called \textit{methods}). 
 
-\subsubsection{Quick Introduction to Object-Oriented Programming}
-One way to think about objects in terms of their use within \oscaar is that they are a name given to a template for a collection data and functions that can be run on those data. For example, let's imagine an object called the \code{car} object. The template of data storage structures and methods that can be used on them is often defined in a separate file, so we'll imagine that each of these methods are written in a separate file. Of course, this file does not actually exist anywhere in the \oscaar package and the following pseudocode will not work if you try to run it unless you wrote out the definitions for this \code{car} object. 
+One of the goals of \oscaar is to have lots of different methods for each analysis task so that you can try different ways of reducing your data without having to change out large chunks of code. If you used \code{trackSmooth()} to find stellar centroids (covered in Section \ref{sec:trackSmooth}), but thought a routine that fits two-dimensional gaussians to the images of the stars would work better, you could write a method for the \code{dataBank} class that would take the same input parameters as \code{trackSmooth()} and return the same outputs. Then all you would have to do is change the word ``trackSmooth'' to the name of your gaussian fitting method in the \code{differentialPhotometry.py} script to use the new algorithm. All of the other parts of the code could stay the same and it would be easy to change back to \code{trackSmooth()} if you wanted to. 
 
-The first thing we'll do with the \code{car} object is \textit{initialize} it, which means to assign an \textit{instance} of the object to variable. We'd do that like this in Python:
-\begin{verbatim}
->>> batmobile = car()	## Initialize an instance of the car object
-\end{verbatim}
-Then we can store values into the template that's already defined for the \code{car} object. For example, let's imagine that the \code{car} object has a property that stores the number of tires that this particular \code{car} object has that we'd like to set using one of the \code{car} object's \textit{methods}. A \textit{method} is a function that works on values within an \textit{object}. We could return the number of tires using the \code{get\_number\_tires()} method and set it using the \code{set\_number\_tires()}. In our example, we could do
-\begin{verbatim}
->>> N_tires = 4
->>> batmobile.set_number_tires(N_tires)	## Use a method on a object by doing object.method()
->>> print batmobile.get_number_tires()
-4
-\end{verbatim}
-The methods for each object have access to the data that you've stored in that object. So from here, we could use the \code{get\_number\_axles()} method that would look up the number of tires that we stored in the \code{batmobile} instance of the \code{car} object using the \code{set\_number\_tires()} method, which divides that number of tires by two:
-\begin{verbatim}
->>> Naxles =  batmobile.get_number_axles()
->>> print Naxles
-2
-\end{verbatim}
-Objects are used in \oscaar to help organize data and execute functions on those data without asking the user to name and manage arrays that handle all of the fluxes, the uncertainties on those fluxes, the stellar centroid positions, etc. This helps to keep your code clean to keep things modular. For instance, let's say that Batman blew out a tire, so his number of tires is now 3. The \code{get\_number\_axles()} only divides the number of tires by two, and which will return 1.5 axles now. We know he still has at least two axles though since he has more than two tires, so we'll write and use a more sophisticated method \code{get\_number\_axles\_special()} that will divide the number of tires by two and round up to the nearest integer. Then we'd only need to change the call to the \code{get\_number\_axles()} method to \code{get\_number\_axles\_special()}, which is quick and easy to implement and experiment with.
+In the next subsections, we'll discuss some of the methods in the \code{dataBank} class. Since all of the photometry data is stored in this class, most of the differential photometry algorithms that manipulate the raw fluxes to calculate a light curve are written in this class as well. Therefore this section can also be though of as a play-by-play description of the standard \oscaar differential photometry routine.
 
-One of the goals of \oscaar is to have lots of different methods for each task so that you can try different ways of reducing your data without having to change out large chunks of code. If you used \code{trackSmooth()} to find stellar centroids (covered in Section \ref{sec:trackSmooth}), but thought a routine that fits two-dimensional gaussians to the images of the stars would work better, you could write a method for the \code{dataBank} class that would take the same input parameters as \code{trackSmooth()} and return the same outputs. Then all you would have to do is change the word ``trackSmooth'' to the name of your gaussian fitting method in the \code{differentialPhotometry.py} script to use the new algorithm. All of the other parts of the code could stay the same and it would be easy to change back to \code{trackSmooth()} if you wanted to. 
+
+\subsubsection{\code{dataBank.scaleFluxes()}}
+
+Each star that you observe will have a different apparent magnitude, and the dimmer the star is the more significantly the flux measurements will be affected by sources of noise. If we're going to compare the flux variations of each comparison star to the target star, which all are affected by noise to different degrees, we need to make sure that we're accounting for the lower signal-to-noise ratio for the dim stars and higher signal-to-noise ratio for the bright ones. 
+
+To accomplish this, we do a linear regression to find a multiplicative coefficient to apply to each comparison star. Multiplying this coefficient to the raw fluxes of the comparison stars ``scales their fluxes'' to the amplitude of the raw fluxes of the target star. It equally scales the scatter of those flux measurements, which has the effect of squeezing down the scatter on brighter stars after scaling or stretching out the scatter in the fluxes of dimmer 
+stars. Figure \ref{fig:rawFluxes} shows the raw fluxes from three simulated stars, calculated by \oscaar, each with a different brightness. You can see the slight decrease in brightness of the target star, shown here in red, at ingress and egress (denoted by the vertical dotted lines). 
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.30]{imgs/rawFluxes.eps}
+\caption{Raw fluxes from three simulated stars, calculated by \oscaar, each with a different brightness. You can see the slight decrease in flux of the target star, shown here in red points, at ingress and egress (denoted by the vertical dotted lines).}
+\label{fig:rawFluxes}
+\end{center}	
+\end{figure}
+
+\noindent When the fluxes of these comparison stars in Figure \ref{fig:rawFluxes} are run through the \code{dataBank.scaleFluxes()} routine, their fluxes get stretched to the amplitude of the target star fluxes, shown in Figure \ref{fig:scaledFluxes}. You can see that the scatter in the green comparison star's fluxes are stretched significantly larger, conserving the relative signal-to-noise ratios of each star. Now we could do a $\chi^2$ or similar analysis to compare how closely the variations in each each comparison star's fluxes match those of the target star. 
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.30]{imgs/scaledFluxes.eps}
+\caption{Result after scaling the raw fluxes in Figure \ref{fig:rawFluxes} using the \code{dataBank.scaleFluxes()} method. Note that the fluxes of the dimmest star have the largest rms scatter, and the brightest stars have the smallest scatter after scaling.}
+\label{fig:scaledFluxes}
+\end{center}	
+\end{figure}
+
 
 \subsubsection{\code{dataBank.calcMeanComparison()}} \label{sec:calcMeanComp}
 
@@ -377,7 +383,6 @@ Of course, the out-of-transit exposures are the only ones used in this calculati
 
 This method also effectively cleans up after us if we choose bad comparison stars, as laid out in Section \ref{sec:locatingStars}. Let's say we chose a dim star that had a brighter nearby companion. The tracking algorithm may be able to accurately find the centroid of the dim star that we intended to use as a comparison star for a few exposures or maybe even for half of the exposures, but it may eventually ``see'' the brighter star nearby and start tracking its centroid instead. When this occurs, the flux measured for this comparison star will suddenly jump up discontinuously at the exposure when the centroid of the brighter star was found. The discontinuous flux jump in fluxes of this comparison star will be very dissimilar to continuous, telluric variations that effect the target star on a night with decent weather. The \code{dataBank.calcMeanComparison()} algorithm will find that only very small coefficients for the flux of this comparison star will produce a good composite comparison star, essentially giving this star no weight in the composite comparison star, counting it out. 
 
-
 \subsubsection{\code{dataBank.computeLightCurve()}} \label{sec:computeLightCurve}
 We calculate the light curve vector $\mathbf{f}_{relative}$ by simple division of the flux of the target star $\mathbf{f}_{T}$ by the flux of the composite comparison star $\mathbf{f}_{C}$, generated using \code{dataBank.calcMeanComparison()} (see Section \ref{sec:calcMeanComp}).
 \begin{equation}
@@ -387,10 +392,6 @@ The errors for each light curve flux are calculated by propagating of uncertaint
 \begin{equation}
 \sigma \mathbf{f}_{relative}  = | \mathbf{f}_{relative} |  \sqrt{ \left(\frac{\sigma \mathbf{f}_{T}}{\mathbf{f}_{T}} \right)^2 + \left(\frac{\sigma \mathbf{f}_{\bar{C}}}{\mathbf{f}_{\bar{C}}} \right)^2 }.
 \end{equation}
-
-
-\subsection{\code{oscaar.scaleFluxes()}}
-
 
 \section{Troubleshooting} \label{sec:issues}
 If you notice a problem in \oscaar or can't get something to function properly, feel free to submit an issue on \href{https://github.com/OSCAAR/OSCAAR/issues?state=open}{our Issue Tracker on GitHub}. 
@@ -407,5 +408,5 @@ We keep the \href{https://github.com/OSCAAR/OSCAAR}{source code on GitHub}, a po
 \oscaar has come a long way from the first iteration that Brett Morris wrote in 2011. It could not have gotten there without the help of the following advisors and colleagues: 
 Professor Drake Deming, Dr. Avi Mandell, Daniel Galdi, Sam Gross, Luuk Visser, Harley Katz, Elizabeth Warner, Professor Alberto Bolatto, Dharmatej Mikkilineni.
 
-	
+B.M.M. is grateful for funding that fueled a portion of this work from Dr. Avi Mandell and the Goddard Center for Astrobiology at NASA's Goddard Space Flight Center via the NASA Astrophysical Data Analysis Program. 
 \end{document}
