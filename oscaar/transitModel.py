@@ -58,6 +58,11 @@ def occultquad(t,modelParams):
     occultquadC(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
     return F
 
+
+def occultquadForTransiter(t,p,ap,P,i,gamma1,gamma2,e,longPericenter,t0):
+    modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+    return occultquad(t,modelParams)
+
 def ellipk(k):
     ###################################################################################################
     ## Ctypes definitions from C-libraries
