@@ -232,8 +232,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def openEphGUI(self,event):
         global ephGUIOpen
         if ephGUIOpen == False:
-            ephGUIOpen = True
-            EphFrame(None)
+	    try:
+		import ephem
+	    except ImportError:
+		WarnFrame(None)
+	    else:
+		ephGUIOpen = True
+		EphFrame(None)
             
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
@@ -460,6 +465,20 @@ class OverWriteFrame(wx.Frame):
     def onYes(self, event):
         self.parent.Destroy()
         worker = WorkerThread()
+
+class WarnFrame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+	super(WarnFrame, self).__init__(*args, **kwargs)
+	self.SetTitle('Install PyEphem')
+	self.SetSize((290,120))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.warningText = wx.StaticText(parent = self, id = -1, label = 'You must install PyEphem to use this feature', pos = (15,7), style = wx.ALIGN_CENTER)
+        self.okButton = wx.Button(parent = self, id = -1, label = 'Okay', pos = (100,50))
+        self.okButton.Bind(wx.EVT_BUTTON, self.destroy)
+        self.Centre()
+        self.Show()
+    def destroy(self, event):
+	self.Destroy()
 
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
