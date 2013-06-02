@@ -58,8 +58,7 @@ def occultquad(t,modelParams):
     occultquadC(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
     return F
 
-
-def occultquadForTransiter(t,p,ap,P,i,gamma1,gamma2,e,longPericenter,t0):
+def occultquadForTransiter(t,p,ap,i,t0,P=1.58,gamma1=0.23,gamma2=0.30,e=0.0,longPericenter=0.0):
     modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
     return occultquad(t,modelParams)
 
