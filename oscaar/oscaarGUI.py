@@ -118,7 +118,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Master Flat: '), 'Choose Path to Flat Frames', True, wx.FD_OPEN)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False, None)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True, wx.FD_OPEN)
-        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', True, wx.FD_SAVE)
+        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Name', True, wx.FD_SAVE)
         self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
         self.addButtonPair(8, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
         self.addTextCtrl(7,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
@@ -202,6 +202,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
+	if saveDialog == wx.SAVE:
+	    dlg.SetFilename('outputName')
         else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             filenames = dlg.GetPaths()
