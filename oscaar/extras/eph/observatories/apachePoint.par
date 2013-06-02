@@ -4,8 +4,8 @@ longitude: -105:49:13
 elevation: 2788.0
 temperature: 0.0
 min_horizon: 15:00:00
-start_date: (2013,05,2,00,00,00)
-end_date: (2013,05,12,00,00,00)
+start_date: (2013,5,2,0,0,0)
+end_date: (2013,5,12,0,0,0)
 v_limit: 15.00
 depth_limit: 0.000
 calc_transits: True
