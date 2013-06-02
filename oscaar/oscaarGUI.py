@@ -1170,7 +1170,7 @@ class GraphFrame(wx.Frame):
 	
 		# This initializes the wx.frame with the title.
 		
-        wx.Frame.__init__(self, None, -1, self.title)
+        wx.Frame.__init__(self, None, -1, self.title, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 		
 		# This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
 		
@@ -1290,6 +1290,7 @@ class GraphFrame(wx.Frame):
 		# we can use the plotLightCurve method from dataBank.py with a few modifications.
 		
         binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,self.pointsPerBin)
+        pyplot.close()
         self.fig = pyplot.figure(num=None, figsize=(10, 7.18), facecolor='w',edgecolor='k')
         self.dpi = 100
         self.axes = self.fig.add_subplot(111)
@@ -1345,9 +1346,11 @@ class GraphFrame(wx.Frame):
             self.flash_status_message("Saved to %s" % path)
     
     def on_redraw_timer(self, event):
+
         # Constantly checks to see if there has been a new value other than the default bin size entered
 		# and then makes a new plot. This is only for the first time someone enters a new parameter. After
 		# that, even if they enter the default bin size, it will redraw it with that size.
+		pyplot.close()
 		if self.binsize_control.diff():
 			self.draw_plot()
 			
