@@ -15,9 +15,9 @@
 %\newcommand{\oscaar}{$ \texttt{OSCAAR}$ }
 %\newcommand{\gui}{$ \texttt{oscaarGUI}$ }
 \newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\init}{\code{init.par}\ }
-\newcommand{\oscaar}{\code{OSCAAR}\ }
-\newcommand{\gui}{\code{oscaarGUI}\ }
+\newcommand{\init}{\code{init.par}~}
+\newcommand{\oscaar}{\code{OSCAAR}~}
+\newcommand{\gui}{\code{oscaarGUI}~}
 
 \begin{document}
 \title{\textbf{OSCAAR}: Open Source differential photometry Code for Amateur Astronomical Research}
@@ -91,7 +91,7 @@ Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaa
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.34]{imgs/focusing.png}
-\caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
+\caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision --- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
 \label{fig:defocus}
 \end{center}
 \end{figure}
@@ -100,7 +100,7 @@ One must keep in mind that by spreading out the light over many pixels, the coun
 
 \subsection{Theory: Photon Noise} \label{sec:photonNoise}
 
-There is a fundamental physical limit to the signal-to-noise ratio that can be achieved in photometric measurements. Since photometry is the process of counting photons, there is a type of statistical uncertainty introduced into each measurement that goes by many names: \textit{photon noise, Poisson uncertainty, shot noise,} etc. This uncertainty is unavoidable in counting measurements and is easy to calculate -- the photon noise, or the uncertainty in a measurement of $N$ photons, $\sigma_N$ is
+There is a fundamental physical limit to the signal-to-noise ratio that can be achieved in photometric measurements. Since photometry is the process of counting photons, there is a type of statistical uncertainty introduced into each measurement that goes by many names: \textit{photon noise, Poisson uncertainty, shot noise,} etc. This uncertainty is unavoidable in counting measurements and is easy to calculate --- the photon noise, or the uncertainty in a measurement of $N$ photons, $\sigma_N$ is
 
 \begin{eqnarray}
 \sigma_N = \sqrt{N}. \label{eqn:photonNoise}
@@ -158,13 +158,32 @@ python -c "from oscaar import oscaarGUI"
 \end{figure}
 
 
-\subsection{Planning Your Observing: Transit Predictions}
-You've seen the weather report and you know that your observatory will have clear skies this week -- but which planets will transit this week and at what times? To answer this question, click the \code{Ephemeris} button at the bottom of the \gui.
+\subsection{Transit predictions with The \oscaar Custom Ephemeris Calculator}
+You've seen the weather report and you know that your observatory will have clear skies this week --- but which planets will transit this week and at what times? To answer this question, click the \code{Ephemeris} button at the bottom of the \gui.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.35]{imgs/ephemeris.png}
+\caption{The \oscaar Custom Ephemeris Calculator.}
+\label{fig:gui}
+\end{center}	
+\end{figure}
+This new window is the \code{Ephemeris} tool, which will calculate transit time predictions for you. Select from the major observatories or friends of \oscaar listed in the \code{Select Observatory} field, or choose Enter New Observatory if yours is not listed, and enter the range of dates that you'd like to observe in the \code{Beginning of Obs} and \code{End of Obs} fields in \code{YYYY/MM/DD} format.  These dates defined in \href{http://en.wikipedia.org/wiki/Universal_time}{Universal Time (UT)}.
 
-*** SCREENSHOT HERE ***
+We've found in our experience using transit prediction services that it's easy to get drowned in too many transit event suggestions that you don't have the precision to observe. You may know, for instance, that your telescope aperture is too small or the sky brightness from light pollution at your observatory is too bright to do photometry on stars dimmer than a particular visible $V$ magnitude. We built features into this ephemeris generator so you can set the \code{$V$ upper limit} to filter out any results for transiting planets that are dimmer than a ``limiting V magnitude'' for good photometry that you've entered. At the University of Maryland Observatory, located $<15$ km from the White House and within the Washington D.C. beltway, we have plenty of light pollution. The bright sky background makes it hard to get decent photometric precision on stars with magnitudes $V>12$.
 
+Similarly, your photometric signal-to-noise will limit the transit depths that you can observe. If a transit only causes a $10^{-4}$ fractional decrease in brightness of the star, you probably won't have the precision to be able to detect it at a small observatory. Thus you can filter out shallow (small depth) transits by setting the \code{Depth Lower Limit} field. At the University of Maryland observatory, we generally try to observe transits deeper than 0.010 magnitudes (reminder: depths are measured as positive numbers, even though they represent decreases in fluxes).
 
-This new window is the \code{Ephemeris} tool, which will calculate transit time predictions for you. Select from the major observatories or friends of \oscaar listed in the \code{Select Observatory} field and enter the range of dates that you'd like to observe in the \code{Beginning of Obs} and \code{End of Obs} fields in \code{YYYY/MM/DD} format. You may know, for instance, that your aperture is to small or the sky brightness from light pollution at your observatory is too bright to do photometry on stars dimmer than $V=12$, so set the $V$ upper limit to filter out any results for transiting planets that are too dim. Similarly, your photometric signal-to-noise will limit the transit depths that you can observe. If a transit only causes a $10^{-4}$ fractional decrease in brightness of the star, you probably won't have the precision to be able to detect it at a small observatory. Thus you can filter out shallow (small depth) transits by setting the \code{Depth Lower Limit} field.
+When you press \code{Calculate}, \oscaar will download a copy of the latest known transiting system parameters from \href{http://www.exoplanets.org/}{exoplanets.org}. This website created by \href{http://adsabs.harvard.edu/abs/2011PASP..123..412W}{Wright et al. (2011)} catalogs all known system parameters for each planetary system, and is updated frequently as new publications arise. \oscaar will download a copy of the entire database, and will calculate when the next transits and secondary eclipses will occur for each system using published transit times and period measurements calculate when. It also uses the right ascension and declination measurements provided by exoplanets.\@org to calculate whether or not each transit event will happen above or below the horizon, and during day or night, by performing ephemeris calculations with \code{PyEphem}. Then the transit or eclipse events that occur completely above the horizon (from ingress to egress entirely), at night, and that satisfy the $V$ limit and depth limit criteria you set are returned. 
+
+To provide you with a consistently formatted, nicely rendered table of events, \oscaar generates the output ephemeris in HTML and opens it in your web browser. The columns of this table are sortable --- just click on the title row of each column to sort. We know that you may have this ephemeris open on your computer while you're observing at night, and we don't want you to blind yourself looking at a brightly colored ephemeris, so we included two style sheets so that you can switch between. Try changing the``Day'' to ``Night'' mode with the buttons above the ephemeris table for a dark red color palette that may disturb your night vision less than the bright ``Day'' style sheet. Outputs can also be written to CSV.
+
+\subsubsection{Advanced Options}
+
+The parameters in the lower half of the ephemeris calculator tool allow you to calculate the sky altitudes and directions at ingress and egress with extra-high precision, and to set the behavior of the calculator to give you more control over the results you see. The latitude and longitude of your location can be set in the format: \code{degrees:mm:ss.ss}. Your observatory elevation can be set in meters, and temperature in degrees Celsius. Then there are two parameters that will have a strong affect which transits make it through your filters. 
+
+The \code{Twilight Type} parameter determines how many degrees below the horizon the Sun must be for \oscaar to consider the Sun to have ``set'' and for nighttime observations to begin. In practice, as you know, the sky isn't dark enough to start observations precisely at sunset, since twilight sky brightness lingers for some extra time. There are three names for different definitions of \href{http://en.wikipedia.org/wiki/Twilight#Definitions}{\textit{twilight}} --- civil, nautical and astronomical twilight, which correspond to a minimum solar elevation of $-6$, $-12$ and $-18^{\circ}$. You can chose which of these levels of solar elevation will dictate the beginning (and the end --- the same definitions work for the morning hours) of astronomical observations by tweaking this parameter. 
+
+The \code{Lower elevation limit} parameter sets how high above the horizon the object must be before it is visible from your observatory. For photometric observations, it's a good rule of thumb to only observe objects above $30^{\circ}$ elevation, since at smaller angles the thick cross-section of air that you must look through compounds the problems of removing telluric effects.  You may, for example, have trees on the horizon in all directions at your observatory that limit your lowest-possible elevation for observing to $35^{\circ}$, or your observatory dome or roof may not accommodate observations below a similar elevation. You can account for these factors in this parameter so that you only see events that are observable with your equipment, from your observatory. The format for the \code{Lower elevation limit} parameter is  \code{degrees:mm:ss.ss}.
 
 \subsection{Choosing Your Input Files}
 The first step to running \oscaar on your data from the \gui is to select which files you want to use. \oscaar allows you to access your data files a few different ways. Our first task is to select the ``path to dark frames'' (see Figure \ref{fig:gui}). A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
@@ -271,7 +290,7 @@ In order to visualize the effects of the running parameters that you entered on 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackAperPlots.png}
-\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image -- see for example how broad the smoothed profile is compared to the raw flux. }
+\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image --- see for example how broad the smoothed profile is compared to the raw flux. }
 \label{fig:trackAndPhotPlot}
 \end{center}	
 \end{figure}
@@ -328,7 +347,7 @@ There should now be a file where you placed the ``Output Path''. If you want to 
 
 
 \subsection{\code{oscaar.astrometry.trackSmooth()}} \label{sec:trackSmooth}
-The ``\textbf{point spread function}'' (PSF) for a particular observing setup is the shape of the image of a perfect point source (like a star, for example), which in practice is never a perfect ``point'' -- it will always have some radial spread. For well-focused telescopes, the PSF usually resembles an Airy function, which can be well-approximated by a Gaussian. However, as suggested in Section \ref{sec:defocusing}, you may not always want to focus the telescope perfectly. Each telescope will produce a different PSF when significantly defocused, so assuming a Gaussian PSF would prevent us from using \oscaar on defocused observations. This was a problem that we found with \oscaar v1.0, so we developed a new method with some excellent advice from Professor Drake Deming.
+The ``\textbf{point spread function}'' (PSF) for a particular observing setup is the shape of the image of a perfect point source (like a star, for example), which in practice is never a perfect ``point'' --- it will always have some radial spread. For well-focused telescopes, the PSF usually resembles an Airy function, which can be well-approximated by a Gaussian. However, as suggested in Section \ref{sec:defocusing}, you may not always want to focus the telescope perfectly. Each telescope will produce a different PSF when significantly defocused, so assuming a Gaussian PSF would prevent us from using \oscaar on defocused observations. This was a problem that we found with \oscaar v1.0, so we developed a new method with some excellent advice from Professor Drake Deming.
 
 \code{trackSmooth()} does centroid-finding by summing up the intensity of the pixels near the star along both the rows and columns. The sums along the rows and columns will produce intensity profiles in two axes similar to Figure \ref{fig:sumsExample}. One feature of these profiles that holds for even strongly defocused PSFs is the sharp rise and decline in the intensity of the star on either side of the stellar centroid. Typically there is a well-defined absolute maximum and minimum in the first numerical derivative of the sum along the columns, as in Figure \ref{fig:sumRowsAndCols}. The trick here is to take the midpoint between those extrema as the centroid, since searching for maxima and minima are computationally cheap. 
 \begin{figure}[H]
@@ -340,7 +359,7 @@ The ``\textbf{point spread function}'' (PSF) for a particular observing setup is
 \end{figure}
 In order to increase our centroid precision, we then use a little linear algebra to fit a quadratic to the three pixels nearest the maximum or minimum. The midpoints between the apexes of the best-fit quadratic near the maximum and minimum is taken as the centroid. This process is repeated for the sums along the rows and the columns to get the centroid in both axes. 
 
-Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine -- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
+Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine --- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
 
 
 \subsection{The \code{dataBank} Object}
