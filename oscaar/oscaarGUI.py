@@ -774,12 +774,8 @@ class EphFrame(wx.Frame):
             self.filename.SetValue('Enter Filename for Observatory')
             self.name.SetValue('Enter Name of Observatory')
         else:
-            '''This is a hack so as to display the observatory names in the drop down menu but to
-               open files using the glob() retrieved paths. It could be cleaned up. -BM'''
             obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
             nameList = []
-            #for i in obsList:
-            #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
             for file in obsList:        ## Gather all available observatory names
                 openfile = open(file,'r').read().splitlines()
                 for line in openfile: 
@@ -838,8 +834,8 @@ class EphFrame(wx.Frame):
         newobs.write('elevation: ' + self.elevation.GetValue() + '\n')
         newobs.write('temperature: ' + self.temp.GetValue() + '\n')
         newobs.write('min_horizon: ' + self.min_horizon.GetValue() + '\n')
-        newobs.write('start_date: ' + '(' + semdateArr[0] + ',' + semdateArr[1] + ',' + semdateArr[2] + ',0,0,0)\n')
-        newobs.write('end_date: ' + '(' + enddateArr[0] + ',' + enddateArr[1] + ',' + enddateArr[2] + ',0,0,0)\n')
+        newobs.write('start_date: ' + '(' + str(int(semdateArr[0])) + ',' + str(int(semdateArr[1])) + ',' + str(int(semdateArr[2])) + ',0,0,0)\n')
+        newobs.write('end_date: ' + '(' + str(int(enddateArr[0])) + ',' + str(int(enddateArr[1])) + ',' + str(int(enddateArr[2])) + ',0,0,0)\n')
         newobs.write('v_limit: ' + self.v_limit.GetValue() + '\n')
         newobs.write('depth_limit: ' + self.depth_limit.GetValue() + '\n')
         newobs.write('calc_transits: ' + str(self.calc_transits.GetSelection()==0) + '\n')
@@ -852,13 +848,9 @@ class EphFrame(wx.Frame):
     def calculate(self, event):
         path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
         self.saveFile(str(path))
-        namespace = {}
-        execfile(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','calculateEphemerides.py'),namespace)
-        globals().update(namespace)
-        rootPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'))
-        calculateEphemerides(path,rootPath)
-        outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
-        if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
+        from oscaar.extras.eph import calculateEphemerides as eph
+        eph.calculateEphemerides(self.filename.GetValue()+'.par')
+        if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html')))
         self.Destroy()
         
     def onDestroy(self, event):
