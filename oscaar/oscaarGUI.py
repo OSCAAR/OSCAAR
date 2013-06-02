@@ -7,7 +7,20 @@ from time import strftime
 import datetime
 import webbrowser
 import subprocess
+
+from mathMethods import medianBin
 import oscaar
+import random
+from matplotlib import pyplot
+import matplotlib
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import \
+    FigureCanvasWxAgg as FigCanvas, \
+    NavigationToolbar2WxAgg as NavigationToolbar
+import numpy as np
+import pylab
+
 APP_EXIT = 1
 
 class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
@@ -882,25 +895,25 @@ class LoadOldPklFrame(wx.Frame):
         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-
         ## Set title in new window
         self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.title = wx.StaticText(self, -1, 'Load old outputs (.pkl)')
         self.title.SetFont(self.titleFont)
-
-        ## Set up the size of the new window
+        
+		## Set up the size of the new window
         self.ctrlList = []
         self.sizer = wx.GridBagSizer(7,7)
         self.bestSize = self.GetBestSizeTuple()
         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
 
-
+        
         textCtrlSize = (400,25)
         self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.pklPathBtn = wx.Button(self, -1, 'Browse')
         self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
 
         self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (130,25))
+        self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (170,25))
         self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
         self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
         self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
@@ -909,6 +922,8 @@ class LoadOldPklFrame(wx.Frame):
         self.addButton(3,-1, self.plotLightCurveButton)
         self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
 
+        self.addButton(4, -1, self.plotInteractiveLightCurveButton)
+        self.plotInteractiveLightCurveButton.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve)
         self.addButton(3,0, self.plotRawFluxButton)
         self.plotRawFluxButton.Bind(wx.EVT_BUTTON, self.plotRawFlux)		
         
@@ -959,6 +974,12 @@ class LoadOldPklFrame(wx.Frame):
     def addButton(self, row, colStart, button):
         self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
 
+    def plotLightCurve(self, event):
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
+            subprocess.Popen(['python','-c',commandstring])
+
     def validityCheck(self):
         invalidString = ""
         pathTxt = self.pklPathTxt.GetValue()
@@ -980,15 +1001,12 @@ class LoadOldPklFrame(wx.Frame):
             return True
         return False
 
-    def plotLightCurve(self, event):
+    def plotInteractiveLightCurve(self, event):
         if self.validityCheck():
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
-
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
-
-            subprocess.Popen(['python','-c',commandstring])
-            #self.Destroy()
-
+            global pathText
+            pathText = self.pklPathTxt.GetValue()
+            GraphFrame()
+			
     def plotRawFlux(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
@@ -1020,10 +1038,326 @@ class LoadOldPklFrame(wx.Frame):
             commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
 
             subprocess.Popen(['python','-c',commandstring])
-		
+			
     def onDestroy(self, event):
         global loadOldPklOpen
         loadOldPklOpen = False
+		
+
+class InvalidNumber(wx.Frame):
+    def __init__(self, path, parent, id):
+		
+		# This is the class that prints an error message if there is an invalid number that is
+		# entered into the bin size for the BoundControlBox class.
+		# In addition, this uses the wx.panel so that when you are in the window itself, you can
+		# just press enter to exit, instead of manually clicking ok with the mouse.
+		
+        wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
+        
+        self.panel = wx.Panel(self)
+        self.paths = wx.StaticText(self.panel, -1, "The bin size must be between 5 and 100.\nThe following is invalid: " + path)
+        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
+        
+        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
+		
+        self.Centre()
+        self.Show()
+
+    def onOkay(self, event):
+        self.Destroy()
+
+class BoundControlBox(wx.Panel):
+
+	# This class is used in the GraphFrame class for manually changing the bin size when plotting
+	# a light curve. It uses a static box that has a radio button and text field associated with it.
+	
+    def __init__(self, parent, ID, label, initval):
+        
+		# Initializing the box.
+		
+        wx.Panel.__init__(self, parent, ID)
+        
+		# Two local variables old and value, both which are initially set equal to one another, so
+		# that the draw_plot method (in class GraphFrame) is not called when no value is entered 
+		# into the manual text box.
+
+        self.value = initval
+        self.old = initval
+		
+		# These next comamands then create the actual box with the radio button and text box.
+		
+        box = wx.StaticBox(self, -1, label)
+        sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        
+        self.radio_manual = wx.RadioButton(self, -1,
+            label="Manual")
+        self.manual_text = wx.TextCtrl(self, -1, 
+            size=(35,-1),
+            value=str(initval),
+            style=wx.TE_PROCESS_ENTER)
+        
+		# Now after creation, the text field is binded so that it will update when a value is entered.
+
+        self.Bind(wx.EVT_UPDATE_UI, self.on_update_manual_text, self.manual_text)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_text_enter, self.manual_text)
+        
+		# Now the radio button and text box are added to the static box.
+		
+        manual_box = wx.BoxSizer(wx.HORIZONTAL)
+        manual_box.Add(self.radio_manual, flag=wx.ALIGN_CENTER_VERTICAL)
+        manual_box.Add(self.manual_text, flag=wx.ALIGN_CENTER_VERTICAL)
+        
+
+        sizer.Add(manual_box, 0, wx.ALL, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+    def diff(self):
+	
+		# This method allows the on_redraw_timer method (in class GraphFrame) to check to see
+		# if there has been a value entered into the text box or not.
+	
+		if not self.value == self.old:
+			return True
+		else:
+			return False
+	
+	# These next four methods just update the text field and the local variables.
+		
+    def on_update_manual_text(self, event):
+        self.manual_text.Enable(self.radio_manual.GetValue())
+
+    def update(self):
+		self.old = self.manual_text.GetValue()
+    
+    def on_text_enter(self, event):
+	
+		# This block determines whether or not a valid number has been entered for the bin size.
+	
+		if self.manual_text.GetValue() == '':
+			InvalidNumber(self.manual_text.GetValue(),None,-1)
+		else:
+			try:
+				self.var = int(self.manual_text.GetValue())
+			except ValueError:
+				print 'invalid'
+				InvalidNumber(self.manual_text.GetValue(),None,-1)
+			
+			if int(self.manual_text.GetValue()) <= 4 or int(self.manual_text.GetValue()) >= 101:
+				InvalidNumber(str(self.manual_text.GetValue()),None,-1)
+			else:
+				self.value = self.manual_text.GetValue()
+    def manual_value(self):
+        return self.value
+
+	
+
+
+class GraphFrame(wx.Frame):
+    """ The main frame of the application
+    """
+    title = 'Light Curve Plot'
+
+    def __init__(self):
+	
+		# This initializes the wx.frame with the title.
+		
+        wx.Frame.__init__(self, None, -1, self.title)
+		
+		# This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
+		
+        self.pT = pathText
+		
+		# The rest of these commands just create the window.
+		
+        self.create_menu()
+        self.create_status_bar()
+        self.create_main_panel()
+		
+		# This is the non-stop loop that constantly checks to see if the bin size paramter has been updated.
+		# Based on this, it will either redraw the plot with a new bin size, or just wait until it changes.
+		
+        self.redraw_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.on_redraw_timer, self.redraw_timer)
+        self.redraw_timer.Start(100)
+		
+        self.Centre()
+        self.Show()
+
+    def create_menu(self):
+	
+		# These commands create a drop down menu with the save command, and exit command.
+	
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_expt = menu_file.Append(-1, "&Save plot\tCtrl-S", "Save plot to file")
+        self.Bind(wx.EVT_MENU, self.on_save_plot, m_expt)
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-X", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+                
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
+    def create_main_panel(self):
+	
+		# First this creates the panel, and makes the initital plot.
+		
+        self.panel = wx.Panel(self)
+        self.init_plot()
+        self.canvas = FigCanvas(self.panel, -1, self.fig)
+		
+		# This creates the box for changing the bin size.
+		
+        self.binsize_control = BoundControlBox(self.panel, -1, "Bin Size", 10)        
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.binsize_control, border=5, flag=wx.ALL)
+        
+		# The vbox is the total area of the window, and it adds both the bin size box,
+		# and the plot from the canvas to the window.
+		
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)  
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_LEFT | wx.TOP)
+		
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+    
+    def create_status_bar(self):
+        self.statusbar = self.CreateStatusBar()
+
+    def init_plot(self):
+
+		# Initializes the first plot with a bin size of 10.
+		
+		# We make an instance of the dataBank class with all the paramters of the pkl file loaded.
+        data = oscaar.load(self.pT)
+        self.times = data.getTimes()
+        self.lightCurve = data.lightCurve
+        self.lightCurveError = data.lightCurveError
+        self.ingress = data.ingress
+        self.egress = data.egress
+        self.pointsPerBin = 10
+		
+		# Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
+		# to plot it.
+
+        binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,self.pointsPerBin)
+        self.fig = pyplot.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        self.dpi = 100
+        self.axes = self.fig.add_subplot(111)
+        self.axes.set_axis_bgcolor('white')
+        self.axes.set_title('Light Curve', size=12)
+        def format_coord(x, y):
+        	# '''Function to give data value on mouse over plot.'''
+			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        self.axes.format_coord = format_coord 
+        self.axes.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
+        self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+        self.axes.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        self.axes.set_title('Light Curve')
+        self.axes.set_xlabel('Time (JD)')
+        self.axes.set_ylabel('Relative Flux')
+
+    def draw_plot(self):
+        """ Redraws the plot
+        """
+
+		# Sets the value that was entered in the text field as the pointsPerBin.
+		
+        self.pointsPerBin = int(self.binsize_control.manual_value())
+
+        # Making an instance of the dataBank class with all the paramaters of the pkl file loaded.
+		
+        data = oscaar.load(self.pT)
+        self.times = data.getTimes()
+        self.lightCurve = data.lightCurve
+        self.lightCurveError = data.lightCurveError
+        self.ingress = data.ingress
+        self.egress = data.egress
+
+		# With all of the paramters loaded from data stored as variables that can be accessed as self.*, 
+		# we can use the plotLightCurve method from dataBank.py with a few modifications.
+		
+        binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,self.pointsPerBin)
+        self.fig = pyplot.figure(num=None, figsize=(10, 7.18), facecolor='w',edgecolor='k')
+        self.dpi = 100
+        self.axes = self.fig.add_subplot(111)
+        self.axes.set_axis_bgcolor('white')
+        self.axes.set_title('Light Curve', size=12)
+        def format_coord(x, y):
+        	# '''Function to give data value on mouse over plot.'''
+			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        self.axes.format_coord = format_coord 
+        self.axes.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
+        self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+        self.axes.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        self.axes.set_title('Light Curve')
+        self.axes.set_xlabel('Time (JD)')
+        self.axes.set_ylabel('Relative Flux')
+   
+        # Now that we have our new plot, we want to remake the vbox module, with a new canvas, but with the
+		# same box to manually adjust the bin size.
+
+        self.canvas = FigCanvas(self.panel, -1, self.fig)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.binsize_control, border=5, flag=wx.ALL)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)
+        self.vbox.Add(self.hbox2, 1, flag=wx.ALIGN_LEFT | wx.TOP)
+        
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+
+		# Now this just updates the control box, so that it knows that the new plot has been rendered, and it
+		# should wait to redraw the plot until a new paramter has been entered for the bin size.
+        self.binsize_control.update()
+
+    
+    def on_save_plot(self, event):
+	
+		# Saves the plot to a location of your choosing.
+
+        file_choices = "PNG (*.png)|*.png"
+        
+        dlg = wx.FileDialog(
+            self, 
+            message="Save plot as...",
+            defaultDir=os.getcwd(),
+            defaultFile="plot.png",
+            wildcard=file_choices,
+            style=wx.SAVE)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.canvas.print_figure(path, dpi=self.dpi)
+            self.flash_status_message("Saved to %s" % path)
+    
+    def on_redraw_timer(self, event):
+        # Constantly checks to see if there has been a new value other than the default bin size entered
+		# and then makes a new plot. This is only for the first time someone enters a new parameter. After
+		# that, even if they enter the default bin size, it will redraw it with that size.
+		if self.binsize_control.diff():
+			self.draw_plot()
+			
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def flash_status_message(self, msg, flash_len_ms=1500):
+        self.statusbar.SetStatusText(msg)
+        self.timeroff = wx.Timer(self)
+        self.Bind(
+            wx.EVT_TIMER, 
+            self.on_flash_status_off, 
+            self.timeroff)
+        self.timeroff.Start(flash_len_ms, oneShot=True)
+    
+    def on_flash_status_off(self, event):
+        self.statusbar.SetStatusText('')
+
         
 app = wx.App(False)
 #### Runs the GUI ####
