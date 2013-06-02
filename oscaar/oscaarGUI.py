@@ -1189,7 +1189,7 @@ class GraphFrame(wx.Frame):
         self.redraw_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_redraw_timer, self.redraw_timer)
         self.redraw_timer.Start(100)
-		
+
         self.Centre()
         self.Show()
 
@@ -1241,18 +1241,18 @@ class GraphFrame(wx.Frame):
 		# Initializes the first plot with a bin size of 10.
 		
 		# We make an instance of the dataBank class with all the paramters of the pkl file loaded.
-        data = oscaar.load(self.pT)
-        self.times = data.getTimes()
-        self.lightCurve = data.lightCurve
-        self.lightCurveError = data.lightCurveError
-        self.ingress = data.ingress
-        self.egress = data.egress
+        self.data = oscaar.load(self.pT)
+        #self.times = self.data.getTimes()
+        #self.lightCurve = self.data.lightCurve
+        #self.lightCurveError = self.data.lightCurveError
+        #self.ingress = self.data.ingress
+        #self.egress = self.data.egress
         self.pointsPerBin = 10
 		
 		# Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
 		# to plot it.
 
-        binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,self.pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
         self.fig = pyplot.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         self.dpi = 100
         self.axes = self.fig.add_subplot(111)
@@ -1262,10 +1262,10 @@ class GraphFrame(wx.Frame):
         	# '''Function to give data value on mouse over plot.'''
 			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
         self.axes.format_coord = format_coord 
-        self.axes.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
+        self.axes.errorbar(self.data.times,self.data.lightCurve,yerr=self.data.lightCurveError,fmt='k.',ecolor='gray')
         self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
-        self.axes.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-        self.axes.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
         self.axes.set_title('Light Curve')
         self.axes.set_xlabel('Time (JD)')
         self.axes.set_ylabel('Relative Flux')
@@ -1278,19 +1278,10 @@ class GraphFrame(wx.Frame):
 		
         self.pointsPerBin = int(self.binsize_control.manual_value())
 
-        # Making an instance of the dataBank class with all the paramaters of the pkl file loaded.
-		
-        data = oscaar.load(self.pT)
-        self.times = data.getTimes()
-        self.lightCurve = data.lightCurve
-        self.lightCurveError = data.lightCurveError
-        self.ingress = data.ingress
-        self.egress = data.egress
-
 		# With all of the paramters loaded from data stored as variables that can be accessed as self.*, 
 		# we can use the plotLightCurve method from dataBank.py with a few modifications.
 		
-        binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,self.pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
         #pyplot.close()
         if sys.platform == 'win32': 
 			self.fig = pyplot.figure(num=None, figsize=(10, 7.18), facecolor='w',edgecolor='k')
@@ -1305,10 +1296,10 @@ class GraphFrame(wx.Frame):
         	# '''Function to give data value on mouse over plot.'''
 			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
         self.axes.format_coord = format_coord 
-        self.axes.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
+        self.axes.errorbar(self.data.times,self.data.lightCurve,yerr=self.data.lightCurveError,fmt='k.',ecolor='gray')
         self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
-        self.axes.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-        self.axes.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
         self.axes.set_title('Light Curve')
         self.axes.set_xlabel('Time (JD)')
         self.axes.set_ylabel('Relative Flux')
