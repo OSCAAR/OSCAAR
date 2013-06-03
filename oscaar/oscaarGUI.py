@@ -7,6 +7,8 @@ from time import strftime
 import datetime
 import webbrowser
 import subprocess
+import shutil
+import zipfile
 
 from mathMethods import medianBin
 import oscaar
@@ -246,7 +248,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def helpPressed(self, event):
         documentationURL = 'https://github.com/OSCAAR/OSCAAR/tree/master/docs/documentationInProgress'
         webbrowser.open_new_tab(documentationURL)
-
 
 	#####Opens the webpage for the documentation when help is pressed#####
     def loadOldPklPressed(self, event):
@@ -727,6 +728,14 @@ class EphFrame(wx.Frame):
                 if line.split(':')[0] == 'name':
                     nameList.append(line.split(':')[1].strip())
         nameList += ['Enter New Observatory']
+	
+	self.menuBar = wx.MenuBar()
+	self.fileMenu = wx.Menu()
+	self.menuBar.Append(self.fileMenu, '&File')
+	self.save = self.fileMenu.Append(-1, 'Save', 'Save')
+	self.SetMenuBar(self.menuBar)
+        self.Bind(wx.EVT_MENU, self.saveOutput, self.save)
+	
         self.observatory = wx.ComboBox(self, value = 'Observatories', choices = nameList, name = 'Observatories', size = (320,25))
         self.observatory.Bind(wx.EVT_COMBOBOX, self.enterNewObs)
         self.title = wx.StaticText(self, -1, 'Ephemeris Calculator')
@@ -824,6 +833,7 @@ class EphFrame(wx.Frame):
                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
+	    
     def loadValues(self, obsPath):
 	filename = os.path.split(obsPath)
 	self.filename.SetValue(filename[1].split('.')[0])
@@ -894,7 +904,19 @@ class EphFrame(wx.Frame):
         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
-        
+	
+    def saveOutput(self, event):
+	dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
+	if dlg.ShowModal() == wx.ID_OK:
+	    outputPath = dlg.GetPath()
+	    self.calculate(None)
+	    shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
+	    outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
+	    for name in glob(outputPath+os.sep+'*'):
+		outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
+	    shutil.rmtree(outputPath)
+	    outputArchive.close()
+	
     def onDestroy(self, event):
         global ephGUIOpen
         ephGUIOpen = False
@@ -912,7 +934,6 @@ class InvalidPath1(wx.Frame):
         
     def onOkay(self, event):
         self.Destroy()
-
 
 class LoadOldPklFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
