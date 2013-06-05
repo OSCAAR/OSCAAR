@@ -962,7 +962,7 @@ class LoadOldPklFrame(wx.Frame):
         self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
 
         if sys.platform == "win32":
-            self.pklPathBtn = wx.Button(self, -1, "Browse\t(Cntrl-B)")
+            self.pklPathBtn = wx.Button(self, -1, "Browse\t (Cntrl-B)")
         else:
             self.pklPathBtn = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
         self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
@@ -975,7 +975,7 @@ class LoadOldPklFrame(wx.Frame):
         self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
         self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
         self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
-        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (200,37))
+        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (110,37))
 		
         self.addButton(3,-1, self.plotLightCurveButton)
         self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
@@ -1015,7 +1015,7 @@ class LoadOldPklFrame(wx.Frame):
         m_browse = menu_file.Append(-1,"Browse\tCtrl-B","Browse")
         self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
         menu_file.AppendSeparator()
-        m_exit = menu_file.Append(-1, "Exit\tCtrl-X", "Exit")
+        m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
     
         self.menubar.Append(menu_file, "&File")
@@ -1128,17 +1128,20 @@ class InvalidNumber(wx.Frame):
         # entered into the bin size for the BoundControlBox class.
         # In addition, this uses the wx.panel so that when you are in the window itself, you can
         # just press enter to exit, instead of manually clicking ok with the mouse.
-
-        wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
-        
-        self.create_menu()
+        if sys.platform == "win32":
+			wx.Frame.__init__(self, parent, id, 'Invalid number', size = (300,110))
+        else:
+			self.create_menu()
+			wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
+		
         self.panel = wx.Panel(self)
         
         self.paths = wx.StaticText(self.panel, -1, "The bin size must be between 5 and 100.\nThe following is invalid: " + path)
         self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
         
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-        self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
+        if sys.platform != "win32":
+			self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
         self.Centre()
         self.Show()
     
@@ -1162,6 +1165,7 @@ class InvalidNumber(wx.Frame):
     
     def onOkay(self, event):
         self.Destroy()
+
 class BoundControlBox(wx.Panel):
 
 	# This class is used in the GraphFrame class for manually changing the bin size when plotting
@@ -1291,7 +1295,7 @@ class GraphFrame(wx.Frame):
         m_expt = menu_file.Append(-1, "&Save plot\tCtrl-S", "Save plot to file")
         self.Bind(wx.EVT_MENU, self.on_save_plot, m_expt)
         menu_file.AppendSeparator()
-        m_exit = menu_file.Append(-1, "E&xit\tCtrl-X", "Exit")
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
                 
         self.menubar.Append(menu_file, "&File")
