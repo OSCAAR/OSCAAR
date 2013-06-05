@@ -12,13 +12,13 @@ in the OSCAAR/Extras/Examples/sampleData/c directory
 
 from distutils.core import setup, Extension
 
-module1 = Extension('transit1forLMLS',
+module1 = Extension('analyticalTransitModel',
 					#define_macros=[('shared',)],
                     #include_dirs = ['/usr/local/include'],
                     #libraries = ['tcl83'],
                     #library_dirs = ['/usr/local/lib'],
                     include_dirs = ['./'],
-                    sources = ['transit1forLMLS.c'])
+                    sources = ['analyticalTransitModel.c'])
 
 setup (name = 'occultquad',
        version = '1.0',

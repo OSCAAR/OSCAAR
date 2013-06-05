@@ -25,7 +25,7 @@ def occultquad(t,modelParams):
 
     ###################################################################################################
     ## Ctypes definitions from C-libraries
-    lib = np.ctypeslib.load_library(os.path.join(transitModelDir,'c','transit1forLMLS.so'),'.') 	## Loads .so library
+    lib = np.ctypeslib.load_library(os.path.join(transitModelDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library
     #lib = np.ctypeslib.load_library('transit1forLMLS.so','.')
     occultquadC = lib.occultquad
     occultquadC.argtypes = [np.ctypeslib.ndpointer(np.float64,flags='aligned,C_CONTIGUOUS'),	#t
@@ -58,14 +58,10 @@ def occultquad(t,modelParams):
     occultquadC(t, p,  ap,  P,  i,  gamma1,  gamma2, e,longPericenter, t0,  n,  F)	## Simulate fake data
     return F
 
-def occultquadForTransiter(t,p,ap,i,t0,gamma1=0.0,gamma2=0.0,P=1.58,e=0.0,longPericenter=0.0):
-    modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
-    return occultquad(t,modelParams)
-
 def ellipk(k):
     ###################################################################################################
     ## Ctypes definitions from C-libraries
-    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','transit1forLMLS'),'.') 	## Loads .so library
+    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library
     Kfunction = lib.K
     Kfunction.argtypes = [ctypes.c_double]	
     ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
@@ -83,7 +79,7 @@ def ellipk(k):
 def ellipe(k):
     ###################################################################################################
     ## Ctypes definitions from C-libraries
-    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','transit1forLMLS'),'.') 	## Loads .so library
+    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library
     Efunction = lib.E
     Efunction.argtypes = [ctypes.c_double]	
     ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
@@ -101,7 +97,7 @@ def ellipe(k):
 def ellippi(n,k):
     ###################################################################################################
     ## Ctypes definitions from C-libraries
-    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','transit1forLMLS'),'.') 	## Loads .so library
+    lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library
     PIfunction = lib.PI
     PIfunction.argtypes = [ctypes.c_double,ctypes.c_double]	
     ## argtypes defines what each function argument's type will be using the numpy.ctypeslib and ctypes libraries. 
