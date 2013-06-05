@@ -59,10 +59,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
 
-        self.loadPklItem = self.oscaarMenu.Append(-1, 'Load old output', 'Load old output')
+        self.loadPklItem = self.oscaarMenu.Append(-1, "&Load old output\tCtrl-L", "Load old output")
         self.Bind(wx.EVT_MENU, self.loadOldPklPressed, self.loadPklItem)
         
-        
+
         self.SetMenuBar(menubar)
         self.sizer = wx.GridBagSizer(7, 7) ##The sizer organizes gui items in a grid, all items are added to the sizer        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
@@ -833,7 +833,7 @@ class EphFrame(wx.Frame):
                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
-	    
+   
     def loadValues(self, obsPath):
 	filename = os.path.split(obsPath)
 	self.filename.SetValue(filename[1].split('.')[0])
@@ -904,7 +904,7 @@ class EphFrame(wx.Frame):
         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
-	
+        
     def saveOutput(self, event):
 	dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
 	if dlg.ShowModal() == wx.ID_OK:
@@ -916,7 +916,7 @@ class EphFrame(wx.Frame):
 		outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
 	    shutil.rmtree(outputPath)
 	    outputArchive.close()
-	
+
     def onDestroy(self, event):
         global ephGUIOpen
         ephGUIOpen = False
@@ -938,6 +938,7 @@ class InvalidPath1(wx.Frame):
 class LoadOldPklFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
         super(LoadOldPklFrame, self).__init__(*args, **kwargs)
+        self.create_menu()
         self.initUI()
 
     def initUI(self):
@@ -959,15 +960,22 @@ class LoadOldPklFrame(wx.Frame):
         
         textCtrlSize = (400,25)
         self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
-        self.pklPathBtn = wx.Button(self, -1, 'Browse')
-        self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
 
+        if sys.platform == "win32":
+            self.pklPathBtn = wx.Button(self, -1, "Browse\t(Cntrl-B)")
+        else:
+            self.pklPathBtn = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+        self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
+                
         self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (130,25))
-        self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (170,25))
+        if sys.platform == 'win32':
+            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (170,25))
+        else:
+            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (190,25))
         self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
         self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
         self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
-        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (200,25))
+        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (200,37))
 		
         self.addButton(3,-1, self.plotLightCurveButton)
         self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
@@ -996,7 +1004,23 @@ class LoadOldPklFrame(wx.Frame):
         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
         self.Centre()
         self.Show()
-        
+
+    def create_menu(self):
+	
+    # These commands create a drop down menu with the browse command, and exit command.
+	
+        self.menubar = wx.MenuBar()
+    
+        menu_file = wx.Menu()
+        m_browse = menu_file.Append(-1,"Browse\tCtrl-B","Browse")
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "Exit\tCtrl-X", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+    
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
     #####Functions for event handling#####
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
@@ -1092,30 +1116,52 @@ class LoadOldPklFrame(wx.Frame):
     def onDestroy(self, event):
         global loadOldPklOpen
         loadOldPklOpen = False
-		
+    
+    def on_exit(self, event):
+        self.Destroy()
+
 
 class InvalidNumber(wx.Frame):
     def __init__(self, path, parent, id):
-		
-		# This is the class that prints an error message if there is an invalid number that is
-		# entered into the bin size for the BoundControlBox class.
-		# In addition, this uses the wx.panel so that when you are in the window itself, you can
-		# just press enter to exit, instead of manually clicking ok with the mouse.
-		
+        
+        # This is the class that prints an error message if there is an invalid number that is
+        # entered into the bin size for the BoundControlBox class.
+        # In addition, this uses the wx.panel so that when you are in the window itself, you can
+        # just press enter to exit, instead of manually clicking ok with the mouse.
+
         wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
         
+        self.create_menu()
         self.panel = wx.Panel(self)
+        
         self.paths = wx.StaticText(self.panel, -1, "The bin size must be between 5 and 100.\nThe following is invalid: " + path)
         self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
         
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-		
+        self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
         self.Centre()
         self.Show()
-
+    
+    def create_menu(self):
+        
+		# These commands create a drop down menu with the exit command.
+        
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
+        self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+    
+    def onCharOkay(self,event):
+        self.keycode = event.GetKeyCode()
+        if self.keycode == wx.WXK_RETURN:
+            self.Destroy()
+    
     def onOkay(self, event):
         self.Destroy()
-
 class BoundControlBox(wx.Panel):
 
 	# This class is used in the GraphFrame class for manually changing the bin size when plotting
@@ -1212,7 +1258,7 @@ class GraphFrame(wx.Frame):
 	
 		# This initializes the wx.frame with the title.
 		
-        wx.Frame.__init__(self, None, -1, self.title, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
+        wx.Frame.__init__(self, None, -1, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
 		#wx.Frame(None, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
 		
 		# This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
@@ -1274,7 +1320,7 @@ class GraphFrame(wx.Frame):
 		
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
-    
+        
     def create_status_bar(self):
         self.statusbar = self.CreateStatusBar()
 
@@ -1317,7 +1363,7 @@ class GraphFrame(wx.Frame):
         """
 
 		# Sets the value that was entered in the text field as the pointsPerBin.
-		
+        
         self.pointsPerBin = int(self.binsize_control.manual_value())
 
 		# With all of the paramters loaded from data stored as variables that can be accessed as self.*, 
@@ -1356,8 +1402,9 @@ class GraphFrame(wx.Frame):
         self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)
         self.vbox.Add(self.hbox2, 1, flag=wx.ALIGN_LEFT | wx.TOP)
         
-        self.panel.SetSizer(self.vbox)
-        self.vbox.Fit(self)
+        if sys.platform == "win32":
+            self.panel.SetSizer(self.vbox)
+            self.vbox.Fit(self)
 
 		# Now this just updates the control box, so that it knows that the new plot has been rendered, and it
 		# should wait to redraw the plot until a new paramter has been entered for the bin size.
