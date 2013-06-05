@@ -961,21 +961,31 @@ class LoadOldPklFrame(wx.Frame):
         textCtrlSize = (400,25)
         self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
 
-        if sys.platform == "win32":
+            
+      
+        if sys.platform == 'win32':
             self.pklPathBtn = wx.Button(self, -1, "Browse\t (Cntrl-B)")
+            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (170,25))
+            self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (110,37))
+            self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
         else:
             self.pklPathBtn = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (190,25))
+            self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (150,40))
+            self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar\nCentroid Positions', size = (150,40))
+       
+        
+        
+
         self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
                 
         self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (130,25))
-        if sys.platform == 'win32':
-            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (170,25))
-        else:
-            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (190,25))
+
         self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
-        self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
+        
         self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
-        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (110,37))
+
+           
 		
         self.addButton(3,-1, self.plotLightCurveButton)
         self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
@@ -1120,34 +1130,33 @@ class LoadOldPklFrame(wx.Frame):
     def on_exit(self, event):
         self.Destroy()
 
-
 class InvalidNumber(wx.Frame):
     def __init__(self, path, parent, id):
-        
+
         # This is the class that prints an error message if there is an invalid number that is
         # entered into the bin size for the BoundControlBox class.
         # In addition, this uses the wx.panel so that when you are in the window itself, you can
         # just press enter to exit, instead of manually clicking ok with the mouse.
+
         if sys.platform == "win32":
-			wx.Frame.__init__(self, parent, id, 'Invalid number', size = (300,110))
+            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (300,110))
         else:
-			self.create_menu()
-			wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
-		
+            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
+            self.create_menu()
+            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
+        
         self.panel = wx.Panel(self)
         
         self.paths = wx.StaticText(self.panel, -1, "The bin size must be between 5 and 100.\nThe following is invalid: " + path)
         self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
         
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-        if sys.platform != "win32":
-			self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
         self.Centre()
         self.Show()
     
     def create_menu(self):
         
-		# These commands create a drop down menu with the exit command.
+        # These commands create a drop down menu with the exit command.
         
         self.menubar = wx.MenuBar()
         
