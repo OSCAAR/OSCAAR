@@ -41,15 +41,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         ephGUIOpen = False
         aboutOpen = False
         loadOldPklOpen = False
-        menubar = wx.MenuBar() ##This is the main menubar where all menus are attached
-        fileMenu = wx.Menu()  ##File menu for quit
+	
+        self.menubar = wx.MenuBar() ##This is the main menubar where all menus are attached
+        self.fileMenu = wx.Menu()  ##File menu for quit
         self.oscaarMenu = wx.Menu()  ##Menu for oscaar features
         self.helpMenu = wx.Menu()
+	
 	##Append menu options to different menus:
-        menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit\tCtrl+Q', 'Quit application') ##provides a way to quit
-        menubar.Append(fileMenu, '&File')
-        menubar.Append(self.helpMenu, '&Help')
-        menubar.Append(self.oscaarMenu, '&Oscaar')
+        menuExit = self.fileMenu.Append(wx.ID_EXIT, 'Quit\tCtrl+Q', 'Quit application') ##provides a way to quit
+        self.menubar.Append(self.fileMenu, '&File')
+        self.menubar.Append(self.helpMenu, '&Help')
+        self.menubar.Append(self.oscaarMenu, '&Oscaar')
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
 	##Initialize and menu items and bind them to a function
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
@@ -58,12 +60,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.aboutOscaar, self.aboutOscaarButton)
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
-
         self.loadPklItem = self.oscaarMenu.Append(-1, "&Load old output\tCtrl-L", "Load old output")
         self.Bind(wx.EVT_MENU, self.loadOldPklPressed, self.loadPklItem)
-        
 
-        self.SetMenuBar(menubar)
+        self.SetMenuBar(self.menubar)
         self.sizer = wx.GridBagSizer(7, 7) ##The sizer organizes gui items in a grid, all items are added to the sizer        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
 	##Adds logo image to the gui
@@ -178,19 +178,27 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 	    for path in text.split(','):
 		if path in glob(path[:path.rfind(os.sep)] + os.sep + '*') and path.endswith('.reg'):
 		    valid = True
+		else:
+		    for fil in (glob(path)):
+			if fil.endswith('.fit') or fil.endswith('.fits'):
+			    valid = True
 	else:
 	    for path in text.split(','):
 		if path in glob(path[:path.rfind(os.sep)] + os.sep + '*') and (path.endswith('.fit') or path.endswith('.fits')):
 		    valid = True
+		else:
+		    for fil in (glob(path)):
+			if fil.endswith('.fit') or fil.endswith('.fits'):
+			    valid = True
 	if valid: self.updateImage(True, row)
 	else: self.updateImage(False, row)
 			
     def updateImage(self, on, row):
 	if on == True:
-	    self.valid_text[row].SetLabel('VALID')
+	    self.valid_text[row].SetLabel('O')
 	    self.valid_text[row].SetForegroundColour(wx.Colour(20,220,20))
 	else:
-	    self.valid_text[row].SetLabel('INVALID')
+	    self.valid_text[row].SetLabel('X')
 	    self.valid_text[row].SetForegroundColour(wx.Colour(255,0,0))
 
     #### Allows quitting from the file menu. (Fixes cmd-Q on OS X), Bound to the exit menu item ####
