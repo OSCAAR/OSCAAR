@@ -1,5 +1,6 @@
 import photometry
 import astrometry
+import mcmc
 from dataBank import *
 from IO import *
 from systematics import *
