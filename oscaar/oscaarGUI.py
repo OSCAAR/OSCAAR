@@ -682,6 +682,7 @@ class AboutFrame(wx.Frame):
                      'Daniel Galdi (UMD)',\
                      'Luuk Visser (LU/TUD)',\
                      'Nolan Matthews (UMD)',\
+                     'Dharmatej Mikkilineni (UMD)',\
                      'Harley Katz (UMD)',\
                      'Sam Gross (UMD)',\
                      'Naveed Chowdhury (UMD)',\
