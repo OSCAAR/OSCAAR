@@ -1372,7 +1372,7 @@ class GraphFrame(wx.Frame):
         self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)  
         self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.okButton,0,flag=wx.ALIGN_CENTER|wx.TOP)
-
+        self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
 
