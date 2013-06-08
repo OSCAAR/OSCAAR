@@ -1427,7 +1427,7 @@ class GraphFrame(wx.Frame):
             binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
            
             if sys.platform == 'win32': 
-                self.fig = pyplot.figure(num=None, figsize=(10, 6.88), facecolor='w',edgecolor='k')
+                self.fig = pyplot.figure(num=None, figsize=(10, 6.75), facecolor='w',edgecolor='k')
             else: 
                 self.fig = pyplot.figure(num=None, figsize=(10, 8.0), facecolor='w',edgecolor='k')
             
