@@ -16,13 +16,26 @@ from oscaar.extras.knownSystemParameters import returnSystemParams
 #defined that allow the user to create a fake dataset. These were used
 #to develop a random MC fitting routine which relies on the scipy
 #function optimize.curve_fit. There is a tutorial on how to use the functions
-#which can found at XXX. The optimize.curve_fit tool uses a least square 
+#which can found at www.github.com/OSCAAR/oscaar/. The optimize.curve_fit tool uses a least square 
 #Levenburg-Marquadt (sp?) algorithm. Caution should be taken to the inital
 #guesses for the parameters as least sq. LM fitting typically will find
 #a local minimum. One can find archival results using XXX.
 
 #Make Fake Datasets using random number generator to test fitting function
 def fake_data(stddev,RpRs,aRs,per,inc,midtrantime,gamma1,gamma2,ecc,argper):
+    '''Takes in orbital and planetary parameters and simulates data using random gaussian fluctations.
+    
+    Parameters include,
+    stddev - standard deviation of fake data.
+    RpRs   - fractional planetary to stellar radius
+    aRs    - semi-major axis/stellar radii
+    per    - orbital period (days)
+    inc    - inclination of orbital plane (degrees)
+    midtrantime - mid-transit time (JD)
+    gamma1 - linear limb-darkening coeff.
+    gamma2 - quadrtic limb-darkening coeff
+    argper - argument of pericenter
+    '''
     
     #Define Times (in days) centered at mid-transit time. 
     expTime = 45./(3600*24.) #Set to be 45 sec., somewhat typical for observing.
@@ -43,6 +56,29 @@ def fake_data(stddev,RpRs,aRs,per,inc,midtrantime,gamma1,gamma2,ecc,argper):
 
 #Runs the intial fit using the LM least sq. algorithm. 
 def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess,gamma1,gamma2,perGuess,eccGuess,argPerGuess,fitLimbDark=False,plotting=True):
+    '''Fitting routine using the optimize.leastsq Levenburg-Marquardt least squares minimization.
+    
+    Input parameters include the time,flux,and uncertainty data series,
+    
+    timeObs: ndarray
+        time data series
+    NormFlux: ndarray
+        flux data series
+    flux_error: ndarray
+        uncertainty on flux data series
+    
+    Type of limb-darkening law specified by the keyword argument,
+    
+    fitLimbDark: str or boolean
+        False    - Assumes gamma1,gamma2 = 0, does not fit for limb-darkening coefficents.
+        'linear' - Uses linear limb-darkening
+        'quadratic'- Uses quadratic limb-darkening
+        
+    plotting: boolean
+        Plots fit output w/ data.  
+    
+    Orbital and Stellar Parameters intial guesses,
+    '''
     
     #Setting up inital guess, dependent on inclusion of limb-darkening
     if fitLimbDark == False:
@@ -62,10 +98,12 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
                                    ydata=NormFlux,
                                    p0=initGuess,
                                    sigma=flux_error,
-                                   maxfev=100000,
-                                   factor=0.2,
+                                   maxfev=10000,
                                    xtol=2e-15,
-                                   ftol=2e-16)
+                                   ftol=2e-16,
+                                   #diag=(0.05,0.1,0.1,500.,0.1,0.1),
+                                   #factor=100.
+                                   )
 
     #Check for Convergence    
     if type(success) != np.ndarray:
@@ -113,7 +151,6 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
         modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
         return oscaar.occultquad(t,modelParams)
     
-    planet = 'GJ 1214 b'
     RpFit,aRsFit,incFit,epochFit = fit[0],fit[1],fit[2],fit[3]
     
     #Create model, dependent on inclusion of limb-darkening
@@ -152,8 +189,11 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
                                    p0=initGuess,
                                    maxfev=100000,
                                    sigma=SigSet,
+                                   #diag=(0.1,0.1,0.1,1.0,0.1,0.1),
+                                   #factor=100.,
                                    xtol=2e-15,
-                                   ftol=2e-16)
+                                   ftol=2e-16,
+                                   )
         
         #Save output parameters from fit
         Rp.append(fit[0])
