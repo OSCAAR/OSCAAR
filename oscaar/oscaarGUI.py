@@ -481,7 +481,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 		self.checkValid(None, 2, self.darkPathTxt.GetValue(), False)
 		self.checkValid(None, 3, self.imagPathTxt.GetValue(), False)
 		self.checkValid(None, 4, self.flatPathTxt.GetValue(), False)
-		self.checkValid(None, 5, self.regPathTxt.GetValue(), False)
+		self.checkValid(None, 5, self.regPathTxt.GetValue(), True)
 
 
 
