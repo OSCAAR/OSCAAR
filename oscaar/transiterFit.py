@@ -17,7 +17,7 @@ from oscaar.extras.knownSystemParameters import returnSystemParams
 #to develop a random MC fitting routine which relies on the scipy
 #function optimize.curve_fit. There is a tutorial on how to use the functions
 #which can found at www.github.com/OSCAAR/oscaar/. The optimize.curve_fit tool uses a least square 
-#Levenburg-Marquadt (sp?) algorithm. Caution should be taken to the inital
+#Levenburg-Marquadt (sp?) algorithm. Caution should be taken to the initial
 #guesses for the parameters as least sq. LM fitting typically will find
 #a local minimum. One can find archival results using XXX.
 
@@ -54,7 +54,7 @@ def fake_data(stddev,RpRs,aRs,per,inc,midtrantime,gamma1,gamma2,ecc,argper):
     
     return times,fk_data
 
-#Runs the intial fit using the LM least sq. algorithm. 
+#Runs the initial fit using the LM least sq. algorithm. 
 def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess,gamma1,gamma2,perGuess,eccGuess,argPerGuess,fitLimbDark=False,plotting=True):
     '''Fitting routine using the optimize.leastsq Levenburg-Marquardt least squares minimization.
     
@@ -80,7 +80,7 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
     Orbital and Stellar Parameters intial guesses,
     '''
     
-    #Setting up inital guess, dependent on inclusion of limb-darkening
+    #Setting up initial guess, dependent on inclusion of limb-darkening
     if fitLimbDark == False:
         initGuess = (RpRsGuess,aRsGuess,incGuess,epochGuess)
     elif fitLimbDark == 'linear':
@@ -92,7 +92,7 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
         modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
         return oscaar.occultquad(t,modelParams)
 
-    #Runs the inital fit
+    #Runs the initial fit
     fit,success=optimize.curve_fit(occultquadForTransiter,
                                    xdata=timeObs,
                                    ydata=NormFlux,
@@ -107,12 +107,12 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
 
     #Check for Convergence    
     if type(success) != np.ndarray:
-        print "The inital fit was not able to converge. Check to see if the input parameters are accurate."
+        print "The initial fit was not able to converge. Check to see if the input parameters are accurate."
         print ""
         
     #If Convergence is True, look at the results to double check.
     else:
-        print "Results from the inital fit w/ uncertainties based on the sq. root of the covariance matrix"
+        print "Results from the initial fit w/ uncertainties based on the sq. root of the covariance matrix"
         params = ["Rp/Rs","a/Rs","inc","Mid-Tran Time","Gamma 1","Gamma 2"]
         for i in range(0,np.size(fit)):
             print params[i],fit[i],"+/-",np.sqrt(success[i][i])

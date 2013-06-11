@@ -15,7 +15,7 @@ import oscaar
 import random
 from matplotlib import pyplot
 import matplotlib
-
+from oscaar.extras.knownSystemParameters import returnSystemParams
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \
@@ -1030,6 +1030,8 @@ class LoadOldPklFrame(wx.Frame):
         self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
         
         self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
+        
+        self.plotLinfitBtn = wx.Button(self,-1,"Linear Fit")
 
            
 		
@@ -1049,6 +1051,9 @@ class LoadOldPklFrame(wx.Frame):
 
         self.addButton(3,3, self.plotComparisonStarWeightingsButton)
         self.plotComparisonStarWeightingsButton.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings)
+        
+        self.addButton(4,0,self.plotLinfitBtn)
+        self.plotLinfitBtn.Bind(wx.EVT_BUTTON,self.plotLinfit)
 
         self.bestSize = self.GetBestSizeTuple()
         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
@@ -1136,7 +1141,13 @@ class LoadOldPklFrame(wx.Frame):
             global pathText
             pathText = self.pklPathTxt.GetValue()
             GraphFrame()
-			
+
+    def plotLinfit(self,event):
+        if self.validityCheck():
+            global pathText
+            pathText = self.pklPathTxt.GetValue()
+            LinfitFrame()
+
     def plotRawFlux(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
@@ -1483,6 +1494,273 @@ class GraphFrame(wx.Frame):
     
     def on_flash_status_off(self, event):
         self.statusbar.SetStatusText('')
+
+class LinfitFrame(wx.Frame):
+    
+    title = "LINEAR FIT"
+    
+    def __init__(self):
+        
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.pT = pathText
+        self.data = oscaar.load(self.pT)
+        
+        self.box = ScanBox(self.panel,-1)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        
+        self.okButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.onOkPress, self.okButton)
+        self.updateButton = wx.Button(self.panel,label = 'Update Parameters')
+        self.Bind(wx.EVT_BUTTON, self.update, self.updateButton)
+
+        self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
+        
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.box.userParams['t0'].SetValue(str(np.mean(self.data.times)))
+        
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()
+
+    def onOkPress(self,event):
+
+#         0.12,12.9,1.58,89.6,0,2454344.307,.23,.35,0
+
+        if self.checkParams() == True:
+            oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
+                                          float(self.box.GetRatio()),float(self.box.GetRatio2()),float(self.box.GetInc()),
+                                          float(self.box.GetT0()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
+                                          float(self.box.GetPeriod()),float(self.box.GetEcc()), float(self.box.GetPericenter()),
+                                          fitLimbDark='quadratic', plotting=True)
+    def checkParams(self):
+
+        list = [(self.box.GetRatio(),"ratio"),(self.box.GetRatio2(),"ratio2"),(self.box.GetInc(),"inc"),
+                (self.box.GetT0(),"t0"),(self.box.GetGamma1(),"gamma1"),(self.box.GetGamma2(),"gamma2"),
+                (self.box.GetPeriod(),"per"),(self.box.GetEcc(),"ecc"),(self.box.GetPericenter(),"pericenter")]
+        for (number,string) in list:
+            if number == '':
+                InvalidNumber2(number, string, None,-1)
+                return False
+            else:
+                try:
+                    self.tmp = float(number)
+                except ValueError:
+                    InvalidNumber2(number,string,None,-1)
+                    return False
+                if string == "ratio":
+                    if float(number)>1 or float(number)<0:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+                if string == "ratio2":
+                    if float(number) <= 1:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+                if string == "inc":
+                    if float(number) < 0 or float(number) > 90:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+                if string == "t0":
+                    if float(number) < 0:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+                if string == "per":
+                    if float(number) < 0:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+                if string == "ecc":
+                    if float(number) < 0 or float(number) > 1:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+                if string == "pericenter":
+                    if float(number) < 0:
+                        InvalidNumber2(number,string,None,-1)
+                        return False
+        self.totalGamma = float(self.box.GetGamma1()) + float(self.box.GetGamma2())
+        self.totalString = str(self.totalGamma)
+        if self.totalGamma > 1:
+            InvalidNumber2(self.totalString,"gamma",None,-1)
+            return False
+        return True
+
+    def update(self,event):
+        if self.box.GetPlanet() == '':
+            InvalidNumber2(self.box.GetPlanet(),"planet",None,-1)
+        else:
+            self.planet = self.box.GetPlanet()
+            try:
+                [ratio,ratio2,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
+            except ValueError:
+                InvalidNumber2(self.box.GetPlanet(),"planet",None,-1)
+            
+            self.box.userParams['ratio'].SetValue(str(ratio))
+            self.box.userParams['ratio2'].SetValue(str(ratio2))
+            self.box.userParams['per'].SetValue(str(per))
+            self.box.userParams['inc'].SetValue(str(inc))
+            self.box.userParams['ecc'].SetValue(str(ecc))
+            print "Parameters have been updated."
+
+class InvalidNumber2(wx.Frame):
+
+    def __init__(self, num, str, parent, id):
+
+        # This is the class that prints an error message if there is an invalid number that is
+        # entered into the bin size for the BoundControlBox class.
+        # In addition, this uses the wx.panel so that when you are in the window itself, you can
+        # just press enter to exit, instead of manually clicking ok with the mouse.
+
+        if sys.platform == "win32":
+            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (300,110))
+        else:
+            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
+            self.create_menu()
+            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
+        
+        self.panel = wx.Panel(self)
+        self.string = "WHY"
+        if str == "ratio":
+            self.string = "The value for Rp over Rs must be between 0 and 1."
+        elif str == "ratio2":
+            self.string = "The value for A over Rs must be greater than 1."
+        elif str == "inc":
+            self.string = "The value for the inclincation must be between 0 and 90."
+        elif str == "t0":
+            self.string = "The value for the mid-transit time, t0, must be greater than 0."
+        elif str == "gamma" or str == "gamma1" or str == "gamma2":
+            self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
+        elif str == "per":
+            self.string = "The value for the period must be greater than 0."
+        elif str == "ecc":
+            self.string = "The value for the eccentricity must be between 0 and 1."
+        elif str == "pericenter":
+            self.string = "The value for the pericenter must be greater than 0."
+        elif str == "planet":
+            self.string = "The name of the planet does not exist in the database."
+            
+        self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
+        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
+        
+        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
+
+        topSizer = wx.BoxSizer(wx.VERTICAL) 
+        topSizer.Add(self.panel, 1, wx.EXPAND) 
+        topSizer.AddSpacer(10)
+        topSizer.Fit(self) 
+        topSizer.Layout()
+        self.Centre()
+        self.Show()
+    
+    def create_menu(self):
+        
+        # These commands create a drop down menu with the exit command.
+        
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
+        self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+    
+    def onCharOkay(self,event):
+        self.keycode = event.GetKeyCode()
+        if self.keycode == wx.WXK_RETURN:
+            self.Destroy()
+    
+    def onOkay(self, event):
+        self.Destroy()
+          
+class ScanBox(wx.Panel):
+        'create box for scan parameters'
+        # Create a box with all the parameters that the users can manipulate.
+        def __init__(self, parent,id):
+            wx.Panel.__init__(self,parent,id)
+            
+            box1 = wx.StaticBox(self, -1, "Descriptive information")
+            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+            self.userParams = {}
+            sizer0 = wx.FlexGridSizer(rows=1, cols=10)
+            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+            
+            for (widget,label,ToolTip) in [
+                ('ratio',"Ratio of Radii (R_p/R_s):",
+                 'Enter a ratio of the radii here.'),
+                ('ratio2',"A over R_s:",
+                 'Enter a value for A over R_s here.'),
+                ('per',"Period:",
+                 'Enter a value for the period here.'),
+                ('inc',"Inclination:",
+                 'Enter a value for the inclination here.'),
+                ('ecc',"Eccentricity: ", 
+                 'Enter a value for the eccentricity here.')
+                ]:
+                label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                self.userParams[widget] = wx.TextCtrl(self, -1)
+                self.userParams[widget].SetToolTipString(ToolTip)
+                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+ 
+            sizer0 = wx.BoxSizer(wx.HORIZONTAL)
+            sizer.Add(sizer0, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+            label = wx.StaticText(self, -1, "", style=wx.ALIGN_CENTER)
+            sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+            for (widget,label,ToolTip) in [
+                ('planet',"Planet Name:",
+                 'Enter a planet name from the exoplanet.org database here.'),
+                ('t0',"t0:",
+                 'Enter a value for t0 here.'),
+                ('gamma1',"Gamma 1:",
+                 'Enter a value for gamma 1 here.'),
+                ('gamma2'," Gamma 2:",
+                 'Enter a value for gamma 2 here.'),
+                ('pericenter',"Pericenter:",
+                 'Enter an arguement for the pericenter here.'),
+                ]:
+                label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                if widget == 'pericenter':
+                    self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='0.0')
+                else:
+                    self.userParams[widget] = wx.TextCtrl(self, -1, size=(100,20))
+                self.userParams[widget].SetToolTipString(ToolTip)
+                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+            
+            self.SetSizer(sizer)
+            sizer.Fit(self)
+        def GetPlanet(self):
+            return self.userParams['planet'].GetValue()
+        def GetRatio(self):
+            return self.userParams['ratio'].GetValue()
+        def GetRatio2(self):
+            return self.userParams['ratio2'].GetValue()
+        def GetPeriod(self):
+            return self.userParams['per'].GetValue()
+        def GetInc(self):
+            return self.userParams['inc'].GetValue()
+        def GetEcc(self):
+            return self.userParams['ecc'].GetValue()
+        def GetT0(self):
+            return self.userParams['t0'].GetValue()
+        def GetGamma1(self):
+            return self.userParams['gamma1'].GetValue()
+        def GetGamma2(self):
+            return self.userParams['gamma2'].GetValue()
+        def GetPericenter(self):
+            return self.userParams['pericenter'].GetValue()
 
 app = wx.App(False)
 #### Runs the GUI ####
