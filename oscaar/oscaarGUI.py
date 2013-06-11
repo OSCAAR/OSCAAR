@@ -966,20 +966,6 @@ class EphFrame(wx.Frame):
     def onDestroy(self, event):
         global ephGUIOpen
         ephGUIOpen = False
-		
-class InvalidPath1(wx.Frame):
-    def __init__(self, path, parent, id):
-        wx.Frame.__init__(self, parent, id, 'Invalid Output File')
-        self.SetSize((350,100))
-        self.SetBackgroundColour(wx.Colour(227,227,227))
-        self.paths = wx.StaticText(self, -1, "The following is an invalid output file: " + path)
-        self.okButton = wx.Button(self, -1, 'Okay', pos = (125,30))
-        self.okButton.Bind(wx.EVT_BUTTON, self.onOkay)
-        self.Centre()
-        self.Show()
-        
-    def onOkay(self, event):
-        self.Destroy()
 
 class LoadOldPklFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -1120,14 +1106,14 @@ class LoadOldPklFrame(wx.Frame):
         pathTxt = self.pklPathTxt.GetValue()
         if pathTxt:
             if not self.correctOutputFile(pathTxt):
-                invalidstring += pathTxt;
+                invalidString += pathTxt;
             if invalidString == "":
                 return True
             else:
-                 InvalidPath1(invalidString, None, -1)
+                 InvalidParameter(invalidString, None, -1, str='path')
             return False
         else:
-            InvalidPath1(invalidString,None,-1)
+            InvalidParameter(invalidString, None, -1, str='path')
 
     def correctOutputFile(self, pathname):
         if pathname == '':
@@ -1187,53 +1173,6 @@ class LoadOldPklFrame(wx.Frame):
     def on_exit(self, event):
         self.Destroy()
 
-class InvalidNumber(wx.Frame):
-
-    def __init__(self, path, max, parent, id):
-
-        # This is the class that prints an error message if there is an invalid number that is
-        # entered into the bin size for the BoundControlBox class.
-        # In addition, this uses the wx.panel so that when you are in the window itself, you can
-        # just press enter to exit, instead of manually clicking ok with the mouse.
-
-        if sys.platform == "win32":
-            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (300,110))
-        else:
-            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
-            self.create_menu()
-            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
-        
-        self.panel = wx.Panel(self)
-        
-        self.paths = wx.StaticText(self.panel, -1, "The bin size must be between 5 and "+str(max)+
-                                   ".\nThe following is invalid: " + path)
-        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
-        
-        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-        self.Centre()
-        self.Show()
-    
-    def create_menu(self):
-        
-        # These commands create a drop down menu with the exit command.
-        
-        self.menubar = wx.MenuBar()
-        
-        menu_file = wx.Menu()
-        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
-        self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
-        
-        self.menubar.Append(menu_file, "&File")
-        self.SetMenuBar(self.menubar)
-    
-    def onCharOkay(self,event):
-        self.keycode = event.GetKeyCode()
-        if self.keycode == wx.WXK_RETURN:
-            self.Destroy()
-    
-    def onOkay(self, event):
-        self.Destroy()
-
 class ScanParamsBox(wx.Panel):
     
     def __init__(self,parent,id):
@@ -1284,22 +1223,21 @@ class ScanParamsBox(wx.Panel):
     
     def boxCorrect(self):
         if self.userinfo['bin'].GetValue() == '':
-            InvalidNumber(self.userinfo['bin'].GetValue(), self.max, None,-1)
+            InvalidParameter(self.userinfo['bin'].GetValue(), None, -1, max=str(self.max))
             return False
         else:
             try:
                 self.var = int(self.userinfo['bin'].GetValue())
             except ValueError:
-                InvalidNumber(self.userinfo['bin'].GetValue(),self.max,None,-1)
+                InvalidParameter(self.userinfo['bin'].GetValue(), None, -1, max=str(self.max))
                 return False
              
             if int(self.userinfo['bin'].GetValue()) <= 4 or int(self.userinfo['bin'].GetValue()) > self.max:
-                InvalidNumber(self.userinfo['bin'].GetValue(),self.max, None,-1)
+                InvalidParameter(self.userinfo['bin'].GetValue(), None,-1, max=str(self.max))
                 return False
             else:
                 return True
-         
-    
+
     def boxDiff(self):
         if not self.oldNum == self.newNum:
             self.oldNum = self.newNum
@@ -1538,8 +1476,6 @@ class LinfitFrame(wx.Frame):
 
     def onOkPress(self,event):
 
-#         0.12,12.9,1.58,89.6,0,2454344.307,.23,.35,0
-
         if self.checkParams() == True:
             oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
                                           float(self.box.GetRatio()),float(self.box.GetRatio2()),float(self.box.GetInc()),
@@ -1553,58 +1489,58 @@ class LinfitFrame(wx.Frame):
                 (self.box.GetPeriod(),"per"),(self.box.GetEcc(),"ecc"),(self.box.GetPericenter(),"pericenter")]
         for (number,string) in list:
             if number == '':
-                InvalidNumber2(number, string, None,-1)
+                InvalidParameter(number, None,-1, str=string)
                 return False
             else:
                 try:
                     self.tmp = float(number)
                 except ValueError:
-                    InvalidNumber2(number,string,None,-1)
+                    InvalidParameter(number, None,-1, str=string)
                     return False
                 if string == "ratio":
                     if float(number)>1 or float(number)<0:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "ratio2":
                     if float(number) <= 1:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "inc":
                     if float(number) < 0 or float(number) > 90:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "t0":
                     if float(number) < 0:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "per":
                     if float(number) < 0:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "ecc":
                     if float(number) < 0 or float(number) > 1:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "pericenter":
                     if float(number) < 0:
-                        InvalidNumber2(number,string,None,-1)
+                        InvalidParameter(number, None,-1, str=string)
                         return False
         self.totalGamma = float(self.box.GetGamma1()) + float(self.box.GetGamma2())
         self.totalString = str(self.totalGamma)
         if self.totalGamma > 1:
-            InvalidNumber2(self.totalString,"gamma",None,-1)
+            InvalidParameter(self.totalString, None,-1, str="gamma")
             return False
         return True
 
     def update(self,event):
         if self.box.GetPlanet() == '':
-            InvalidNumber2(self.box.GetPlanet(),"planet",None,-1)
+            InvalidParameter(self.box.GetPlanet(), None,-1, str="planet")
         else:
             self.planet = self.box.GetPlanet()
             try:
                 [ratio,ratio2,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             except ValueError:
-                InvalidNumber2(self.box.GetPlanet(),"planet",None,-1)
+                InvalidParameter(self.box.GetPlanet(), None,-1, str="planet")
             
             self.box.userParams['ratio'].SetValue(str(ratio))
             self.box.userParams['ratio2'].SetValue(str(ratio2))
@@ -1613,24 +1549,22 @@ class LinfitFrame(wx.Frame):
             self.box.userParams['ecc'].SetValue(str(ecc))
             print "Parameters have been updated."
 
-class InvalidNumber2(wx.Frame):
+class InvalidParameter(wx.Frame):
 
-    def __init__(self, num, str, parent, id):
-
-        # This is the class that prints an error message if there is an invalid number that is
-        # entered into the bin size for the BoundControlBox class.
-        # In addition, this uses the wx.panel so that when you are in the window itself, you can
-        # just press enter to exit, instead of manually clicking ok with the mouse.
+    def __init__(self, num, parent, id, str='', max='0'):
 
         if sys.platform == "win32":
-            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (300,110))
+            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,110))
         else:
-            wx.Frame.__init__(self, parent, id, 'Invalid number', size = (350,100))
+            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,100))
             self.create_menu()
-            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)
+            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)        
         
         self.panel = wx.Panel(self)
-        self.string = "WHY"
+        self.string = "Incorrect"
+
+        if max != '0':
+            self.string = "The bin size must be between 5 and "+max+"."
         if str == "ratio":
             self.string = "The value for Rp over Rs must be between 0 and 1."
         elif str == "ratio2":
@@ -1649,18 +1583,24 @@ class InvalidNumber2(wx.Frame):
             self.string = "The value for the pericenter must be greater than 0."
         elif str == "planet":
             self.string = "The name of the planet does not exist in the database."
-            
-        self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
-        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
+
+        if str == "path":
+            self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
+        else:           
+            self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
+        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
 
-        topSizer = wx.BoxSizer(wx.VERTICAL) 
-        topSizer.Add(self.panel, 1, wx.EXPAND) 
-        topSizer.AddSpacer(10)
-        topSizer.Fit(self) 
-        topSizer.Layout()
-        self.Centre()
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=2)        
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+
+        self.panel.SetSizer(self.hbox)
+        self.hbox.Fit(self)
+        self.Center()
         self.Show()
     
     def create_menu(self):
