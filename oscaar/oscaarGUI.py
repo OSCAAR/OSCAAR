@@ -269,7 +269,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         global masterFlatOpen
         if masterFlatOpen == False:
             masterFlatOpen = True
-            MasterFlatFrame(None)
+            MasterFlatFrame(self)
         
     #### Bound to the openEphGui button, opens the Ephemeris GUI
     def openEphGUI(self,event):
@@ -278,10 +278,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 	    try:
 		import ephem
 	    except ImportError:
-		WarnFrame(None)
+		WarnFrame(self)
 	    else:
 		ephGUIOpen = True
-		EphFrame(None)
+		EphFrame(self)
             
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
@@ -292,7 +292,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def loadOldPklPressed(self, event):
         global loadOldPklOpen
         if loadOldPklOpen == False:
-            LoadOldPklFrame(parent = None, id = -1)
+            LoadOldPklFrame(parent = self, id = -1)
             loadOldPklOpen = True
 		        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
@@ -492,7 +492,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def aboutOscaar(self, event):
         global aboutOpen
         if aboutOpen == False:
-            AboutFrame(parent = None, id = -1)
+            AboutFrame(parent = self, id = -1)
             aboutOpen = True
 
 class OverWriteFrame(wx.Frame):
