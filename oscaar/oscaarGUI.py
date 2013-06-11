@@ -1192,14 +1192,14 @@ class ScanParamsBox(wx.Panel):
         sizer0 = wx.FlexGridSizer(rows=2, cols=4)
         sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         for (widget,label,ToolTip) in [
-            ('bin',"Bin Number",
+            ('bin',"Bin Size:",
              'Enter a bin number here.'),
-            ('xlabel',"X-Axis Name",
+            ('title',"Title:",
+             'Enter a name for the title here.'),
+            ('xlabel',"X-Axis Name:",
              'Enter a name for the X-Axis here.'),
-            ('ylabel',"Y-Axis Name",
-             'Enter a name for the Y-Axis here.'),
-            ('title',"Title",
-             'Enter a name for the title here.')
+            ('ylabel',"Y-Axis Name:",
+             'Enter a name for the Y-Axis here.')
             ]:
             label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
             sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
