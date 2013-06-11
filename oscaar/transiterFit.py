@@ -246,3 +246,14 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
         print "Gamma 2: ",np.mean(gam2),"+/-",np.std(gam2)
         
     return Rp,aRs,inc,mid,gam1,gam2
+
+def calcMidTranTime(times,flux):
+    '''Estimates mid-transit time by extracting the minimum of differently binned datasets'''
+    
+    #For binning of sets from 5 - 15 data points calculate minimum
+    midEstimate=np.zeros(10)
+    for i in range(0,10):
+        binnedTime,binnedFlux=oscaar.medianBin(times,flux,medianWidth=i+5)[0:2]
+        idx = (abs(binnedFlux-binnedFlux.min())).argmin()
+        midEstimate[i]=binnedTime[idx]
+    return midEstimate.mean()
