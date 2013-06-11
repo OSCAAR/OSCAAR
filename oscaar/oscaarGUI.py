@@ -292,7 +292,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def loadOldPklPressed(self, event):
         global loadOldPklOpen
         if loadOldPklOpen == False:
-            LoadOldPklFrame(parent = self, id = -1)
+            LoadOldPklFrame()
             loadOldPklOpen = True
 		        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
@@ -967,94 +967,111 @@ class EphFrame(wx.Frame):
         global ephGUIOpen
         ephGUIOpen = False
 
-class LoadOldPklFrame(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(LoadOldPklFrame, self).__init__(*args, **kwargs)
-        self.create_menu()
-        self.initUI()
-
-    def initUI(self):
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)		## Define quit behavior
-        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-            self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        ## Set title in new window
-        self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-        self.title = wx.StaticText(self, -1, 'Load old outputs (.pkl)')
-        self.title.SetFont(self.titleFont)
-        
-		## Set up the size of the new window
-        self.ctrlList = []
-        self.sizer = wx.GridBagSizer(7,7)
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-
-        
-        textCtrlSize = (400,25)
-        self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
-
+class BrowseBox(wx.Panel):
             
-      
+        def __init__(self, parent,id):
+            wx.Panel.__init__(self,parent,id)
+            
+            box1 = wx.StaticBox(self, -1)
+            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+
+            sizer0 = wx.FlexGridSizer(rows=1, cols=3)
+            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+            self.label = wx.StaticText(self, -1, "Path to Output File: ", style=wx.ALIGN_CENTER)
+            sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+            self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
+            sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+            
+            if sys.platform == 'win32':
+                self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-B)")
+            else:
+                self.pklPathBtn = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+            
+            self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
+                                                                         self.txtbox,True,wx.FD_OPEN))
+            sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
+            
+            self.SetSizer(sizer)
+            sizer.Fit(self)
+
+        def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+            if fileDialog:
+                dlg = wx.FileDialog(self, message = message, style = saveDialog)
+            else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+            if dlg.ShowModal() == wx.ID_OK:
+                filenames = dlg.GetPaths()
+                textControl.Clear()
+                for i in range(0,len(filenames)):
+                    if i != len(filenames)-1:
+                        textControl.WriteText(filenames[i] + ',')
+                    else:
+                        textControl.WriteText(filenames[i])
+            dlg.Destroy()
+
+class LoadOldPklFrame(wx.Frame):
+
+    def __init__(self):
+        self.title = "Load An Old .pkl File"
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.box = BrowseBox(self.panel,-1)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+
+        self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,25)) 
+        self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,25))
+        self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (130,25))
+        
         if sys.platform == 'win32':
-            self.pklPathBtn = wx.Button(self, -1, "Browse\t (Cntrl-B)")
-            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (170,25))
-            self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (110,37))
-            self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
+            self.plotCentroidPositionsButton = wx.Button(self.panel, label = 'Trace Stellar Centroid Positions', size = (170,25))
+            self.plotComparisonStarWeightingsButton = wx.Button(self.panel,label = 'Plot Comparison\nStar Weightings', size = (110,37))   
+            self.plotInteractiveLightCurveButton = wx.Button(self.panel,label = 'Plot Interactive Light Curve', size = (170,25))        
         else:
-            self.pklPathBtn = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
-            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (190,25))
-            self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (150,40))
             self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar\nCentroid Positions', size = (150,40))
-       
+            self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (150,40))
+            self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (190,25))
         
+        self.plotLinfitButton = wx.Button(self.panel,label="Linear Fit", size =(130,25))
+        self.Bind(wx.EVT_BUTTON, self.plotLightCurve,self.plotLightCurveButton)
+        self.Bind(wx.EVT_BUTTON, self.plotRawFlux, self.plotRawFluxButton)     
+        self.Bind(wx.EVT_BUTTON, self.plotCentroidPosition, self.plotCentroidPositionsButton)
+        self.Bind(wx.EVT_BUTTON, self.plotScaledFluxes,self.plotScaledFluxesButton)
+        self.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings, self.plotComparisonStarWeightingsButton)
+        self.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve, self.plotInteractiveLightCurveButton)    
+        self.Bind(wx.EVT_BUTTON,self.plotLinfit, self.plotLinfitButton)
         
+        self.sizer0 = wx.FlexGridSizer(rows=1, cols=7)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
 
-        self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
-                
-        self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (130,25))
+        self.sizer0.Add(self.plotLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotRawFluxButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotCentroidPositionsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotScaledFluxesButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotComparisonStarWeightingsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotInteractiveLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotLinfitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+         
+        self.pklPathTxt = self.box.txtbox
+        self.create_menu()
 
-        self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
-        self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
-        
-        self.plotLinfitBtn = wx.Button(self,-1,"Linear Fit")
-
-           
-		
-        self.addButton(3,-1, self.plotLightCurveButton)
-        self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
-
-        self.addButton(4, -1, self.plotInteractiveLightCurveButton)
-        self.plotInteractiveLightCurveButton.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve)
-        self.addButton(3,0, self.plotRawFluxButton)
-        self.plotRawFluxButton.Bind(wx.EVT_BUTTON, self.plotRawFlux)		
-        
-        self.addButton(3,1, self.plotCentroidPositionsButton)
-        self.plotCentroidPositionsButton.Bind(wx.EVT_BUTTON, self.plotCentroidPosition)
-
-        self.addButton(3,2, self.plotScaledFluxesButton)
-        self.plotScaledFluxesButton.Bind(wx.EVT_BUTTON, self.plotScaledFluxes)
-
-        self.addButton(3,3, self.plotComparisonStarWeightingsButton)
-        self.plotComparisonStarWeightingsButton.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings)
-        
-        self.addButton(4,0,self.plotLinfitBtn)
-        self.plotLinfitBtn.Bind(wx.EVT_BUTTON,self.plotLinfit)
-
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-		## Standard oscaar GUI params
-        self.SetTitle('OSCAAR')
-        self.SetBackgroundColour(wx.Colour(233,233,233))
-        self.SetSizer(self.sizer)
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-        self.Centre()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
         self.Show()
 
     def create_menu(self):
 	
-    # These commands create a drop down menu with the browse command, and exit command.
+        # These commands create a drop down menu with the browse command, and exit command.
 	
         self.menubar = wx.MenuBar()
     
@@ -1081,19 +1098,7 @@ class LoadOldPklFrame(wx.Frame):
                     textControl.WriteText(filenames[i] + ',')
                 else:
                     textControl.WriteText(filenames[i])
-        dlg.Destroy()    
-        
-    def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
-        label.SetFont(self.labelFont)
-        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,3), wx.TOP, 7)
-        self.sizer.Add(button, (row, 4), (1,1), wx.TOP, 7)
-        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
-        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
-        #textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
-        
-    def addButton(self, row, colStart, button):
-        self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
+        dlg.Destroy()
 
     def plotLightCurve(self, event):
         if self.validityCheck():
@@ -1101,6 +1106,50 @@ class LoadOldPklFrame(wx.Frame):
             commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
             subprocess.Popen(['python','-c',commandstring])
 
+    def plotRawFlux(self, event):
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
+
+            subprocess.Popen(['python','-c',commandstring])
+
+    def plotScaledFluxes(self, event):
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
+
+            subprocess.Popen(['python','-c',commandstring])
+    
+    def plotCentroidPosition(self, event):
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
+
+            subprocess.Popen(['python','-c',commandstring])
+
+    def plotComparisonStarWeightings(self, event):
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
+
+            subprocess.Popen(['python','-c',commandstring])
+    
+    def plotInteractiveLightCurve(self, event):
+        if self.validityCheck():
+            global pathText
+            pathText = self.pklPathTxt.GetValue()
+            GraphFrame()
+
+    def plotLinfit(self,event):
+        if self.validityCheck():
+            global pathText
+            pathText = self.pklPathTxt.GetValue()
+            LinfitFrame()
+            
     def validityCheck(self):
         invalidString = ""
         pathTxt = self.pklPathTxt.GetValue()
@@ -1121,50 +1170,6 @@ class LoadOldPklFrame(wx.Frame):
         if pathname.endswith('.pkl'):
             return True
         return False
-
-    def plotInteractiveLightCurve(self, event):
-        if self.validityCheck():
-            global pathText
-            pathText = self.pklPathTxt.GetValue()
-            GraphFrame()
-
-    def plotLinfit(self,event):
-        if self.validityCheck():
-            global pathText
-            pathText = self.pklPathTxt.GetValue()
-            LinfitFrame()
-
-    def plotRawFlux(self, event):
-        if self.validityCheck():
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
-
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
-
-            subprocess.Popen(['python','-c',commandstring])
-		
-    def plotCentroidPosition(self, event):
-        if self.validityCheck():
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
-
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
-
-            subprocess.Popen(['python','-c',commandstring])
-
-    def plotScaledFluxes(self, event):
-        if self.validityCheck():
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
-
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
-
-            subprocess.Popen(['python','-c',commandstring])
-
-    def plotComparisonStarWeightings(self, event):
-        if self.validityCheck():
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
-
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
-
-            subprocess.Popen(['python','-c',commandstring])
 			
     def onDestroy(self, event):
         global loadOldPklOpen
@@ -1548,81 +1553,6 @@ class LinfitFrame(wx.Frame):
             self.box.userParams['inc'].SetValue(str(inc))
             self.box.userParams['ecc'].SetValue(str(ecc))
             print "Parameters have been updated."
-
-class InvalidParameter(wx.Frame):
-
-    def __init__(self, num, parent, id, str='', max='0'):
-
-        if sys.platform == "win32":
-            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,110))
-        else:
-            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,100))
-            self.create_menu()
-            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)        
-        
-        self.panel = wx.Panel(self)
-        self.string = "Incorrect"
-
-        if max != '0':
-            self.string = "The bin size must be between 5 and "+max+"."
-        if str == "ratio":
-            self.string = "The value for Rp over Rs must be between 0 and 1."
-        elif str == "ratio2":
-            self.string = "The value for A over Rs must be greater than 1."
-        elif str == "inc":
-            self.string = "The value for the inclincation must be between 0 and 90."
-        elif str == "t0":
-            self.string = "The value for the mid-transit time, t0, must be greater than 0."
-        elif str == "gamma" or str == "gamma1" or str == "gamma2":
-            self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
-        elif str == "per":
-            self.string = "The value for the period must be greater than 0."
-        elif str == "ecc":
-            self.string = "The value for the eccentricity must be between 0 and 1."
-        elif str == "pericenter":
-            self.string = "The value for the pericenter must be greater than 0."
-        elif str == "planet":
-            self.string = "The name of the planet does not exist in the database."
-
-        if str == "path":
-            self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
-        else:           
-            self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
-        
-        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
-        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-
-        self.sizer0 = wx.FlexGridSizer(rows=2, cols=2)        
-        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-
-        self.panel.SetSizer(self.hbox)
-        self.hbox.Fit(self)
-        self.Center()
-        self.Show()
-    
-    def create_menu(self):
-        
-        # These commands create a drop down menu with the exit command.
-        
-        self.menubar = wx.MenuBar()
-        
-        menu_file = wx.Menu()
-        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
-        self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
-        
-        self.menubar.Append(menu_file, "&File")
-        self.SetMenuBar(self.menubar)
-    
-    def onCharOkay(self,event):
-        self.keycode = event.GetKeyCode()
-        if self.keycode == wx.WXK_RETURN:
-            self.Destroy()
-    
-    def onOkay(self, event):
-        self.Destroy()
           
 class ScanBox(wx.Panel):
         'create box for scan parameters'
@@ -1701,6 +1631,81 @@ class ScanBox(wx.Panel):
             return self.userParams['gamma2'].GetValue()
         def GetPericenter(self):
             return self.userParams['pericenter'].GetValue()
+
+class InvalidParameter(wx.Frame):
+
+    def __init__(self, num, parent, id, str='', max='0'):
+
+        if sys.platform == "win32":
+            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,110))
+        else:
+            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,100))
+            self.create_menu()
+            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)        
+        
+        self.panel = wx.Panel(self)
+        self.string = "Incorrect"
+
+        if max != '0':
+            self.string = "The bin size must be between 5 and "+max+"."
+        if str == "ratio":
+            self.string = "The value for Rp over Rs must be between 0 and 1."
+        elif str == "ratio2":
+            self.string = "The value for A over Rs must be greater than 1."
+        elif str == "inc":
+            self.string = "The value for the inclincation must be between 0 and 90."
+        elif str == "t0":
+            self.string = "The value for the mid-transit time, t0, must be greater than 0."
+        elif str == "gamma" or str == "gamma1" or str == "gamma2":
+            self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
+        elif str == "per":
+            self.string = "The value for the period must be greater than 0."
+        elif str == "ecc":
+            self.string = "The value for the eccentricity must be between 0 and 1."
+        elif str == "pericenter":
+            self.string = "The value for the pericenter must be greater than 0."
+        elif str == "planet":
+            self.string = "The name of the planet does not exist in the database."
+
+        if str == "path":
+            self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
+        else:           
+            self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
+        
+        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
+        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
+
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=2)        
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+
+        self.panel.SetSizer(self.hbox)
+        self.hbox.Fit(self)
+        self.Center()
+        self.Show()
+    
+    def create_menu(self):
+        
+        # These commands create a drop down menu with the exit command.
+        
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
+        self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+    
+    def onCharOkay(self,event):
+        self.keycode = event.GetKeyCode()
+        if self.keycode == wx.WXK_RETURN:
+            self.Destroy()
+    
+    def onOkay(self, event):
+        self.Destroy()
 
 app = wx.App(False)
 #### Runs the GUI ####
