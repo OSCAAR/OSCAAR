@@ -940,14 +940,10 @@ class EphFrame(wx.Frame):
         newobs.close()
         
     def calculate(self, event):
-        path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
-        self.saveFile(str(path))
-        namespace = {}
-        execfile(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','calculateEphemerides.py'),namespace)
-        globals().update(namespace)
-        rootPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'))
-        calculateEphemerides(path,rootPath)
         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
+        path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
+        import oscaar.extras.eph.calculateEphemerides as eph
+        eph.calculateEphemerides(path)
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
         
