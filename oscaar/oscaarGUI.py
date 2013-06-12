@@ -986,7 +986,7 @@ class BrowseBox(wx.Panel):
             if sys.platform == 'win32':
                 self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-B)")
             else:
-                self.pklPathBtn = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+                self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
             
             self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
                                                                          self.txtbox,True,wx.FD_OPEN))
