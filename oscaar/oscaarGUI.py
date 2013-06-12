@@ -1034,14 +1034,14 @@ class LoadOldPklFrame(wx.Frame):
             self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (150,40))
             self.plotInteractiveLightCurveButton = wx.Button(self,-1,label = 'Plot Interactive Light Curve', size = (190,25))
         
-        self.plotLinfitButton = wx.Button(self.panel,label="Linear Fit", size =(130,25))
+        self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
         self.Bind(wx.EVT_BUTTON, self.plotLightCurve,self.plotLightCurveButton)
         self.Bind(wx.EVT_BUTTON, self.plotRawFlux, self.plotRawFluxButton)     
         self.Bind(wx.EVT_BUTTON, self.plotCentroidPosition, self.plotCentroidPositionsButton)
         self.Bind(wx.EVT_BUTTON, self.plotScaledFluxes,self.plotScaledFluxesButton)
         self.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings, self.plotComparisonStarWeightingsButton)
         self.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve, self.plotInteractiveLightCurveButton)    
-        self.Bind(wx.EVT_BUTTON,self.plotLinfit, self.plotLinfitButton)
+        self.Bind(wx.EVT_BUTTON,self.plotLSFit, self.plotLSFitButton)
         
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=7)
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1053,7 +1053,7 @@ class LoadOldPklFrame(wx.Frame):
         self.sizer0.Add(self.plotScaledFluxesButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotComparisonStarWeightingsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotInteractiveLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.plotLinfitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
          
         self.pklPathTxt = self.box.txtbox
         self.create_menu()
@@ -1144,11 +1144,11 @@ class LoadOldPklFrame(wx.Frame):
             pathText = self.pklPathTxt.GetValue()
             GraphFrame()
 
-    def plotLinfit(self,event):
+    def plotLSFit(self,event):
         if self.validityCheck():
             global pathText
             pathText = self.pklPathTxt.GetValue()
-            LinfitFrame()
+            LeastSquaresFitFrame()
             
     def validityCheck(self):
         invalidString = ""
@@ -1438,9 +1438,9 @@ class GraphFrame(wx.Frame):
     def on_flash_status_off(self, event):
         self.statusbar.SetStatusText('')
 
-class LinfitFrame(wx.Frame):
+class LeastSquaresFitFrame(wx.Frame):
     
-    title = "LINEAR FIT"
+    title = "Least Squares Fit"
     
     def __init__(self):
         
@@ -1471,7 +1471,7 @@ class LinfitFrame(wx.Frame):
         self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
-        self.box.userParams['t0'].SetValue(str(np.mean(self.data.times)))
+        self.box.userParams['t0'].SetValue(str(oscaar.transiterFit.calcMidTranTime(self.data.times,self.data.lightCurve)))
         
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
@@ -1552,8 +1552,8 @@ class LinfitFrame(wx.Frame):
             self.box.userParams['per'].SetValue(str(per))
             self.box.userParams['inc'].SetValue(str(inc))
             self.box.userParams['ecc'].SetValue(str(ecc))
-            print "Parameters have been updated."
-          
+            InvalidParameter("",None,-1, str="params")
+
 class ScanBox(wx.Panel):
         'create box for scan parameters'
         # Create a box with all the parameters that the users can manipulate.
@@ -1642,7 +1642,9 @@ class InvalidParameter(wx.Frame):
             wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,100))
             self.create_menu()
             self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)        
-        
+        if str == "params":
+            self.SetTitle("Updated Parameters")
+            self.Bind(wx.EVT_CHAR_HOOK, self.onOkay)
         self.panel = wx.Panel(self)
         self.string = "Incorrect"
 
@@ -1669,6 +1671,8 @@ class InvalidParameter(wx.Frame):
 
         if str == "path":
             self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
+        elif str == "params":
+            self.paths = wx.StaticText(self.panel, -1,"The appropriate parameters have been updated.")
         else:           
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
