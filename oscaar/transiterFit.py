@@ -80,6 +80,19 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
     Orbital and Stellar Parameters intial guesses,
     '''
     
+    timeObs=timeObs
+    epochGuess=epochGuess
+    
+    RpRsGuess=np.float64(RpRsGuess)
+    aRsGuess=np.float64(aRsGuess)
+    perGuess=np.float64(perGuess)
+    incGuess=np.float64(incGuess)
+    epochGuess=np.float64(epochGuess)
+    gamma1=np.float64(gamma1)
+    gamma2=np.float64(gamma2)
+    eccGuess=np.float64(eccGuess)
+    argPerGuess=np.float64(argPerGuess)
+    
     #Setting up initial guess, dependent on inclusion of limb-darkening
     if fitLimbDark == False:
         initGuess = (RpRsGuess,aRsGuess,incGuess,epochGuess)
@@ -89,34 +102,54 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
         initGuess = (RpRsGuess,aRsGuess,incGuess,epochGuess,gamma1,gamma2)
     
     def occultquadForTransiter(t,p,ap,i,t0,gamma1=0.0,gamma2=0.0,P=perGuess,e=eccGuess,longPericenter=0.0):
-        modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
-        return oscaar.occultquad(t,modelParams)
+        b=ap*np.cos(i)
+        if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
+            return np.zeros(len(t))
+        elif gamma2 < 0.0 or gamma2 > 1.0:
+            return np.zeros(len(t))
+        else:
+            modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+            return oscaar.occultquad(t,modelParams)
 
     #Runs the initial fit
     fit,success=optimize.curve_fit(occultquadForTransiter,
-                                   xdata=timeObs,
-                                   ydata=NormFlux,
+                                   xdata=timeObs.astype('float64'),
+                                   ydata=NormFlux.astype('float64'),
                                    p0=initGuess,
-                                   sigma=flux_error,
-                                   maxfev=10000,
-                                   xtol=2e-15,
-                                   ftol=2e-16,
-                                   #diag=(0.05,0.1,0.1,500.,0.1,0.1),
-                                   #factor=100.
+                                   sigma=0.01*flux_error.astype('float64'),
+                                   maxfev=100000,
+                                   xtol=np.finfo(np.float64).eps,
+                                   ftol=np.finfo(np.float64).eps,
+                                   #epsfcn=10*np.finfo(np.float64).eps,
+                                   diag=(1.0,1.0,1.0,1.0,1.0,1.0),
+                                   factor=0.1
                                    )
 
     #Check for Convergence    
     if type(success) != np.ndarray:
         print "The initial fit was not able to converge. Check to see if the input parameters are accurate."
         print ""
-        
+    
+    #Create model, dependent on inclusion of limb-darkening
+    if len(fit) == 4:
+        modelOut  = occultquadForTransiter(timeObs,fit[0],fit[1],fit[2],fit[3])
+        initGuess = (fit[0],fit[1],fit[2],fit[3])
+    elif len(fit) == 5:
+        modelOut  = occultquadForTransiter(timeObs,fit[0],fit[1],fit[2],fit[3],fit[4])
+        initGuess = (fit[0],fit[1],fit[2],fit[3],fit[4])
+        gam1Fit = fit[4]
+    elif len(fit) == 6:
+        modelOut  = occultquadForTransiter(timeObs,fit[0],fit[1],fit[2],fit[3],fit[4],fit[5])
+        initGuess = (fit[0],fit[1],fit[2],fit[3],fit[4],fit[5])
+        gam1Fit,gam2Fit = fit[4],fit[5]
+     
     #If Convergence is True, look at the results to double check.
-    else:
-        print "Results from the initial fit w/ uncertainties based on the sq. root of the covariance matrix"
-        params = ["Rp/Rs","a/Rs","inc","Mid-Tran Time","Gamma 1","Gamma 2"]
-        for i in range(0,np.size(fit)):
-            print params[i],fit[i],"+/-",np.sqrt(success[i][i])
-        print ""
+    residual = modelOut - timeObs
+    print "Results from the initial fit w/ uncertainties based on the sq. root of the covariance matrix"
+    params = ["Rp/Rs","a/Rs","inc","Mid-Tran Time","Gamma 1","Gamma 2"]
+    for i in range(0,np.size(fit)):
+        print params[i],fit[i],"+/-",np.sqrt(success[i][i])
+    print ""
         
     #Visually check to see if it's reasonable
     if plotting == True:
@@ -147,9 +180,15 @@ def shuffle_func(x):
 #Monte Carlo method. 
 def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,argPerGuess,plotting=False):
 
-    def occultquadForTransiter(t,p,ap,i,t0,gamma1=0.0,gamma2=0.0,P=perGuess,e=eccGuess,longPericenter=argPerGuess):
-        modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
-        return oscaar.occultquad(t,modelParams)
+    def occultquadForTransiter(t,p,ap,i,t0,gamma1=0.0,gamma2=0.0,P=perGuess,e=eccGuess,longPericenter=0.0):
+        b=ap*np.cos(i)
+        if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
+            return np.zeros(len(t))
+        elif gamma2 < 0.0 or gamma2 > 1.0:
+            return np.zeros(len(t))
+        else:
+            modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+            return oscaar.occultquad(t,modelParams)
     
     RpFit,aRsFit,incFit,epochFit = fit[0],fit[1],fit[2],fit[3]
     
@@ -190,9 +229,9 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
                                    maxfev=100000,
                                    sigma=SigSet,
                                    #diag=(0.1,0.1,0.1,1.0,0.1,0.1),
-                                   #factor=100.,
-                                   xtol=2e-15,
-                                   ftol=2e-16,
+                                   factor=10.0,
+                                   xtol=2e-12,
+                                   ftol=2e-12,
                                    )
         
         #Save output parameters from fit
