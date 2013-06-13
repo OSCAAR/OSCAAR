@@ -1519,11 +1519,17 @@ class LeastSquaresFitFrame(wx.Frame):
             tempLimbDark = self.box.GetLimbDark()
 
         if self.checkParams() == True:
-            oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
+            fit, success = oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
                                           float(self.box.GetRatio()),float(self.box.GetRatio2()),float(self.box.GetInc()),
                                           float(self.box.GetT0()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
                                           float(self.box.GetPeriod()),float(self.box.GetEcc()), float(self.box.GetPericenter()),
                                           fitLimbDark=tempLimbDark, plotting=True)
+            n_iter = 100
+            Rp,aRs,inc,t0,gam1,gam2=oscaar.transiterFit.run_MCfit(n_iter,self.data.getTimes(),
+                self.data.lightCurve, self.data.lightCurveError,fit,success,
+                float(self.box.GetPeriod()),float(self.box.GetEcc()),
+                float(self.box.GetPericenter()), plotting=False)
+
     def checkParams(self):
 
         list = [(self.box.GetRatio(),"ratio"),(self.box.GetRatio2(),"ratio2"),(self.box.GetInc(),"inc"),
