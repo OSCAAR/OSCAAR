@@ -983,7 +983,8 @@ class AddLCB(wx.Panel):
                 self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
             elif name == 'planet':
                 self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
-                self.txtbox = wx.TextCtrl(self, -1)
+                self.txtbox = wx.TextCtrl(self, -1, value='GJ 1214 b')
+                self.txtbox.SetToolTipString('Enter the name of a planet from the exoplanet.org database here.')
            
             sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
             sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
@@ -1020,6 +1021,13 @@ class AddLCB(wx.Panel):
 class LoadOldPklFrame(wx.Frame):
 
     def __init__(self):
+        
+        global loadGraphFrame
+        global loadLSFIT
+        loadGraphFrame = False
+        loadLSFIT = False
+        
+        
         self.title = "Load An Old .pkl File"
         wx.Frame.__init__(self, None,-1, self.title)
         
@@ -1149,14 +1157,20 @@ class LoadOldPklFrame(wx.Frame):
     def plotInteractiveLightCurve(self, event):
         if self.validityCheck():
             global pathText
+            global loadGraphFrame
             pathText = self.pklPathTxt.GetValue()
-            GraphFrame()
+            if loadGraphFrame == False:   
+                GraphFrame()
+                loadGraphFrame = True
 
     def plotLSFit(self,event):
         if self.validityCheck():
             global pathText
+            global loadLSFIT
             pathText = self.pklPathTxt.GetValue()
-            LeastSquaresFitFrame()
+            if loadLSFIT == False:
+                LeastSquaresFitFrame()
+                loadLSFIT = True
             
     def validityCheck(self):
         invalidString = ""
@@ -1299,7 +1313,8 @@ class GraphFrame(wx.Frame):
         self.create_menu()
         self.create_status_bar()
         self.create_main_panel()
-
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.Centre()
         self.Show()
 
@@ -1445,6 +1460,10 @@ class GraphFrame(wx.Frame):
     
     def on_flash_status_off(self, event):
         self.statusbar.SetStatusText('')
+    
+    def onDestroy(self, event):
+        global loadGraphFrame
+        loadGraphFrame = False
 
 class LeastSquaresFitFrame(wx.Frame):
     
@@ -1486,29 +1505,39 @@ class LeastSquaresFitFrame(wx.Frame):
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
+        self.create_menu()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.Center()
         self.Show()
 
     def plot(self,event):
+        
+        
+        if self.box.GetLimbDark() == 'False':
+            tempLimbDark = False
+        else:
+            tempLimbDark = self.box.GetLimbDark()
 
         if self.checkParams() == True:
             oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
                                           float(self.box.GetRatio()),float(self.box.GetRatio2()),float(self.box.GetInc()),
                                           float(self.box.GetT0()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
                                           float(self.box.GetPeriod()),float(self.box.GetEcc()), float(self.box.GetPericenter()),
-                                          fitLimbDark='quadratic', plotting=True)
+                                          fitLimbDark=tempLimbDark, plotting=True)
     def checkParams(self):
 
         list = [(self.box.GetRatio(),"ratio"),(self.box.GetRatio2(),"ratio2"),(self.box.GetInc(),"inc"),
                 (self.box.GetT0(),"t0"),(self.box.GetGamma1(),"gamma1"),(self.box.GetGamma2(),"gamma2"),
-                (self.box.GetPeriod(),"per"),(self.box.GetEcc(),"ecc"),(self.box.GetPericenter(),"pericenter")]
+                (self.box.GetPeriod(),"per"),(self.box.GetEcc(),"ecc"),(self.box.GetPericenter(),"pericenter"),
+                (self.box.GetLimbDark(),"limbdark")]
         for (number,string) in list:
             if number == '':
                 InvalidParameter(number, None,-1, str=string)
                 return False
             else:
                 try:
-                    self.tmp = float(number)
+                    if string !="limbdark":
+                        self.tmp = float(number)
                 except ValueError:
                     InvalidParameter(number, None,-1, str=string)
                     return False
@@ -1540,6 +1569,13 @@ class LeastSquaresFitFrame(wx.Frame):
                     if float(number) < 0:
                         InvalidParameter(number, None,-1, str=string)
                         return False
+                if string == "limbdark":
+                    if (number != "False"):
+                        if (number != "linear"):
+                            if(number != "quadratic"):
+                                InvalidParameter(number,None,-1,str=string)
+                                return False
+
         self.totalGamma = float(self.box.GetGamma1()) + float(self.box.GetGamma2())
         self.totalString = str(self.totalGamma)
         if self.totalGamma > 1:
@@ -1563,6 +1599,25 @@ class LeastSquaresFitFrame(wx.Frame):
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box.userParams['ecc'].SetValue(str(ecc))
                 InvalidParameter("",None,-1, str="params")
+    def create_menu(self):
+    
+        # These commands create a drop down menu with the save command, and exit command.
+    
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+        
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def onDestroy(self, event):
+        global loadLSFIT
+        loadLSFIT = False
 
 class ScanBox(wx.Panel):
         'create box for scan parameters'
@@ -1609,10 +1664,15 @@ class ScanBox(wx.Panel):
                  'Enter a value for gamma 2 here.'),
                 ('pericenter',"Pericenter:",
                  'Enter an arguement for the pericenter here.'),
+                ('limbdark',"Limb-Darkening Parameter:",
+                 'Enter an arguement for limb-darkening here.')
                 ]:
                 label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
                 sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='0.0')
+                if widget == 'limbdark':
+                    self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='False')
+                else:
+                    self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='0.0')
                 self.userParams[widget].SetToolTipString(ToolTip)
                 sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
             
@@ -1637,6 +1697,8 @@ class ScanBox(wx.Panel):
             return self.userParams['gamma2'].GetValue()
         def GetPericenter(self):
             return self.userParams['pericenter'].GetValue()
+        def GetLimbDark(self):
+            return self.userParams['limbdark'].GetValue()
 
 class InvalidParameter(wx.Frame):
 
@@ -1674,6 +1736,8 @@ class InvalidParameter(wx.Frame):
             self.string = "The value for the pericenter must be greater than 0."
         elif str == "planet":
             self.string = "The name of the planet does not exist in the database."
+        elif str == "limbdark":
+            self.string = "The parameter for Limb-Darkening must be either 'False', 'linear', or 'quadratic'."
 
         if str == "path":
             self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
