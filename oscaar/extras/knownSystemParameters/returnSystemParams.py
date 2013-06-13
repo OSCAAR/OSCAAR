@@ -18,7 +18,10 @@ global exoplanetDB
 
 def period(planet):
     '''Units:  days'''
-    return np.float64(exoplanetDB[planet]['PER'])
+    try:
+        return np.float64(exoplanetDB[planet]['PER'])
+    except KeyError:
+        return -1
 
 def epoch(planet):
     '''Tc at mid-transit. Units:  days'''
@@ -27,23 +30,39 @@ def epoch(planet):
 
 def aOverRs(planet):
     '''Returns semimajor axis over stellar radius (a/Rs)'''
-    return float(exoplanetDB[planet]['AR'])
+    try:
+        return float(exoplanetDB[planet]['AR'])
+    except KeyError:
+        return -1
 
 def depth(planet):
     '''Transit depth = (Rp/Rs)^2 '''
-    if exoplanetDB[planet]['DEPTH'] == '': return 0.0
-    else: return float(exoplanetDB[planet]['DEPTH'])
+    try:
+        if exoplanetDB[planet]['DEPTH'] == '': return 0.0
+        else: return float(exoplanetDB[planet]['DEPTH'])
+    except KeyError:
+        return -1
         
 def RpOverRs(planet):
     '''Ratio of planet radius to stellar radius, derived from transit depth since depth=(Rp/Rs)^2'''
-    return np.sqrt(depth(planet))
+    temp = depth(planet)
+    if temp == -1:
+        return -1
+    else:
+        return np.sqrt(depth(planet))
+
 
 def inclination(planet):
-    return float(exoplanetDB[planet]['I'])
-
+    try:
+        return float(exoplanetDB[planet]['I'])
+    except KeyError:
+        return -1
 def eccentricity(planet):
-    if float(exoplanetDB[planet]['ECC']) == '': return 0.0
-    else: return float(exoplanetDB[planet]['ECC'])
+    try:
+        if float(exoplanetDB[planet]['ECC']) == '': return 0.0
+        else: return float(exoplanetDB[planet]['ECC'])
+    except KeyError:
+        return -1
     
 def transiterParams(planet):
     '''Return accepted values for the fitting routine'''
@@ -53,4 +72,3 @@ def transiterParams(planet):
     global exoplanetDB
     exoplanetDB = downloadAndPickle()
     return [RpOverRs(planet),aOverRs(planet),period(planet),inclination(planet),eccentricity(planet)]
-

@@ -968,9 +968,9 @@ class EphFrame(wx.Frame):
         global ephGUIOpen
         ephGUIOpen = False
 
-class BrowseBox(wx.Panel):
+class AddLCB(wx.Panel):
             
-        def __init__(self, parent,id):
+        def __init__(self, parent,id,name=''):
             wx.Panel.__init__(self,parent,id)
             
             box1 = wx.StaticBox(self, -1)
@@ -978,20 +978,27 @@ class BrowseBox(wx.Panel):
 
             sizer0 = wx.FlexGridSizer(rows=1, cols=3)
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-            self.label = wx.StaticText(self, -1, "Path to Output File: ", style=wx.ALIGN_CENTER)
+            if name == 'browse':
+                self.label = wx.StaticText(self, -1, "Path to Output File: ", style=wx.ALIGN_CENTER)
+                self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
+            elif name == 'planet':
+                self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
+                self.txtbox = wx.TextCtrl(self, -1)
+           
             sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-            self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
             sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-            
-            if sys.platform == 'win32':
-                self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-B)")
-            else:
-                self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
-            
-            self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
-                                                                         self.txtbox,True,wx.FD_OPEN))
-            sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
+            if name == 'browse':
+                if sys.platform == 'win32':
+                    self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-B)")
+                else:
+                    self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+                
+                self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
+                                                                             self.txtbox,True,wx.FD_OPEN))
+                sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
+            elif name == 'planet':
+                self.updateButton = wx.Button(self, -1, "Update Parameters")
+                sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
             
             self.SetSizer(sizer)
             sizer.Fit(self)
@@ -1018,7 +1025,7 @@ class LoadOldPklFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         
-        self.box = BrowseBox(self.panel,-1)
+        self.box = AddLCB(self.panel,-1,name='browse')
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
 
@@ -1451,24 +1458,26 @@ class LeastSquaresFitFrame(wx.Frame):
         
         self.pT = pathText
         self.data = oscaar.load(self.pT)
+#         
+        self.box1 = AddLCB(self.panel,-1,name='planet')
+        self.Bind(wx.EVT_BUTTON,self.update,self.box1.updateButton)
+        self.topBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.topBox.Add(self.box1, border=5, flag=wx.ALL)
         
         self.box = ScanBox(self.panel,-1)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
         
-        self.okButton = wx.Button(self.panel,label = 'Plot')
-        self.Bind(wx.EVT_BUTTON,self.onOkPress, self.okButton)
-        self.updateButton = wx.Button(self.panel,label = 'Update Parameters')
-        self.Bind(wx.EVT_BUTTON, self.update, self.updateButton)
+        self.plotButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
 
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
-        
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotButton,0,wx.ALIGN_CENTER|wx.ALL,5)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.topBox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
@@ -1480,7 +1489,7 @@ class LeastSquaresFitFrame(wx.Frame):
         self.Center()
         self.Show()
 
-    def onOkPress(self,event):
+    def plot(self,event):
 
         if self.checkParams() == True:
             oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
@@ -1539,21 +1548,21 @@ class LeastSquaresFitFrame(wx.Frame):
         return True
 
     def update(self,event):
-        if self.box.GetPlanet() == '':
-            InvalidParameter(self.box.GetPlanet(), None,-1, str="planet")
+        if self.box1.txtbox.GetValue() == '':
+            InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
         else:
-            self.planet = self.box.GetPlanet()
-            try:
-                [ratio,ratio2,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
-            except ValueError:
-                InvalidParameter(self.box.GetPlanet(), None,-1, str="planet")
+            self.planet = self.box1.txtbox.GetValue()
+            [ratio,ratio2,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
-            self.box.userParams['ratio'].SetValue(str(ratio))
-            self.box.userParams['ratio2'].SetValue(str(ratio2))
-            self.box.userParams['per'].SetValue(str(per))
-            self.box.userParams['inc'].SetValue(str(inc))
-            self.box.userParams['ecc'].SetValue(str(ecc))
-            InvalidParameter("",None,-1, str="params")
+            if ratio == -1 or ratio2 == -1 or per == -1 or inc == -1 or ecc == -1:
+                InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
+            else:
+                self.box.userParams['ratio'].SetValue(str(ratio))
+                self.box.userParams['ratio2'].SetValue(str(ratio2))
+                self.box.userParams['per'].SetValue(str(per))
+                self.box.userParams['inc'].SetValue(str(inc))
+                self.box.userParams['ecc'].SetValue(str(ecc))
+                InvalidParameter("",None,-1, str="params")
 
 class ScanBox(wx.Panel):
         'create box for scan parameters'
@@ -1561,7 +1570,7 @@ class ScanBox(wx.Panel):
         def __init__(self, parent,id):
             wx.Panel.__init__(self,parent,id)
             
-            box1 = wx.StaticBox(self, -1, "Descriptive information")
+            box1 = wx.StaticBox(self, -1, "Input Parameters")
             sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
             self.userParams = {}
             sizer0 = wx.FlexGridSizer(rows=1, cols=10)
@@ -1590,8 +1599,8 @@ class ScanBox(wx.Panel):
             label = wx.StaticText(self, -1, "", style=wx.ALIGN_CENTER)
             sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
             for (widget,label,ToolTip) in [
-                ('planet',"Planet Name:",
-                 'Enter a planet name from the exoplanet.org database here.'),
+#                 ('planet',"Planet Name:",
+#                  'Enter a planet name from the exoplanet.org database here.'),
                 ('t0',"t0:",
                  'Enter a value for t0 here.'),
                 ('gamma1',"Gamma 1:",
@@ -1603,17 +1612,13 @@ class ScanBox(wx.Panel):
                 ]:
                 label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
                 sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                if widget == 'pericenter':
-                    self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='0.0')
-                else:
-                    self.userParams[widget] = wx.TextCtrl(self, -1, size=(100,20))
+                self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='0.0')
                 self.userParams[widget].SetToolTipString(ToolTip)
                 sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
             
             self.SetSizer(sizer)
             sizer.Fit(self)
-        def GetPlanet(self):
-            return self.userParams['planet'].GetValue()
+
         def GetRatio(self):
             return self.userParams['ratio'].GetValue()
         def GetRatio2(self):
