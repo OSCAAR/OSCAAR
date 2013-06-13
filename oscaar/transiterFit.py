@@ -80,6 +80,10 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
     Orbital and Stellar Parameters intial guesses,
     '''
     
+    #Hack for if inclination is entered as 90 degrees. 
+    if incGuess == 90.0:
+        incGuess=89.99
+    
     timeObs=timeObs
     epochGuess=epochGuess
     
@@ -145,10 +149,10 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
      
     #If Convergence is True, look at the results to double check.
     residual = modelOut - timeObs
-    print "Results from the initial fit w/ uncertainties based on the sq. root of the covariance matrix"
+    print "Results from the initial fit"
     params = ["Rp/Rs","a/Rs","inc","Mid-Tran Time","Gamma 1","Gamma 2"]
     for i in range(0,np.size(fit)):
-        print params[i],fit[i],"+/-",np.sqrt(success[i][i])
+        print params[i],fit[i]
     print ""
         
     #Visually check to see if it's reasonable
@@ -274,7 +278,7 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
         plt.close()
         plt.clf()
         
-    print "Results from random MC fit . . . . . "     
+    print "Results from bootstrap MC fit . . . . . "     
     print "Planetary to Stellar Radius: ",np.mean(Rp),"+/-",np.std(Rp)
     print "Semi-major Axis to Stellar Radius: ",np.mean(aRs),"+/-",np.std(aRs)
     print "Inclination of Orbit: ",np.mean(inc),"+/-",np.std(inc)
