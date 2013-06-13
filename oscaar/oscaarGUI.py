@@ -112,13 +112,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.notesLabel.SetFont(self.labelFont)
         self.outPathBtn = wx.Button(self, -1, 'Browse')
         self.outputTxt = wx.TextCtrl(self, value = 'outputs', size = textCtrlSize)
-	self.valid_text = [None, None, wx.StaticText(self,-1, 'INVALID'), wx.StaticText(self,-1, 'INVALID'), wx.StaticText(self,-1, 'INVALID'), wx.StaticText(self,-1, 'INVALID')]
+	self.valid_text = [None, None, wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1,'X')]
 	self.sizer.Add(self.valid_text[2], (2,7), wx.DefaultSpan, wx.TOP, 12)
 	self.sizer.Add(self.valid_text[3], (3,7), wx.DefaultSpan, wx.TOP, 12)
 	self.sizer.Add(self.valid_text[4], (4,7), wx.DefaultSpan, wx.TOP, 12)
 	self.sizer.Add(self.valid_text[5], (5,7), wx.DefaultSpan, wx.TOP, 12)
+	self.sizer.Add(self.valid_text[6], (6,7), wx.DefaultSpan, wx.TOP, 12)
 
-    
         ##### Add items to sizer for organization #####
 	## First parameter is always the row in which the item is placed
 	## Second to last parameter of addPathChoice represents whether there will be single file select, if it is false there will be multiple
@@ -131,6 +131,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 	self.flatPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 3, self.flatPathTxt.GetValue(), None))
 	self.imagPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 4, self.imagPathTxt.GetValue(), None))
 	self.regPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 5, self.regPathTxt.GetValue(), True))
+	self.outputTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 6, self.outputTxt.GetValue(), True))
         self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
         self.addButtonPair(8, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
         self.addTextCtrl(7,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
@@ -172,17 +173,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Centre()
         self.Show(True)
 
-    def checkValid(self, event, row, text, isRegion):
+    def checkValid(self, event, row, text, filetype):
 	valid = False
-	if isRegion:
+	if filetype == 'reg':
 	    for path in text.split(','):
 		if path in glob(path[:path.rfind(os.sep)] + os.sep + '*') and path.endswith('.reg'):
 		    valid = True
 		else:
 		    for fil in (glob(path)):
-			if fil.endswith('.fit') or fil.endswith('.fits'):
+			if fil.endswith('.reg'):
 			    valid = True
-	else:
+	elif filetype == 'fit':
 	    for path in text.split(','):
 		if path in glob(path[:path.rfind(os.sep)] + os.sep + '*') and (path.endswith('.fit') or path.endswith('.fits')):
 		    valid = True
@@ -190,6 +191,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 		    for fil in (glob(path)):
 			if fil.endswith('.fit') or fil.endswith('.fits'):
 			    valid = True
+	else:
+	    if os.path.isdir(text[:text.rfind(os.sep)]) and len(text) > len(text[:text.rfind(os.sep)]) + 1:
+		valid = True
 	if valid: self.updateImage(True, row)
 	else: self.updateImage(False, row)
 			
@@ -446,7 +450,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/',os.sep))
                 if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep))
                 if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep))
-                if inline[0] == 'Output Path': self.outputTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Output Path': self.outputTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep).replace('\\', os.sep))
                 if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Tracking Zoom':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
@@ -478,10 +482,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.egressTime.SetValue(timeString)
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
-		self.checkValid(None, 2, self.darkPathTxt.GetValue(), False)
-		self.checkValid(None, 3, self.imagPathTxt.GetValue(), False)
-		self.checkValid(None, 4, self.flatPathTxt.GetValue(), False)
-		self.checkValid(None, 5, self.regPathTxt.GetValue(), True)
+		self.checkValid(None, 2, self.darkPathTxt.GetValue(), 'fit')
+		self.checkValid(None, 3, self.imagPathTxt.GetValue(), 'fit')
+		self.checkValid(None, 4, self.flatPathTxt.GetValue(), 'fit')
+		self.checkValid(None, 5, self.regPathTxt.GetValue(), 'reg')
+		self.checkValid(None, 6, self.outputTxt.GetValue(), 'out')
 
 
 
