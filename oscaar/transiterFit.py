@@ -105,7 +105,17 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
     elif fitLimbDark == 'quadratic':
         initGuess = (RpRsGuess,aRsGuess,incGuess,epochGuess,gamma1,gamma2)
     
-    def occultquadForTransiter(t,p,ap,i,t0,gamma1=0.0,gamma2=0.0,P=perGuess,e=eccGuess,longPericenter=0.0):
+    def occultquadForTransiter(t,p,ap,i,t0,gamma1=gamma1,gamma2=gamma2,P=perGuess,e=eccGuess,longPericenter=0.0):
+        '''Defines oscaar.occultquad differently to be compatible w/ optimize.curve_fit
+        
+        If a parameter goes outside physical boundries then it returns
+        an array of zeros, such that the chi squared value is extremely high.
+        
+        Limb-darkening Coeff's -- 0.0 < gamma < 1.0
+        Inclination < 90 degrees
+        Impact Parameter < 1 (assumes no grazing transits)
+        '''
+        
         b=ap*np.cos(i)
         if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
             return np.zeros(len(t))
@@ -125,8 +135,8 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
                                    xtol=np.finfo(np.float64).eps,
                                    ftol=np.finfo(np.float64).eps,
                                    #epsfcn=10*np.finfo(np.float64).eps,
-                                   diag=(1.0,1.0,1.0,1.0,1.0,1.0),
-                                   factor=0.1
+                                   #diag=(1.0,1.0,1.0,1.0,1.0,1.0),
+                                   factor=0.3
                                    )
 
     #Check for Convergence    
@@ -184,7 +194,7 @@ def shuffle_func(x):
 #Monte Carlo method. 
 def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,argPerGuess,plotting=False):
 
-    def occultquadForTransiter(t,p,ap,i,t0,gamma1=0.0,gamma2=0.0,P=perGuess,e=eccGuess,longPericenter=0.0):
+    def occultquadForTransiter(t,p,ap,i,t0,gamma1=gamma1,gamma2=gamma2,P=perGuess,e=eccGuess,longPericenter=0.0):
         b=ap*np.cos(i)
         if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
             return np.zeros(len(t))
