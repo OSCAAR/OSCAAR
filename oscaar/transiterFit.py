@@ -80,12 +80,15 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
     Orbital and Stellar Parameters intial guesses,
     '''
     
-    #Hack for if inclination is entered as 90 degrees. 
-    if incGuess == 90.0:
-        incGuess=89.99
+    #Hack for if inclination is entered as 90 degrees. This must be done so that the optimize.curve_fit tool
+    #has room to find a solution. Since we have a constraint on inclination < 90.0 if we start at a number close
+    #90.0 and the first guess for a new inclination is above 90.0 it may throw off the fitting algorithm.
     
-    timeObs=timeObs
-    epochGuess=epochGuess
+    #Since eccentricity is generally not constrained well for values below a degree or so,
+    #(expection of extremely high quality data) this is alright to do, though not optimal. In any case, for
+    #better error estimation one should use MCMC not least square minimization.
+    if incGuess == 90.0:
+        incGuess=89.8
     
     RpRsGuess=np.float64(RpRsGuess)
     aRsGuess=np.float64(aRsGuess)
@@ -111,6 +114,7 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
         If a parameter goes outside physical boundries then it returns
         an array of zeros, such that the chi squared value is extremely high.
         
+        Constraints:
         Limb-darkening Coeff's -- 0.0 < gamma < 1.0
         Inclination < 90 degrees
         Impact Parameter < 1 (assumes no grazing transits)
@@ -134,7 +138,7 @@ def run_LMfit(timeObs,NormFlux,flux_error,RpRsGuess,aRsGuess,incGuess,epochGuess
                                    maxfev=100000,
                                    xtol=np.finfo(np.float64).eps,
                                    ftol=np.finfo(np.float64).eps,
-                                   #epsfcn=10*np.finfo(np.float64).eps,
+                                   #epsfcn=0.00001,
                                    #diag=(1.0,1.0,1.0,1.0,1.0,1.0),
                                    factor=0.3
                                    )
@@ -192,17 +196,41 @@ def shuffle_func(x):
 
 #Function that allows one to determine model uncertainties using a random
 #Monte Carlo method. 
-def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,argPerGuess,plotting=False):
+def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,argPerGuess,gamma1=0.0,gamma2=0.0,plotting=False):
 
-    def occultquadForTransiter(t,p,ap,i,t0,gamma1=gamma1,gamma2=gamma2,P=perGuess,e=eccGuess,longPericenter=0.0):
-        b=ap*np.cos(i)
-        if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
-            return np.zeros(len(t))
-        elif gamma2 < 0.0 or gamma2 > 1.0:
-            return np.zeros(len(t))
-        else:
-            modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
-            return oscaar.occultquad(t,modelParams)
+    
+    #Sets up occultquadForTransiter to be minimized based on limb-darkening choice. 
+    if len(fit)==4:
+        def occultquadForTransiter(t,p,ap,i,t0,gamma1=gamma1,gamma2=gamma2,P=perGuess,e=eccGuess,longPericenter=0.0):
+            b=ap*np.cos(i)
+            if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
+                return np.zeros(len(t))
+            elif gamma2 < 0.0 or gamma2 > 1.0 or i < 75.0:
+                return np.zeros(len(t))
+            else:
+                modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+                return oscaar.occultquad(t,modelParams)
+    elif len(fit)==5:
+        def occultquadForTransiter(t,p,ap,i,t0,gamma1=fit[4],gamma2=gamma2,P=perGuess,e=eccGuess,longPericenter=0.0):
+            b=ap*np.cos(i)
+            if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
+                return np.zeros(len(t))
+            elif gamma2 < 0.0 or gamma2 > 1.0 or i < 75.0:
+                return np.zeros(len(t))
+            else:
+                modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+                return oscaar.occultquad(t,modelParams)        
+    elif len(fit)==6:
+        def occultquadForTransiter(t,p,ap,i,t0,gamma1=fit[4],gamma2=fit[5],P=perGuess,e=eccGuess,longPericenter=0.0):
+            b=ap*np.cos(i)
+            if b > 1.0 or i > 90.0 or gamma1 < 0.0 or gamma1 > 1.0:
+                return np.zeros(len(t))
+            elif gamma2 < 0.0 or gamma2 > 1.0 or i < 75.0:
+                return np.zeros(len(t))
+            else:
+                modelParams = [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0]
+                return oscaar.occultquad(t,modelParams)        
+    
     
     RpFit,aRsFit,incFit,epochFit = fit[0],fit[1],fit[2],fit[3]
     
@@ -243,9 +271,10 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
                                    maxfev=100000,
                                    sigma=SigSet,
                                    #diag=(0.1,0.1,0.1,1.0,0.1,0.1),
-                                   factor=10.0,
-                                   xtol=2e-12,
-                                   ftol=2e-12,
+                                   #epsfcn=0.1,
+                                   factor=0.3,
+                                   xtol=2e-15,
+                                   ftol=2e-15,
                                    )
         
         #Save output parameters from fit
@@ -288,7 +317,11 @@ def run_MCfit(n_iter,timeObs,NormFlux,flux_error,fit,success,perGuess,eccGuess,a
         plt.close()
         plt.clf()
         
-    print "Results from bootstrap MC fit . . . . . "     
+    print '''Results from bootstrap MC fit . . . . .
+    
+Uncertainties are calculated by standard deviation of the different fits using the bootstrap MC method.
+    
+    '''
     print "Planetary to Stellar Radius: ",np.mean(Rp),"+/-",np.std(Rp)
     print "Semi-major Axis to Stellar Radius: ",np.mean(aRs),"+/-",np.std(aRs)
     print "Inclination of Orbit: ",np.mean(inc),"+/-",np.std(inc)
