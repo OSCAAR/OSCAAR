@@ -51,8 +51,9 @@ def fitLinearTrend(xVector,yVector):
 def linearFunc(xVector,params):
 	return xVector*params[0] + params[1]
 
-    
-def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False):
+
+
+def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loadingbar=True):
     '''
         Markov Chain Monte Carlo routine for fitting. Takes a set of fluxes `flux` 
         measured at times `t` with uncertainties `sigma`. Input fitting function `func` is fed
@@ -89,6 +90,17 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False):
                  "Currently: Nsteps %% saveInterval = %.2f (should be zero)" % (Nsteps % saveInterval))
     acceptedStates = 0
     nout = Nsteps/saveInterval
+
+    ## Prepare loading bar plot (if turned on)
+    if loadingbar:
+        plt.ion()
+        statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
+        statusBarFig.canvas.set_window_title('oscaar2.0') 
+        statusBarAx = statusBarFig.add_subplot(111,aspect=10)
+        statusBarAx.set_title('Markov Chain Monte Carlo fitting...')
+        statusBarAx.set_xlim([0,100])
+        statusBarAx.set_xlabel('Percent Complete (%)')
+        statusBarAx.get_yaxis().set_ticks([])
     
     ## Metropolis-Hastings algorithm...
     x_n = initParams ## initial trial state, **Step 1 in Ford 2005**, n=0
@@ -102,6 +114,15 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False):
     chisq_n = np.sum(((trialModel-flux)**2)*weights)
     chisq_min = 1e10    ## Set very high initial chi-squared that will get immediately overwritten
     for n in range(Nsteps):
+        ## Update the loading bar every so often
+        if loadingbar and n % 1000 == 0:
+            plt.cla()
+            statusBarAx.set_title('Markov Chain Monte Carlo fitting...')
+            statusBarAx.set_xlim([0,100])
+            statusBarAx.set_xlabel('Percent Complete (%)')
+            statusBarAx.get_yaxis().set_ticks([])
+            statusBarAx.barh([0],[100.0*n/Nsteps],[1],color='k')
+            plt.draw()
         ## Generate trial step in parameters, **Step 2 in Ford 2005**
         x_nplus1 = np.random.normal(x_n,beta) 	
             ## ^^^ Sample gaussians with widths `beta` randomly centered 
@@ -135,10 +156,9 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False):
 
     ## Calculate acceptance rate, should ideally be ~0.44 (Ford 2005)
     acceptanceRate = float(acceptedStates)/Nsteps	
-
+    plt.close()
     assert bestp is not None, "No best-fit found, chi^2 minimizing state not found"
     return bestp, x_0toN, acceptanceRate
-
 
 def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False):
     '''
@@ -250,7 +270,7 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
     return acceptanceRateArray
 
 
-def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate):
+def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingbar=True):
     '''
         The `beta` input parameters for the MCMC function determine the 
         acceptance rate of the Metropolis-Hastings algorithm. According
@@ -291,7 +311,14 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate):
     acceptanceRateArray = mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False)
 
     #idealAcceptanceRate = 0.30			## Good rates according to Ford 2005: 0.25 - 0.44
-    
+
+    #if loadingbar:
+    #        plt.ion()
+    #        statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
+    #        statusBarFig.canvas.set_window_title('oscaar2.0') 
+    #        plt.title('Optimizing beta vector for\nMarkov Chain Monte Carlo fit...')
+    #        plt.draw()
+
     for paramIndex in range(0,len(initParams)):	## For each random parameter to be changed,
         iterationCounter = 0		## Count how many times the while loop has been run
         while any(acceptanceRateArray > 1.1*idealAcceptanceRate) or any(acceptanceRateArray < 0.9*idealAcceptanceRate):	## While the acceptance rate is unacceptable (Ford 2005), 
@@ -321,6 +348,7 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate):
             print "Optimizing each Beta_mu: acceptance rates for each parameter:", acceptanceRateArray
             print "Optimize by multiplying current beta by:",betaFactor
             iterationCounter += 1
+    plt.close()
     return beta
 
 def get_uncertainties(param,bestFitParameter):
@@ -330,3 +358,171 @@ def get_uncertainties(param,bestFitParameter):
     plus = np.sqrt(np.sum((upperHalf - bestFitParameter)**2)/(len(upperHalf)-1))
     minus = np.sqrt(np.sum((lowerHalf - bestFitParameter)**2)/(len(lowerHalf)-1))
     return [plus,minus]
+
+def histplot(parameter,axis,title,bestFitParameter):
+    postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
+    Nbins = 15              ## Plot histograms with 15 bins
+    n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
+    plus,minus = get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+    axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
+    axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')        
+    axis.set_title(title)
+
+def updatePKL(bestp,allparams,acceptanceRate,pklPath):
+    data = oscaar.load(pklPath)
+    data.updateMCMC(bestp,allparams,acceptanceRate,pklPath)
+    oscaar.save(data,pklPath)
+    
+class mcmcfit:
+    def __init__(self,dataBankPath,initParams,initBeta,Nsteps,saveInterval,idealAcceptanceRate,burnFraction):
+        '''
+        Initialize the `mcmc` object with the initial parameters and data needed
+        to prepare the MCMC run. 
+        
+        :INPUTS:
+            dataBankPath        --  Path to a saved instance of the dataBank object from `oscaar.save` 
+                                    which we'll use to extract the times, fluxes and uncertainties in 
+                                    the light curve (string).
+                                    
+            initParams          --  Initial parameter estimates, `x_0` in Ford 2005 (vector). 
+                                    Should be in the following order: 
+                                        RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0
+                                        
+            Nsteps              --  number of steps/links in the MCMC chain (int)
+            
+            initBeta            --  widths of normal distribution to randomly sample for each 
+                                    parameter (vector)
+                                    
+            saveInterval        --  number of steps between "saves", ie, storing the current 
+                                    step for later analysis (int)
+                                    
+            idealAcceptanceRate --  ideal acceptance rate that you would like the chain to 
+                                    have, definied by Ford 2005. Ideally ~0.25-0.44.
+                                    
+            burnFraction        --  fraction of saved steps at the beginning of the chains
+                                    to discard when computing uncertainties. Typically ~0.20
+        '''
+        ## Load parameters
+        self.data = oscaar.load(dataBankPath)
+        self.dataBankPath = dataBankPath
+        self.initParams = np.require(initParams,dtype=np.float64)
+        self.Nsteps = Nsteps
+        self.initBeta = initBeta
+        self.idealAcceptanceRate = idealAcceptanceRate
+        self.saveInterval = saveInterval
+        self.burnFraction = burnFraction
+        ## Choose the implementation of transit light curve function to use:
+        self.func = oscaar.transitModel.occultquad  
+    
+    def run(self,updatepkl=False,plots=True):
+        '''
+        Run the MCMC algorithms: 
+        '''
+
+        def occult4params(t,freeparams,allparams=self.initParams):
+            '''Allow 4 parameters to vary freely, keep the others fixed at the values assigned below'''
+            RpOverRs_free,aOverRs_free,inc_free,t0_free = freeparams
+            RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = allparams
+            return oscaar.occultquad(t,[RpOverRs_free,aOverRs_free,per,inc_free,gamma1,gamma2,ecc,longPericenter,t0_free])
+
+        RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = self.initParams
+        initParams = [RpOverRs,aOverRs,inc,t0]
+        beta = optimizeBeta(self.data.times,self.data.lightCurve,self.data.lightCurveError,\
+                                            initParams,occult4params,self.initBeta,idealAcceptanceRate=self.idealAcceptanceRate)
+
+
+        self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurve,\
+                                    self.data.lightCurveError,initParams,occult4params,self.Nsteps,beta,\
+                                    self.saveInterval,verbose=True,loadingbar=True)
+        print self.bestp,self.allparams,self.acceptanceRate
+        if updatepkl: updatePKL(self.bestp,self.allparams,self.acceptanceRate,self.dataBankPath)
+        #if plots:
+    def plot(self):
+        def occult4params(t,freeparams,allparams=self.initParams):
+            '''Allow 4 parameters to vary freely, keep the others fixed at the values assigned below'''
+            RpOverRs_free,aOverRs_free,inc_free,t0_free = freeparams
+            RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = allparams
+            return oscaar.occultquad(t,[RpOverRs_free,aOverRs_free,per,inc_free,gamma1,gamma2,ecc,longPericenter,t0_free])
+
+        bestp = self.bestp
+        allparams = self.allparams
+        acceptanceRate = self.acceptanceRate
+        data = oscaar.load(self.dataBankPath)
+        burnFraction = self.burnFraction
+        x = data.times
+        y = data.lightCurve
+        sigma_y = data.lightCurveError
+    
+        ##############################
+        # Prepare figures
+        fig = plt.figure(num=None, figsize=(16, 8), facecolor='w',edgecolor='k')
+        ax1 = fig.add_subplot(251)
+        ax2 = fig.add_subplot(252)
+        ax3 = fig.add_subplot(253)
+        ax4 = fig.add_subplot(254)
+        ax5 = fig.add_subplot(255)
+        ax6 = fig.add_subplot(256)
+        ax7 = fig.add_subplot(257)
+        ax8 = fig.add_subplot(258)
+        ax9 = fig.add_subplot(259)
+        ax10 = fig.add_subplot(2,5,10)
+        yfit = occult4params(x,bestp)
+        ax1.errorbar(x,y,yerr=sigma_y,fmt='o-')
+        ax1.plot(x,yfit,'r')
+        ax1.set_title("Fit with MCMC")
+
+        ax6.errorbar(x,y-yfit,yerr=sigma_y,fmt='o-')
+        #ax6.plot(x,yfit,'r')
+        ax6.set_title("Residuals: Fit with MCMC")
+        ##############################
+        # Plot traces and histograms of mcmc params
+        p = allparams[0,:]
+        ap = allparams[1,:]
+        i = allparams[2,:]
+        t0 = allparams[3,:]
+        abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
+        #burnFraction = 0.20     ## "burn" or ignore the first 20% of the chains
+
+        ax2.plot(abscissa,p,'k.')
+        ax2.set_title('$R_p / R_s$ trace')
+        ax2.set_xlabel('Saved Link Index')
+        ax2.set_ylabel('$R_p / R_s$')
+        ax2.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        ax3.plot(abscissa,ap,'k.')
+        ax3.set_title('$a / R_s$ trace')
+        ax3.set_xlabel('Saved Link Index')
+        ax3.set_ylabel('$a / R_s$')
+        ax3.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        ax4.plot(abscissa,i,'k.')
+        ax4.set_title('Inclination trace')
+        ax4.set_xlabel('Saved Link Index')
+        ax4.set_ylabel('Inclination')
+        ax4.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        ax5.plot(abscissa,t0,'k.')
+        ax5.set_title('Mid-Transit Time trace')
+        ax5.set_ylabel('Mid-Transit Time')
+        ax5.set_xlabel('Saved Link Index')
+        ax5.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        def histplot(parameter,axis,title,bestFitParameter):
+            postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
+            Nbins = 15              ## Plot histograms with 15 bins
+            n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
+            plus,minus = oscaar.mcmc.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')       
+            axis.set_ylabel('Frequency')
+            axis.set_xlabel(title) 
+            axis.set_title(title)
+        ## Plot the histograms
+        histplot(p,ax7,'$R_p / R_s$',bestp[0])
+        histplot(ap,ax8,'$a / R_s$',bestp[1])
+        histplot(i,ax9,'Inclination',bestp[2])
+        histplot(t0,ax10,'Mid-Transit Time',bestp[3])
+        plt.ioff()
+        plt.subplots_adjust(wspace=0.4,hspace=0.4,bottom=0.05, right=0.95, left=0.05, top=0.95)
+        #plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
+        plt.show()

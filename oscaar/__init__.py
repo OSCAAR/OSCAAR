@@ -11,3 +11,4 @@ from transiter import *
 import transiterFit
 #__all__ == ['photometry','astrometry']
 
+import fitting
