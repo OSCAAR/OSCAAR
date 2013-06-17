@@ -1731,7 +1731,7 @@ class MCMCFrame(wx.Frame):
         self.box4.userParams['number'].SetValue('10000')
 
         
-        self.plotButton = wx.Button(self.panel,label = 'Plot')
+        self.plotButton = wx.Button(self.panel,label = 'Run and Plot')
         self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
 
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
@@ -1797,7 +1797,7 @@ class MCMCFrame(wx.Frame):
                           float(self.box.userParams['t0'].GetValue())]
             
             nSteps = float(self.box4.userParams['number'].GetValue())
-            initBeta = np.zeros([4]) + 0.005 
+            initBeta = (np.zeros([4]) + 0.005).tolist()		## << The .tolist() method type casts the Numpy ndarray into a python list
     #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
     #                     int(self.box2.userParams['b-inc'].GetValue()), int(self.box2.userParams['b-t0'].GetValue())]
             
@@ -1807,8 +1807,10 @@ class MCMCFrame(wx.Frame):
             #mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
             #mcmcinstance.run(updatepkl=True)
             #mcmcinstance.plot()
-
-            mcmcCall = 'import oscaar; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True); mcmcinstance.plot()' % (self.pT,initParams,initBeta.tolist(),nSteps,interval,idealAcceptanceRate,burnFraction)
+            
+            ## Spawn a new process to execute the MCMC run separately
+            mcmcCall = 'import oscaar; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True); mcmcinstance.plot()' % \
+                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
             subprocess.call(['python','-c',mcmcCall])
 
 
