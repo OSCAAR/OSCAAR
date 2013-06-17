@@ -1560,7 +1560,14 @@ class LeastSquaresFitFrame(wx.Frame):
         
         self.tempLimbDark = self.box.userParams['limbdark'].GetValue()
 
-        if self.checkParams() == True:
+        list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
+                (self.box.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
+                (self.box.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
+                (self.box.userParams['gamma1'].GetValue(),"gamma1"),(self.box.userParams['gamma2'].GetValue(),"gamma2"),
+                (self.box.userParams['pericenter'].GetValue(),"pericenter"), 
+                (self.tempLimbDark,"limbdark")]
+
+        if checkParams(self,list) == True:
             
             if self.box.userParams['limbdark'].GetValue() == 'False':
                 self.tempLimbDark = False
@@ -1576,68 +1583,6 @@ class LeastSquaresFitFrame(wx.Frame):
 #                 self.data.lightCurve, self.data.lightCurveError,fit,success,
 #                 float(self.box.GetPeriod()),float(self.box.GetEcc()),
 #                 float(self.box.GetPericenter()),float(self.box.GetGamma1()),float(self.box.GetGamma2()), plotting=False)
-
-    def checkParams(self):
-
-        list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
-                (self.box.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
-                (self.box.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
-                (self.box.userParams['gamma1'].GetValue(),"gamma1"),(self.box.userParams['gamma2'].GetValue(),"gamma2"),
-                (self.box.userParams['pericenter'].GetValue(),"pericenter"), 
-                (self.tempLimbDark,"limbdark")]
-        
-        for (number,string) in list:
-            if number == '':
-                InvalidParameter(number, None,-1, str=string)
-                return False
-            else:
-                try:
-                    if string !="limbdark":
-                        self.tmp = float(number)
-                except ValueError:
-                    InvalidParameter(number, None,-1, str=string)
-                    return False
-                if string == "Rp/Rs":
-                    if float(number)>1 or float(number)<0:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "a/Rs":
-                    if float(number) <= 1:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "per":
-                    if float(number) < 0:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "inc":
-                    if float(number) < 0 or float(number) > 90:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "t0":
-                    if float(number) < 0:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "ecc":
-                    if float(number) < 0 or float(number) > 1:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "pericenter":
-                    if float(number) < 0:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "limbdark":
-                    if (number != "False"):
-                        if (number != "linear"):
-                            if(number != "quadratic"):
-                                InvalidParameter(number,None,-1,str=string)
-                                return False
-
-        self.totalGamma = float(self.box.userParams['gamma1'].GetValue()) + float(self.box.userParams['gamma2'].GetValue())
-        self.totalString = str(self.totalGamma)
-        if self.totalGamma > 1:
-            InvalidParameter(self.totalString, None,-1, str="gamma")
-            return False
-        return True
 
     def update(self,event):
         if self.box1.txtbox.GetValue() == '':
@@ -1658,7 +1603,7 @@ class LeastSquaresFitFrame(wx.Frame):
 
     def create_menu(self):
     
-        # These commands create a drop down menu with the save command, and exit command.
+        # These commands create a drop down menu with the exit command.
     
         self.menubar = wx.MenuBar()
         
@@ -1699,45 +1644,6 @@ class ParameterBox(wx.Panel):
                     sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
                 self.SetSizer(sizer)
                 sizer.Fit(self)
-#             else:
-#                 wx.Panel.__init__(self,parent,id)
-#                 box1 = wx.StaticBox(self, -1, name)
-#                 sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
-#                 self.userParams = {}
-#                 sizer0 = wx.FlexGridSizer(rows=rows, cols=cols)
-#                 sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-#                 
-#                 for (widget,label,ToolTip) in list:
-#                     label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
-#                     font1 = wx.Font(8, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.FONTWEIGHT_BOLD)
-#                     label.SetFont(font1)
-#                     sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-#                     self.userParams[widget] = wx.TextCtrl(self, -1)
-#                     self.userParams[widget].SetToolTipString(ToolTip)
-#                     sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-#                 self.SetSizer(sizer)
-#                 sizer.Fit(self)
-                
-#         def GetRpOverRs(self):
-#             return self.userParams['Rp/Rs'].GetValue()
-#         def GetAOverRs(self):
-#             return self.userParams['a/Rs'].GetValue()
-#         def GetPeriod(self):
-#             return self.userParams['per'].GetValue()
-#         def GetInc(self):
-#             return self.userParams['inc'].GetValue()
-#         def GetEcc(self):
-#             return self.userParams['ecc'].GetValue()
-#         def GetT0(self):
-#             return self.userParams['t0'].GetValue()
-#         def GetGamma1(self):
-#             return self.userParams['gamma1'].GetValue()
-#         def GetGamma2(self):
-#             return self.userParams['gamma2'].GetValue()
-#         def GetPericenter(self):
-#             return self.userParams['pericenter'].GetValue()
-#         def GetLimbDark(self):
-#             return self.userParams['limbdark'].GetValue()
 
 class MCMCFrame(wx.Frame):
     
@@ -1804,7 +1710,26 @@ class MCMCFrame(wx.Frame):
         
         self.box4 = ParameterBox(self.panel,-1,list,"Fit Parameters")
         self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox4.Add(self.box4, border=5, flag=wx.ALL)  
+        self.hbox4.Add(self.box4, border=5, flag=wx.ALL)
+        
+        self.box.userParams['Rp/Rs'].SetValue('0.11')
+        self.box.userParams['a/Rs'].SetValue('14.1')
+        self.box.userParams['inc'].SetValue('90.0')
+        self.box.userParams['t0'].SetValue('2456427.9425593214')
+        self.box2.userParams['b-Rp/Rs'].SetValue('0.005')
+        self.box2.userParams['b-a/Rs'].SetValue('0.005')
+        self.box2.userParams['b-inc'].SetValue('0.005')
+        self.box2.userParams['b-t0'].SetValue('0.005')
+        self.box3.userParams['per'].SetValue('1.580400')
+        self.box3.userParams['gamma1'].SetValue('0.23')
+        self.box3.userParams['gamma2'].SetValue('0.3')
+        self.box3.userParams['ecc'].SetValue('0.0')
+        self.box3.userParams['pericenter'].SetValue('0.0')
+        self.box4.userParams['saveiteration'].SetValue('100')
+        self.box4.userParams['burnfrac'].SetValue('0.20')
+        self.box4.userParams['acceptance'].SetValue('0.30')
+        self.box4.userParams['number'].SetValue('1000')
+
         
         self.plotButton = wx.Button(self.panel,label = 'Plot')
         self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
@@ -1836,7 +1761,7 @@ class MCMCFrame(wx.Frame):
     
     def create_menu(self):
     
-        # These commands create a drop down menu with the save command, and exit command.
+        # These commands create a drop down menu with the exit command.
     
         self.menubar = wx.MenuBar()
         
@@ -1853,134 +1778,125 @@ class MCMCFrame(wx.Frame):
     def onDestroy(self, event):
         global loadMCMC
         loadMCMC = False
+
     def plot(self,event):
-        path = self.pT
-        initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
-                      float(self.box.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
-                      float(self.box.userParams['gamma1'].GetValue()),float(self.box.userParams['gamma2'].GetValue()),
-                      float(self.box.userParams['ecc'].GetValue()),float(self.box.userParams['pericenter'].GetValue()),
-                      float(self.box.userParams['t0'].GetValue())]
-        
-        nSteps = float(self.box.userParams['number'].GetValue())
-        initBeta = [float(self.box.userParams['b-Rp/Rs'].GetValue()), float(self.box.userParams['b-a/Rs'].GetValue()),
-                    float(self.box.userParams['b-inc'].GetValue()), float(self.box.userParams['b-t0'].GetValue())]
-        idealAcceptanceRate = float(self.box.userParams['acceptance'].GetValue())
-        interval = float(self.box.userParams['saveiteration'].GetValue())
-        burnFraction = float(self.box.userParams['burnfrac'].GetValue())
-        mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
-        mcmcinstance.run(updatepkl=True)
-        mcmcinstance.plot()
-        
-class AddColumn(wx.Panel):
-
-    def __init__(self, parent,id):
-
-            wx.Panel.__init__(self,parent,id)
+       list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
+            (self.box3.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
+            (self.box3.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
+            (self.box3.userParams['gamma1'].GetValue(),"gamma1"),(self.box3.userParams['gamma2'].GetValue(),"gamma2"),
+            (self.box3.userParams['pericenter'].GetValue(),"pericenter"),(self.box4.userParams['saveiteration'].GetValue(),
+            "saveiteration"), (self.box4.userParams['acceptance'].GetValue(),"acceptance"),
+            (self.box4.userParams['burnfrac'].GetValue(),"burnfrac"), (self.box4.userParams['number'].GetValue(),"number")]
+       
+       if checkParams(self,list) == True:
+            path = self.pT
+            initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
+                          float(self.box3.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
+                          float(self.box3.userParams['gamma1'].GetValue()),float(self.box3.userParams['gamma2'].GetValue()),
+                          float(self.box3.userParams['ecc'].GetValue()),float(self.box3.userParams['pericenter'].GetValue()),
+                          float(self.box.userParams['t0'].GetValue())]
             
-            box1 = wx.StaticBox(self, -1, "Input Parameters")
-            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
-            self.userParams = {}
-            sizer0 = wx.FlexGridSizer(rows=5, cols=4)
-            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+            nSteps = float(self.box4.userParams['number'].GetValue())
+            initBeta = np.zeros([4]) + 0.005 
+    #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
+    #                     int(self.box2.userParams['b-inc'].GetValue()), int(self.box2.userParams['b-t0'].GetValue())]
             
-            for (widget,label,ToolTip) in [
-                ('Rp/Rs',"Ratio of Radii (Rp/Rs):",
-                 'Enter a ratio of the radii here.'),
-                ('b-Rp/Rs',"Beta Rp/Rs:",
-                 'Enter a beta for Rp/Rs here.'),
-                ('a/Rs',"a/Rs:",
-                 'Enter a value for a/Rs here.'),
-                ('b-a/Rs',"Beta a/Rs:",
-                 'Enter a beta for a/Rs here.'),
-                ('per',"Period:",
-                 'Enter a value for the period here.'),
-                ('b-per',"Beta Period:",
-                 'Enter a beta for the period here.'),
-                ('inc',"Inclination:",
-                 'Enter a value for the inclination here.'),
-                ('b-inc',"Beta Inclination:",
-                 'Enter a beta for inclination here.'),   
-                ('gamma1',"gamma1:", 
-                 'Enter a value for gamma1 here.'),
-                ('b-gamma1',"Beta gamma1:",
-                 'Enter a beta for gamma1 here.'),
-                ('gamma2',"gamma2:", 
-                 'Enter a value for gamma2 here.'),
-                ('b-gamma2',"Beta gamma2:",
-                 'Enter a beta for gamma2 here.'),   
-                ('ecc',"Eccentricity:", 
-                 'Enter a value for the eccentricity here.'),
-                ('b-ecc',"Beta Eccentricity:",
-                 'Enter a beta for the eccentricity here.'),
-                ('pericenter',"Pericenter:", 
-                 'Enter a value for the pericenter here.'),
-                ('b-pericenter',"Beta Pericenter:",
-                 'Enter a beta for the pericenter here.'),                                                                                                                           
-                ('t0',"t0:", 
-                 'Enter a value for t0 here.'),
-                ('b-t0',"Beta t0:",
-                 'Enter a beta for t0 here.'),
-                ('nth',"Nth state save:",
-                 'Enter a number for the nth state to be saved.'),
-                ('burn%',"Burn %:",
-                 'Enter a value for the burn percentage here.'),
-                ('acceptance',"Acceptance:",
-                 'Enter a value for the acceptance rate here.'),
-                ('number', "Number of Steps:",
-                 'Enter a value for the step size here.')
-                ]:
-                label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
-                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                self.userParams[widget] = wx.TextCtrl(self, -1)
-                self.userParams[widget].SetToolTipString(ToolTip)
-                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-            self.SetSizer(sizer)
-            sizer.Fit(self)
-        
-    def GetRpOverRs(self):
-        return self.userParams['Rp/Rs'].GetValue()
-    def GetAOverRs(self):
-        return self.userParams['a/Rs'].GetValue()
-    def GetPer(self):
-        return self.userParams['per'].GetValue()
-    def GetInc(self):
-        return self.userParams['inc'].GetValue()
-    def GetGamma1(self):
-        return self.userParams['gamma1'].GetValue()
-    def GetGamma2(self):
-        return self.userParams['gamma2'].GetValue()
-    def GetEcc(self):
-        return self.userParams['ecc'].GetValue()
-    def GetPericenter(self):
-        return self.userParams['pericenter'].GetValue()
-    def GetT0(self):
-        return self.userParams['t0'].GetValue()
-    def GetBetaRpOverRs(self):
-        return self.userParams['b-Rp/Rs'].GetValue()
-    def GetBetaAOverRs(self):
-        return self.userParams['b-a/Rs'].GetValue()
-    def GetBetaPer(self):
-        return self.userParams['b-per'].GetValue()
-    def GetBetaInc(self):
-        return self.userParams['b-inc'].GetValue()
-    def GetBetaGamma1(self):
-        return self.userParams['b-gamma1'].GetValue()
-    def GetBetaGamma2(self):
-        return self.userParams['b-gamma2'].GetValue()
-    def GetBetaEcc(self):
-        return self.userParams['b-ecc'].GetValue()
-    def GetBetaPericenter(self):
-        return self.userParams['b-pericenter'].GetValue()
-    def GetBetat0(self):
-        return self.userParams['b-t0'].GetValue()
-    def GetNthState(self):
-        return self.userParams['nth'].GetValue()
-    def GetBurnPercent(self):
-        return self.userParams['burn%'].GetValue()
-    def GetAcceptanceRate(self):
-        return self.userParams['acceptance'].GetValue()
-    def GetStepSize(self):
-        return self.userParams['number'].GetValue()
+            idealAcceptanceRate = float(self.box4.userParams['acceptance'].GetValue())
+            interval = float(self.box4.userParams['saveiteration'].GetValue())
+            burnFraction = float(self.box4.userParams['burnfrac'].GetValue())
+            mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
+            mcmcinstance.run(updatepkl=True)
+            mcmcinstance.plot()
+    
+def checkParams(self,list):
+    
+    self.tempGamma1 = -1
+    self.tempGamma2 = -1
+    self.tempSaveIteration = -1
+    self.tempNumber = -1
+    
+    for (number,string) in list:
+        if number == '':
+            InvalidParameter(number, None,-1, str=string)
+            return False
+        else:
+            try:
+                if string !="limbdark":
+                    self.tmp = float(number)
+            except ValueError:
+                InvalidParameter(number, None,-1, str=string)
+                return False
+            if string == "Rp/Rs":
+                if float(number)>1 or float(number)<0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "a/Rs":
+                if float(number) <= 1:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "per":
+                if float(number) < 0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "inc":
+                if float(number) < 0 or float(number) > 90:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "t0":
+                if float(number) < 0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "ecc":
+                if float(number) < 0 or float(number) > 1:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "pericenter":
+                if float(number) < 0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "limbdark":
+                if (number != "False"):
+                    if (number != "linear"):
+                        if(number != "quadratic"):
+                            InvalidParameter(number,None,-1,str=string)
+                            return False
+            if string == 'gamma1':
+                self.tempGamma1 = number
+            if string == 'gamma2':
+                self.tempGamma2 = number
+            if string == "saveiteration":
+                self.tempSaveIteration = float(number)
+                if float(number) < 5:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+            if string == "number":
+                self.tempNumber = float(number)
+                if float(number) < 10:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+            if string == "acceptance":
+                if float(number) <= 0:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+            if string == "burnfrac":
+                if float(number) > 1 or float(number) <= 0:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+    
+    if(self.tempNumber != -1) and (self.tempSaveIteration != -1):
+        if (self.tempNumber % self.tempSaveIteration) != 0:
+            tempString = str(self.tempSaveIteration)+" < "+str(self.tempNumber)
+            InvalidParameter(tempString,None,-1,str="mod")
+            return False
+    
+    self.totalGamma = float(self.tempGamma1) + float(self.tempGamma2)
+    self.totalString = str(self.totalGamma)
+    if self.totalGamma > 1:
+        InvalidParameter(self.totalString, None,-1, str="gamma")
+        return False
+
+    return True
+
 
 class InvalidParameter(wx.Frame):
 
@@ -2008,7 +1924,11 @@ class InvalidParameter(wx.Frame):
             self.string = "The value for the inclincation must be between 0 and 90."
         elif str == "t0":
             self.string = "The value for the mid-transit time, t0, must be greater than 0."
-        elif str == "gamma" or str == "gamma1" or str == "gamma2":
+        elif str == "gamma1":
+            self.string = "The value entered for gamma1 must be a number."
+        elif str == "gamma2":
+            self.string = "The value entered for gamma2 must be a number."
+        elif str == "gamma":
             self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
         elif str == "per":
             self.string = "The value for the period must be greater than 0."
@@ -2020,6 +1940,16 @@ class InvalidParameter(wx.Frame):
             self.string = "The name of the planet does not exist in the database."
         elif str == "limbdark":
             self.string = "The parameter for Limb-Darkening must be either 'False', 'linear', or 'quadratic'."
+        elif str == "saveiteration":
+            self.string = "The iterative step to be saved must be greater than or equal to 5."
+        elif str == "acceptance":
+            self.string = "The acceptance rate must be greater than 0."
+        elif str == "burnfrac":
+            self.string = "The burn number must be greater than 0 and less than or equal to 1."
+        elif str == "number":
+            self.string = "The number of total steps must be greater than or equal to 10."
+        elif str == "mod":
+            self.string = "The iterative step to be saved cannot be greater than the total number of steps."
 
         if str == "path":
             self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
