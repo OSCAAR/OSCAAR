@@ -37,10 +37,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         global ephGUIOpen
         global aboutOpen
         global loadOldPklOpen
+        global loadFittingFrame
         masterFlatOpen = False
         ephGUIOpen = False
         aboutOpen = False
         loadOldPklOpen = False
+        loadFittingFrame = False
 	
         self.menubar = wx.MenuBar() ##This is the main menubar where all menus are attached
         self.fileMenu = wx.Menu()  ##File menu for quit
@@ -62,6 +64,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
         self.loadPklItem = self.oscaarMenu.Append(-1, "&Load old output\tCtrl-L", "Load old output")
         self.Bind(wx.EVT_MENU, self.loadOldPklPressed, self.loadPklItem)
+        self.fittingItem = self.oscaarMenu.Append(-1,"&Fitting Methods\tCtrl-F", "Fitting Methods")
+        self.Bind(wx.EVT_MENU, self.loadFittingFrame, self.fittingItem)
 
         self.SetMenuBar(self.menubar)
         self.sizer = wx.GridBagSizer(7, 7) ##The sizer organizes gui items in a grid, all items are added to the sizer        
@@ -296,6 +300,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if loadOldPklOpen == False:
             LoadOldPklFrame()
             loadOldPklOpen = True
+    
+    def loadFittingFrame(self,event):
+        global loadFittingFrame
+        if loadFittingFrame == False:
+            FittingFrame()
+            loadFittingFrame = True
 		        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
     def runOscaar(self, event):
@@ -988,9 +998,9 @@ class AddLCB(wx.Panel):
             sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
             if name == 'browse':
                 if sys.platform == 'win32':
-                    self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-B)")
+                    self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-O)")
                 else:
-                    self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+                    self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-O)")
                 
                 self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
                                                                              self.txtbox,True,wx.FD_OPEN))
@@ -1016,18 +1026,136 @@ class AddLCB(wx.Panel):
                         textControl.WriteText(filenames[i])
             dlg.Destroy()
 
+class FittingFrame(wx.Frame):
+
+    def __init__(self):
+
+        global loadLSFit
+        global loadMCMC
+        loadLSFit = False
+        loadMCMC = False
+          
+        self.title = "Fitting Methods"
+        
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.box = AddLCB(self.panel,-1,name='browse')
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        
+        self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
+        self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
+        
+        self.Bind(wx.EVT_BUTTON, self.plotLSFit, self.plotLSFitButton)
+        self.Bind(wx.EVT_BUTTON, self.plotMCMC, self.plotMCMCButton)
+        
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=4)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        
+        self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        
+        self.pklPathTxt = self.box.txtbox
+        self.create_menu()
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()
+
+    def create_menu(self):
+    
+        # These commands create a drop down menu with the browse command, and exit command.
+    
+        self.menubar = wx.MenuBar()
+    
+        menu_file = wx.Menu()
+        m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+    
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
+    #####Functions for event handling#####
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+        if fileDialog:
+            dlg = wx.FileDialog(self, message = message, style = saveDialog)
+        else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            filenames = dlg.GetPaths()
+            textControl.Clear()
+            for i in range(0,len(filenames)):
+                if i != len(filenames)-1:
+                    textControl.WriteText(filenames[i] + ',')
+                else:
+                    textControl.WriteText(filenames[i])
+        dlg.Destroy()
+
+    def plotLSFit(self,event):
+        if self.validityCheck():
+            global pathText
+            global loadLSFit
+            pathText = self.pklPathTxt.GetValue()
+            if loadLSFit == False:
+                LeastSquaresFitFrame()
+                loadLSFit = True
+    
+    def plotMCMC(self,event):
+        if self.validityCheck():
+            global pathText
+            global loadMCMC
+            pathText = self.pklPathTxt.GetValue()
+            if loadMCMC == False:
+                MCMCFrame()
+                loadMCMC = True
+     
+    def validityCheck(self):
+        invalidString = ""
+        pathTxt = self.pklPathTxt.GetValue()
+        if pathTxt:
+            if not self.correctOutputFile(pathTxt):
+                invalidString += pathTxt;
+            if invalidString == "":
+                return True
+            else:
+                 InvalidParameter(invalidString, None, -1, str='path')
+            return False
+        else:
+            InvalidParameter(invalidString, None, -1, str='path')
+
+    def correctOutputFile(self, pathname):
+        if pathname == '':
+            return False
+        if pathname.endswith('.pkl'):
+            return True
+        return False
+    
+    def onDestroy(self, event):
+        global loadFittingFrame
+        loadFittingFrame = False
+    
+    def on_exit(self, event):
+        self.Destroy()
+
 class LoadOldPklFrame(wx.Frame):
 
     def __init__(self):
         
         global loadGraphFrame
-        global loadLSFIT
-        global loadMCMC
         loadGraphFrame = False
-        loadLSFIT = False
-        loadMCMC = False
-        
-        
+
         self.title = "Load An Old .pkl File"
         wx.Frame.__init__(self, None,-1, self.title)
         
@@ -1059,19 +1187,14 @@ class LoadOldPklFrame(wx.Frame):
             self.plotComparisonStarWeightingsButton = wx.Button(self.panel,-1,label = 'Plot Comparison\nStar Weightings', size = (150,45))
             self.plotInteractiveLightCurveButton = wx.Button(self.panel,-1,label = 'Plot Interactive Light Curve', size = (195,30))
 
-        self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
-        self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
-        
         self.Bind(wx.EVT_BUTTON, self.plotLightCurve, self.plotLightCurveButton)
         self.Bind(wx.EVT_BUTTON, self.plotRawFlux, self.plotRawFluxButton)
         self.Bind(wx.EVT_BUTTON, self.plotScaledFluxes,self.plotScaledFluxesButton)
         self.Bind(wx.EVT_BUTTON, self.plotCentroidPosition, self.plotCentroidPositionsButton)
         self.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings, self.plotComparisonStarWeightingsButton)
-        self.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve, self.plotInteractiveLightCurveButton)    
-        self.Bind(wx.EVT_BUTTON, self.plotLSFit, self.plotLSFitButton)
-        self.Bind(wx.EVT_BUTTON, self.plotMCMC, self.plotMCMCButton)
+        self.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve, self.plotInteractiveLightCurveButton)
         
-        self.sizer0 = wx.FlexGridSizer(rows=2, cols=4)
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=3)
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
 
@@ -1081,8 +1204,6 @@ class LoadOldPklFrame(wx.Frame):
         self.sizer0.Add(self.plotCentroidPositionsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotComparisonStarWeightingsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotInteractiveLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
          
         self.pklPathTxt = self.box.txtbox
         self.create_menu()
@@ -1105,7 +1226,7 @@ class LoadOldPklFrame(wx.Frame):
         self.menubar = wx.MenuBar()
     
         menu_file = wx.Menu()
-        m_browse = menu_file.Append(-1,"Browse\tCtrl-B","Browse")
+        m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
         self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
@@ -1175,24 +1296,6 @@ class LoadOldPklFrame(wx.Frame):
             if loadGraphFrame == False:   
                 GraphFrame()
                 loadGraphFrame = True
-
-    def plotLSFit(self,event):
-        if self.validityCheck():
-            global pathText
-            global loadLSFIT
-            pathText = self.pklPathTxt.GetValue()
-            if loadLSFIT == False:
-                LeastSquaresFitFrame()
-                loadLSFIT = True
-    
-    def plotMCMC(self,event):
-        if self.validityCheck():
-            global pathText
-            global loadMCMC
-            pathText = self.pklPathTxt.GetValue()
-            if loadMCMC == False:
-                MCMCFrame()
-                loadMCMC = True
             
     def validityCheck(self):
         invalidString = ""
@@ -1618,8 +1721,8 @@ class LeastSquaresFitFrame(wx.Frame):
         self.Destroy()
     
     def onDestroy(self, event):
-        global loadLSFIT
-        loadLSFIT = False
+        global loadLSFit
+        loadLSFit = False
 
 class ParameterBox(wx.Panel):
 
@@ -1657,6 +1760,11 @@ class MCMCFrame(wx.Frame):
         
         self.pT = pathText
         self.data = oscaar.load(self.pT)
+        
+        self.LCB = AddLCB(self.panel,-1,name='planet')
+        self.Bind(wx.EVT_BUTTON,self.update,self.LCB.updateButton)
+        self.topBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.topBox.Add(self.LCB, border=5, flag=wx.ALL)
         
         list = [('Rp/Rs',"Ratio of Radii (Rp/Rs):",
                  'Enter a ratio of the radii here.'),
@@ -1745,6 +1853,7 @@ class MCMCFrame(wx.Frame):
         self.vbox2.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.topBox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.vbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.hbox3, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.hbox4, 0, flag=wx.ALIGN_CENTER | wx.TOP)
@@ -1813,6 +1922,22 @@ class MCMCFrame(wx.Frame):
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
             subprocess.call(['python','-c',mcmcCall])
 
+    def update(self,event):
+        if self.LCB.txtbox.GetValue() == '':
+            InvalidParameter(self.LCB.txtbox.GetValue(), None,-1, str="planet")
+        else:
+            self.planet = self.LCB.txtbox.GetValue()
+            [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
+            
+            if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
+                InvalidParameter(self.LCB.txtbox.GetValue(), None,-1, str="planet")
+            else:
+                self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
+                self.box.userParams['a/Rs'].SetValue(str(AOverRs))
+                self.box3.userParams['per'].SetValue(str(per))
+                self.box.userParams['inc'].SetValue(str(inc))
+                self.box3.userParams['ecc'].SetValue(str(ecc))
+                InvalidParameter("",None,-1, str="params")
 
 def checkParams(self,list):
     
