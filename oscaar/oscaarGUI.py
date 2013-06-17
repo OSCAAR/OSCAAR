@@ -1525,6 +1525,7 @@ class LeastSquaresFitFrame(wx.Frame):
         self.box.userParams['t0'].SetValue(str(oscaar.transiterFit.calcMidTranTime(self.data.times,self.data.lightCurve)))
         
         self.vbox.AddSpacer(10)
+        self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
         self.create_menu()
@@ -1745,9 +1746,17 @@ class MCMCFrame(wx.Frame):
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
 
+        self.plotButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
+
+        self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotButton,0,wx.ALIGN_CENTER|wx.ALL,5)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
         self.vbox.AddSpacer(10)
         self.vbox.AddSpacer(10)
@@ -1778,6 +1787,8 @@ class MCMCFrame(wx.Frame):
     def onDestroy(self, event):
         global loadMCMC
         loadMCMC = False
+    def plot(self,event):
+        print
         
 class AddColumn(wx.Panel):
 
@@ -1804,10 +1815,10 @@ class AddColumn(wx.Panel):
                  'Enter a value for the inclination here.'),
                 ('b-inc',"Beta inclination:",
                  'Enter a beta for inclination here.'),                                           
-                ('ecc',"Eccentricity: ", 
-                 'Enter a value for the eccentricity here.'),
-                ('b-ecc',"Beta eccentricity:",
-                 'Enter a beta for eccentricity here.'),
+                ('t0',"t0:", 
+                 'Enter a value for t0 here.'),
+                ('b-t0',"Beta t0:",
+                 'Enter a beta for t0 here.'),
                 ('nth',"Nth state save:",
                  'Enter a number for the nth state to be saved.'),
                 ('burn%',"Burn %:",
@@ -1822,6 +1833,26 @@ class AddColumn(wx.Panel):
             self.SetSizer(sizer)
             sizer.Fit(self)
         
+    def GetRpOverRs(self):
+        return self.userParams['Rp/Rs'].GetValue()
+    def GetAOverRs(self):
+        return self.userParams['a/Rs'].GetValue()
+    def GetInc(self):
+        return self.userParams['inc'].GetValue()
+    def GetT0(self):
+        return self.userParams['t0'].GetValue()
+    def GetBetaRpOverRs(self):
+        return self.userParams['b-Rp/Rs'].GetValue()
+    def GetBetaAOverRs(self):
+        return self.userParams['b-a/Rs'].GetValue()
+    def GetBetaInc(self):
+        return self.userParams['b-inc'].GetValue()
+    def GetBetat0(self):
+        return self.userParams['b-t0'].GetValue()
+    def GetNthState(self):
+        return self.userParams['nth'].GetValue()
+    def GetBurnPercent(self):
+        return self.userParams['burn%'].GetValue()
 
 class InvalidParameter(wx.Frame):
 
