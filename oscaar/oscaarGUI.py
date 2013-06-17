@@ -1505,7 +1505,30 @@ class LeastSquaresFitFrame(wx.Frame):
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.box1, border=5, flag=wx.ALL)
         
-        self.box = ScanBox(self.panel,-1)
+        self.list =  [
+                    ('Rp/Rs',"Ratio of Radii (Rp/Rs):",
+                     'Enter a ratio of the radii here.'),
+                    ('a/Rs',"a/Rs:",
+                     'Enter a value for a/Rs here.'),
+                    ('per',"Period:",
+                     'Enter a value for the period here.'),
+                    ('inc',"Inclination:",
+                     'Enter a value for the inclination here.'),
+                    ('ecc',"Eccentricity: ", 
+                     'Enter a value for the eccentricity here.'),
+                    ('t0',"t0:",
+                     'Enter a value for t0 here.'),
+                    ('gamma1',"Gamma 1:",
+                     'Enter a value for gamma 1 here.'),
+                    ('gamma2'," Gamma 2:",
+                     'Enter a value for gamma 2 here.'),
+                    ('pericenter',"Pericenter:",
+                     'Enter an arguement for the pericenter here.'),
+                    ('limbdark',"Limb-Darkening Parameter:",
+                     'Enter an arguement for limb-darkening here.')
+                    ]
+
+        self.box = ParameterBox(self.panel,-1,self.list,name="Input Parameters")
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
         
@@ -1535,30 +1558,34 @@ class LeastSquaresFitFrame(wx.Frame):
 
     def plot(self,event):
         
-        
-        if self.box.GetLimbDark() == 'False':
-            tempLimbDark = False
-        else:
-            tempLimbDark = self.box.GetLimbDark()
+        self.tempLimbDark = self.box.userParams['limbdark'].GetValue()
 
         if self.checkParams() == True:
+            
+            if self.box.userParams['limbdark'].GetValue() == 'False':
+                self.tempLimbDark = False
+            
             fit, success = oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
-                                          float(self.box.GetRpOverRs()),float(self.box.GetAOverRs()),float(self.box.GetInc()),
-                                          float(self.box.GetT0()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
-                                          float(self.box.GetPeriod()),float(self.box.GetEcc()), float(self.box.GetPericenter()),
-                                          fitLimbDark=tempLimbDark, plotting=True)
+                              float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
+                              float(self.box.userParams['inc'].GetValue()),float(self.box.userParams['t0'].GetValue()),
+                              float(self.box.userParams['gamma1'].GetValue()),float(self.box.userParams['gamma2'].GetValue()),
+                              float(self.box.userParams['per'].GetValue()),float(self.box.userParams['ecc'].GetValue()),
+                              float(self.box.userParams['pericenter'].GetValue()),fitLimbDark=self.tempLimbDark, plotting=True)
             n_iter = 300
-            Rp,aRs,inc,t0,gam1,gam2=oscaar.transiterFit.run_MCfit(n_iter,self.data.getTimes(),
-                self.data.lightCurve, self.data.lightCurveError,fit,success,
-                float(self.box.GetPeriod()),float(self.box.GetEcc()),
-                float(self.box.GetPericenter()),float(self.box.GetGamma1()),float(self.box.GetGamma2()), plotting=False)
+#             Rp,aRs,inc,t0,gam1,gam2=oscaar.transiterFit.run_MCfit(n_iter,self.data.getTimes(),
+#                 self.data.lightCurve, self.data.lightCurveError,fit,success,
+#                 float(self.box.GetPeriod()),float(self.box.GetEcc()),
+#                 float(self.box.GetPericenter()),float(self.box.GetGamma1()),float(self.box.GetGamma2()), plotting=False)
 
     def checkParams(self):
 
-        list = [(self.box.GetRpOverRs(),"Rp/Rs"),(self.box.GetAOverRs(),"a/Rs"),(self.box.GetInc(),"inc"),
-                (self.box.GetT0(),"t0"),(self.box.GetGamma1(),"gamma1"),(self.box.GetGamma2(),"gamma2"),
-                (self.box.GetPeriod(),"per"),(self.box.GetEcc(),"ecc"),(self.box.GetPericenter(),"pericenter"),
-                (self.box.GetLimbDark(),"limbdark")]
+        list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
+                (self.box.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
+                (self.box.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
+                (self.box.userParams['gamma1'].GetValue(),"gamma1"),(self.box.userParams['gamma2'].GetValue(),"gamma2"),
+                (self.box.userParams['pericenter'].GetValue(),"pericenter"), 
+                (self.tempLimbDark,"limbdark")]
+        
         for (number,string) in list:
             if number == '':
                 InvalidParameter(number, None,-1, str=string)
@@ -1578,15 +1605,15 @@ class LeastSquaresFitFrame(wx.Frame):
                     if float(number) <= 1:
                         InvalidParameter(number, None,-1, str=string)
                         return False
+                if string == "per":
+                    if float(number) < 0:
+                        InvalidParameter(number, None,-1, str=string)
+                        return False
                 if string == "inc":
                     if float(number) < 0 or float(number) > 90:
                         InvalidParameter(number, None,-1, str=string)
                         return False
                 if string == "t0":
-                    if float(number) < 0:
-                        InvalidParameter(number, None,-1, str=string)
-                        return False
-                if string == "per":
                     if float(number) < 0:
                         InvalidParameter(number, None,-1, str=string)
                         return False
@@ -1605,7 +1632,7 @@ class LeastSquaresFitFrame(wx.Frame):
                                 InvalidParameter(number,None,-1,str=string)
                                 return False
 
-        self.totalGamma = float(self.box.GetGamma1()) + float(self.box.GetGamma2())
+        self.totalGamma = float(self.box.userParams['gamma1'].GetValue()) + float(self.box.userParams['gamma2'].GetValue())
         self.totalString = str(self.totalGamma)
         if self.totalGamma > 1:
             InvalidParameter(self.totalString, None,-1, str="gamma")
@@ -1628,6 +1655,7 @@ class LeastSquaresFitFrame(wx.Frame):
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box.userParams['ecc'].SetValue(str(ecc))
                 InvalidParameter("",None,-1, str="params")
+
     def create_menu(self):
     
         # These commands create a drop down menu with the save command, and exit command.
@@ -1648,86 +1676,68 @@ class LeastSquaresFitFrame(wx.Frame):
         global loadLSFIT
         loadLSFIT = False
 
-class ScanBox(wx.Panel):
-        'create box for scan parameters'
-        # Create a box with all the parameters that the users can manipulate.
-        def __init__(self, parent,id):
-            wx.Panel.__init__(self,parent,id)
-            
-            box1 = wx.StaticBox(self, -1, "Input Parameters")
-            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
-            self.userParams = {}
-            sizer0 = wx.FlexGridSizer(rows=1, cols=10)
-            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-            
-            for (widget,label,ToolTip) in [
-                ('Rp/Rs',"Ratio of Radii (Rp/Rs):",
-                 'Enter a ratio of the radii here.'),
-                ('a/Rs',"a/Rs:",
-                 'Enter a value for a/Rs here.'),
-                ('per',"Period:",
-                 'Enter a value for the period here.'),
-                ('inc',"Inclination:",
-                 'Enter a value for the inclination here.'),
-                ('ecc',"Eccentricity: ", 
-                 'Enter a value for the eccentricity here.')
-                ]:
-                label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
-                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                self.userParams[widget] = wx.TextCtrl(self, -1)
-                self.userParams[widget].SetToolTipString(ToolTip)
-                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
- 
-            sizer0 = wx.BoxSizer(wx.HORIZONTAL)
-            sizer.Add(sizer0, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-            label = wx.StaticText(self, -1, "", style=wx.ALIGN_CENTER)
-            sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-            for (widget,label,ToolTip) in [
-#                 ('planet',"Planet Name:",
-#                  'Enter a planet name from the exoplanet.org database here.'),
-                ('t0',"t0:",
-                 'Enter a value for t0 here.'),
-                ('gamma1',"Gamma 1:",
-                 'Enter a value for gamma 1 here.'),
-                ('gamma2'," Gamma 2:",
-                 'Enter a value for gamma 2 here.'),
-                ('pericenter',"Pericenter:",
-                 'Enter an arguement for the pericenter here.'),
-                ('limbdark',"Limb-Darkening Parameter:",
-                 'Enter an arguement for limb-darkening here.')
-                ]:
-                label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
-                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                if widget == 'limbdark':
-                    self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='False')
-                else:
-                    self.userParams[widget] = wx.TextCtrl(self, -1, size = (100,20), value='0.0')
-                self.userParams[widget].SetToolTipString(ToolTip)
-                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-            
-            self.SetSizer(sizer)
-            sizer.Fit(self)
+class ParameterBox(wx.Panel):
 
-        def GetRpOverRs(self):
-            return self.userParams['Rp/Rs'].GetValue()
-        def GetAOverRs(self):
-            return self.userParams['a/Rs'].GetValue()
-        def GetPeriod(self):
-            return self.userParams['per'].GetValue()
-        def GetInc(self):
-            return self.userParams['inc'].GetValue()
-        def GetEcc(self):
-            return self.userParams['ecc'].GetValue()
-        def GetT0(self):
-            return self.userParams['t0'].GetValue()
-        def GetGamma1(self):
-            return self.userParams['gamma1'].GetValue()
-        def GetGamma2(self):
-            return self.userParams['gamma2'].GetValue()
-        def GetPericenter(self):
-            return self.userParams['pericenter'].GetValue()
-        def GetLimbDark(self):
-            return self.userParams['limbdark'].GetValue()
+        def __init__(self, parent, id,list,name="",rows=1,cols=10):
+                wx.Panel.__init__(self,parent,id)
+                box1 = wx.StaticBox(self, -1, name)
+                sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+                self.userParams = {}
+                sizer0 = wx.FlexGridSizer(rows=rows, cols=cols)
+                sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+                
+                for (widget,label,ToolTip) in list:
+                    label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+                    sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                    if widget == 'limbdark':
+                        self.userParams[widget] = wx.TextCtrl(self, -1, value='False')
+                    elif (widget == 'gamma1') or (widget == 'gamma2') or (widget =='pericenter'):
+                        self.userParams[widget] = wx.TextCtrl(self, -1, value='0.0')
+                    else:
+                        self.userParams[widget] = wx.TextCtrl(self, -1)
+                    self.userParams[widget].SetToolTipString(ToolTip)
+                    sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+                self.SetSizer(sizer)
+                sizer.Fit(self)
+#             else:
+#                 wx.Panel.__init__(self,parent,id)
+#                 box1 = wx.StaticBox(self, -1, name)
+#                 sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+#                 self.userParams = {}
+#                 sizer0 = wx.FlexGridSizer(rows=rows, cols=cols)
+#                 sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+#                 
+#                 for (widget,label,ToolTip) in list:
+#                     label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+#                     font1 = wx.Font(8, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.FONTWEIGHT_BOLD)
+#                     label.SetFont(font1)
+#                     sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+#                     self.userParams[widget] = wx.TextCtrl(self, -1)
+#                     self.userParams[widget].SetToolTipString(ToolTip)
+#                     sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+#                 self.SetSizer(sizer)
+#                 sizer.Fit(self)
+                
+#         def GetRpOverRs(self):
+#             return self.userParams['Rp/Rs'].GetValue()
+#         def GetAOverRs(self):
+#             return self.userParams['a/Rs'].GetValue()
+#         def GetPeriod(self):
+#             return self.userParams['per'].GetValue()
+#         def GetInc(self):
+#             return self.userParams['inc'].GetValue()
+#         def GetEcc(self):
+#             return self.userParams['ecc'].GetValue()
+#         def GetT0(self):
+#             return self.userParams['t0'].GetValue()
+#         def GetGamma1(self):
+#             return self.userParams['gamma1'].GetValue()
+#         def GetGamma2(self):
+#             return self.userParams['gamma2'].GetValue()
+#         def GetPericenter(self):
+#             return self.userParams['pericenter'].GetValue()
+#         def GetLimbDark(self):
+#             return self.userParams['limbdark'].GetValue()
 
 class MCMCFrame(wx.Frame):
     
@@ -1742,23 +1752,79 @@ class MCMCFrame(wx.Frame):
         self.pT = pathText
         self.data = oscaar.load(self.pT)
         
-        self.box = AddColumn(self.panel,-1)
+        list = [('Rp/Rs',"Ratio of Radii (Rp/Rs):",
+                 'Enter a ratio of the radii here.'),
+                ('a/Rs',"a/Rs:",
+                 'Enter a value for a/Rs here.'),
+                ('inc',"Inclination:",
+                 'Enter a value for the inclination here.'),
+                ('t0',"t0:", 
+                 'Enter a value for the mid transit time here.')]
+        
+        self.box = ParameterBox(self.panel,-1,list,"Free Parameters",rows=4,cols=2)
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        
+        list = [('b-Rp/Rs',"Beta Rp/Rs:",
+                 'Enter a beta for Rp/Rs here.'),
+                ('b-a/Rs',"Beta a/Rs:",
+                 'Enter a beta for a/Rs here.'),
+                ('b-inc',"Beta Inclination:",
+                 'Enter a beta for inclination here.'),   
+                ('b-t0',"Beta t0:",
+                 'Enter a beta for the mid transit time here.')]
+        
+        self.box2 = ParameterBox(self.panel,-1,list,"Beta's",rows=4,cols=2)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.box2, border=5, flag=wx.ALL)
 
+        list = [('per',"Period:",
+                 'Enter a value for the period here.'),
+                ('gamma1',"gamma1:", 
+                 'Enter a value for gamma1 here.'),
+                ('gamma2',"gamma2:", 
+                 'Enter a value for gamma2 here.'),
+                ('ecc',"Eccentricity:", 
+                 'Enter a value for the eccentricity here.'),
+                ('pericenter',"Pericenter:", 
+                 'Enter a value for the pericenter here.')]
+        
+        self.box3 = ParameterBox(self.panel,-1,list,"Fixed Parameters")
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox3.Add(self.box3, border=5, flag=wx.ALL)        
+        
+        list = [('saveiteration',"Iteration to save:",
+                 'Enter a number for the nth iteration to be saved.'),
+                ('burnfrac',"Burn Fraction:",
+                 'Enter a decimal for the burn fraction here.'),
+                ('acceptance',"Acceptance:",
+                 'Enter a value for the acceptance rate here.'),
+                ('number', "Number of Steps:",
+                 'Enter a value for the total steps here.')]
+        
+        self.box4 = ParameterBox(self.panel,-1,list,"Fit Parameters")
+        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox4.Add(self.box4, border=5, flag=wx.ALL)  
+        
         self.plotButton = wx.Button(self.panel,label = 'Plot')
         self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
 
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
-        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox5.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotButton,0,wx.ALIGN_CENTER|wx.ALL,5)
 
+
+        self.vbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.vbox2.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox2.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
-        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.vbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox3, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox4, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox5, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
-        self.vbox.AddSpacer(10)
         self.vbox.AddSpacer(10)
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
@@ -1789,14 +1855,18 @@ class MCMCFrame(wx.Frame):
         loadMCMC = False
     def plot(self,event):
         path = self.pT
-        initParams = [float(self.box.GetRpOverRs()),float(self.box.GetAOverRs()),float(self.box.GetPer()),
-                      float(self.box.GetInc()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
-                      float(self.box.GetEcc()),float(self.box.GetPericenter()),float(self.box.GetT0())]
-        nSteps = float(self.box.GetStepSize())
-        initBeta = np.zeros([4]) + 0.005
-        idealAcceptanceRate = float(self.box.GetAcceptanceRate())
-        interval = float(self.box.GetNthState())
-        burnFraction = float(self.box.GetBurnPercent())
+        initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
+                      float(self.box.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
+                      float(self.box.userParams['gamma1'].GetValue()),float(self.box.userParams['gamma2'].GetValue()),
+                      float(self.box.userParams['ecc'].GetValue()),float(self.box.userParams['pericenter'].GetValue()),
+                      float(self.box.userParams['t0'].GetValue())]
+        
+        nSteps = float(self.box.userParams['number'].GetValue())
+        initBeta = [float(self.box.userParams['b-Rp/Rs'].GetValue()), float(self.box.userParams['b-a/Rs'].GetValue()),
+                    float(self.box.userParams['b-inc'].GetValue()), float(self.box.userParams['b-t0'].GetValue())]
+        idealAcceptanceRate = float(self.box.userParams['acceptance'].GetValue())
+        interval = float(self.box.userParams['saveiteration'].GetValue())
+        burnFraction = float(self.box.userParams['burnfrac'].GetValue())
         mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
         mcmcinstance.run(updatepkl=True)
         mcmcinstance.plot()
@@ -1945,7 +2015,7 @@ class InvalidParameter(wx.Frame):
         elif str == "ecc":
             self.string = "The value for the eccentricity must be between 0 and 1."
         elif str == "pericenter":
-            self.string = "The value for the pericenter must be greater than 0."
+            self.string = "The value for the pericenter must be greater than or equal to 0."
         elif str == "planet":
             self.string = "The name of the planet does not exist in the database."
         elif str == "limbdark":
