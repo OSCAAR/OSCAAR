@@ -208,15 +208,17 @@ class dataBank:
         compErrors = np.copy(compStars)
         columnCounter = 0
         acceptedCompStarKeys = []
+        compStarKeys = []
         for star in self.allStarsDict:
             if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
                 compStars[:,columnCounter] = self.getScaledFluxes(star).astype(np.float64)
                 compStarsOOT[:,columnCounter] = self.getScaledFluxes(star)[self.outOfTransit()].astype(np.float64)
                 compErrors[:,columnCounter] = self.getScaledErrors(star).astype(np.float64)
-                acceptedCompStarKeys.append(int(star))
+                compStarKeys.append(int(star))
                 columnCounter += 1
             elif star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
                 print 'Star '+str(star)+' excluded from regression'
+                compStarKeys.append(int(star))
                 columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
         def errfunc(p,target): 
@@ -227,7 +229,7 @@ class dataBank:
         print '\nBest fit regression coefficients:',bestFitP
         print 'Default weight:',1./numCompStars
         
-        self.comparisonStarWeights = np.vstack([acceptedCompStarKeys,bestFitP])
+        self.comparisonStarWeights = np.vstack([compStarKeys,bestFitP])
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
         self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
         return self.meanComparisonStar, self.meanComparisonStarError  
@@ -451,3 +453,75 @@ class dataBank:
         
 		plt.show()
 
+    def updateMCMC(self,bestp,allparams,acceptanceRate,dataBankPath):
+        self.MCMC_bestp = bestp
+        self.MCMC_allparams = allparams
+        self.MCMC_acceptanceRate = acceptanceRate
+        self.dataBankPath = dataBankPath
+
+    def plotMCMC(self):
+        bestp = self.MCMC_bestp
+        allparams = self.MCMC_allparams
+        acceptanceRate = self.MCMC_acceptanceRate
+        x = self.times
+        y = self.lightCurve
+        sigma_y = self.lightCurveError
+    
+        ##############################
+        # Prepare figures
+        fig = plt.figure()
+        ax1 = fig.add_subplot(331)
+        ax2 = fig.add_subplot(332)
+        ax3 = fig.add_subplot(333)
+        ax4 = fig.add_subplot(334)
+        ax5 = fig.add_subplot(335)
+        ax6 = fig.add_subplot(336)
+        ax7 = fig.add_subplot(337)
+        ax8 = fig.add_subplot(338)
+        ax9 = fig.add_subplot(339)
+        yfit = occult4params(x,bestp)
+        ax1.errorbar(x,y,yerr=sigma_y,fmt='o-')
+        ax1.plot(x,yfit,'r')
+        ax1.set_title("Fit with MCMC")
+
+        ##############################
+        # Plot traces and histograms of mcmc params
+        p = allparams[0,:]
+        ap = allparams[1,:]
+        i = allparams[2,:]
+        t0 = allparams[3,:]
+        abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
+        burnFraction = 0.20     ## "burn" or ignore the first 20% of the chains
+
+        ax2.plot(abscissa,p,'k.')
+        ax2.set_title('p trace')
+        ax2.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        ax3.plot(abscissa,ap,'k.')
+        ax3.set_title('ap trace')
+        ax3.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        ax4.plot(abscissa,i,'k.')
+        ax4.set_title('i trace')
+        ax4.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        ax5.plot(abscissa,t0,'k.')
+        ax5.set_title('t0 trace')
+        ax5.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+
+        def histplot(parameter,axis,title,bestFitParameter):
+            postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
+            Nbins = 15              ## Plot histograms with 15 bins
+            n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
+            plus,minus = oscaar.mcmc.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')        
+            axis.set_title(title)
+        ## Plot the histograms
+        histplot(p,ax6,'p',bestp[0])
+        histplot(ap,ax7,'ap',bestp[1])
+        histplot(i,ax8,'i',bestp[2])
+        histplot(t0,ax9,'t0',bestp[3])
+
+        plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
+        plt.show()

@@ -89,6 +89,7 @@ def regressionScale(comparisonFlux,targetFlux,time,ingress,egress,returncoeffs=F
     '''
     outOfTransit = (time < ingress) + (time > egress)
     regressMatrix = np.vstack([comparisonFlux[outOfTransit]]).T
+    assert len(targetFlux[outOfTransit]) > 0, 'No fluxes marked as "out-of-transit" according to input ingress/egress'
     m = LA.lstsq(regressMatrix,targetFlux[outOfTransit])[0]
     scaledVector = m*comparisonFlux 
     if returncoeffs:

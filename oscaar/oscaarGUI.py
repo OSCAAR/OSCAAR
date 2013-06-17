@@ -7,7 +7,22 @@ from time import strftime
 import datetime
 import webbrowser
 import subprocess
+import shutil
+import zipfile
+
+from mathMethods import medianBin
 import oscaar
+import random
+from matplotlib import pyplot
+import matplotlib
+from oscaar.extras.knownSystemParameters import returnSystemParams
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import \
+    FigureCanvasWxAgg as FigCanvas, \
+    NavigationToolbar2WxAgg as NavigationToolbar
+import numpy as np
+import pylab
+
 APP_EXIT = 1
 
 class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
@@ -26,15 +41,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         ephGUIOpen = False
         aboutOpen = False
         loadOldPklOpen = False
-        menubar = wx.MenuBar() ##This is the main menubar where all menus are attached
-        fileMenu = wx.Menu()  ##File menu for quit
+	
+        self.menubar = wx.MenuBar() ##This is the main menubar where all menus are attached
+        self.fileMenu = wx.Menu()  ##File menu for quit
         self.oscaarMenu = wx.Menu()  ##Menu for oscaar features
         self.helpMenu = wx.Menu()
+	
 	##Append menu options to different menus:
-        menuExit = fileMenu.Append(wx.ID_EXIT, 'Quit\tCtrl+Q', 'Quit application') ##provides a way to quit
-        menubar.Append(fileMenu, '&File')
-        menubar.Append(self.helpMenu, '&Help')
-        menubar.Append(self.oscaarMenu, '&Oscaar')
+        menuExit = self.fileMenu.Append(wx.ID_EXIT, 'Quit\tCtrl+Q', 'Quit application') ##provides a way to quit
+        self.menubar.Append(self.fileMenu, '&File')
+        self.menubar.Append(self.helpMenu, '&Help')
+        self.menubar.Append(self.oscaarMenu, '&Oscaar')
         self.Bind(wx.EVT_MENU, self.OnQuit, menuExit) ##Bind with OnQuit function, which closes the application
 	##Initialize and menu items and bind them to a function
         self.linkToPredictions = self.oscaarMenu.Append(-1, 'Transit time predictions...', 'Transit time predictions...')
@@ -43,12 +60,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Bind(wx.EVT_MENU, self.aboutOscaar, self.aboutOscaarButton)
         self.helpItem = self.helpMenu.Append(wx.ID_HELP, 'Help', 'Help')
         self.Bind(wx.EVT_MENU, self.helpPressed, self.helpItem)
-
-        self.loadPklItem = self.oscaarMenu.Append(-1, 'Load old output', 'Load old output')
+        self.loadPklItem = self.oscaarMenu.Append(-1, "&Load old output\tCtrl-L", "Load old output")
         self.Bind(wx.EVT_MENU, self.loadOldPklPressed, self.loadPklItem)
-        
-        
-        self.SetMenuBar(menubar)
+
+        self.SetMenuBar(self.menubar)
         self.sizer = wx.GridBagSizer(7, 7) ##The sizer organizes gui items in a grid, all items are added to the sizer        
         self.static_bitmap = wx.StaticBitmap(parent = self, pos = (0,0), size = (130,50))
 	##Adds logo image to the gui
@@ -64,7 +79,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.radioTrackPlotOn = wx.RadioButton(self, label = "On", style = wx.RB_GROUP)
         self.radioTrackPlotOff = wx.RadioButton(self, label = "Off")
         
-        textCtrlSize = (530,25) ##Tuple defining default TextCtrl size
+        textCtrlSize = (555,25) ##Tuple defining default TextCtrl size
 	
 	##Dark images path displayed in darkPathTxt TextCtrl, size is set to default size
         self.darkPathTxt = wx.TextCtrl(self, size = textCtrlSize)
@@ -97,7 +112,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.notesLabel.SetFont(self.labelFont)
         self.outPathBtn = wx.Button(self, -1, 'Browse')
         self.outputTxt = wx.TextCtrl(self, value = 'outputs', size = textCtrlSize)
-    
+	self.valid_text = [None, None, wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1, 'X'), wx.StaticText(self,-1,'X')]
+	self.sizer.Add(self.valid_text[2], (2,7), wx.DefaultSpan, wx.TOP, 12)
+	self.sizer.Add(self.valid_text[3], (3,7), wx.DefaultSpan, wx.TOP, 12)
+	self.sizer.Add(self.valid_text[4], (4,7), wx.DefaultSpan, wx.TOP, 12)
+	self.sizer.Add(self.valid_text[5], (5,7), wx.DefaultSpan, wx.TOP, 12)
+	self.sizer.Add(self.valid_text[6], (6,7), wx.DefaultSpan, wx.TOP, 12)
+
         ##### Add items to sizer for organization #####
 	## First parameter is always the row in which the item is placed
 	## Second to last parameter of addPathChoice represents whether there will be single file select, if it is false there will be multiple
@@ -105,7 +126,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.addPathChoice(3, self.flatPathTxt, self.flatPathBtn, wx.StaticText(self, -1, 'Path to Master Flat: '), 'Choose Path to Flat Frames', True, wx.FD_OPEN)
         self.addPathChoice(4, self.imagPathTxt, self.imagPathBtn, wx.StaticText(self, -1, 'Path to Data Images: '), 'Choose Path to Data Images', False, None)
         self.addPathChoice(5, self.regPathTxt, self.regPathBtn, wx.StaticText(self, -1, 'Path to Regions File: '), 'Choose Path to Regions File', True, wx.FD_OPEN)
-        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Directory', True, wx.FD_SAVE)
+        self.addPathChoice(6, self.outputTxt, self.outPathBtn, wx.StaticText(self, -1, 'Output Path'), 'Choose Output Name', True, wx.FD_SAVE)
+	self.darkPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 2, self.darkPathTxt.GetValue(), None))
+	self.flatPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 3, self.flatPathTxt.GetValue(), None))
+	self.imagPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 4, self.imagPathTxt.GetValue(), None))
+	self.regPathTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 5, self.regPathTxt.GetValue(), True))
+	self.outputTxt.Bind(wx.EVT_TEXT, lambda event: self.checkValid(event, 6, self.outputTxt.GetValue(), True))
         self.addButtonPair(7, 4, self.radioTrackPlotOn, self.radioTrackPlotOff, wx.StaticText(self, -1, 'Tracking Plots: '))
         self.addButtonPair(8, 4, self.photPlotsOn, self.photPlotsOff, wx.StaticText(self, -1, 'Photometry Plots:     '))
         self.addTextCtrl(7,0, self.trackZoomTxt, wx.StaticText(self, -1, 'Track Zoom: '))
@@ -146,6 +172,38 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetIcon(icon1) ##Set frame's icon
         self.Centre()
         self.Show(True)
+
+    def checkValid(self, event, row, text, filetype):
+	valid = False
+	if filetype == 'reg':
+	    for path in text.split(','):
+		if path in glob(path[:path.rfind(os.sep)] + os.sep + '*') and path.endswith('.reg'):
+		    valid = True
+		else:
+		    for fil in (glob(path)):
+			if fil.endswith('.reg'):
+			    valid = True
+	elif filetype == 'fit':
+	    for path in text.split(','):
+		if path in glob(path[:path.rfind(os.sep)] + os.sep + '*') and (path.endswith('.fit') or path.endswith('.fits')):
+		    valid = True
+		else:
+		    for fil in (glob(path)):
+			if fil.endswith('.fit') or fil.endswith('.fits'):
+			    valid = True
+	else:
+	    if os.path.isdir(text[:text.rfind(os.sep)]) and len(text) > len(text[:text.rfind(os.sep)]) + 1:
+		valid = True
+	if valid: self.updateImage(True, row)
+	else: self.updateImage(False, row)
+			
+    def updateImage(self, on, row):
+	if on == True:
+	    self.valid_text[row].SetLabel('O')
+	    self.valid_text[row].SetForegroundColour(wx.Colour(20,220,20))
+	else:
+	    self.valid_text[row].SetLabel('X')
+	    self.valid_text[row].SetForegroundColour(wx.Colour(255,0,0))
 
     #### Allows quitting from the file menu. (Fixes cmd-Q on OS X), Bound to the exit menu item ####
     def OnQuit(self, e): 
@@ -213,26 +271,30 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         global masterFlatOpen
         if masterFlatOpen == False:
             masterFlatOpen = True
-            MasterFlatFrame(None)
+            MasterFlatFrame(self)
         
     #### Bound to the openEphGui button, opens the Ephemeris GUI
     def openEphGUI(self,event):
         global ephGUIOpen
         if ephGUIOpen == False:
-            ephGUIOpen = True
-            EphFrame(None)
+	    try:
+		import ephem
+	    except ImportError:
+		WarnFrame(self)
+	    else:
+		ephGUIOpen = True
+		EphFrame(self)
             
     #####Opens the webpage for the documentation when help is pressed#####
     def helpPressed(self, event):
         documentationURL = 'https://github.com/OSCAAR/OSCAAR/tree/master/docs/documentationInProgress'
         webbrowser.open_new_tab(documentationURL)
 
-
 	#####Opens the webpage for the documentation when help is pressed#####
     def loadOldPklPressed(self, event):
         global loadOldPklOpen
         if loadOldPklOpen == False:
-            LoadOldPklFrame(parent = None, id = -1)
+            LoadOldPklFrame()
             loadOldPklOpen = True
 		        
     #####Runs the photom script with the values entered into the gui when 'run' is pressed#####
@@ -382,11 +444,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             if len(init[i].split()) > 1 and init[i][0] != '#':
                 inline = init[i].split(":", 1)
                 inline[0] = inline[0].strip()
-                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
-                if inline[0] == 'Output Path': self.outputTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
+                if inline[0] == 'Path to Dark Frames':  self.darkPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep))
+                if inline[0] == 'Path to Master-Flat Frame':  self.flatPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/',os.sep))
+                if inline[0] == 'Path to data images':  self.imagPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep))
+                if inline[0] == 'Path to regions file': self.regPathTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep))
+                if inline[0] == 'Output Path': self.outputTxt.ChangeValue(str(inline[1].split('#')[0].strip()).replace('/', os.sep).replace('\\', os.sep))
                 if inline[0] == 'Radius':   self.radiusTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'Tracking Zoom':   self.trackZoomTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
                 if inline[0] == 'CCD Gain':   self.ccdGainTxt.ChangeValue(str(inline[1].split('#')[0].strip()))
@@ -418,6 +480,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     timeString = inline[1].split(';')[1].split('#')[0].strip()
                     self.egressTime.SetValue(timeString)
                 if inline[0] == 'Init GUI': initGui = inline[1].split('#')[0].strip()
+		self.checkValid(None, 2, self.darkPathTxt.GetValue(), 'fit')
+		self.checkValid(None, 3, self.imagPathTxt.GetValue(), 'fit')
+		self.checkValid(None, 4, self.flatPathTxt.GetValue(), 'fit')
+		self.checkValid(None, 5, self.regPathTxt.GetValue(), 'reg')
+		self.checkValid(None, 6, self.outputTxt.GetValue(), 'out')
+
+
 
     #####Opens the webpage for transit time predictions from Czech Astronomical Society#####
     def predictions(self, event):
@@ -426,7 +495,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def aboutOscaar(self, event):
         global aboutOpen
         if aboutOpen == False:
-            AboutFrame(parent = None, id = -1)
+            AboutFrame(parent = self, id = -1)
             aboutOpen = True
 
 class OverWriteFrame(wx.Frame):
@@ -447,6 +516,20 @@ class OverWriteFrame(wx.Frame):
     def onYes(self, event):
         self.parent.Destroy()
         worker = WorkerThread()
+
+class WarnFrame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+	super(WarnFrame, self).__init__(*args, **kwargs)
+	self.SetTitle('Install PyEphem')
+	self.SetSize((290,120))
+        self.SetBackgroundColour(wx.Colour(227,227,227))
+        self.warningText = wx.StaticText(parent = self, id = -1, label = 'You must install PyEphem to use this feature', pos = (15,7), style = wx.ALIGN_CENTER)
+        self.okButton = wx.Button(parent = self, id = -1, label = 'Okay', pos = (100,50))
+        self.okButton.Bind(wx.EVT_BUTTON, self.destroy)
+        self.Centre()
+        self.Show()
+    def destroy(self, event):
+	self.Destroy()
 
 class MasterFlatFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -602,6 +685,7 @@ class AboutFrame(wx.Frame):
                      'Daniel Galdi (UMD)',\
                      'Luuk Visser (LU/TUD)',\
                      'Nolan Matthews (UMD)',\
+                     'Dharmatej Mikkilineni (UMD)',\
                      'Harley Katz (UMD)',\
                      'Sam Gross (UMD)',\
                      'Naveed Chowdhury (UMD)',\
@@ -693,6 +777,14 @@ class EphFrame(wx.Frame):
                 if line.split(':')[0] == 'name':
                     nameList.append(line.split(':')[1].strip())
         nameList += ['Enter New Observatory']
+	
+	self.menuBar = wx.MenuBar()
+	self.fileMenu = wx.Menu()
+	self.menuBar.Append(self.fileMenu, '&File')
+	self.save = self.fileMenu.Append(-1, 'Save', 'Save')
+	self.SetMenuBar(self.menuBar)
+        self.Bind(wx.EVT_MENU, self.saveOutput, self.save)
+	
         self.observatory = wx.ComboBox(self, value = 'Observatories', choices = nameList, name = 'Observatories', size = (320,25))
         self.observatory.Bind(wx.EVT_COMBOBOX, self.enterNewObs)
         self.title = wx.StaticText(self, -1, 'Ephemeris Calculator')
@@ -729,12 +821,12 @@ class EphFrame(wx.Frame):
         self.addDateCtrl(5,0, self.endSemDate, wx.StaticText(self, -1, "End of Obs, UT (YYYY/MM/DD): "))
         self.addTextCtrl(7,0, self.latitude, wx.StaticText(self, -1, 'Latitude (deg:min:sec):'), wx.DefaultSpan)
         self.addTextCtrl(8,0, self.longitude, wx.StaticText(self, -1, 'Longitude (deg:min:sec):'), wx.DefaultSpan)
-        self.addTextCtrl(9,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation: '), wx.DefaultSpan)
+        self.addTextCtrl(9,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation (m): '), wx.DefaultSpan)
         self.addTextCtrl(10,0, self.temp, wx.StaticText(self, -1, 'Temperature (Celcius): '), wx.DefaultSpan)
-        self.addTextCtrl(4,3, self.v_limit, wx.StaticText(self,-1, '     V_limit: '), wx.DefaultSpan)
+        self.addTextCtrl(4,3, self.v_limit, wx.StaticText(self,-1, '     V upper limit: '), wx.DefaultSpan)
         self.addTextCtrl(5,3, self.depth_limit, wx.StaticText(self,-1,'     Depth Lower Limit: '), wx.DefaultSpan)
         self.addTextCtrl(11,0, self.twilightType, wx.StaticText(self,-1, 'Twilight Type (Default = -6): '), wx.DefaultSpan)
-        self.addTextCtrl(12,0, self.min_horizon, wx.StaticText(self,-1, 'Lower Elevation Limit: '), wx.DefaultSpan)
+        self.addTextCtrl(12,0, self.min_horizon, wx.StaticText(self,-1, 'Lower Elevation Limit (deg:min:sec): '), wx.DefaultSpan)
         self.addRadioBox(7,3, self.html_out)
         self.addRadioBox(9,3, self.text_out)
         self.addRadioBox(11,3, self.calc_transits)
@@ -790,6 +882,7 @@ class EphFrame(wx.Frame):
                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
             self.loadValues(obsPath)
+   
     def loadValues(self, obsPath):
 	filename = os.path.split(obsPath)
 	self.filename.SetValue(filename[1].split('.')[0])
@@ -850,96 +943,177 @@ class EphFrame(wx.Frame):
         newobs.close()
         
     def calculate(self, event):
-        path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
-        self.saveFile(str(path))
-        namespace = {}
-        execfile(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','calculateEphemerides.py'),namespace)
-        globals().update(namespace)
-        rootPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'))
-        calculateEphemerides(path,rootPath)
         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
+        path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
+        import oscaar.extras.eph.calculateEphemerides as eph
+        eph.calculateEphemerides(path)
         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         self.Destroy()
         
+    def saveOutput(self, event):
+	dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
+	if dlg.ShowModal() == wx.ID_OK:
+	    outputPath = dlg.GetPath()
+	    self.calculate(None)
+	    shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
+	    outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
+	    for name in glob(outputPath+os.sep+'*'):
+		outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
+	    shutil.rmtree(outputPath)
+	    outputArchive.close()
+
     def onDestroy(self, event):
         global ephGUIOpen
         ephGUIOpen = False
-		
-class InvalidPath1(wx.Frame):
-    def __init__(self, path, parent, id):
-        wx.Frame.__init__(self, parent, id, 'Invalid Output File')
-        self.SetSize((350,100))
-        self.SetBackgroundColour(wx.Colour(227,227,227))
-        self.paths = wx.StaticText(self, -1, "The following is an invalid output file: " + path)
-        self.okButton = wx.Button(self, -1, 'Okay', pos = (125,30))
-        self.okButton.Bind(wx.EVT_BUTTON, self.onOkay)
-        self.Centre()
-        self.Show()
-        
-    def onOkay(self, event):
-        self.Destroy()
 
+class AddLCB(wx.Panel):
+            
+        def __init__(self, parent,id,name=''):
+            wx.Panel.__init__(self,parent,id)
+            
+            box1 = wx.StaticBox(self, -1)
+            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+
+            sizer0 = wx.FlexGridSizer(rows=1, cols=3)
+            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+            if name == 'browse':
+                self.label = wx.StaticText(self, -1, "Path to Output File: ", style=wx.ALIGN_CENTER)
+                self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
+            elif name == 'planet':
+                self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
+                self.txtbox = wx.TextCtrl(self, -1, value='GJ 1214 b')
+                self.txtbox.SetToolTipString('Enter the name of a planet from the exoplanet.org database here.')
+           
+            sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+            sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+            if name == 'browse':
+                if sys.platform == 'win32':
+                    self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-B)")
+                else:
+                    self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-B)")
+                
+                self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
+                                                                             self.txtbox,True,wx.FD_OPEN))
+                sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
+            elif name == 'planet':
+                self.updateButton = wx.Button(self, -1, "Update Parameters")
+                sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
+            
+            self.SetSizer(sizer)
+            sizer.Fit(self)
+
+        def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+            if fileDialog:
+                dlg = wx.FileDialog(self, message = message, style = saveDialog)
+            else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+            if dlg.ShowModal() == wx.ID_OK:
+                filenames = dlg.GetPaths()
+                textControl.Clear()
+                for i in range(0,len(filenames)):
+                    if i != len(filenames)-1:
+                        textControl.WriteText(filenames[i] + ',')
+                    else:
+                        textControl.WriteText(filenames[i])
+            dlg.Destroy()
 
 class LoadOldPklFrame(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(LoadOldPklFrame, self).__init__(*args, **kwargs)
-        self.initUI()
 
-    def initUI(self):
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)		## Define quit behavior
-        if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-            self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        else: self.labelFont = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-
-        ## Set title in new window
-        self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-        self.title = wx.StaticText(self, -1, 'Load old outputs (.pkl)')
-        self.title.SetFont(self.titleFont)
-
-        ## Set up the size of the new window
-        self.ctrlList = []
-        self.sizer = wx.GridBagSizer(7,7)
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-
-
-        textCtrlSize = (400,25)
-        self.pklPathTxt = wx.TextCtrl(self, size = textCtrlSize)
-        self.pklPathBtn = wx.Button(self, -1, 'Browse')
-        self.addPathChoice(2, self.pklPathTxt, self.pklPathBtn, wx.StaticText(self, -1, 'Path to Output File: '), 'Choose Path to Output File', True, wx.FD_OPEN)
-
-        self.plotLightCurveButton = wx.Button(self,-1,label = 'Plot Light Curve', size = (130,25))
-        self.plotRawFluxButton = wx.Button(self,-1,label = 'Plot Raw Fluxes', size = (130,25))
-        self.plotCentroidPositionsButton = wx.Button(self,-1,label = 'Trace Stellar Centroid Positions', size = (170,25))
-        self.plotScaledFluxesButton = wx.Button(self,-1,label = 'Plot Scaled Fluxes', size = (130,25))
-        self.plotComparisonStarWeightingsButton = wx.Button(self,-1,label = 'Plot Comparison\nStar Weightings', size = (200,25))
-		
-        self.addButton(3,-1, self.plotLightCurveButton)
-        self.plotLightCurveButton.Bind(wx.EVT_BUTTON, self.plotLightCurve)
-
-        self.addButton(3,0, self.plotRawFluxButton)
-        self.plotRawFluxButton.Bind(wx.EVT_BUTTON, self.plotRawFlux)		
+    def __init__(self):
         
-        self.addButton(3,1, self.plotCentroidPositionsButton)
-        self.plotCentroidPositionsButton.Bind(wx.EVT_BUTTON, self.plotCentroidPosition)
+        global loadGraphFrame
+        global loadLSFIT
+        global loadMCMC
+        loadGraphFrame = False
+        loadLSFIT = False
+        loadMCMC = False
+        
+        
+        self.title = "Load An Old .pkl File"
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.box = AddLCB(self.panel,-1,name='browse')
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        
+        if sys.platform == 'win32':
+            self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,25)) 
+            self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,25))
+            self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (130,25))  
+            self.plotCentroidPositionsButton = wx.Button(self.panel, label = 'Trace Stellar Centroid Positions', size = (170,25))
+            self.plotComparisonStarWeightingsButton = wx.Button(self.panel,label = 'Plot Comparison\nStar Weightings', size = (110,37))   
+            self.plotInteractiveLightCurveButton = wx.Button(self.panel,label = 'Plot Interactive Light Curve', size = (170,25))        
+        elif sys.platform == 'darwin':
+            self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,25)) 
+            self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,25))
+            self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (130,25))
+            self.plotCentroidPositionsButton = wx.Button(self.panel,-1,label = 'Trace Stellar\nCentroid Positions', size = (150,40))
+            self.plotComparisonStarWeightingsButton = wx.Button(self.panel,-1,label = 'Plot Comparison\nStar Weightings', size = (150,40))
+            self.plotInteractiveLightCurveButton = wx.Button(self.panel,-1,label = 'Plot Interactive Light Curve', size = (190,25))
+        else:
+            self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,30)) 
+            self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,30))
+            self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (135,30))
+            self.plotCentroidPositionsButton = wx.Button(self.panel,-1,label = 'Trace Stellar\nCentroid Positions', size = (150,45))
+            self.plotComparisonStarWeightingsButton = wx.Button(self.panel,-1,label = 'Plot Comparison\nStar Weightings', size = (150,45))
+            self.plotInteractiveLightCurveButton = wx.Button(self.panel,-1,label = 'Plot Interactive Light Curve', size = (195,30))
 
-        self.addButton(3,2, self.plotScaledFluxesButton)
-        self.plotScaledFluxesButton.Bind(wx.EVT_BUTTON, self.plotScaledFluxes)
+        self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
+        self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
+        
+        self.Bind(wx.EVT_BUTTON, self.plotLightCurve, self.plotLightCurveButton)
+        self.Bind(wx.EVT_BUTTON, self.plotRawFlux, self.plotRawFluxButton)
+        self.Bind(wx.EVT_BUTTON, self.plotScaledFluxes,self.plotScaledFluxesButton)
+        self.Bind(wx.EVT_BUTTON, self.plotCentroidPosition, self.plotCentroidPositionsButton)
+        self.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings, self.plotComparisonStarWeightingsButton)
+        self.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve, self.plotInteractiveLightCurveButton)    
+        self.Bind(wx.EVT_BUTTON, self.plotLSFit, self.plotLSFitButton)
+        self.Bind(wx.EVT_BUTTON, self.plotMCMC, self.plotMCMCButton)
+        
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=4)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
 
-        self.addButton(3,3, self.plotComparisonStarWeightingsButton)
-        self.plotComparisonStarWeightingsButton.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings)
+        self.sizer0.Add(self.plotLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotRawFluxButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotScaledFluxesButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotCentroidPositionsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotComparisonStarWeightingsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotInteractiveLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+         
+        self.pklPathTxt = self.box.txtbox
+        self.create_menu()
 
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-		## Standard oscaar GUI params
-        self.SetTitle('OSCAAR')
-        self.SetBackgroundColour(wx.Colour(233,233,233))
-        self.SetSizer(self.sizer)
-        self.bestSize = self.GetBestSizeTuple()
-        self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-        self.Centre()
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
         self.Show()
-        
+
+    def create_menu(self):
+	
+        # These commands create a drop down menu with the browse command, and exit command.
+	
+        self.menubar = wx.MenuBar()
+    
+        menu_file = wx.Menu()
+        m_browse = menu_file.Append(-1,"Browse\tCtrl-B","Browse")
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+    
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
     #####Functions for event handling#####
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
@@ -953,63 +1127,19 @@ class LoadOldPklFrame(wx.Frame):
                     textControl.WriteText(filenames[i] + ',')
                 else:
                     textControl.WriteText(filenames[i])
-        dlg.Destroy()    
-        
-    def addPathChoice(self, row, textCtrl, button, label, message, fileDialog, saveDialog):
-        label.SetFont(self.labelFont)
-        self.sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-        self.sizer.Add(textCtrl, (row, 1), (1,3), wx.TOP, 7)
-        self.sizer.Add(button, (row, 4), (1,1), wx.TOP, 7)
-        textCtrl.SetForegroundColour(wx.Colour(120,120,120))
-        button.Bind(wx.EVT_BUTTON, lambda event: self.browseButtonEvent(event, message, textCtrl, fileDialog, saveDialog))
-        #textCtrl.Bind(wx.EVT_TEXT, lambda event: self.updateColor(textCtrl))
-        
-    def addButton(self, row, colStart, button):
-        self.sizer.Add(button, (row, colStart+2), wx.DefaultSpan, wx.TOP | wx.RIGHT, 7)
-
-    def validityCheck(self):
-        invalidString = ""
-        pathTxt = self.pklPathTxt.GetValue()
-        if pathTxt:
-            if not self.correctOutputFile(pathTxt):
-                invalidstring += pathTxt;
-            if invalidString == "":
-                return True
-            else:
-                 InvalidPath1(invalidString, None, -1)
-            return False
-        else:
-            InvalidPath1(invalidString,None,-1)
-
-    def correctOutputFile(self, pathname):
-        if pathname == '':
-            return False
-        if pathname.endswith('.pkl'):
-            return True
-        return False
+        dlg.Destroy()
 
     def plotLightCurve(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
-
             commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
-
             subprocess.Popen(['python','-c',commandstring])
-            #self.Destroy()
 
     def plotRawFlux(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
             commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
-
-            subprocess.Popen(['python','-c',commandstring])
-		
-    def plotCentroidPosition(self, event):
-        if self.validityCheck():
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
-
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
 
             subprocess.Popen(['python','-c',commandstring])
 
@@ -1020,6 +1150,14 @@ class LoadOldPklFrame(wx.Frame):
             commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
 
             subprocess.Popen(['python','-c',commandstring])
+    
+    def plotCentroidPosition(self, event):
+        if self.validityCheck():
+            print 'Loading file: '+self.pklPathTxt.GetValue() 
+
+            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
+
+            subprocess.Popen(['python','-c',commandstring])
 
     def plotComparisonStarWeightings(self, event):
         if self.validityCheck():
@@ -1028,11 +1166,833 @@ class LoadOldPklFrame(wx.Frame):
             commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
 
             subprocess.Popen(['python','-c',commandstring])
-		
+    
+    def plotInteractiveLightCurve(self, event):
+        if self.validityCheck():
+            global pathText
+            global loadGraphFrame
+            pathText = self.pklPathTxt.GetValue()
+            if loadGraphFrame == False:   
+                GraphFrame()
+                loadGraphFrame = True
+
+    def plotLSFit(self,event):
+        if self.validityCheck():
+            global pathText
+            global loadLSFIT
+            pathText = self.pklPathTxt.GetValue()
+            if loadLSFIT == False:
+                LeastSquaresFitFrame()
+                loadLSFIT = True
+    
+    def plotMCMC(self,event):
+        if self.validityCheck():
+            global pathText
+            global loadMCMC
+            pathText = self.pklPathTxt.GetValue()
+            if loadMCMC == False:
+                MCMCFrame()
+                loadMCMC = True
+            
+    def validityCheck(self):
+        invalidString = ""
+        pathTxt = self.pklPathTxt.GetValue()
+        if pathTxt:
+            if not self.correctOutputFile(pathTxt):
+                invalidString += pathTxt;
+            if invalidString == "":
+                return True
+            else:
+                 InvalidParameter(invalidString, None, -1, str='path')
+            return False
+        else:
+            InvalidParameter(invalidString, None, -1, str='path')
+
+    def correctOutputFile(self, pathname):
+        if pathname == '':
+            return False
+        if pathname.endswith('.pkl'):
+            return True
+        return False
+			
     def onDestroy(self, event):
         global loadOldPklOpen
         loadOldPklOpen = False
+    
+    def on_exit(self, event):
+        self.Destroy()
+
+class ScanParamsBox(wx.Panel):
+    
+    def __init__(self,parent,id):
+
+        # Create a box with all the parameters that the users can manipulate.
         
+        wx.Panel.__init__(self,parent,id)
+        
+        box1 = wx.StaticBox(self, -1, "Descriptive information")
+        sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+        self.userinfo = {}
+        sizer0 = wx.FlexGridSizer(rows=2, cols=4)
+        sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        for (widget,label,ToolTip) in [
+            ('bin',"Bin Size:",
+             'Enter a bin number here.'),
+            ('title',"Title:",
+             'Enter a name for the title here.'),
+            ('xlabel',"X-Axis Name:",
+             'Enter a name for the X-Axis here.'),
+            ('ylabel',"Y-Axis Name:",
+             'Enter a name for the Y-Axis here.')
+            ]:
+            label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+            sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+            if widget == 'bin':
+                self.userinfo[widget] = wx.TextCtrl(self, -1,value='10')
+            elif widget == 'xlabel':
+                self.userinfo[widget] = wx.TextCtrl(self, -1,value='Time (JD)')
+            elif widget == 'ylabel':
+                self.userinfo[widget] = wx.TextCtrl(self, -1,value='Relative Flux')
+            elif widget == 'title':
+                self.userinfo[widget] = wx.TextCtrl(self, -1,value='Light Curve')
+            self.userinfo[widget].SetToolTipString(ToolTip)
+            sizer0.Add(self.userinfo[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+        
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.oldNum = self.userinfo['bin'].GetValue()
+        self.newNum = self.userinfo['bin'].GetValue()
+        self.oldX = str(self.userinfo['xlabel'].GetValue())
+        self.newX = str(self.userinfo['xlabel'].GetValue())
+        self.oldY = str(self.userinfo['ylabel'].GetValue())
+        self.newY = str(self.userinfo['ylabel'].GetValue())
+        self.oldtitle = str(self.userinfo['title'].GetValue())
+        self.newtitle = str(self.userinfo['title'].GetValue())
+        self.max = 100
+    
+    def boxCorrect(self):
+        if self.userinfo['bin'].GetValue() == '':
+            InvalidParameter(self.userinfo['bin'].GetValue(), None, -1, max=str(self.max))
+            return False
+        else:
+            try:
+                self.var = int(self.userinfo['bin'].GetValue())
+            except ValueError:
+                InvalidParameter(self.userinfo['bin'].GetValue(), None, -1, max=str(self.max))
+                return False
+             
+            if int(self.userinfo['bin'].GetValue()) <= 4 or int(self.userinfo['bin'].GetValue()) > self.max:
+                InvalidParameter(self.userinfo['bin'].GetValue(), None,-1, max=str(self.max))
+                return False
+            else:
+                return True
+
+    def boxDiff(self):
+        if not self.oldNum == self.newNum:
+            self.oldNum = self.newNum
+            return True
+        elif not self.oldX == self.newX:
+            self.oldX = self.newX
+            return True
+        elif not self.oldY == self.newY:
+            self.oldY = self.newY
+            return True
+        elif not self.oldtitle == self.newtitle:
+            self.oldtitle = self.newtitle
+            return True
+        else:
+            return False
+    
+    def setMax(self,len):
+        self.max = len
+    
+    def update(self):
+        self.newNum = self.userinfo['bin'].GetValue()
+        self.newX = self.userinfo['xlabel'].GetValue()
+        self.newY = self.userinfo['ylabel'].GetValue()
+        self.newtitle = self.userinfo['title'].GetValue()
+
+class GraphFrame(wx.Frame):
+    
+    """ The main frame of the application
+    """
+    
+    title = 'Light Curve Plot'
+
+    def __init__(self):
+	
+		# This initializes the wx.frame with the title.
+		
+        wx.Frame.__init__(self, None, -1, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+		#wx.Frame(None, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
+		
+		# This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
+		
+        self.pT = pathText
+		
+		# The rest of these commands just create the window.
+		
+        self.create_menu()
+        self.create_status_bar()
+        self.create_main_panel()
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.Centre()
+        self.Show()
+
+    def create_menu(self):
+	
+		# These commands create a drop down menu with the save command, and exit command.
+	
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_expt = menu_file.Append(-1, "&Save plot\tCtrl-S", "Save plot to file")
+        self.Bind(wx.EVT_MENU, self.on_save_plot, m_expt)
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
+    def create_main_panel(self):
+
+        self.panel = wx.Panel(self)
+        self.init_plot()
+        self.canvas = FigCanvas(self.panel, -1, self.fig)
+        self.box = ScanParamsBox(self.panel,-1)
+
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        self.okButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.draw_plot, self.okButton)
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)  
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.okButton,0,flag=wx.ALIGN_CENTER|wx.TOP)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+
+    def create_status_bar(self):
+        self.statusbar = self.CreateStatusBar()
+
+    def init_plot(self):
+
+		# Initializes the first plot with a bin size of 10.
+        
+        # We make an instance of the dataBank class with all the paramters of the pkl file loaded.
+        self.data = oscaar.load(self.pT)
+        self.pointsPerBin = 10
+        
+        # Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
+        # to plot it.
+
+        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
+        self.fig = pyplot.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        self.dpi = 100
+        self.axes = self.fig.add_subplot(111)
+        self.axes.set_axis_bgcolor('white')
+        self.axes.set_title('Light Curve', size=12)
+        def format_coord(x, y):
+            # '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        self.axes.format_coord = format_coord 
+        self.axes.errorbar(self.data.times,self.data.lightCurve,yerr=self.data.lightCurveError,fmt='k.',ecolor='gray')
+        self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+        self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
+        self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
+        self.axes.set_title('Light Curve')
+        self.axes.set_xlabel('Time (JD)')
+        self.axes.set_ylabel('Relative Flux')
+
+    def draw_plot(self,event):
+
+        """ Redraws the plot
+        """
+        self.box.update()
+        self.box.setMax(len(self.data.times))
+        
+        if self.box.boxCorrect() == True and self.box.boxDiff() == True:
+            
+            print "Re-drawing Plot"
+            
+            self.xlabel = self.box.userinfo['xlabel'].GetValue()
+            self.ylabel = self.box.userinfo['ylabel'].GetValue()
+            self.plotTitle = self.box.userinfo['title'].GetValue()
+            self.pointsPerBin = int(self.box.userinfo['bin'].GetValue())
+            
+            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
+           
+            if sys.platform == 'win32': 
+                self.fig = pyplot.figure(num=None, figsize=(10, 6.75), facecolor='w',edgecolor='k')
+            else: 
+                self.fig = pyplot.figure(num=None, figsize=(10, 8.0), facecolor='w',edgecolor='k')
+            
+            self.dpi = 100
+            self.axes = self.fig.add_subplot(111)
+            self.axes.set_axis_bgcolor('white')
+            self.axes.set_title('Light Curve', size=12)
+            def format_coord(x, y):
+                 # '''Function to give data value on mouse over plot.'''
+                return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+            self.axes.format_coord = format_coord 
+            self.axes.errorbar(self.data.times,self.data.lightCurve,yerr=self.data.lightCurveError,fmt='k.',ecolor='gray')
+            self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+            self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
+            self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
+            self.axes.set_title(self.plotTitle)
+            self.axes.set_xlabel(self.xlabel)
+            self.axes.set_ylabel(self.ylabel)
+
+            self.canvas = FigCanvas(self.panel, -1, self.fig)
+
+    def on_save_plot(self, event):
+	
+		# Saves the plot to a location of your choosing.
+
+        file_choices = "PNG (*.png)|*.png"
+        
+        dlg = wx.FileDialog(
+            self, 
+            message="Save plot as...",
+            defaultDir=os.getcwd(),
+            defaultFile="plot.png",
+            wildcard=file_choices,
+            style=wx.SAVE)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.canvas.print_figure(path, dpi=self.dpi)
+            self.flash_status_message("Saved to %s" % path)
+
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def flash_status_message(self, msg, flash_len_ms=1500):
+        self.statusbar.SetStatusText(msg)
+        self.timeroff = wx.Timer(self)
+        self.Bind(
+            wx.EVT_TIMER, 
+            self.on_flash_status_off, 
+            self.timeroff)
+        self.timeroff.Start(flash_len_ms, oneShot=True)
+    
+    def on_flash_status_off(self, event):
+        self.statusbar.SetStatusText('')
+    
+    def onDestroy(self, event):
+        global loadGraphFrame
+        loadGraphFrame = False
+
+class LeastSquaresFitFrame(wx.Frame):
+    
+    title = "Least Squares Fit"
+    
+    def __init__(self):
+        
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.pT = pathText
+        self.data = oscaar.load(self.pT)
+         
+        self.box1 = AddLCB(self.panel,-1,name='planet')
+        self.Bind(wx.EVT_BUTTON,self.update,self.box1.updateButton)
+        self.topBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.topBox.Add(self.box1, border=5, flag=wx.ALL)
+        
+        self.list =  [
+                    ('Rp/Rs',"Ratio of Radii (Rp/Rs):",
+                     'Enter a ratio of the radii here.'),
+                    ('a/Rs',"a/Rs:",
+                     'Enter a value for a/Rs here.'),
+                    ('per',"Period:",
+                     'Enter a value for the period here.'),
+                    ('inc',"Inclination:",
+                     'Enter a value for the inclination here.'),
+                    ('ecc',"Eccentricity: ", 
+                     'Enter a value for the eccentricity here.'),
+                    ('t0',"t0:",
+                     'Enter a value for t0 here.'),
+                    ('gamma1',"Gamma 1:",
+                     'Enter a value for gamma 1 here.'),
+                    ('gamma2'," Gamma 2:",
+                     'Enter a value for gamma 2 here.'),
+                    ('pericenter',"Pericenter:",
+                     'Enter an arguement for the pericenter here.'),
+                    ('limbdark',"Limb-Darkening Parameter:",
+                     'Enter an arguement for limb-darkening here.')
+                    ]
+
+        self.box = ParameterBox(self.panel,-1,self.list,name="Input Parameters")
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        
+        self.plotButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
+
+        self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.topBox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.box.userParams['t0'].SetValue(str(oscaar.transiterFit.calcMidTranTime(self.data.times,self.data.lightCurve)))
+        
+        self.vbox.AddSpacer(10)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.create_menu()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.Center()
+        self.Show()
+
+    def plot(self,event):
+        
+        self.tempLimbDark = self.box.userParams['limbdark'].GetValue()
+
+        list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
+                (self.box.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
+                (self.box.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
+                (self.box.userParams['gamma1'].GetValue(),"gamma1"),(self.box.userParams['gamma2'].GetValue(),"gamma2"),
+                (self.box.userParams['pericenter'].GetValue(),"pericenter"), 
+                (self.tempLimbDark,"limbdark")]
+
+        if checkParams(self,list) == True:
+            
+            if self.box.userParams['limbdark'].GetValue() == 'False':
+                self.tempLimbDark = False
+            
+            fit, success = oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
+                              float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
+                              float(self.box.userParams['inc'].GetValue()),float(self.box.userParams['t0'].GetValue()),
+                              float(self.box.userParams['gamma1'].GetValue()),float(self.box.userParams['gamma2'].GetValue()),
+                              float(self.box.userParams['per'].GetValue()),float(self.box.userParams['ecc'].GetValue()),
+                              float(self.box.userParams['pericenter'].GetValue()),fitLimbDark=self.tempLimbDark, plotting=True)
+            n_iter = 300
+#             Rp,aRs,inc,t0,gam1,gam2=oscaar.transiterFit.run_MCfit(n_iter,self.data.getTimes(),
+#                 self.data.lightCurve, self.data.lightCurveError,fit,success,
+#                 float(self.box.GetPeriod()),float(self.box.GetEcc()),
+#                 float(self.box.GetPericenter()),float(self.box.GetGamma1()),float(self.box.GetGamma2()), plotting=False)
+
+    def update(self,event):
+        if self.box1.txtbox.GetValue() == '':
+            InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
+        else:
+            self.planet = self.box1.txtbox.GetValue()
+            [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
+            
+            if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
+                InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
+            else:
+                self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
+                self.box.userParams['a/Rs'].SetValue(str(AOverRs))
+                self.box.userParams['per'].SetValue(str(per))
+                self.box.userParams['inc'].SetValue(str(inc))
+                self.box.userParams['ecc'].SetValue(str(ecc))
+                InvalidParameter("",None,-1, str="params")
+
+    def create_menu(self):
+    
+        # These commands create a drop down menu with the exit command.
+    
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+        
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def onDestroy(self, event):
+        global loadLSFIT
+        loadLSFIT = False
+
+class ParameterBox(wx.Panel):
+
+        def __init__(self, parent, id,list,name="",rows=1,cols=10):
+                wx.Panel.__init__(self,parent,id)
+                box1 = wx.StaticBox(self, -1, name)
+                sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+                self.userParams = {}
+                sizer0 = wx.FlexGridSizer(rows=rows, cols=cols)
+                sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+                
+                for (widget,label,ToolTip) in list:
+                    label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+                    sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                    if widget == 'limbdark':
+                        self.userParams[widget] = wx.TextCtrl(self, -1, value='False')
+                    elif (widget == 'gamma1') or (widget == 'gamma2') or (widget =='pericenter'):
+                        self.userParams[widget] = wx.TextCtrl(self, -1, value='0.0')
+                    else:
+                        self.userParams[widget] = wx.TextCtrl(self, -1)
+                    self.userParams[widget].SetToolTipString(ToolTip)
+                    sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+                self.SetSizer(sizer)
+                sizer.Fit(self)
+
+class MCMCFrame(wx.Frame):
+    
+    title = "MCMC Fit"
+    
+    def __init__(self):
+
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.pT = pathText
+        self.data = oscaar.load(self.pT)
+        
+        list = [('Rp/Rs',"Ratio of Radii (Rp/Rs):",
+                 'Enter a ratio of the radii here.'),
+                ('a/Rs',"a/Rs:",
+                 'Enter a value for a/Rs here.'),
+                ('inc',"Inclination:",
+                 'Enter a value for the inclination here.'),
+                ('t0',"t0:", 
+                 'Enter a value for the mid transit time here.')]
+        
+        self.box = ParameterBox(self.panel,-1,list,"Free Parameters",rows=4,cols=2)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        
+        list = [('b-Rp/Rs',"Beta Rp/Rs:",
+                 'Enter a beta for Rp/Rs here.'),
+                ('b-a/Rs',"Beta a/Rs:",
+                 'Enter a beta for a/Rs here.'),
+                ('b-inc',"Beta Inclination:",
+                 'Enter a beta for inclination here.'),   
+                ('b-t0',"Beta t0:",
+                 'Enter a beta for the mid transit time here.')]
+        
+        self.box2 = ParameterBox(self.panel,-1,list,"Beta's",rows=4,cols=2)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.box2, border=5, flag=wx.ALL)
+
+        list = [('per',"Period:",
+                 'Enter a value for the period here.'),
+                ('gamma1',"gamma1:", 
+                 'Enter a value for gamma1 here.'),
+                ('gamma2',"gamma2:", 
+                 'Enter a value for gamma2 here.'),
+                ('ecc',"Eccentricity:", 
+                 'Enter a value for the eccentricity here.'),
+                ('pericenter',"Pericenter:", 
+                 'Enter a value for the pericenter here.')]
+        
+        self.box3 = ParameterBox(self.panel,-1,list,"Fixed Parameters")
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox3.Add(self.box3, border=5, flag=wx.ALL)        
+        
+        list = [('saveiteration',"Iteration to save:",
+                 'Enter a number for the nth iteration to be saved.'),
+                ('burnfrac',"Burn Fraction:",
+                 'Enter a decimal for the burn fraction here.'),
+                ('acceptance',"Acceptance:",
+                 'Enter a value for the acceptance rate here.'),
+                ('number', "Number of Steps:",
+                 'Enter a value for the total steps here.')]
+        
+        self.box4 = ParameterBox(self.panel,-1,list,"Fit Parameters")
+        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox4.Add(self.box4, border=5, flag=wx.ALL)
+        
+        self.box.userParams['Rp/Rs'].SetValue('0.11')
+        self.box.userParams['a/Rs'].SetValue('14.1')
+        self.box.userParams['inc'].SetValue('90.0')
+        self.box.userParams['t0'].SetValue('2456427.9425593214')
+        self.box2.userParams['b-Rp/Rs'].SetValue('0.005')
+        self.box2.userParams['b-a/Rs'].SetValue('0.005')
+        self.box2.userParams['b-inc'].SetValue('0.005')
+        self.box2.userParams['b-t0'].SetValue('0.005')
+        self.box3.userParams['per'].SetValue('1.580400')
+        self.box3.userParams['gamma1'].SetValue('0.23')
+        self.box3.userParams['gamma2'].SetValue('0.3')
+        self.box3.userParams['ecc'].SetValue('0.0')
+        self.box3.userParams['pericenter'].SetValue('0.0')
+        self.box4.userParams['saveiteration'].SetValue('100')
+        self.box4.userParams['burnfrac'].SetValue('0.20')
+        self.box4.userParams['acceptance'].SetValue('0.30')
+        self.box4.userParams['number'].SetValue('1000')
+
+        
+        self.plotButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.plot, self.plotButton)
+
+        self.sizer0 = wx.FlexGridSizer(rows=1, cols=10)
+        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox5.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+
+
+        self.vbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.vbox2.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox2.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.vbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox3, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox4, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.hbox5, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.vbox.AddSpacer(10)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.create_menu()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.Center()
+        self.Show()
+    
+    def create_menu(self):
+    
+        # These commands create a drop down menu with the exit command.
+    
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+        
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def onDestroy(self, event):
+        global loadMCMC
+        loadMCMC = False
+
+    def plot(self,event):
+       list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
+            (self.box3.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
+            (self.box3.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
+            (self.box3.userParams['gamma1'].GetValue(),"gamma1"),(self.box3.userParams['gamma2'].GetValue(),"gamma2"),
+            (self.box3.userParams['pericenter'].GetValue(),"pericenter"),(self.box4.userParams['saveiteration'].GetValue(),
+            "saveiteration"), (self.box4.userParams['acceptance'].GetValue(),"acceptance"),
+            (self.box4.userParams['burnfrac'].GetValue(),"burnfrac"), (self.box4.userParams['number'].GetValue(),"number")]
+       
+       if checkParams(self,list) == True:
+            path = self.pT
+            initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
+                          float(self.box3.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
+                          float(self.box3.userParams['gamma1'].GetValue()),float(self.box3.userParams['gamma2'].GetValue()),
+                          float(self.box3.userParams['ecc'].GetValue()),float(self.box3.userParams['pericenter'].GetValue()),
+                          float(self.box.userParams['t0'].GetValue())]
+            
+            nSteps = float(self.box4.userParams['number'].GetValue())
+            initBeta = np.zeros([4]) + 0.005 
+    #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
+    #                     int(self.box2.userParams['b-inc'].GetValue()), int(self.box2.userParams['b-t0'].GetValue())]
+            
+            idealAcceptanceRate = float(self.box4.userParams['acceptance'].GetValue())
+            interval = float(self.box4.userParams['saveiteration'].GetValue())
+            burnFraction = float(self.box4.userParams['burnfrac'].GetValue())
+            mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
+            mcmcinstance.run(updatepkl=True)
+            mcmcinstance.plot()
+    
+def checkParams(self,list):
+    
+    self.tempGamma1 = -1
+    self.tempGamma2 = -1
+    self.tempSaveIteration = -1
+    self.tempNumber = -1
+    
+    for (number,string) in list:
+        if number == '':
+            InvalidParameter(number, None,-1, str=string)
+            return False
+        else:
+            try:
+                if string !="limbdark":
+                    self.tmp = float(number)
+            except ValueError:
+                InvalidParameter(number, None,-1, str=string)
+                return False
+            if string == "Rp/Rs":
+                if float(number)>1 or float(number)<0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "a/Rs":
+                if float(number) <= 1:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "per":
+                if float(number) < 0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "inc":
+                if float(number) < 0 or float(number) > 90:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "t0":
+                if float(number) < 0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "ecc":
+                if float(number) < 0 or float(number) > 1:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "pericenter":
+                if float(number) < 0:
+                    InvalidParameter(number, None,-1, str=string)
+                    return False
+            if string == "limbdark":
+                if (number != "False"):
+                    if (number != "linear"):
+                        if(number != "quadratic"):
+                            InvalidParameter(number,None,-1,str=string)
+                            return False
+            if string == 'gamma1':
+                self.tempGamma1 = number
+            if string == 'gamma2':
+                self.tempGamma2 = number
+            if string == "saveiteration":
+                self.tempSaveIteration = float(number)
+                if float(number) < 5:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+            if string == "number":
+                self.tempNumber = float(number)
+                if float(number) < 10:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+            if string == "acceptance":
+                if float(number) <= 0:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+            if string == "burnfrac":
+                if float(number) > 1 or float(number) <= 0:
+                    InvalidParameter(number,None,-1,str=string)
+                    return False
+    
+    if(self.tempNumber != -1) and (self.tempSaveIteration != -1):
+        if (self.tempNumber % self.tempSaveIteration) != 0:
+            tempString = str(self.tempSaveIteration)+" < "+str(self.tempNumber)
+            InvalidParameter(tempString,None,-1,str="mod")
+            return False
+    
+    self.totalGamma = float(self.tempGamma1) + float(self.tempGamma2)
+    self.totalString = str(self.totalGamma)
+    if self.totalGamma > 1:
+        InvalidParameter(self.totalString, None,-1, str="gamma")
+        return False
+
+    return True
+
+
+class InvalidParameter(wx.Frame):
+
+    def __init__(self, num, parent, id, str='', max='0'):
+
+        if sys.platform == "win32":
+            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,110))
+        else:
+            wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,100))
+            self.create_menu()
+            self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)        
+        if str == "params":
+            self.SetTitle("Updated Parameters")
+            self.Bind(wx.EVT_CHAR_HOOK, self.onOkay)
+        self.panel = wx.Panel(self)
+        self.string = "Incorrect"
+
+        if max != '0':
+            self.string = "The bin size must be between 5 and "+max+"."
+        if str == "Rp/Rs":
+            self.string = "The value for Rp over Rs must be between 0 and 1."
+        elif str == "a/Rs":
+            self.string = "The value for A over Rs must be greater than 1."
+        elif str == "inc":
+            self.string = "The value for the inclincation must be between 0 and 90."
+        elif str == "t0":
+            self.string = "The value for the mid-transit time, t0, must be greater than 0."
+        elif str == "gamma1":
+            self.string = "The value entered for gamma1 must be a number."
+        elif str == "gamma2":
+            self.string = "The value entered for gamma2 must be a number."
+        elif str == "gamma":
+            self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
+        elif str == "per":
+            self.string = "The value for the period must be greater than 0."
+        elif str == "ecc":
+            self.string = "The value for the eccentricity must be between 0 and 1."
+        elif str == "pericenter":
+            self.string = "The value for the pericenter must be greater than or equal to 0."
+        elif str == "planet":
+            self.string = "The name of the planet does not exist in the database."
+        elif str == "limbdark":
+            self.string = "The parameter for Limb-Darkening must be either 'False', 'linear', or 'quadratic'."
+        elif str == "saveiteration":
+            self.string = "The iterative step to be saved must be greater than or equal to 5."
+        elif str == "acceptance":
+            self.string = "The acceptance rate must be greater than 0."
+        elif str == "burnfrac":
+            self.string = "The burn number must be greater than 0 and less than or equal to 1."
+        elif str == "number":
+            self.string = "The number of total steps must be greater than or equal to 10."
+        elif str == "mod":
+            self.string = "The iterative step to be saved cannot be greater than the total number of steps."
+
+        if str == "path":
+            self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
+        elif str == "params":
+            self.paths = wx.StaticText(self.panel, -1,"The appropriate parameters have been updated.")
+        else:           
+            self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
+        
+        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
+        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
+
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=2)        
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+
+        self.panel.SetSizer(self.hbox)
+        self.hbox.Fit(self)
+        self.Center()
+        self.Show()
+    
+    def create_menu(self):
+        
+        # These commands create a drop down menu with the exit command.
+        
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
+        self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+    
+    def onCharOkay(self,event):
+        self.keycode = event.GetKeyCode()
+        if self.keycode == wx.WXK_RETURN:
+            self.Destroy()
+    
+    def onOkay(self, event):
+        self.Destroy()
+
 app = wx.App(False)
 #### Runs the GUI ####
 OscaarFrame(None)

@@ -75,33 +75,9 @@ float *linspace(float beginningPhase, float endPhase, int Npoints)
 	//	printf("t[ii]=%f\n",t[ii]);
 	}
 	return t;
+    //free_vector(t,0,Npoints);
 }
 
-double *divideThrough(double *array, int lengthArray, double constant)
-// Divide `array` of length `lengthArray` through by `constant` and save in `newArray`
-{
-	double *newArray;
-	int i;
-	newArray = dvector(0,lengthArray);
-	for (i=0; i<lengthArray; i++)
-	{
-		newArray[i] = array[i]/constant;
-	}
-	return newArray;
-}
-
-double *subtractThrough(double *array, int lengthArray, double constant)
-// Subtract `array` of length `lengthArray` through by `constant` and save in `newArray`
-{
-	double *newArray;
-	int i;
-	newArray = dvector(0,lengthArray);
-	for (i=0; i<lengthArray; i++)
-	{
-		newArray[i] = array[i]-constant;
-	}
-	return newArray;
-}
 
 float printVector(double *array, float lengthArray)
 {
@@ -381,16 +357,19 @@ double occultuni(double z, double w)
 void occultquad(double *t, double p, double ap, double P, double i, double gamma1, double gamma2, double e, double longPericenter, double t0, double n, double *F)
 {
 	double t0overP;
-	double *Z, *phi; int ii;
+	double *Z, *phi, *new_t, *new_phi; int ii;
 	int Npoints = (int)n;
 	Z = dvector(0,Npoints);
 	phi = dvector(0,Npoints);
+    new_t = dvector(0,Npoints);
 
-    t = subtractThrough(t,Npoints,t0);
+    for (ii=0; ii<Npoints; ii++) {new_t[ii] = t[ii] - t0;}
+
+    t = new_t;
     t0 = 0.0;
-    phi = divideThrough(t,Npoints,P); // divide by period
-	t0overP = t0/P;
-	phi = subtractThrough(phi,Npoints,t0);	//phi = subtractThrough(phi,Npoints,t0overP);
+
+    for (ii=0; ii<Npoints; ii++) {phi[ii] = t[ii]/P - t0;}
+
 	double ti;//, pi = 3.14159265;
 	//double c1, c2, c3, c4, c0, omega;
 	double omega;
@@ -518,4 +497,8 @@ void occultquad(double *t, double p, double ap, double P, double i, double gamma
 		F=1.d0-((1.d0-u1-2.d0*u2)*lambdae+(u1+2.d0*u2)*(lambdad+2.d0/3.d0*(p gt z))+u2*etad)/omega*/
 	}
 	//return 0;
+    free_dvector(Z,0,Npoints);
+    free_dvector(phi,0,Npoints);
+    free_dvector(new_t,0,Npoints);
+    //free_dvector(new_phi,0,Npoints);
 }

@@ -12,10 +12,12 @@
 \usepackage[T1]{fontenc}
 \linespread{1.1}% spread lines out a little
 \frenchspacing % remove extra space after punctuation
-\newcommand{\oscaar}{$ \mathtt{OSCAAR}$ }
-\newcommand{\gui}{$ \mathtt{oscaarGUI}$ }
+%\newcommand{\oscaar}{$ \texttt{OSCAAR}$ }
+%\newcommand{\gui}{$ \texttt{oscaarGUI}$ }
 \newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\init}{\code{init.par}\ }
+\newcommand{\init}{\code{init.par}~}
+\newcommand{\oscaar}{\code{OSCAAR}~}
+\newcommand{\gui}{\code{oscaarGUI}~}
 
 \begin{document}
 \title{\textbf{OSCAAR}: Open Source differential photometry Code for Amateur Astronomical Research}
@@ -35,30 +37,36 @@ Development for \oscaar began in the summer of 2011 to take a series of images o
 
 This document is intended to guide you through the observing techniques you need to make your first observations and using \oscaar to analyze them. It is currently still in the process of being written. {\bf This document is a live document, and parts may be incomplete}. We will make a stable version of the documentation for you to refer to as soon as we can!
 
-Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section *** we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
+Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:algorithmNotes} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
 
 \subsection{System Requirements} \label{sec:systemRequirements}
 
-There are several packages in addition to Python that must be installed on your machine before running \oscaar. Most of these packages have been around for some time in the astronomical community. They are all free and available for download via links below. We apologize for the number of packages that are necessary to download, but we have decided that these packages enable for the most efficient open-source distro that we can provide.  \\ \\
+There are several packages in addition to Python (v2.7) that must be installed on your machine before running \oscaar. They are all free and available for download via links below. We apologize for the number of packages that are necessary to download before using \oscaar, but we think that these packages enable for the most efficient open-source distro that we can provide.  We think you'll find that if you're going to build on the code within \oscaar, this palette of packages provides most of the tools you need for scientific computation in Python. \\ \\
 \noindent
-\indent \href{http://www.python.org/getit/}{\textbf{Python 2.7}}: The core language of oscaar \\
-\indent \href{http://new.scipy.org/download.html}{\textbf{NumPy 1.6.0-py2.7}}: A Python module for efficient scientific computations \\
-\indent \href{http://www.stsci.edu/resources/software_hardware/pyfits/}{\textbf{PyFITS 2.4.0}}: A Python module for handling FITS files \\
-\indent \href{http://matplotlib.sourceforge.net/index.html}{\textbf{Matplotlib 1.X-py2.7}}: A Python module for plotting\\
-\indent \href{http://www.wxpython.org/download.php#stable}{\textbf{wxPython}}: A Pythonic GUI toolkit \\
-\indent \href{http://rhodesmill.org/pyephem/}{\textbf{PyEphem}} (\textit{optional}): A Python module for ephemeris generation \\
+\indent \href{http://www.python.org/getit/}{\textbf{Python 2.7} (\textit{not v3.0+})}: The core language of oscaar \\
+\indent \href{http://new.scipy.org/download.html}{\textbf{NumPy} and \textbf{SciPy}}: Python modules for efficient scientific computations \\
+\indent \href{http://www.stsci.edu/resources/software_hardware/pyfits/}{\textbf{PyFITS 3.1.0+}}: A Python module for reading/writing FITS files \\
+\indent \href{http://matplotlib.sourceforge.net/index.html}{\textbf{matplotlib}}: A Python module for publication quality, interactive plotting\\
+\indent \href{http://www.wxpython.org/download.php#stable}{\textbf{wxPython 2.8+}}: A Python GUI toolkit \\
+\indent \href{http://rhodesmill.org/pyephem/}{\textbf{PyEphem}}: A Python module for ephemeris calculations\\
+\indent \textit{Windows only} --- \href{https://pypi.python.org/pypi/setuptools}{\textbf{setuptools}}: A Python module for installing the \oscaar package\\
 
-\noindent
-PyEphem is not required to run differential photometric analysis with \oscaar but enables you to make detailed plans for observing nights in advance. More on this in Section ***.%\ref{}
+\noindent Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in future versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues}).
 
-\subsubsection{Disclaimer}
+\subsection{Installing \oscaar}
+\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory (using commands like \code{cd}). Once there, type 
+\begin{verbatim}
+python setup.py install
+\end{verbatim}
+\noindent to install \oscaar in your system's Python directories. If you are working on an account without administrative privileges, you can add the \code{user} option to download \oscaar to only your user python directories:
+\begin{verbatim}
+python setup.py install --user
+\end{verbatim}
+Next, change directories to some other directory. If you were to import \oscaar from this ``OSCAAR-master'' directory, Python would use the source files that you downloaded, rather than the ones you installed. Since installation builds C libraries and downloads SAOImage DS9, it's important to run \oscaar from the installed directories, so change to some other directory before working with \oscaar.
 
-Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in newer versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues})
+\textit{Note for programmers:} For the reasons described above, if you want to develop new features for \oscaar, you can edit the source files that you downloaded in the  ``OSCAAR-master'' directory and run \oscaar from there, though be mindful of the extra work that the \code{setup.py} and \code{post\_setup.py} files do during the system install that will not be done in the  ``OSCAAR-master'' directory.
+
 \section{Collecting Data} \label{sec:collectingData}
-
-\subsection{Picking A Target}
-
-
 
 \subsection{Navigating The Sky} \label{sec:nav}
 
@@ -83,7 +91,7 @@ Some photometry codes prefer objects focused in Gaussian-like shapes, but \oscaa
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.34]{imgs/focusing.png}
-\caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision -- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
+\caption{Images of stars with varying levels of defocusing. The $x$ and $y$ axes are the pixel indices, intensity in counts is plotted along the $z$. \oscaar can track any of these stars with precision --- even when the shape of the star is not approximately a Gaussian, like the highly defocused star on the right which is shaped like a donut.}
 \label{fig:defocus}
 \end{center}
 \end{figure}
@@ -92,7 +100,7 @@ One must keep in mind that by spreading out the light over many pixels, the coun
 
 \subsection{Theory: Photon Noise} \label{sec:photonNoise}
 
-There is a fundamental physical limit to the signal-to-noise ratio that can be achieved in photometric measurements. Since photometry is the process of counting photons, there is a type of statistical uncertainty introduced into each measurement that goes by many names: \textit{photon noise, Poisson uncertainty, shot noise,} etc. This uncertainty is unavoidable in counting measurements and is easy to calculate -- the photon noise, or the uncertainty in a measurement of $N$ photons, $\sigma_N$ is
+There is a fundamental physical limit to the signal-to-noise ratio that can be achieved in photometric measurements. Since photometry is the process of counting photons, there is a type of statistical uncertainty introduced into each measurement that goes by many names: \textit{photon noise, Poisson uncertainty, shot noise,} etc. This uncertainty is unavoidable in counting measurements and is easy to calculate --- the photon noise, or the uncertainty in a measurement of $N$ photons, $\sigma_N$ is
 
 \begin{eqnarray}
 \sigma_N = \sqrt{N}. \label{eqn:photonNoise}
@@ -107,21 +115,21 @@ Collecting dark frames and flat fields is standard practice for removing systema
 
 Collecting good flat fields can sometimes be more of an art than a science, but good flats are important for good photometry. For this reason, we've incorporated two methods of ``master flat'' making routines into \oscaar, that combine raw flat fields into one master flat. The first method is called the ``Standard'' method by the \oscaar GUI, which takes a mean of all of the input flat frames. This is the fastest computational method. Standard master flats are ideal for ``dome flats'', where the flat fields are obtained by imaging a screen. Many astronomers prefer ``twilight'' or ``sky'' flats, in which the telescope takes images of the sky as the sun sets, and light from the sky acts as the uniform light source. We developed a corresponding twilight master flat setting for \oscaar, which fits a linear function to the intensity of each pixel over time, and uses the best-fit intercept as the normalizing factor for the master flat. Since loops are slow in Python, this method may take a few minutes to produce a master flat, but the payoff that you gain in photometric precision is worth the wait. At the time of writing, we're currently investigating how to implement these algorithms in \href{http://www.cython.org/}{Cython} to help us speed up these expensive computations.
 
-\subsection{Picking A Target}
-\subsubsection{Transit Predictions}
-So you're planning a night of transiting extrasolar planet observations, and you need to know what planets are transiting during your local night. We recommend using the \href{http://var2.astro.cz/ETD/predictions.php}{Czech Astronomical Society Exoplanet Transit Database's Transit Prediction tool}. If you enter your latitude and longitude, this web-tool will tell you which bright transiting extrasolar planets will be visible and transit on a given night from your location. This tool is invaluable for planning. It's also great because you can contribute to this database by submitting your light curves to help constrain the orbital parameters of the planets. With a telescope and \oscaar, you can contribute to real science!
+%\subsection{Picking A Target}
+%\subsubsection{Transit Predictions}
+%So you're planning a night of transiting extrasolar planet observations, and you need to know what planets are transiting during your local night. We recommend using the \href{http://var2.astro.cz/ETD/predictions.php}{Czech Astronomical Society Exoplanet Transit Database's Transit Prediction tool}. If you enter your latitude and longitude, this web-tool will tell you which bright transiting extrasolar planets will be visible and transit on a given night from your location. This tool is invaluable for planning. It's also great because you can contribute to this database by submitting your light curves to help constrain the orbital parameters of the planets. With a telescope and \oscaar, you can contribute to real science!
 
-\subsubsection{Choosing The Field}
-When you chose your target for differential photometry, you need to be sure there are other stars in the imaging field. Here we'll define some terms that are important from here on:  \\ 
+%\subsubsection{Choosing The Field}
+%When you chose your target for differential photometry, you need to be sure there are other stars in the imaging field. Here we'll define some terms that are important from here on:  \\ 
 
-\noindent \textbf{Target Star}: The target of your observations -- the host star to an exoplanet or the variable star that you're measuring for intrinsic variations in luminosity. Of course, this ``star'' could be an asteroid, if you're into that sort of thing. \\\\
-\textbf{Comparison Star}: A star other than the target star that you will use as a basis for determining the intrinsic variations in the brightness of the target star. The comparison star should be one that is not known to have intrinsic variations. \\
+%\noindent \textbf{Target Star}: The target of your observations -- the host star to an exoplanet or the variable star that you're measuring for intrinsic variations in luminosity. Of course, this ``star'' could be an asteroid, if you're into that sort of thing. \\\\
+%\textbf{Comparison Star}: A star other than the target star that you will use as a basis for determining the intrinsic variations in the brightness of the target star. The comparison star should be one that is not known to have intrinsic variations. \\
 
-There must be at least one comparison star in order to do differential photometry, and the more the better. There is no magic number of comparison stars to have, but if you have the opportunity to fit more control stars in the field by rotating your CCD or effectively ``zooming out," it will be worth your while. Based on prior experience with \oscaar, more than two good stars will suffice, but 10 can give you great results. Later, we'll discuss how to know which ones are ``good.''
+%There must be at least one comparison star in order to do differential photometry, and the more the better. There is no magic number of comparison stars to have, but if you have the opportunity to fit more control stars in the field by rotating your CCD or effectively ``zooming out," it will be worth your while. Based on prior experience with \oscaar, more than two good stars will suffice, but 10 can give you great results. Later, we'll discuss how to know which ones are ``good.''
 
-Photometry of bright stars is always preferable to dim stars, but of course there are more dim stars than bright stars in most of the images you will take. In order to avoid uncertainty introduced noise with very dim stars, pick control stars with peak intensities more than double the average background intensity in the area surrounding the star. 
+%Photometry of bright stars is always preferable to dim stars, but of course there are more dim stars than bright stars in most of the images you will take. In order to avoid uncertainty introduced noise with very dim stars, pick control stars with peak intensities more than double the average background intensity in the area surrounding the star. 
 
-Different transiting exoplanets change the brightnesses of their host stars by different amounts. This parameter is called ``\textbf{depth}" and is often measured in units of millimagnitudes (mmag). The greater the depth of a transit, the more likely you will be capable to detect the transit. Since some of these depths are so small, you might try measuring \href{https://sites.google.com/site/aavsosppsection/}{short period pulsating (SPP) variable stars} with high amplitude luminosity oscillations (like \href{http://www.aavso.org/vsx/index.php?view=detail.top&oid=4356}{YZ Boo}) before you move on to exoplanets. Once you characterize your ability to measure the large intrinsic variations of variable stars, you will be able to characterize your ability to detect the small depth regime of transiting exoplanets. 
+%Different transiting exoplanets change the brightnesses of their host stars by different amounts. This parameter is called ``\textbf{depth}" and is often measured in units of millimagnitudes (mmag). The greater the depth of a transit, the more likely you will be capable to detect the transit. Since some of these depths are so small, you might try measuring \href{https://sites.google.com/site/aavsosppsection/}{short period pulsating (SPP) variable stars} with high amplitude luminosity oscillations (like \href{http://www.aavso.org/vsx/index.php?view=detail.top&oid=4356}{YZ Boo}) before you move on to exoplanets. Once you characterize your ability to measure the large intrinsic variations of variable stars, you will be able to characterize your ability to detect the small depth regime of transiting exoplanets. 
 
 \subsection{Imaging Software}
 A bunch of imaging packages could suite your needs for photometry with \oscaar. At the University of Maryland Observatory, we use \href{http://www.cyanogen.com/maxim_main.php}{MaxIm DL} to handle our imaging. Any imaging software that enables you to take a time-series of CCD images will do. 
@@ -130,11 +138,17 @@ Observing software like MaxIm DL allow you to choose your imaging \textbf{binnin
 
 \section{The \oscaar GUI} \label{sec:run}
 
-\oscaar can be run from a graphical user interface that we call the \gui. It's designed to control the running parameters that control the science algorithms so that you can tweak different features in the code by interacting with the GUI. The GUI included in \oscaar 2.0 was developed using the \code{wxPython} package, primarily by Daniel Galdi (UMD).
+\oscaar can be run from a graphical user interface that we call the \gui. It's designed to control the running parameters that control the science algorithms so that you can tweak different features in the code by interacting with the GUI. The GUI included in \oscaar 2.0 was developed by contributor Daniel Galdi (UMD) using the \code{wxPython} package.
 
-\subsection{Choosing Your Input Files}
+%\subsection{Opening the \gui}
+Once \oscaar is installed, you should be able to open a Command Prompt (Windows) or Terminal (Mac OS/Linux) and type
 
-The first step to running \oscaar from the \gui is to select which files will use. \oscaar allows you to access your data files a few different ways. Let's take a look at the \oscaar GUI:
+\begin{verbatim}
+python -c "from oscaar import oscaarGUI"
+\end{verbatim}
+
+\noindent to open the \gui. It will look something like Figure \ref{fig:gui}.
+
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.35]{imgs/GUI.png}
@@ -142,7 +156,37 @@ The first step to running \oscaar from the \gui is to select which files will us
 \label{fig:gui}
 \end{center}	
 \end{figure}
-Our first task is to select the ``path to dark frames.'' A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
+
+
+\subsection{Transit predictions with The \oscaar Custom Ephemeris Calculator}
+You've seen the weather report and you know that your observatory will have clear skies this week --- but which planets will transit this week and at what times? To answer this question, click the \code{Ephemeris} button at the bottom of the \gui.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.35]{imgs/ephemeris.png}
+\caption{The \oscaar Custom Ephemeris Calculator.}
+\label{fig:gui}
+\end{center}	
+\end{figure}
+This new window is the \code{Ephemeris} tool, which will calculate transit time predictions for you. Select from the major observatories or friends of \oscaar listed in the \code{Select Observatory} field, or choose Enter New Observatory if yours is not listed, and enter the range of dates that you'd like to observe in the \code{Beginning of Obs} and \code{End of Obs} fields in \code{YYYY/MM/DD} format.  These dates defined in \href{http://en.wikipedia.org/wiki/Universal_time}{Universal Time (UT)}.
+
+We've found in our experience using transit prediction services that it's easy to get drowned in too many transit event suggestions that you don't have the precision to observe. You may know, for instance, that your telescope aperture is too small or the sky brightness from light pollution at your observatory is too bright to do photometry on stars dimmer than a particular visible $V$ magnitude. We built features into this ephemeris generator so you can set the \code{$V$ upper limit} to filter out any results for transiting planets that are dimmer than a ``limiting V magnitude'' for good photometry that you've entered. At the University of Maryland Observatory, located $<15$ km from the White House and within the Washington D.C. beltway, we have plenty of light pollution. The bright sky background makes it hard to get decent photometric precision on stars with magnitudes $V>12$.
+
+Similarly, your photometric signal-to-noise will limit the transit depths that you can observe. If a transit only causes a $10^{-4}$ fractional decrease in brightness of the star, you probably won't have the precision to be able to detect it at a small observatory. Thus you can filter out shallow (small depth) transits by setting the \code{Depth Lower Limit} field. At the University of Maryland observatory, we generally try to observe transits deeper than 0.010 magnitudes (reminder: depths are measured as positive numbers, even though they represent decreases in fluxes).
+
+When you press \code{Calculate}, \oscaar will download a copy of the latest known transiting system parameters from \href{http://www.exoplanets.org/}{exoplanets.org}. This website created by \href{http://adsabs.harvard.edu/abs/2011PASP..123..412W}{Wright et al. (2011)} catalogs all known system parameters for each planetary system, and is updated frequently as new publications arise. \oscaar will download a copy of the entire database, and will calculate when the next transits and secondary eclipses will occur for each system using published transit times and period measurements calculate when. It also uses the right ascension and declination measurements provided by exoplanets.\@org to calculate whether or not each transit event will happen above or below the horizon, and during day or night, by performing ephemeris calculations with \code{PyEphem}. Then the transit or eclipse events that occur completely above the horizon (from ingress to egress entirely), at night, and that satisfy the $V$ limit and depth limit criteria you set are returned. 
+
+To provide you with a consistently formatted, nicely rendered table of events, \oscaar generates the output ephemeris in HTML and opens it in your web browser. The columns of this table are sortable --- just click on the title row of each column to sort. We know that you may have this ephemeris open on your computer while you're observing at night, and we don't want you to blind yourself looking at a brightly colored ephemeris, so we included two style sheets so that you can switch between. Try changing the``Day'' to ``Night'' mode with the buttons above the ephemeris table for a dark red color palette that may disturb your night vision less than the bright ``Day'' style sheet. Outputs can also be written to CSV.
+
+\subsubsection{Advanced Options}
+
+The parameters in the lower half of the ephemeris calculator tool allow you to calculate the sky altitudes and directions at ingress and egress with extra-high precision, and to set the behavior of the calculator to give you more control over the results you see. The latitude and longitude of your location can be set in the format: \code{degrees:mm:ss.ss}. Your observatory elevation can be set in meters, and temperature in degrees Celsius. Then there are two parameters that will have a strong affect which transits make it through your filters. 
+
+The \code{Twilight Type} parameter determines how many degrees below the horizon the Sun must be for \oscaar to consider the Sun to have ``set'' and for nighttime observations to begin. In practice, as you know, the sky isn't dark enough to start observations precisely at sunset, since twilight sky brightness lingers for some extra time. There are three names for different definitions of \href{http://en.wikipedia.org/wiki/Twilight#Definitions}{\textit{twilight}} --- civil, nautical and astronomical twilight, which correspond to a minimum solar elevation of $-6$, $-12$ and $-18^{\circ}$. You can chose which of these levels of solar elevation will dictate the beginning (and the end --- the same definitions work for the morning hours) of astronomical observations by tweaking this parameter. 
+
+The \code{Lower elevation limit} parameter sets how high above the horizon the object must be before it is visible from your observatory. For photometric observations, it's a good rule of thumb to only observe objects above $30^{\circ}$ elevation, since at smaller angles the thick cross-section of air that you must look through compounds the problems of removing telluric effects.  You may, for example, have trees on the horizon in all directions at your observatory that limit your lowest-possible elevation for observing to $35^{\circ}$, or your observatory dome or roof may not accommodate observations below a similar elevation. You can account for these factors in this parameter so that you only see events that are observable with your equipment, from your observatory. The format for the \code{Lower elevation limit} parameter is  \code{degrees:mm:ss.ss}.
+
+\subsection{Choosing Your Input Files}
+The first step to running \oscaar on your data from the \gui is to select which files you want to use. \oscaar allows you to access your data files a few different ways. Our first task is to select the ``path to dark frames'' (see Figure \ref{fig:gui}). A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
 
 The imaging software that you use may allow you to save each image from your CCD with a pre-formatted name and an iterating index for each image. For example, in our sample data set we simulate this behavior by giving all of the dark frames names with the pattern ``simulatedImg-000d.fits'', ``simulatedImg-001d.fits'', ``simulatedImg-002d.fits'', etc. You could press the \code{Browse} button in the \gui and then hold shift and click through every dark frame that you want to select, our you could use a nifty shortcut...
 
@@ -246,7 +290,7 @@ In order to visualize the effects of the running parameters that you entered on 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackAperPlots.png}
-\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image -- see for example how broad the smoothed profile is compared to the raw flux. }
+\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image --- see for example how broad the smoothed profile is compared to the raw flux. }
 \label{fig:trackAndPhotPlot}
 \end{center}	
 \end{figure}
@@ -298,12 +342,12 @@ The plot is generated with the Python package \code{matplotlib}, which supports 
 There should now be a file where you placed the ``Output Path''. If you want to look to see the raw data, or the data in various stages of processing, you can click the ``Oscaar'' drop down menu (next to \code{File} and \code{Help} at the top), and select ``Load old outputs''. The small window that pops up allows you to pick the old output file that you generated and then plot its contents in various ways. This can be useful for troubleshooting, if your light curve doesn't look the way you think it should. Light curves can be bad if the raw fluxes of one of the stars was measured improperly, for instance, so clicking the ``Plot Raw Fluxes'' button will produce a plot of the raw fluxes for each star, which may help you to debug. 
 
 
-\section{Algorithm Notes}
+\section{Algorithm Notes} \label{sec:algorithmNotes}
 \subsection{\code{oscaar.photometry.phot()}}
 
 
 \subsection{\code{oscaar.astrometry.trackSmooth()}} \label{sec:trackSmooth}
-The ``\textbf{point spread function}'' (PSF) for a particular observing setup is the shape of the image of a perfect point source (like a star, for example), which in practice is never a perfect ``point'' -- it will always have some radial spread. For well-focused telescopes, the PSF usually resembles an Airy function, which can be well-approximated by a Gaussian. However, as suggested in Section \ref{sec:defocusing}, you may not always want to focus the telescope perfectly. Each telescope will produce a different PSF when significantly defocused, so assuming a Gaussian PSF would prevent us from using \oscaar on defocused observations. This was a problem that we found with \oscaar v1.0, so we developed a new method with some excellent advice from Professor Drake Deming.
+The ``\textbf{point spread function}'' (PSF) for a particular observing setup is the shape of the image of a perfect point source (like a star, for example), which in practice is never a perfect ``point'' --- it will always have some radial spread. For well-focused telescopes, the PSF usually resembles an Airy function, which can be well-approximated by a Gaussian. However, as suggested in Section \ref{sec:defocusing}, you may not always want to focus the telescope perfectly. Each telescope will produce a different PSF when significantly defocused, so assuming a Gaussian PSF would prevent us from using \oscaar on defocused observations. This was a problem that we found with \oscaar v1.0, so we developed a new method with some excellent advice from Professor Drake Deming.
 
 \code{trackSmooth()} does centroid-finding by summing up the intensity of the pixels near the star along both the rows and columns. The sums along the rows and columns will produce intensity profiles in two axes similar to Figure \ref{fig:sumsExample}. One feature of these profiles that holds for even strongly defocused PSFs is the sharp rise and decline in the intensity of the star on either side of the stellar centroid. Typically there is a well-defined absolute maximum and minimum in the first numerical derivative of the sum along the columns, as in Figure \ref{fig:sumRowsAndCols}. The trick here is to take the midpoint between those extrema as the centroid, since searching for maxima and minima are computationally cheap. 
 \begin{figure}[H]
@@ -315,7 +359,7 @@ The ``\textbf{point spread function}'' (PSF) for a particular observing setup is
 \end{figure}
 In order to increase our centroid precision, we then use a little linear algebra to fit a quadratic to the three pixels nearest the maximum or minimum. The midpoints between the apexes of the best-fit quadratic near the maximum and minimum is taken as the centroid. This process is repeated for the sums along the rows and the columns to get the centroid in both axes. 
 
-Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine -- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
+Observational data is never clean. There may be dead pixels or hot pixels that would appear as sharp spikes or troughs in the intensity profiles. These pixels, if unaccounted for, will appear to the tracking algorithm to be the sharp edges of a star in the image. This is why we run the image through the smoothing routine --- to smear out any sharp artifacts in the image, so that the tracking algorithm only anchors itself on the overall features of the image and not faulty individual pixels. This smoothing routine can apply varying degrees of smoothing to each image, and choosing a proper amount of smoothing is covered in Section \ref{sec:smoothingconst}. 
 
 
 \subsection{The \code{dataBank} Object}

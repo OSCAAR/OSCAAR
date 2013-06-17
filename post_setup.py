@@ -118,8 +118,8 @@ def complile_C():
         """ If running Windows, use the precompiled C binary """
         print 'copying precompiled C code for light curve modeling..',
         shutil.copy2(os.path.join(oscaardir,'c', 'windowsBinaries', \
-                        'transit1forLMLS.so'), os.path.join(oscaardir,'c', \
-                        'transit1forLMLS.so'))
+                        'analyticalTransitModel.so'), os.path.join(oscaardir,'c', \
+                        'analyticalTransitModel.so'))
         print 'done!'
     else: 
         import subprocess
