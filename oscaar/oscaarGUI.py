@@ -1797,7 +1797,7 @@ class MCMCFrame(wx.Frame):
                           float(self.box.userParams['t0'].GetValue())]
             
             nSteps = float(self.box4.userParams['number'].GetValue())
-            initBeta = (np.zeros([4]) + 0.005).tolist()		## << The .tolist() method type casts the Numpy ndarray into a python list
+            initBeta = (np.zeros([4]) + 0.009).tolist()		## << The .tolist() method type casts the Numpy ndarray into a python list
     #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
     #                     int(self.box2.userParams['b-inc'].GetValue()), int(self.box2.userParams['b-t0'].GetValue())]
             

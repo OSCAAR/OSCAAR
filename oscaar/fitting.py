@@ -37,6 +37,7 @@ from matplotlib import pyplot as plt
 from scipy import optimize
 import oscaar
 from matplotlib.ticker import FormatStrFormatter
+from time import sleep
 
 def fitLinearTrend(xVector,yVector):
     '''Fit a line to the set {xVectorCropped,yVectorCropped}, then remove that linear trend
@@ -268,7 +269,7 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
     return acceptanceRateArray
 
 
-def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingbar=True):
+def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True):
     '''
         The `beta` input parameters for the MCMC function determine the 
         acceptance rate of the Metropolis-Hastings algorithm. According
@@ -308,23 +309,24 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingba
     saveInterval = 10.0                    ## Save every Nth step
     acceptanceRateArray = mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False)
 
-    #idealAcceptanceRate = 0.30            ## Good rates according to Ford 2005: 0.25 - 0.44
-
-    #if loadingbar:
-    #        plt.ion()
-    #        statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
-    #        statusBarFig.canvas.set_window_title('oscaar2.0') 
-    #        plt.title('Optimizing beta vector for\nMarkov Chain Monte Carlo fit...')
-    #        plt.draw()
+    if plot:
+        plt.ion()
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('Beta optimization...')
+        axis = fig.add_subplot(111)
+        axis.set_title("Optimizing the set of $\\beta_\mu$...")
+        axis.set_xlabel("Optimization iteration")
+        axis.set_ylabel("Acceptance Rate")
+        axis.axhline(xmin=0,xmax=1,y=1.1*idealAcceptanceRate,linestyle="--",linewidth=2,color='r')
+        axis.axhline(xmin=0,xmax=1,y=0.9*idealAcceptanceRate,linestyle="--",linewidth=2,color='r')        
 
     for paramIndex in range(0,len(initParams)):    ## For each random parameter to be changed,
         iterationCounter = 0        ## Count how many times the while loop has been run
         while any(acceptanceRateArray > 1.1*idealAcceptanceRate) or any(acceptanceRateArray < 0.9*idealAcceptanceRate):    ## While the acceptance rate is unacceptable (Ford 2005), 
-            assert iterationCounter<1e4,"After 10000 trials, the input beta parameters can not be optimized"
+            assert iterationCounter<1e2,"After 100 trials, the input beta parameters were not successfully optimized. Try new initial beta values."
 
             ## Calculate the acceptance rates for each individual beta parameter
             acceptanceRateArray = mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False)
-
 
             ## If the acceptance rate is too high, the normal distributions sampled about each input parameter
             ## are not wide enough, so try increasing the beta_mu term by raising (acceptanceRate/idealAcceptanceRate)
@@ -346,7 +348,16 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingba
             print "Optimizing each Beta_mu: acceptance rates for each parameter:", acceptanceRateArray
             print "Optimize by multiplying current beta by:",betaFactor
             iterationCounter += 1
-    plt.close()
+
+            if plot: 
+                for acceptanceRate in acceptanceRateArray:
+                    axis.plot(iterationCounter,acceptanceRate,marker='o',markersize=10,alpha=0.6,markeredgecolor='none')
+                    plt.xlim([0,iterationCounter+1])
+                    plt.draw()
+    if plot:
+        sleep(1)	## Pause for a second so the user can see that the solution has been reached
+        plt.ioff()
+        plt.close()
     return beta
 
 def get_uncertainties(param,bestFitParameter):
