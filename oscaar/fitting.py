@@ -465,7 +465,7 @@ class mcmcfit:
         ##############################
         # Prepare figures
         plt.ioff()
-        fig = plt.figure(num=0, figsize=(12, 12), facecolor='w',edgecolor='k')        
+        fig = plt.figure(num=0, figsize=(10, 10), facecolor='w',edgecolor='k')        
         fig.canvas.set_window_title('MCMC Results: Chains') 
 
         figLC = plt.figure(num=1, figsize=(10, 8), facecolor='w',edgecolor='k')
