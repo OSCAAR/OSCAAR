@@ -414,7 +414,7 @@ class mcmcfit:
         ## Choose the implementation of transit light curve function to use:
         self.func = oscaar.transitModel.occultquad  
     
-    def run(self,updatepkl=False,plots=True):
+    def run(self,updatepkl=False):
         '''
         Run the MCMC algorithms: 
         '''
@@ -436,7 +436,7 @@ class mcmcfit:
                                     self.saveInterval,verbose=True,loadingbar=True)
         print self.bestp,self.allparams,self.acceptanceRate
         if updatepkl: updatePKL(self.bestp,self.allparams,self.acceptanceRate,self.dataBankPath)
-        #if plots:
+
     def plot(self):
         def occult4params(t,freeparams,allparams=self.initParams):
             '''Allow 4 parameters to vary freely, keep the others fixed at the values assigned below'''
@@ -511,7 +511,7 @@ class mcmcfit:
             postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
             Nbins = 15              ## Plot histograms with 15 bins
             n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
-            plus,minus = oscaar.mcmc.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+            plus,minus = oscaar.fitting.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
             axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
             axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')       
             axis.set_ylabel('Frequency')

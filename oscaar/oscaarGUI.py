@@ -1788,7 +1788,18 @@ class MCMCFrame(wx.Frame):
         global loadMCMC
         loadMCMC = False
     def plot(self,event):
-        print
+        path = self.pT
+        initParams = [float(self.box.GetRpOverRs()),float(self.box.GetAOverRs()),float(self.box.GetPer()),
+                      float(self.box.GetInc()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
+                      float(self.box.GetEcc()),float(self.box.GetPericenter()),float(self.box.GetT0())]
+        nSteps = float(self.box.GetStepSize())
+        initBeta = np.zeros([4]) + 0.005
+        idealAcceptanceRate = float(self.box.GetAcceptanceRate())
+        interval = float(self.box.GetNthState())
+        burnFraction = float(self.box.GetBurnPercent())
+        mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
+        mcmcinstance.run(updatepkl=True)
+        mcmcinstance.plot()
         
 class AddColumn(wx.Panel):
 
@@ -1810,11 +1821,31 @@ class AddColumn(wx.Panel):
                 ('a/Rs',"a/Rs:",
                  'Enter a value for a/Rs here.'),
                 ('b-a/Rs',"Beta a/Rs:",
-                 'Enter a beta for a/Rs here.'),                                           
+                 'Enter a beta for a/Rs here.'),
+                ('per',"Period:",
+                 'Enter a value for the period here.'),
+                ('b-per',"Beta Period:",
+                 'Enter a beta for the period here.'),
                 ('inc',"Inclination:",
                  'Enter a value for the inclination here.'),
-                ('b-inc',"Beta inclination:",
-                 'Enter a beta for inclination here.'),                                           
+                ('b-inc',"Beta Inclination:",
+                 'Enter a beta for inclination here.'),   
+                ('gamma1',"gamma1:", 
+                 'Enter a value for gamma1 here.'),
+                ('b-gamma1',"Beta gamma1:",
+                 'Enter a beta for gamma1 here.'),
+                ('gamma2',"gamma2:", 
+                 'Enter a value for gamma2 here.'),
+                ('b-gamma2',"Beta gamma2:",
+                 'Enter a beta for gamma2 here.'),   
+                ('ecc',"Eccentricity:", 
+                 'Enter a value for the eccentricity here.'),
+                ('b-ecc',"Beta Eccentricity:",
+                 'Enter a beta for the eccentricity here.'),
+                ('pericenter',"Pericenter:", 
+                 'Enter a value for the pericenter here.'),
+                ('b-pericenter',"Beta Pericenter:",
+                 'Enter a beta for the pericenter here.'),                                                                                                                           
                 ('t0',"t0:", 
                  'Enter a value for t0 here.'),
                 ('b-t0',"Beta t0:",
@@ -1823,7 +1854,10 @@ class AddColumn(wx.Panel):
                  'Enter a number for the nth state to be saved.'),
                 ('burn%',"Burn %:",
                  'Enter a value for the burn percentage here.'),
-                
+                ('acceptance',"Acceptance:",
+                 'Enter a value for the acceptance rate here.'),
+                ('number', "Number of Steps:",
+                 'Enter a value for the step size here.')
                 ]:
                 label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
                 sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
@@ -1837,22 +1871,46 @@ class AddColumn(wx.Panel):
         return self.userParams['Rp/Rs'].GetValue()
     def GetAOverRs(self):
         return self.userParams['a/Rs'].GetValue()
+    def GetPer(self):
+        return self.userParams['per'].GetValue()
     def GetInc(self):
         return self.userParams['inc'].GetValue()
+    def GetGamma1(self):
+        return self.userParams['gamma1'].GetValue()
+    def GetGamma2(self):
+        return self.userParams['gamma2'].GetValue()
+    def GetEcc(self):
+        return self.userParams['ecc'].GetValue()
+    def GetPericenter(self):
+        return self.userParams['pericenter'].GetValue()
     def GetT0(self):
         return self.userParams['t0'].GetValue()
     def GetBetaRpOverRs(self):
         return self.userParams['b-Rp/Rs'].GetValue()
     def GetBetaAOverRs(self):
         return self.userParams['b-a/Rs'].GetValue()
+    def GetBetaPer(self):
+        return self.userParams['b-per'].GetValue()
     def GetBetaInc(self):
         return self.userParams['b-inc'].GetValue()
+    def GetBetaGamma1(self):
+        return self.userParams['b-gamma1'].GetValue()
+    def GetBetaGamma2(self):
+        return self.userParams['b-gamma2'].GetValue()
+    def GetBetaEcc(self):
+        return self.userParams['b-ecc'].GetValue()
+    def GetBetaPericenter(self):
+        return self.userParams['b-pericenter'].GetValue()
     def GetBetat0(self):
         return self.userParams['b-t0'].GetValue()
     def GetNthState(self):
         return self.userParams['nth'].GetValue()
     def GetBurnPercent(self):
         return self.userParams['burn%'].GetValue()
+    def GetAcceptanceRate(self):
+        return self.userParams['acceptance'].GetValue()
+    def GetStepSize(self):
+        return self.userParams['number'].GetValue()
 
 class InvalidParameter(wx.Frame):
 
