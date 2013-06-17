@@ -455,7 +455,7 @@ class mcmcfit:
         ##############################
         # Prepare figures
         plt.ioff()
-        fig = plt.figure(num=0, figsize=(16, 8), facecolor='w',edgecolor='k')        
+        fig = plt.figure(num=0, figsize=(14, 8), facecolor='w',edgecolor='k')        
         fig.canvas.set_window_title('MCMC Results: Chains') 
 
         figLC = plt.figure(num=1, figsize=(10, 8), facecolor='w',edgecolor='k')
@@ -502,6 +502,7 @@ class mcmcfit:
             axis.set_title(title+" Chain")
             axis.set_xlabel('Saved Step Index')
             axis.set_ylabel(title)
+            axis.get_yaxis().get_major_formatter().set_useOffset(False)
             #yfmt = axis.yaxis.get_major_formatter()
             #yfmt.set_powerlimits((-50,50))
 
@@ -527,7 +528,8 @@ class mcmcfit:
         histplot(ap,ax6,'$a / R_s$',bestp[1])
         histplot(i,ax7,'Inclination',bestp[2])
         histplot(t0,ax8,'Mid-Transit Time',bestp[3])
-        fig.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.95, left=0.05, top=0.95)
+        #fig.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.95, left=0.05, top=0.95)
         figLC.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.9, left=0.1, top=0.95)
+        fig.tight_layout()
         #plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
         plt.show()
