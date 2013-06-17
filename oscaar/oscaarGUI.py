@@ -1804,10 +1804,14 @@ class MCMCFrame(wx.Frame):
             idealAcceptanceRate = float(self.box4.userParams['acceptance'].GetValue())
             interval = float(self.box4.userParams['saveiteration'].GetValue())
             burnFraction = float(self.box4.userParams['burnfrac'].GetValue())
-            mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
-            mcmcinstance.run(updatepkl=True)
-            mcmcinstance.plot()
-    
+            #mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
+            #mcmcinstance.run(updatepkl=True)
+            #mcmcinstance.plot()
+
+            mcmcCall = 'import oscaar; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True); mcmcinstance.plot()' % (self.pT,initParams,initBeta.tolist(),nSteps,interval,idealAcceptanceRate,burnFraction)
+            subprocess.call(['python','-c',mcmcCall])
+
+
 def checkParams(self,list):
     
     self.tempGamma1 = -1

@@ -114,7 +114,7 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
     chisq_min = 1e10    ## Set very high initial chi-squared that will get immediately overwritten
     for n in range(Nsteps):
         ## Update the loading bar every so often
-        if loadingbar and n % 1000 == 0:
+        if loadingbar and n % 5000 == 0:
             plt.cla()
             statusBarAx.set_title('Markov Chain Monte Carlo fitting...')
             statusBarAx.set_xlim([0,100])
@@ -197,8 +197,7 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
         for i in range(Niterations):
             initParams = originalInitParams
             #print "Iteration",i,"of",Niterations
-            testParamIndex = randomInitParamIndex[i]    ## This initParam index will be tested
-            
+            testParamIndex = int(randomInitParamIndex[i])    ## This initParam index will be tested
             ## Only use physically valid parameters, for this example, make up validity rules:
             ## Keep slope between -0.2<m<0.2 and int between 0.0<intercept<1.0
             continueTag = True
@@ -455,7 +454,7 @@ class mcmcfit:
         ##############################
         # Prepare figures
         plt.ioff()
-        fig = plt.figure(num=0, figsize=(14, 8), facecolor='w',edgecolor='k')        
+        fig = plt.figure(num=0, figsize=(12, 12), facecolor='w',edgecolor='k')        
         fig.canvas.set_window_title('MCMC Results: Chains') 
 
         figLC = plt.figure(num=1, figsize=(10, 8), facecolor='w',edgecolor='k')
@@ -463,28 +462,35 @@ class mcmcfit:
 
         LCax1 = figLC.add_subplot(211)
         LCax2 = figLC.add_subplot(212,sharex=LCax1)
-        ax1 = fig.add_subplot(241)
-        ax2 = fig.add_subplot(242)
-        ax3 = fig.add_subplot(243)
-        ax4 = fig.add_subplot(244)
-        ax5 = fig.add_subplot(245)
-        ax6 = fig.add_subplot(246)
-        ax7 = fig.add_subplot(247)
-        ax8 = fig.add_subplot(248)
+        ax1 = fig.add_subplot(421)
+        ax2 = fig.add_subplot(422)
+        ax3 = fig.add_subplot(423)
+        ax4 = fig.add_subplot(424)
+        ax5 = fig.add_subplot(425)
+        ax6 = fig.add_subplot(426)
+        ax7 = fig.add_subplot(427)
+        ax8 = fig.add_subplot(428)
 
         yfit = occult4params(x,bestp)
         LCax1.errorbar(x,y,yerr=sigma_y,fmt='o',color='k')
-        LCax1.plot(x,yfit,'r',linewidth=3)
+        LCax1.plot(x,yfit,'r',linewidth=3,alpha=0.75)
         LCax1.set_title("Fit with MCMC")
         LCax1.set_xlabel("Time (JD)")
         LCax1.set_ylabel("Relative Flux")
+        def format_coord(x, y):
+            # '''Function to give data value on mouse over plot.'''
+            return "Time (JD): %.6f, Flux: %f" % (x,y)
+        LCax1.format_coord = format_coord
         
         LCax2.errorbar(x,y-yfit,yerr=sigma_y,fmt='o',color='k')
         LCax2.axhline(xmin=0,xmax=1,y=0,ls=':',color='gray')
         LCax2.set_title("Fit Residuals")
         LCax2.set_xlabel("Time (JD)")
         LCax2.set_ylabel("Relative Flux")
-
+        def format_coord(x, y):
+            # '''Function to give data value on mouse over plot.'''
+            return "Time (JD): %.6f, Flux: %f" % (x,y)
+        LCax2.format_coord = format_coord
         ##############################
         # Plot traces and histograms of mcmc params
         p = allparams[0,:]
@@ -493,7 +499,7 @@ class mcmcfit:
         t0 = allparams[3,:]
         abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
 
-        def chainplot(parameter,axis,title,burnFraction=burnFraction):
+        def chainplot(parameter,axis,title,format,burnFraction=burnFraction):
             #yfmt.set_powerlimits((-30,30))
             #fmt2 = FormatStrFormatter('%.15f')
             #axis.yaxis.set_major_formatter(fmt2)
@@ -503,33 +509,42 @@ class mcmcfit:
             axis.set_xlabel('Saved Step Index')
             axis.set_ylabel(title)
             axis.get_yaxis().get_major_formatter().set_useOffset(False)
+            def format_coord(x, y):
+                # '''Function to give data value on mouse over plot.'''
+                return format % (x,y)
+            axis.format_coord = format_coord 
+            
             #yfmt = axis.yaxis.get_major_formatter()
             #yfmt.set_powerlimits((-50,50))
 
-        chainplot(p,ax1,'$R_p / R_s$')
-        chainplot(ap,ax2,'$a / R_s$')
-        chainplot(i,ax3,'Inclination')
-        chainplot(t0,ax4,'Mid-Transit Time')
+        chainplot(p,ax1,'$R_p / R_s$','Step: %i,  Rp/Rs: %f')
+        chainplot(ap,ax3,'$a / R_s$','Step: %i,  a/Rs: %f')
+        chainplot(i,ax5,'Inclination','Step: %i,  Inclination: %f')
+        chainplot(t0,ax7,'Mid-Transit Time','Step: %i, Mid-Trans Time: %.6f')
 
 
-        def histplot(parameter,axis,title,bestFitParameter):
+        def histplot(parameter,axis,title,bestFitParameter,format):
             postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
             Nbins = 15              ## Plot histograms with 15 bins
             n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
             plus,minus = oscaar.fitting.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
-            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r',linewidth=1.5)    ## Plot vertical lines representing uncertainties
-            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r',linewidth=1.5)       
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls='--',color='r',linewidth=1.5)    ## Plot vertical lines representing uncertainties
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls='--',color='r',linewidth=1.5)       
             axis.axvline(ymin=0,ymax=1,x=bestFitParameter,color='r',linewidth=2)       
             axis.set_ylabel('Frequency')
             axis.set_xlabel(title) 
             axis.set_title(title)
+            def format_coord(x, y):
+                # '''Function to give data value on mouse over plot.'''
+                return format % (x,y)
+            axis.format_coord = format_coord 
         ## Plot the histograms
-        histplot(p,ax5,'$R_p / R_s$',bestp[0])
-        histplot(ap,ax6,'$a / R_s$',bestp[1])
-        histplot(i,ax7,'Inclination',bestp[2])
-        histplot(t0,ax8,'Mid-Transit Time',bestp[3])
+        histplot(p,ax2,'$R_p / R_s$',bestp[0],"Rp/Rs: %f,  Freq: %i")
+        histplot(ap,ax4,'$a / R_s$',bestp[1],"a/Rs: %f,  Freq: %i")
+        histplot(i,ax6,'Inclination',bestp[2],"Inclination: %f,  Freq: %i")
+        histplot(t0,ax8,'Mid-Transit Time',bestp[3],"Mid-Trans Time: %.6f, Freq: %i")
         #fig.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.95, left=0.05, top=0.95)
-        figLC.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.9, left=0.1, top=0.95)
+        figLC.subplots_adjust(wspace=0.4,hspace=0.2,bottom=0.1, right=0.9, left=0.1, top=0.95)
         fig.tight_layout()
         #plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
         plt.show()
