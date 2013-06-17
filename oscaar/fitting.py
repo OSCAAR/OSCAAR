@@ -36,22 +36,21 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import optimize
 import oscaar
+from matplotlib.ticker import FormatStrFormatter
 
 def fitLinearTrend(xVector,yVector):
-	'''Fit a line to the set {xVectorCropped,yVectorCropped}, then remove that linear trend
-	   from the full set {xVector,yVector}'''
-	print 'linearTrend'
-	initP = [0.0,0.0]
-	fitfunc = lambda p, x: p[0]*x + p[1]
-	errfunc = lambda p, x, y: (fitfunc(p,x) - y)
-	
-	bestFitP = optimize.leastsq(errfunc,initP[:],args=(xVector,yVector))[0]
-	return bestFitP
+    '''Fit a line to the set {xVectorCropped,yVectorCropped}, then remove that linear trend
+       from the full set {xVector,yVector}'''
+    print 'linearTrend'
+    initP = [0.0,0.0]
+    fitfunc = lambda p, x: p[0]*x + p[1]
+    errfunc = lambda p, x, y: (fitfunc(p,x) - y)
+    
+    bestFitP = optimize.leastsq(errfunc,initP[:],args=(xVector,yVector))[0]
+    return bestFitP
 
 def linearFunc(xVector,params):
-	return xVector*params[0] + params[1]
-
-
+    return xVector*params[0] + params[1]
 
 def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loadingbar=True):
     '''
@@ -63,28 +62,28 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
         is saved for later analysis.
 
        :INPUTS: 
-            t 		-- time (vector)
-            flux 	-- fluxes (vector)
-            sigma 	-- uncertainties in fluxes (vector)
-            initParams	-- initial parameter estimates, `x_0` in Ford 2005 (vector)
-            func	-- fitting function (function)
-            Nsteps	-- number of iterations (int)
-            beta	-- widths of normal distribution to randomly sample for each parameter (vector)
-            saveInterval 	-- number of steps between "saves" (int)
+            t         -- time (vector)
+            flux     -- fluxes (vector)
+            sigma     -- uncertainties in fluxes (vector)
+            initParams    -- initial parameter estimates, `x_0` in Ford 2005 (vector)
+            func    -- fitting function (function)
+            Nsteps    -- number of iterations (int)
+            beta    -- widths of normal distribution to randomly sample for each parameter (vector)
+            saveInterval     -- number of steps between "saves" (int)
             
         :OUTPUTS:
-            bestp 		-- parameters at minimum chi^2  (vector)
+            bestp         -- parameters at minimum chi^2  (vector)
             x_0toN      -- trace of each parameter at each save step (matrix)
             acceptance rate     -- the final acceptance rate of the chain (float)
         :Notes:
-         * Developed by Brett Morris (NASA-GSFC/UMD)	
+         * Developed by Brett Morris (NASA-GSFC/UMD)    
          * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
          * Code implementation partly influenced by Ian Crossfield's routines: 
                 http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html
     
     '''
     
-    Nsteps = int(Nsteps)			## Type cast where necessary
+    Nsteps = int(Nsteps)            ## Type cast where necessary
     saveInterval = int(saveInterval)
     assert Nsteps % saveInterval == 0, ("Must choose integer number of `saveInterval`s in `Nsteps`. "+\
                  "Currently: Nsteps %% saveInterval = %.2f (should be zero)" % (Nsteps % saveInterval))
@@ -95,7 +94,7 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
     if loadingbar:
         plt.ion()
         statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
-        statusBarFig.canvas.set_window_title('oscaar2.0') 
+        statusBarFig.canvas.set_window_title('Running...')
         statusBarAx = statusBarFig.add_subplot(111,aspect=10)
         statusBarAx.set_title('Markov Chain Monte Carlo fitting...')
         statusBarAx.set_xlim([0,100])
@@ -124,7 +123,7 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
             statusBarAx.barh([0],[100.0*n/Nsteps],[1],color='k')
             plt.draw()
         ## Generate trial step in parameters, **Step 2 in Ford 2005**
-        x_nplus1 = np.random.normal(x_n,beta) 	
+        x_nplus1 = np.random.normal(x_n,beta)     
             ## ^^^ Sample gaussians with widths `beta` randomly centered 
             ##        about each parameter in `params`
             
@@ -132,30 +131,30 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
         trialModel = func(t,x_nplus1)
         
         ## Calculate chisq for current step **Step 3 in Ford 2005**
-        chisq_nplus1 = np.sum(((trialModel-flux)**2)*weights)	
+        chisq_nplus1 = np.sum(((trialModel-flux)**2)*weights)    
         
         ## Ratio of probability distributions, Eq. 9 of Ford 2005;  **Step 4 in Ford 2005**
-        ratioOfProbDist = np.exp((chisq_n - chisq_nplus1)/2.0)	
+        ratioOfProbDist = np.exp((chisq_n - chisq_nplus1)/2.0)    
         alpha = np.min([ratioOfProbDist,1])## Eq. 11 in Ford 2005
         
-        u = np.random.uniform(0,1)		## Draw random number on (0,1), **Step 5 in Ford 2005**
-        if u <= alpha:					## If u<=alpha, accept this state
+        u = np.random.uniform(0,1)        ## Draw random number on (0,1), **Step 5 in Ford 2005**
+        if u <= alpha:                    ## If u<=alpha, accept this state
             x_n = np.copy(x_nplus1)
             chisq_n = chisq_nplus1
             acceptedStates += 1
-        #elif u > alpha: x_nplus1 = x_n	## Implicit, commented out
+        #elif u > alpha: x_nplus1 = x_n    ## Implicit, commented out
         
-        if chisq_nplus1 < chisq_min:	## If this chisq is minimum, record it
+        if chisq_nplus1 < chisq_min:    ## If this chisq is minimum, record it
             bestp = np.copy(x_n)
             chisq_min = chisq_n
             
-        if n % saveInterval == 0: 		## Every `saveInterval`-th state, save it
+        if n % saveInterval == 0:         ## Every `saveInterval`-th state, save it
             if verbose: print "Step",n,"of",Nsteps
             x_0toN[:,n/saveInterval] = np.copy(x_n)
             allchi[n/saveInterval] = chisq_n
 
     ## Calculate acceptance rate, should ideally be ~0.44 (Ford 2005)
-    acceptanceRate = float(acceptedStates)/Nsteps	
+    acceptanceRate = float(acceptedStates)/Nsteps    
     plt.close()
     assert bestp is not None, "No best-fit found, chi^2 minimizing state not found"
     return bestp, x_0toN, acceptanceRate
@@ -166,20 +165,20 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
         optimizeBeta() function. 
         
        :INPUTS: 
-            t 		-- time (vector)
-            flux 	-- fluxes (vector)
-            sigma 	-- uncertainties in fluxes (vector)
-            initParams	-- initial parameter estimates, `x_0` in Ford 2005 (vector)
-            func	-- fitting function (function)
-            Nsteps	-- number of iterations (int)
-            beta	-- widths of normal distribution to randomly sample for each parameter (vector)
-            saveInterval 	-- number of steps between "saves" (int)
+            t         -- time (vector)
+            flux     -- fluxes (vector)
+            sigma     -- uncertainties in fluxes (vector)
+            initParams    -- initial parameter estimates, `x_0` in Ford 2005 (vector)
+            func    -- fitting function (function)
+            Nsteps    -- number of iterations (int)
+            beta    -- widths of normal distribution to randomly sample for each parameter (vector)
+            saveInterval     -- number of steps between "saves" (int)
             
         :OUTPUTS:
-            acceptanceRateArray	-- Array of acceptance rates for each beta_mu
+            acceptanceRateArray    -- Array of acceptance rates for each beta_mu
 
         :Notes:
-         * Developed by Brett Morris (NASA-GSFC/UMD)	
+         * Developed by Brett Morris (NASA-GSFC/UMD)    
          * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
          * Code implementation partly influenced by Ian Crossfield's routines: 
                 http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html
@@ -187,28 +186,28 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
     '''
     bestp = None
     while bestp == None:
-        Niterations = 5*len(initParams)#20 ##40000	## Hard coded in Evan's code as 4e4
+        Niterations = 5*len(initParams)#20 ##40000    ## Hard coded in Evan's code as 4e4
 
         
         ## Change one of the initial parameters at random per each iteration
-        randomInitParamIndex = np.floor(np.random.uniform(0,len(initParams),Niterations))	## array of random indices of initParams
-        NacceptancesPerParameter = np.zeros(len(initParams))	## initialize arrays
+        randomInitParamIndex = np.floor(np.random.uniform(0,len(initParams),Niterations))    ## array of random indices of initParams
+        NacceptancesPerParameter = np.zeros(len(initParams))    ## initialize arrays
         NstepsPerParameter = np.zeros(len(initParams))
         originalInitParams = np.copy(initParams)
         for i in range(Niterations):
             initParams = originalInitParams
             #print "Iteration",i,"of",Niterations
-            testParamIndex = randomInitParamIndex[i]	## This initParam index will be tested
+            testParamIndex = randomInitParamIndex[i]    ## This initParam index will be tested
             
             ## Only use physically valid parameters, for this example, make up validity rules:
             ## Keep slope between -0.2<m<0.2 and int between 0.0<intercept<1.0
             continueTag = True
             #while initParams[0] > 0.2 or initParams[0] < -0.2 or initParams[1] > 1.0 or initParams[1] < 0.0 or continueTag:
-            #	initParams[testParamIndex] += np.random.normal(0,1)*beta[testParamIndex]			## np.random.normal(0,1) is equivalent to the IDL: randomn(seed,1)
-            #	continueTag = False
+            #    initParams[testParamIndex] += np.random.normal(0,1)*beta[testParamIndex]            ## np.random.normal(0,1) is equivalent to the IDL: randomn(seed,1)
+            #    continueTag = False
             initParams[testParamIndex] += np.random.normal(0,1)*beta[testParamIndex]
             
-            Nsteps = int(Nsteps)			## Type cast where necessary
+            Nsteps = int(Nsteps)            ## Type cast where necessary
             saveInterval = int(saveInterval)
             assert Nsteps % saveInterval == 0, ("Must choose integer number of `saveInterval`s in `Nsteps`. "+\
                          "Currently: Nsteps %% saveInterval = %.2f (should be zero)" % (Nsteps % saveInterval))
@@ -228,7 +227,7 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
             chisq_min = 1e10    ## Set very high initial chi-squared that will get immediately overwritten
             for n in range(Nsteps):
                 ## Generate trial step in parameters, **Step 2 in Ford 2005**
-                x_nplus1 = np.random.normal(x_n,beta) 	
+                x_nplus1 = np.random.normal(x_n,beta)     
                     ## ^^^ Sample gaussians with widths `beta` randomly centered 
                     ##        about each parameter in `params`
                     
@@ -236,32 +235,32 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
                 trialModel = func(t,x_nplus1)
                 
                 ## Calculate chisq for current step **Step 3 in Ford 2005**
-                chisq_nplus1 = np.sum(((trialModel-flux)**2)*weights)	
+                chisq_nplus1 = np.sum(((trialModel-flux)**2)*weights)    
                 
                 ## Ratio of probability distributions, Eq. 9 of Ford 2005;  **Step 4 in Ford 2005**
-                ratioOfProbDist = np.exp((chisq_n - chisq_nplus1)/2.0)	
+                ratioOfProbDist = np.exp((chisq_n - chisq_nplus1)/2.0)    
                 alpha = np.min([ratioOfProbDist,1])## Eq. 11 in Ford 2005
                 
-                u = np.random.uniform(0,1)		## Draw random number on (0,1), **Step 5 in Ford 2005**
-                if u <= alpha:					## If u<=alpha, accept this state
+                u = np.random.uniform(0,1)        ## Draw random number on (0,1), **Step 5 in Ford 2005**
+                if u <= alpha:                    ## If u<=alpha, accept this state
                     x_n = np.copy(x_nplus1)
                     chisq_n = chisq_nplus1
                     acceptedStates += 1
                     NacceptancesPerParameter[testParamIndex] += 1
                 NstepsPerParameter[testParamIndex] += 1
-                #elif u > alpha: x_nplus1 = x_n	## Implicit, commented out
+                #elif u > alpha: x_nplus1 = x_n    ## Implicit, commented out
                 
-                if chisq_nplus1 < chisq_min:	## If this chisq is minimum, record it
+                if chisq_nplus1 < chisq_min:    ## If this chisq is minimum, record it
                     bestp = np.copy(x_n)
                     chisq_min = chisq_n
                     
-                if n % saveInterval == 0: 		## Every `saveInterval`-th state, save it
+                if n % saveInterval == 0:         ## Every `saveInterval`-th state, save it
                     if verbose: print "Step",n,"of",Nsteps
                     x_0toN[:,n/saveInterval] = np.copy(x_n)
                     allchi[n/saveInterval] = chisq_n
         
             ## Calculate acceptance rate, should ideally be ~0.44 (Ford 2005)
-            acceptanceRate = float(acceptedStates)/Nsteps	
+            acceptanceRate = float(acceptedStates)/Nsteps    
         
             #assert bestp is not None, "No best-fit found, chi^2 minimizing state not found"
             #return bestp, x_0toN, acceptanceRate
@@ -287,13 +286,13 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingba
         Ford (2005) should be between 0.25-0.44.
     
        :INPUTS: 
-            t 		-- time (vector)
-            flux 	-- fluxes (vector)
-            sigma 	-- uncertainties in fluxes (vector)
-            initParams	-- initial parameter estimates, `x_0` in Ford 2005 (vector)
-            func	-- fitting function (function)
-            beta	-- widths of normal distribution to randomly sample for each parameter (vector)
-            idealAcceptanceRate 	--  desired acceptance rate to be produced by the optimized `beta` (float)
+            t         -- time (vector)
+            flux     -- fluxes (vector)
+            sigma     -- uncertainties in fluxes (vector)
+            initParams    -- initial parameter estimates, `x_0` in Ford 2005 (vector)
+            func    -- fitting function (function)
+            beta    -- widths of normal distribution to randomly sample for each parameter (vector)
+            idealAcceptanceRate     --  desired acceptance rate to be produced by the optimized `beta` (float)
             
             
         :OUTPUTS:
@@ -301,16 +300,16 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingba
                     acceptance rates near `idealAcceptanceRate` (vector)
 
         :Notes:
-         * Developed by Brett Morris (NASA-GSFC/UMD)	
+         * Developed by Brett Morris (NASA-GSFC/UMD)    
          * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
          * Code implementation partly influenced by Evan Sinukoff's MCMC_Evan_Master_v3_new22.pro
     '''
     
     Nsteps = len(initParams)*100.0      ## do N iterations per parameter
-    saveInterval = 10.0					## Save every Nth step
+    saveInterval = 10.0                    ## Save every Nth step
     acceptanceRateArray = mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False)
 
-    #idealAcceptanceRate = 0.30			## Good rates according to Ford 2005: 0.25 - 0.44
+    #idealAcceptanceRate = 0.30            ## Good rates according to Ford 2005: 0.25 - 0.44
 
     #if loadingbar:
     #        plt.ion()
@@ -319,9 +318,9 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingba
     #        plt.title('Optimizing beta vector for\nMarkov Chain Monte Carlo fit...')
     #        plt.draw()
 
-    for paramIndex in range(0,len(initParams)):	## For each random parameter to be changed,
-        iterationCounter = 0		## Count how many times the while loop has been run
-        while any(acceptanceRateArray > 1.1*idealAcceptanceRate) or any(acceptanceRateArray < 0.9*idealAcceptanceRate):	## While the acceptance rate is unacceptable (Ford 2005), 
+    for paramIndex in range(0,len(initParams)):    ## For each random parameter to be changed,
+        iterationCounter = 0        ## Count how many times the while loop has been run
+        while any(acceptanceRateArray > 1.1*idealAcceptanceRate) or any(acceptanceRateArray < 0.9*idealAcceptanceRate):    ## While the acceptance rate is unacceptable (Ford 2005), 
             assert iterationCounter<1e4,"After 10000 trials, the input beta parameters can not be optimized"
 
             ## Calculate the acceptance rates for each individual beta parameter
@@ -336,10 +335,10 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,loadingba
             ## phi to be zero, i.e., betaFactor = 1.0, or "make no change in beta_mu on this step"
             phi = np.zeros(len(acceptanceRateArray)) ## Initialize `phi` array
             
-            phi[acceptanceRateArray > 1.1*idealAcceptanceRate] = 1	
+            phi[acceptanceRateArray > 1.1*idealAcceptanceRate] = 1    
             phi[acceptanceRateArray < 0.9*idealAcceptanceRate] = 1
-            #phi[acceptanceRateArray > 1.4*idealAcceptanceRate] = 3			## If very far from within the limits, use higher power
-            #phi[acceptanceRateArray < 0.6*idealAcceptanceRate] = 3			
+            #phi[acceptanceRateArray > 1.4*idealAcceptanceRate] = 3            ## If very far from within the limits, use higher power
+            #phi[acceptanceRateArray < 0.6*idealAcceptanceRate] = 3            
             phi[(acceptanceRateArray <= 1.1*idealAcceptanceRate)*(acceptanceRateArray >= 0.9*idealAcceptanceRate)] = 0
             betaFactor = np.power(acceptanceRateArray/idealAcceptanceRate,phi) ## Change beta by a factor of `betaFactor
             betaFactor[betaFactor < 0.01] = 0.01        ## If betaFactor very small, limit it to 1/100
@@ -455,25 +454,37 @@ class mcmcfit:
     
         ##############################
         # Prepare figures
-        fig = plt.figure(num=None, figsize=(16, 8), facecolor='w',edgecolor='k')
-        ax1 = fig.add_subplot(251)
-        ax2 = fig.add_subplot(252)
-        ax3 = fig.add_subplot(253)
-        ax4 = fig.add_subplot(254)
-        ax5 = fig.add_subplot(255)
-        ax6 = fig.add_subplot(256)
-        ax7 = fig.add_subplot(257)
-        ax8 = fig.add_subplot(258)
-        ax9 = fig.add_subplot(259)
-        ax10 = fig.add_subplot(2,5,10)
-        yfit = occult4params(x,bestp)
-        ax1.errorbar(x,y,yerr=sigma_y,fmt='o-')
-        ax1.plot(x,yfit,'r')
-        ax1.set_title("Fit with MCMC")
+        plt.ioff()
+        fig = plt.figure(num=0, figsize=(16, 8), facecolor='w',edgecolor='k')        
+        fig.canvas.set_window_title('MCMC Results: Chains') 
 
-        ax6.errorbar(x,y-yfit,yerr=sigma_y,fmt='o-')
-        #ax6.plot(x,yfit,'r')
-        ax6.set_title("Residuals: Fit with MCMC")
+        figLC = plt.figure(num=1, figsize=(10, 8), facecolor='w',edgecolor='k')
+        figLC.canvas.set_window_title('MCMC Results: Light Curve') 
+
+        LCax1 = figLC.add_subplot(211)
+        LCax2 = figLC.add_subplot(212,sharex=LCax1)
+        ax1 = fig.add_subplot(241)
+        ax2 = fig.add_subplot(242)
+        ax3 = fig.add_subplot(243)
+        ax4 = fig.add_subplot(244)
+        ax5 = fig.add_subplot(245)
+        ax6 = fig.add_subplot(246)
+        ax7 = fig.add_subplot(247)
+        ax8 = fig.add_subplot(248)
+
+        yfit = occult4params(x,bestp)
+        LCax1.errorbar(x,y,yerr=sigma_y,fmt='o',color='k')
+        LCax1.plot(x,yfit,'r',linewidth=3)
+        LCax1.set_title("Fit with MCMC")
+        LCax1.set_xlabel("Time (JD)")
+        LCax1.set_ylabel("Relative Flux")
+        
+        LCax2.errorbar(x,y-yfit,yerr=sigma_y,fmt='o',color='k')
+        LCax2.axhline(xmin=0,xmax=1,y=0,ls=':',color='gray')
+        LCax2.set_title("Fit Residuals")
+        LCax2.set_xlabel("Time (JD)")
+        LCax2.set_ylabel("Relative Flux")
+
         ##############################
         # Plot traces and histograms of mcmc params
         p = allparams[0,:]
@@ -481,48 +492,42 @@ class mcmcfit:
         i = allparams[2,:]
         t0 = allparams[3,:]
         abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
-        #burnFraction = 0.20     ## "burn" or ignore the first 20% of the chains
 
-        ax2.plot(abscissa,p,'k.')
-        ax2.set_title('$R_p / R_s$ trace')
-        ax2.set_xlabel('Saved Link Index')
-        ax2.set_ylabel('$R_p / R_s$')
-        ax2.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+        def chainplot(parameter,axis,title,burnFraction=burnFraction):
+            #yfmt.set_powerlimits((-30,30))
+            #fmt2 = FormatStrFormatter('%.15f')
+            #axis.yaxis.set_major_formatter(fmt2)
+            axis.plot(abscissa,parameter,'k.')
+            axis.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':',color='gray',linewidth=1.5)
+            axis.set_title(title+" Chain")
+            axis.set_xlabel('Saved Step Index')
+            axis.set_ylabel(title)
+            #yfmt = axis.yaxis.get_major_formatter()
+            #yfmt.set_powerlimits((-50,50))
 
-        ax3.plot(abscissa,ap,'k.')
-        ax3.set_title('$a / R_s$ trace')
-        ax3.set_xlabel('Saved Link Index')
-        ax3.set_ylabel('$a / R_s$')
-        ax3.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+        chainplot(p,ax1,'$R_p / R_s$')
+        chainplot(ap,ax2,'$a / R_s$')
+        chainplot(i,ax3,'Inclination')
+        chainplot(t0,ax4,'Mid-Transit Time')
 
-        ax4.plot(abscissa,i,'k.')
-        ax4.set_title('Inclination trace')
-        ax4.set_xlabel('Saved Link Index')
-        ax4.set_ylabel('Inclination')
-        ax4.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-
-        ax5.plot(abscissa,t0,'k.')
-        ax5.set_title('Mid-Transit Time trace')
-        ax5.set_ylabel('Mid-Transit Time')
-        ax5.set_xlabel('Saved Link Index')
-        ax5.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
 
         def histplot(parameter,axis,title,bestFitParameter):
             postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
             Nbins = 15              ## Plot histograms with 15 bins
             n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
             plus,minus = oscaar.fitting.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
-            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
-            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')       
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r',linewidth=1.5)    ## Plot vertical lines representing uncertainties
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r',linewidth=1.5)       
+            axis.axvline(ymin=0,ymax=1,x=bestFitParameter,color='r',linewidth=2)       
             axis.set_ylabel('Frequency')
             axis.set_xlabel(title) 
             axis.set_title(title)
         ## Plot the histograms
-        histplot(p,ax7,'$R_p / R_s$',bestp[0])
-        histplot(ap,ax8,'$a / R_s$',bestp[1])
-        histplot(i,ax9,'Inclination',bestp[2])
-        histplot(t0,ax10,'Mid-Transit Time',bestp[3])
-        plt.ioff()
-        plt.subplots_adjust(wspace=0.4,hspace=0.4,bottom=0.05, right=0.95, left=0.05, top=0.95)
+        histplot(p,ax5,'$R_p / R_s$',bestp[0])
+        histplot(ap,ax6,'$a / R_s$',bestp[1])
+        histplot(i,ax7,'Inclination',bestp[2])
+        histplot(t0,ax8,'Mid-Transit Time',bestp[3])
+        fig.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.95, left=0.05, top=0.95)
+        figLC.subplots_adjust(wspace=0.4,hspace=0.3,bottom=0.1, right=0.9, left=0.1, top=0.95)
         #plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
         plt.show()

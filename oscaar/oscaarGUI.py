@@ -1725,10 +1725,10 @@ class MCMCFrame(wx.Frame):
         self.box3.userParams['gamma2'].SetValue('0.3')
         self.box3.userParams['ecc'].SetValue('0.0')
         self.box3.userParams['pericenter'].SetValue('0.0')
-        self.box4.userParams['saveiteration'].SetValue('100')
+        self.box4.userParams['saveiteration'].SetValue('10')
         self.box4.userParams['burnfrac'].SetValue('0.20')
         self.box4.userParams['acceptance'].SetValue('0.30')
-        self.box4.userParams['number'].SetValue('1000')
+        self.box4.userParams['number'].SetValue('10000')
 
         
         self.plotButton = wx.Button(self.panel,label = 'Plot')
