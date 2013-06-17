@@ -1022,8 +1022,10 @@ class LoadOldPklFrame(wx.Frame):
         
         global loadGraphFrame
         global loadLSFIT
+        global loadMCMC
         loadGraphFrame = False
         loadLSFIT = False
+        loadMCMC = False
         
         
         self.title = "Load An Old .pkl File"
@@ -1044,29 +1046,32 @@ class LoadOldPklFrame(wx.Frame):
             self.plotInteractiveLightCurveButton = wx.Button(self.panel,label = 'Plot Interactive Light Curve', size = (170,25))        
         elif sys.platform == 'darwin':
             self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,25)) 
-	    self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,25))
-	    self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (130,25))
+            self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,25))
+            self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (130,25))
             self.plotCentroidPositionsButton = wx.Button(self.panel,-1,label = 'Trace Stellar\nCentroid Positions', size = (150,40))
             self.plotComparisonStarWeightingsButton = wx.Button(self.panel,-1,label = 'Plot Comparison\nStar Weightings', size = (150,40))
             self.plotInteractiveLightCurveButton = wx.Button(self.panel,-1,label = 'Plot Interactive Light Curve', size = (190,25))
         else:
             self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,30)) 
-	    self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,30))
+            self.plotRawFluxButton = wx.Button(self.panel,label = 'Plot Raw Fluxes', size = (130,30))
             self.plotScaledFluxesButton = wx.Button(self.panel,label = 'Plot Scaled Fluxes', size = (135,30))
             self.plotCentroidPositionsButton = wx.Button(self.panel,-1,label = 'Trace Stellar\nCentroid Positions', size = (150,45))
             self.plotComparisonStarWeightingsButton = wx.Button(self.panel,-1,label = 'Plot Comparison\nStar Weightings', size = (150,45))
             self.plotInteractiveLightCurveButton = wx.Button(self.panel,-1,label = 'Plot Interactive Light Curve', size = (195,30))
-        
+
         self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
-        self.Bind(wx.EVT_BUTTON, self.plotLightCurve,self.plotLightCurveButton)
+        self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
+        
+        self.Bind(wx.EVT_BUTTON, self.plotLightCurve, self.plotLightCurveButton)
         self.Bind(wx.EVT_BUTTON, self.plotRawFlux, self.plotRawFluxButton)
         self.Bind(wx.EVT_BUTTON, self.plotScaledFluxes,self.plotScaledFluxesButton)
         self.Bind(wx.EVT_BUTTON, self.plotCentroidPosition, self.plotCentroidPositionsButton)
         self.Bind(wx.EVT_BUTTON, self.plotComparisonStarWeightings, self.plotComparisonStarWeightingsButton)
         self.Bind(wx.EVT_BUTTON, self.plotInteractiveLightCurve, self.plotInteractiveLightCurveButton)    
-        self.Bind(wx.EVT_BUTTON,self.plotLSFit, self.plotLSFitButton)
+        self.Bind(wx.EVT_BUTTON, self.plotLSFit, self.plotLSFitButton)
+        self.Bind(wx.EVT_BUTTON, self.plotMCMC, self.plotMCMCButton)
         
-        self.sizer0 = wx.FlexGridSizer(rows=1, cols=7)
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=4)
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
 
@@ -1077,6 +1082,7 @@ class LoadOldPklFrame(wx.Frame):
         self.sizer0.Add(self.plotComparisonStarWeightingsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotInteractiveLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
          
         self.pklPathTxt = self.box.txtbox
         self.create_menu()
@@ -1178,6 +1184,15 @@ class LoadOldPklFrame(wx.Frame):
             if loadLSFIT == False:
                 LeastSquaresFitFrame()
                 loadLSFIT = True
+    
+    def plotMCMC(self,event):
+        if self.validityCheck():
+            global pathText
+            global loadMCMC
+            pathText = self.pklPathTxt.GetValue()
+            if loadMCMC == False:
+                MCMCFrame()
+                loadMCMC = True
             
     def validityCheck(self):
         invalidString = ""
@@ -1484,7 +1499,7 @@ class LeastSquaresFitFrame(wx.Frame):
         
         self.pT = pathText
         self.data = oscaar.load(self.pT)
-#         
+         
         self.box1 = AddLCB(self.panel,-1,name='planet')
         self.Bind(wx.EVT_BUTTON,self.update,self.box1.updateButton)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -1527,7 +1542,7 @@ class LeastSquaresFitFrame(wx.Frame):
 
         if self.checkParams() == True:
             fit, success = oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
-                                          float(self.box.GetRatio()),float(self.box.GetRatio2()),float(self.box.GetInc()),
+                                          float(self.box.GetRpOverRs()),float(self.box.GetAOverRs()),float(self.box.GetInc()),
                                           float(self.box.GetT0()),float(self.box.GetGamma1()),float(self.box.GetGamma2()),
                                           float(self.box.GetPeriod()),float(self.box.GetEcc()), float(self.box.GetPericenter()),
                                           fitLimbDark=tempLimbDark, plotting=True)
@@ -1539,7 +1554,7 @@ class LeastSquaresFitFrame(wx.Frame):
 
     def checkParams(self):
 
-        list = [(self.box.GetRatio(),"ratio"),(self.box.GetRatio2(),"ratio2"),(self.box.GetInc(),"inc"),
+        list = [(self.box.GetRpOverRs(),"Rp/Rs"),(self.box.GetAOverRs(),"a/Rs"),(self.box.GetInc(),"inc"),
                 (self.box.GetT0(),"t0"),(self.box.GetGamma1(),"gamma1"),(self.box.GetGamma2(),"gamma2"),
                 (self.box.GetPeriod(),"per"),(self.box.GetEcc(),"ecc"),(self.box.GetPericenter(),"pericenter"),
                 (self.box.GetLimbDark(),"limbdark")]
@@ -1554,11 +1569,11 @@ class LeastSquaresFitFrame(wx.Frame):
                 except ValueError:
                     InvalidParameter(number, None,-1, str=string)
                     return False
-                if string == "ratio":
+                if string == "Rp/Rs":
                     if float(number)>1 or float(number)<0:
                         InvalidParameter(number, None,-1, str=string)
                         return False
-                if string == "ratio2":
+                if string == "a/Rs":
                     if float(number) <= 1:
                         InvalidParameter(number, None,-1, str=string)
                         return False
@@ -1601,13 +1616,13 @@ class LeastSquaresFitFrame(wx.Frame):
             InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
         else:
             self.planet = self.box1.txtbox.GetValue()
-            [ratio,ratio2,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
+            [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
-            if ratio == -1 or ratio2 == -1 or per == -1 or inc == -1 or ecc == -1:
+            if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
                 InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
             else:
-                self.box.userParams['ratio'].SetValue(str(ratio))
-                self.box.userParams['ratio2'].SetValue(str(ratio2))
+                self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
+                self.box.userParams['a/Rs'].SetValue(str(AOverRs))
                 self.box.userParams['per'].SetValue(str(per))
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box.userParams['ecc'].SetValue(str(ecc))
@@ -1645,10 +1660,10 @@ class ScanBox(wx.Panel):
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
             
             for (widget,label,ToolTip) in [
-                ('ratio',"Ratio of Radii (R_p/R_s):",
+                ('Rp/Rs',"Ratio of Radii (Rp/Rs):",
                  'Enter a ratio of the radii here.'),
-                ('ratio2',"A over R_s:",
-                 'Enter a value for A over R_s here.'),
+                ('a/Rs',"a/Rs:",
+                 'Enter a value for a/Rs here.'),
                 ('per',"Period:",
                  'Enter a value for the period here.'),
                 ('inc',"Inclination:",
@@ -1692,10 +1707,10 @@ class ScanBox(wx.Panel):
             self.SetSizer(sizer)
             sizer.Fit(self)
 
-        def GetRatio(self):
-            return self.userParams['ratio'].GetValue()
-        def GetRatio2(self):
-            return self.userParams['ratio2'].GetValue()
+        def GetRpOverRs(self):
+            return self.userParams['Rp/Rs'].GetValue()
+        def GetAOverRs(self):
+            return self.userParams['a/Rs'].GetValue()
         def GetPeriod(self):
             return self.userParams['per'].GetValue()
         def GetInc(self):
@@ -1712,6 +1727,101 @@ class ScanBox(wx.Panel):
             return self.userParams['pericenter'].GetValue()
         def GetLimbDark(self):
             return self.userParams['limbdark'].GetValue()
+
+class MCMCFrame(wx.Frame):
+    
+    title = "MCMC Fit"
+    
+    def __init__(self):
+
+        wx.Frame.__init__(self, None,-1, self.title)
+        
+        self.panel = wx.Panel(self)
+        
+        self.pT = pathText
+        self.data = oscaar.load(self.pT)
+        
+        self.box = AddColumn(self.panel,-1)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.vbox.AddSpacer(10)
+        self.vbox.AddSpacer(10)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.create_menu()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.Center()
+        self.Show()
+    
+    def create_menu(self):
+    
+        # These commands create a drop down menu with the save command, and exit command.
+    
+        self.menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+        
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+        
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def onDestroy(self, event):
+        global loadMCMC
+        loadMCMC = False
+        
+class AddColumn(wx.Panel):
+
+    def __init__(self, parent,id):
+
+            wx.Panel.__init__(self,parent,id)
+            
+            box1 = wx.StaticBox(self, -1, "Input Parameters")
+            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+            self.userParams = {}
+            sizer0 = wx.FlexGridSizer(rows=5, cols=4)
+            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+            
+            for (widget,label,ToolTip) in [
+                ('Rp/Rs',"Ratio of Radii (Rp/Rs):",
+                 'Enter a ratio of the radii here.'),
+                ('b-Rp/Rs',"Beta Rp/Rs:",
+                 'Enter a beta for Rp/Rs here.'),
+                ('a/Rs',"a/Rs:",
+                 'Enter a value for a/Rs here.'),
+                ('b-a/Rs',"Beta a/Rs:",
+                 'Enter a beta for a/Rs here.'),                                           
+                ('inc',"Inclination:",
+                 'Enter a value for the inclination here.'),
+                ('b-inc',"Beta inclination:",
+                 'Enter a beta for inclination here.'),                                           
+                ('ecc',"Eccentricity: ", 
+                 'Enter a value for the eccentricity here.'),
+                ('b-ecc',"Beta eccentricity:",
+                 'Enter a beta for eccentricity here.'),
+                ('nth',"Nth state save:",
+                 'Enter a number for the nth state to be saved.'),
+                ('burn%',"Burn %:",
+                 'Enter a value for the burn percentage here.'),
+                
+                ]:
+                label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
+                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                self.userParams[widget] = wx.TextCtrl(self, -1)
+                self.userParams[widget].SetToolTipString(ToolTip)
+                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+            self.SetSizer(sizer)
+            sizer.Fit(self)
+        
 
 class InvalidParameter(wx.Frame):
 
@@ -1731,9 +1841,9 @@ class InvalidParameter(wx.Frame):
 
         if max != '0':
             self.string = "The bin size must be between 5 and "+max+"."
-        if str == "ratio":
+        if str == "Rp/Rs":
             self.string = "The value for Rp over Rs must be between 0 and 1."
-        elif str == "ratio2":
+        elif str == "a/Rs":
             self.string = "The value for A over Rs must be greater than 1."
         elif str == "inc":
             self.string = "The value for the inclincation must be between 0 and 90."
