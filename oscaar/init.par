@@ -9,6 +9,6 @@ Plot Tracking: off
 Plot Photometry: off
 Smoothing Constant: 3
 CCD Gain: 1.0
-Radius: 8
+Radius: 4.5
 Tracking Zoom: 15
 Init GUI: on

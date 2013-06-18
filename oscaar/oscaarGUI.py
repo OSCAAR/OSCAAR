@@ -91,7 +91,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.darkPathBtn = wx.Button(self, -1, 'Browse')
         self.flatPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.flatPathBtn = wx.Button(self, -1, 'Browse')
-        self.imagPathTxt = wx.TextCtrl(self, size = textCtrlSize)
+        self.imagPathTxt = wx.TextCtrl(self, size = textCtrlSize, style = wx.TE_RICH)
         self.imagPathBtn = wx.Button(self, -1, 'Browse')
         self.regPathTxt = wx.TextCtrl(self, size = textCtrlSize)
         self.regPathBtn = wx.Button(self, -1, 'Browse')
@@ -349,7 +349,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 	    ##If it is valid and you are going to overwrite other output, it will allow you to back out
             if self.outputOverwriteCheck(self.outputTxt.GetValue()):
 		##destroy oscaarFrame and run photometry script in separate thread to avoid freezing up the GUI
-                self.Destroy()
+                #self.Destroy()
                 if not worker:
                     worker = WorkerThread()
     
