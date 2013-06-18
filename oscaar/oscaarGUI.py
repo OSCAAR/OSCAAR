@@ -251,9 +251,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
-        else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        else:
+	    dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
-            filenames = dlg.GetPaths()
+	    if saveDialog == wx.SAVE:
+		filenames = [dlg.GetPath()]
+            else: filenames = dlg.GetPaths()
             textControl.Clear()
             for i in range(0,len(filenames)):
                 if i != len(filenames)-1:
