@@ -573,11 +573,11 @@ class MasterFlatFrame(wx.Frame):
         self.frameSizer.Add(self.runButton, (4,5), wx.DefaultSpan, wx.TOP, 15) 
         self.frameSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
         self.addPathChoice(self.frameSizer, 1, wx.StaticText(self, -1, 'Path to Flat Images:'), 
-                           self.flatBrowse, self.flatImagesPathCtrl, 'Choose Path to Flats...')
+                           self.flatBrowse, self.flatImagesPathCtrl, 'Choose Path to Flats...', wx.FD_MULTIPLE)
         self.addPathChoice(self.frameSizer, 2, wx.StaticText(self, -1, 'Path to Dark Flat Images:'), 
-                           self.darkBrowse, self.flatDarksPathCtrl, 'Choose Path to Darks...')
+                           self.darkBrowse, self.flatDarksPathCtrl, 'Choose Path to Darks...', wx.FD_MULTIPLE)
         self.addPathChoice(self.frameSizer, 3, wx.StaticText(self, -1, 'Path to Save Master Flat:'), 
-                           self.masterPathBrowse, self.masterFlatPathCtrl, 'Choose Path to Save Master Flat...')
+                           self.masterPathBrowse, self.masterFlatPathCtrl, 'Choose Path to Save Master Flat...', wx.FD_SAVE)
         self.frameSizer.Add(self.plotsRadioBox, (4,0), wx.DefaultSpan)
         self.frameSizer.Add(self.flatRadioBox, (4,1), (1,4))
         ###Set GUI Frame Attributes###
@@ -597,11 +597,11 @@ class MasterFlatFrame(wx.Frame):
         global masterFlatOpen
         masterFlatOpen = False
 
-    def addPathChoice(self, sizer, row, label, btn, textCtrl, message):
+    def addPathChoice(self, sizer, row, label, btn, textCtrl, message, style):
         sizer.Add(label, (row, 0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
         sizer.Add(textCtrl, (row, 1), (1,4), wx.TOP, 7)
         sizer.Add(btn, (row, 5), (1,1), wx.TOP, 7)
-        btn.Bind(wx.EVT_BUTTON, lambda event: self.openDirDialog(event, message, textCtrl))
+        btn.Bind(wx.EVT_BUTTON, lambda event: self.openDirDialog(event, message, textCtrl, style))
 
     def addButtonPair(self, row, colStart, button1, button2, label):
         label.SetFont(self.labelFont)
@@ -610,10 +610,12 @@ class MasterFlatFrame(wx.Frame):
         self.frameSizer.Add(button2, (row, colStart+2), wx.DefaultSpan, wx.TOP, 7)
 
     #####Button Press Event Functions#####
-    def openDirDialog(self, event, message, textControl):
-        dlg = wx.FileDialog(self, message = message, style = wx.FD_MULTIPLE)
+    def openDirDialog(self, event, message, textControl, style):
+        dlg = wx.FileDialog(self, message = message, style = style)
         if dlg.ShowModal() == wx.ID_OK:
-            filenames = dlg.GetPaths()
+	    if style == wx.FD_SAVE:
+		filenames = [dlg.GetPath()]
+            else: filenames = dlg.GetPaths()
             textControl.Clear()
             for i in range(0,len(filenames)):
                 if i != len(filenames)-1:
