@@ -62,10 +62,15 @@ for expNumber in range(0,N_exposures):
         data.storeCentroid(star,expNumber,x,y)              ## Store the centroid positions
 
         ## Measure the flux and uncertainty, centered on the previously found stellar centroid
-        flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, \
+        #flux, error, photFlag = photometry.phot(image, x, y, data.apertureRadius, plottingThings, ccdGain = data.ccdGain, \
+        #                                        plots=data.photPlots)
+        #data.storeFlux(star,expNumber,flux,error)           ## Store the flux and uncertainty in the data object
+        
+        fluxes, errors, photFlags = photometry.multirad(image, x, y, data.apertureRadiusRange, plottingThings, ccdGain = data.ccdGain, \
                                                 plots=data.photPlots)
-
-        data.storeFlux(star,expNumber,flux,error)           ## Store the flux and uncertainty in the data object
+        photFlag = any(photFlags)
+        data.storeFluxes(star,expNumber,fluxes,errors)           ## Store the flux and uncertainty in the data object
+        
         if trackFlag or photFlag and (not data.getFlag()): data.setFlag(star,False) ## Store error flags
         if data.trackPlots or data.photPlots: plt.draw()	## More plotting settings 
 
@@ -74,17 +79,20 @@ for expNumber in range(0,N_exposures):
 
 plt.close()
 
+print "**********\nApertureRadii: %s\n**********" % str(data.apertureRadii)
+
+
 ## Compute the scaled fluxes of each comparison star
-data.scaleFluxes()		
+data.scaleFluxes_multirad()		
 
 ## Calculate a composite comparison star by combining all comparisons
-meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = data.ccdGain)
-
+meanComparisonStars, meanComparisonStarErrors = data.calcMeanComparison_multirad(ccdGain = data.ccdGain)
+print meanComparisonStars[0][0],meanComparisonStars[1][0],meanComparisonStars[2][0]
 ## Calculate the light curve
-lightCurve, lightCurveError = data.computeLightCurve(meanComparisonStar,meanComparisonStarError)
-
+lightCurves, lightCurveErrors = data.computeLightCurve_multirad(meanComparisonStars,meanComparisonStarErrors)
+print "LightCurves:",lightCurves[0][0], lightCurves[1][0], lightCurves[2][0]
 ## Save the dataBank object for later use
 oscaar.save(data,outputPath)
 
 ## Plot the resulting light curve
-data.plotLightCurve(pointsPerBin=N_exposures/20)
+data.plotLightCurve_multirad()

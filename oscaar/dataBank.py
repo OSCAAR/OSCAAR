@@ -50,10 +50,18 @@ class dataBank:
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
         self.targetKey = '000'
+        
+        apertureRadiusMin, apertureRadiusMax,apertureRadiusStep = self.apertureRadiusRange
+        self.apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax,apertureRadiusStep)
+        Nradii = len(self.apertureRadii)
+        
         for i in range(0,len(init_x_list)):
+            #self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
+            #    'rawFlux':Nradii*[np.copy(zeroArray)], 'rawError':Nradii*[np.copy(zeroArray)],'flag':False,\
+            #    'scaledFlux':Nradii*[np.copy(zeroArray)], 'scaledError':Nradii*[np.copy(zeroArray)], 'chisq':np.zeros_like(self.apertureRadii)}
             self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
-                'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
-                'scaledFlux':np.copy(zeroArray), 'scaledError':np.copy(zeroArray), 'chisq':0}
+                'rawFlux':[np.copy(zeroArray) for j in range(Nradii)], 'rawError':[np.copy(zeroArray) for j in range(Nradii)],'flag':False,\
+                'scaledFlux':[np.copy(zeroArray) for j in range(Nradii)], 'scaledError':[np.copy(zeroArray) for j in range(Nradii)], 'chisq':np.zeros_like(self.apertureRadii)}
             self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
             self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
             self.keys.append(paddedStr(i,3))
@@ -87,7 +95,21 @@ class dataBank:
             '''
         self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
-    
+
+    def storeFluxes(self,star,exposureNumber,rawFluxes,rawErrors):
+        '''Store the flux and error data collected by oscaar.phot()
+            INPUTS: star - Key for the star for which the centroid has been measured
+            
+            exposureNumber - Index of exposure being considered
+            
+            rawFlux - flux measured, to be stored
+            
+            rawError - photon noise measured, to be stored
+            '''
+        for apertureRadiusIndex in range(len(self.apertureRadii)):
+            self.allStarsDict[star]['rawFlux'][apertureRadiusIndex][exposureNumber] = rawFluxes[apertureRadiusIndex]
+            self.allStarsDict[star]['rawError'][apertureRadiusIndex][exposureNumber] = rawErrors[apertureRadiusIndex]
+
     def getPaths(self):
         '''Return the paths to the raw images used'''
         return self.imagesPaths
@@ -101,6 +123,17 @@ class dataBank:
         '''Return the errors for one star, where the star parameter is the key for the
             star of interest.'''
         return self.allStarsDict[star]['rawError']
+
+    def getFluxes_multirad(self,star,apertureRadiusIndex):
+        '''Return the fluxes for one star, where the star parameter is the key for the
+            star of interest.'''
+        return self.allStarsDict[star]['rawFlux'][apertureRadiusIndex]
+    
+    def getErrors_multirad(self,star,apertureRadiusIndex):
+        '''Return the errors for one star, where the star parameter is the key for the
+            star of interest.'''
+        return self.allStarsDict[star]['rawError'][apertureRadiusIndex]
+
     
     def storeTime(self,expNumber):
         '''Store the time in JD from the FITS header.
@@ -150,9 +183,27 @@ class dataBank:
                 self.allStarsDict[star]['scaledFlux'], m = regressionScale(self.getFluxes(star),self.getFluxes(self.targetKey),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
                 print m
                 self.allStarsDict[star]['scaledError'] = np.abs(m)*self.getErrors(star)
-            if star == self.targetKey:	## (Keep the target star the same)
+            if star == self.targetKey:    ## (Keep the target star the same)
                 self.allStarsDict[star]['scaledFlux'] = self.allStarsDict[star]['rawFlux']
                 self.allStarsDict[star]['scaledError'] = self.allStarsDict[star]['rawError']
+                
+    def scaleFluxes_multirad(self):
+        '''
+            When all fluxes have been collected, run this to re-scale the fluxes of each
+            comparison star to the flux of the target star. Do the same transformation on the errors.
+            '''
+        for star in self.allStarsDict:
+            for apertureRadiusIndex in range(len(self.apertureRadii)):    
+                if star != self.targetKey:
+                    print self.getFluxes_multirad(star,apertureRadiusIndex)[0]
+                    self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex], m = regressionScale(self.getFluxes_multirad(star,apertureRadiusIndex),self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
+                    #print m
+                    self.allStarsDict[star]['scaledError'][apertureRadiusIndex] = np.abs(m)*self.getErrors_multirad(star,apertureRadiusIndex)
+                if star == self.targetKey:    ## (Keep the target star the same)
+                    self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex] = self.allStarsDict[star]['rawFlux'][apertureRadiusIndex]
+                    self.allStarsDict[star]['scaledError'][apertureRadiusIndex] = self.allStarsDict[star]['rawError'][apertureRadiusIndex]
+    
+    
     def getScaledFluxes(self,star):
         '''Return the scaled fluxes for one star, where the star parameter is the 
             key for the star of interest.'''
@@ -162,6 +213,17 @@ class dataBank:
         '''Return the scaled fluxes for one star, where the star parameter is the 
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledError'])
+
+    def getScaledFluxes_multirad(self,star,apertureRadiusIndex):
+        '''Return the scaled fluxes for one star, where the star parameter is the 
+            key for the star of interest.'''
+        return np.array(self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex])
+    
+    def getScaledErrors_multirad(self,star,apertureRadiusIndex):
+        '''Return the scaled fluxes for one star, where the star parameter is the 
+            key for the star of interest.'''
+        return np.array(self.allStarsDict[star]['scaledError'][apertureRadiusIndex])
+
     
     def calcChiSq(self):
         for star in self.allStarsDict:
@@ -172,7 +234,18 @@ class dataBank:
         self.chisq = np.array(chisq)
         self.meanChisq = np.mean(chisq)
         self.stdChisq = np.std(chisq)
-    
+        
+    def calcChiSq_multirad(self,apertureRadiusIndex):
+        for star in self.allStarsDict:
+            print self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getFluxes_multirad(star,apertureRadiusIndex)
+            self.allStarsDict[star]['chisq'][apertureRadiusIndex] = chiSquared(self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getFluxes_multirad(star,apertureRadiusIndex))
+        chisq = []
+        for star in self.allStarsDict:
+            chisq.append(self.allStarsDict[star]['chisq'][apertureRadiusIndex])
+        self.chisq = np.array(chisq)
+        self.meanChisq = np.mean(chisq)
+        self.stdChisq = np.std(chisq)
+        
     def getAllChiSq(self):
         '''Return chi-squared's for all stars'''
         return self.chisq
@@ -181,7 +254,7 @@ class dataBank:
         '''Boolean array where True are the times in data.getTimes() that are
             before ingress or after egress.'''
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
-    
+
     def calcMeanComparison(self,ccdGain=1):
         '''
             Take the regression-weighted mean of some of the comparison stars
@@ -192,7 +265,6 @@ class dataBank:
             self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
             This condition removes outliers.
             '''
-        
         ## Check whether chi-squared has been calculated already. If not, compute it.
         chisq = []
         for star in self.allStarsDict: chisq.append(self.allStarsDict[star]['chisq'])
@@ -233,6 +305,68 @@ class dataBank:
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
         self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
         return self.meanComparisonStar, self.meanComparisonStarError  
+ 
+    def calcMeanComparison_multirad(self,ccdGain=1):
+        '''
+            Take the regression-weighted mean of some of the comparison stars
+            to produce one comparison star flux to compare to the target to
+            produce a light curve.
+            
+            The comparison stars used are those whose chi-squareds calculated by
+            self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
+            This condition removes outliers.
+            '''
+        self.meanComparisonStars = []
+        self.meanComparisonStarErrors = []
+        self.comparisonStarWeights = []
+        
+        for apertureRadiusIndex in range(len(self.apertureRadii)):
+            ## Check whether chi-squared has been calculated already. If not, compute it.
+            chisq = []
+            for star in self.allStarsDict: chisq.append(self.allStarsDict[star]['chisq'])
+            chisq = np.array(chisq)
+            #if all(chisq == 0): self.calcChiSq_multirad(apertureRadiusIndex)
+            if (chisq==0).all(): self.calcChiSq_multirad(apertureRadiusIndex)
+            ## Begin regression technique
+            numCompStars =  len(self.allStarsDict) - 1
+            targetFullLength = len(self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex))    
+            print "Aperture rad:", apertureRadiusIndex
+            print "Target raw flux:",self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)
+            print "Target scaled flux:",self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex)
+            target = self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)[self.outOfTransit()]
+            compStars = np.zeros([targetFullLength,numCompStars])
+            compStarsOOT = np.zeros([len(target),numCompStars])
+            compErrors = np.copy(compStars)
+            columnCounter = 0
+            acceptedCompStarKeys = []
+            compStarKeys = []
+            for star in self.allStarsDict:
+                if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq).any():
+                    compStars[:,columnCounter] = self.getScaledFluxes_multirad(star,apertureRadiusIndex).astype(np.float64)
+                    compStarsOOT[:,columnCounter] = self.getScaledFluxes_multirad(star,apertureRadiusIndex)[self.outOfTransit()].astype(np.float64)
+                    compErrors[:,columnCounter] = self.getScaledErrors_multirad(star,apertureRadiusIndex).astype(np.float64)
+                    compStarKeys.append(int(star))
+                    columnCounter += 1
+                elif star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
+                    print 'Star '+str(star)+' excluded from regression'
+                    compStarKeys.append(int(star))
+                    columnCounter += 1
+            initP = np.zeros([numCompStars])+ 1./numCompStars
+            def errfunc(p,target): 
+                if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target ## Find only positive coefficients
+            #return np.dot(p,compStarsOOT.T) - target
+            
+            bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
+            print '\nBest fit regression coefficients:',bestFitP
+            print 'Default weight:',1./numCompStars
+            
+            self.comparisonStarWeights_i = np.vstack([compStarKeys,bestFitP])
+            self.meanComparisonStar = np.dot(bestFitP,compStars.T)
+            self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
+            self.meanComparisonStars.append(self.meanComparisonStar)
+            self.meanComparisonStarErrors.append(self.meanComparisonStarError)
+            self.comparisonStarWeights.append(self.comparisonStarWeights_i)      
+        return self.meanComparisonStars, self.meanComparisonStarErrors
     
     def computeLightCurve(self,meanComparisonStar,meanComparisonStarError):
         '''
@@ -247,7 +381,24 @@ class dataBank:
         self.lightCurve = self.getFluxes(self.targetKey)/meanComparisonStar
         self.lightCurveError = np.sqrt(self.lightCurve**2 * ( (self.getErrors(self.targetKey)/self.getFluxes(self.targetKey))**2 + (meanComparisonStarError/meanComparisonStar)**2 ))
         return self.lightCurve, self.lightCurveError
-    
+    def computeLightCurve_multirad(self,meanComparisonStars,meanComparisonStarErrors):
+        '''
+            Divide the target star flux by the mean comparison star to yield a light curve,
+            save the light curve into the dataBank object.
+            
+            INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star
+            
+            RETURNS: self.lightCurve - The target star divided by the mean comparison 
+            star, i.e., the light curve.
+            '''
+        self.lightCurves = []
+        self.lightCurveErrors = []
+        for apertureRadiusIndex in range(len(self.apertureRadii)):
+            lightCurve = self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)/meanComparisonStars[apertureRadiusIndex]
+            self.lightCurves.append(lightCurve)
+            self.lightCurveErrors.append(np.sqrt(lightCurve**2 * ( (self.getErrors_multirad(self.targetKey,apertureRadiusIndex)/self.getFluxes_multirad(self.targetKey,apertureRadiusIndex))**2 +\
+                                         (meanComparisonStarErrors[apertureRadiusIndex]/meanComparisonStars[apertureRadiusIndex])**2 )))
+        return self.lightCurves, self.lightCurveErrors
     def getPhotonNoise(self):
         '''
             Calculate photon noise using the lightCurve and the meanComparisonStar
@@ -267,30 +418,30 @@ class dataBank:
                 inline = line.split(':', 1)
                 inline[0] = inline[0].strip()
                 if inline[0] == 'Path to Dark Frames': 
-                	if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
-                		self.darksPath = np.sort(glob(inline[1].split('#')[0].strip()))
-                	else: 
-		                darkpaths = []
-		                for path in str(inline[1].split('#')[0].strip()).split(','):
-		                    path = os.path.join(oscaarpathplus,os.path.abspath(path))
-		                    darkpaths.append(path)
-		                self.darksPath = np.sort(darkpaths)
+                    if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
+                        self.darksPath = np.sort(glob(inline[1].split('#')[0].strip()))
+                    else: 
+                        darkpaths = []
+                        for path in str(inline[1].split('#')[0].strip()).split(','):
+                            path = os.path.join(oscaarpathplus,os.path.abspath(path))
+                            darkpaths.append(path)
+                        self.darksPath = np.sort(darkpaths)
                 elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Path to data images':
-                    # 					if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
-					if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
+                    #                     if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
+                    if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
                         
-						self.imagesPaths = np.sort(glob(inline[1].split('#')[0].strip()))
-					else: 
-						impaths = []
-						for path in str(inline[1].split('#')[0].strip()).split(','):
-						    path = os.path.join(oscaarpathplus,os.path.abspath(path))
-						    impaths.append(path)
-						self.imagesPaths = np.sort(impaths)
+                        self.imagesPaths = np.sort(glob(inline[1].split('#')[0].strip()))
+                    else: 
+                        impaths = []
+                        for path in str(inline[1].split('#')[0].strip()).split(','):
+                            path = os.path.join(oscaarpathplus,os.path.abspath(path))
+                            impaths.append(path)
+                        self.imagesPaths = np.sort(impaths)
                 elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
                 elif inline[0] == 'Ingress':  self.ingress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
                 elif inline[0] == 'Egress':  self.egress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
-                elif inline[0] == 'Radius':   self.apertureRadius = float(inline[1].split('#')[0].strip())
+                elif inline[0] == 'Radius':   self.apertureRadiusRange = map(float,inline[1].split('#')[0].strip()[1:-1].split(','))    ## Changed to list
                 elif inline[0] == 'Tracking Zoom':   self.trackingZoom = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'CCD Gain':    self.ccdGain = float(inline[1].split('#')[0].strip())
                 elif inline[0] == 'GUI': self.gui = inline[1].split('#')[0].strip()
@@ -352,106 +503,106 @@ class dataBank:
     
     def plotLightCurve(self,pointsPerBin=10):
         
-		binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,pointsPerBin)
         
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		axis = fig.add_subplot(111)
-		def format_coord(x, y):
-			'''Function to give data value on mouse over plot.'''
-			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-		axis.format_coord = format_coord 
-		axis.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
-		axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
-		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-		axis.set_title('Light Curve')
-		axis.set_xlabel('Time (JD)')
-		axis.set_ylabel('Relative Flux')
-		plt.ioff()
-		plt.show()
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        axis.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
+        axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title('Light Curve')
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Relative Flux')
+        plt.ioff()
+        plt.show()
     
     def plotRawFluxes(self,pointsPerBin=10):
         
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		axis = fig.add_subplot(111)
-		def format_coord(x, y):
-			'''Function to give data value on mouse over plot.'''
-			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-		axis.format_coord = format_coord 
-		for star in self.allStarsDict:
-			axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'],yerr=self.allStarsDict[star]['rawError'],fmt='o')
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        for star in self.allStarsDict:
+            axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'],yerr=self.allStarsDict[star]['rawError'],fmt='o')
         
-		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-		axis.set_title('Raw Fluxes')
-		axis.set_xlabel('Time (JD)')
-		axis.set_ylabel('Counts')
-		plt.ioff()
-		plt.show()
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title('Raw Fluxes')
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Counts')
+        plt.ioff()
+        plt.show()
     
     
     def plotScaledFluxes(self,pointsPerBin=10):
         
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		axis = fig.add_subplot(111)
-		def format_coord(x, y):
-			'''Function to give data value on mouse over plot.'''
-			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-		axis.format_coord = format_coord 
-		for star in self.allStarsDict:
-			axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'],yerr=self.allStarsDict[star]['scaledError'],fmt='o')
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        for star in self.allStarsDict:
+            axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'],yerr=self.allStarsDict[star]['scaledError'],fmt='o')
         
-		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-		axis.set_title('Scaled Fluxes')
-		axis.set_xlabel('Time (JD)')
-		axis.set_ylabel('Counts')
-		plt.ioff()
-		plt.show()
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title('Scaled Fluxes')
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Counts')
+        plt.ioff()
+        plt.show()
     
     def plotCentroidsTrace(self,pointsPerBin=10):
         
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		axis = fig.add_subplot(111)
-		def format_coord(x, y):
-			'''Function to give data value on mouse over plot.'''
-			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-		axis.format_coord = format_coord 
-		for star in self.allStarsDict:
-			axis.plot(self.allStarsDict[star]['y-pos'],self.allStarsDict[star]['x-pos'])
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        for star in self.allStarsDict:
+            axis.plot(self.allStarsDict[star]['y-pos'],self.allStarsDict[star]['x-pos'])
         
-		axis.set_title('Tracing Stellar Centroids')
-		axis.set_xlabel('X')
-		axis.set_ylabel('Y')
-		plt.ioff()
-		plt.show()
+        axis.set_title('Tracing Stellar Centroids')
+        axis.set_xlabel('X')
+        axis.set_ylabel('Y')
+        plt.ioff()
+        plt.show()
     
     def plotComparisonWeightings(self):
-		weights = self.comparisonStarWeights
-		weights = np.sort(weights,axis=1)
-		print weights
-		width = 0.5
-		indices = weights[0,:]
-		coefficients = weights[1,:]
-		ind = np.arange(len(indices))
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		ax = fig.add_subplot(111)
-		ax.set_xlim([0,len(indices)+1])
-		ax.set_xticks(indices+width/2)
-		ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
-		ax.set_xlabel('Comparison Star')
-		ax.set_ylabel('Normalized Weighting')
-		ax.set_title('Comparison Star Weights into the Composite Comparison Star')
-		ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
+        weights = self.comparisonStarWeights
+        weights = np.sort(weights,axis=1)
+        print weights
+        width = 0.5
+        indices = weights[0,:]
+        coefficients = weights[1,:]
+        ind = np.arange(len(indices))
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        ax = fig.add_subplot(111)
+        ax.set_xlim([0,len(indices)+1])
+        ax.set_xticks(indices+width/2)
+        ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
+        ax.set_xlabel('Comparison Star')
+        ax.set_ylabel('Normalized Weighting')
+        ax.set_title('Comparison Star Weights into the Composite Comparison Star')
+        ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
         
-		ax.bar(indices,coefficients,width,color='w')
+        ax.bar(indices,coefficients,width,color='w')
         
-		plt.show()
+        plt.show()
 
     def updateMCMC(self,bestp,allparams,acceptanceRate,dataBankPath):
         self.MCMC_bestp = bestp
@@ -525,3 +676,23 @@ class dataBank:
 
         plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
         plt.show()
+
+
+    def plotLightCurve_multirad(self):
+        for apertureRadiusIndex in range(len(self.apertureRadii)):
+            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+            fig.canvas.set_window_title('OSCAAR')
+            axis = fig.add_subplot(111)
+            def format_coord(x, y):
+                '''Function to give data value on mouse over plot.'''
+                return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+            axis.format_coord = format_coord 
+            axis.errorbar(self.times,self.lightCurves[apertureRadiusIndex],yerr=self.lightCurveErrors[apertureRadiusIndex],fmt='k.',ecolor='gray')
+            #axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+            axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+            axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+            axis.set_title('Light Curve for Aperture Radius: %f' % self.apertureRadii[apertureRadiusIndex])
+            axis.set_xlabel('Time (JD)')
+            axis.set_ylabel('Relative Flux')
+        plt.ioff()
+        plt.show()    

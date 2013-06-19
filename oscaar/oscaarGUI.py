@@ -397,7 +397,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             invalidsString += "Regions"
         try:
             float(self.smoothingConstTxt.GetValue())
-            float(self.radiusTxt.GetValue())
+            #float(self.radiusTxt.GetValue()) #BMM - debugging multirad
             float(self.trackZoomTxt.GetValue())
             float(self.ccdGainTxt.GetValue())
         except ValueError:
