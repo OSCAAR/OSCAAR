@@ -45,6 +45,8 @@ def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
     ## Divide the summed flat fields by their mean to obtain a flat frame
     masterFlat = flatSum/np.mean(flatSum)
 
+    masterFlat[masterFlat == 0] += np.finfo(np.float).eps 	## If pixel is 0, make it just above zero
+
     if plots:
         ## If plots == True, plot the resulting master flat
         fig = plt.figure()
