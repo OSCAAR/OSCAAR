@@ -354,12 +354,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 		##destroy oscaarFrame and run photometry script in separate thread to avoid freezing up the GUI
                 #self.Destroy()
                 if not worker:
-                    diffPhotCall = "from oscaar import differentialPhotometry"
-                    subprocess.check_call(['python','-c',diffPhotCall])
-                    global loadFittingFrame
-                    if loadFittingFrame == False:
-                        FittingFrame(self.outputTxt.GetValue())
-                        loadFittingFrame = True
+                    worker = WorkerThread(self.outputTxt.GetValue())
 
     ##This function takes a field and paths separated by commas and writes the field name and the comma separated list of paths
     def addStarFits(self, init, field, path):
@@ -421,7 +416,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         pathCorrected = path.replace('/', os.sep)
         outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
         if pathCorrected + '.pkl' in glob(outfolder):
-            OverWriteFrame(pathCorrected, self, -1)
+            InvalidParameter(pathCorrected + '.pkl', self, -1, str = "overwrite", columns = 4)
+            return False
+        elif pathCorrected in glob(outfolder):
+            InvalidParameter(pathCorrected, self, -1, str = "overwrite", columns = 4)
             return False
         return True
                  
@@ -515,25 +513,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         if aboutOpen == False:
             AboutFrame(parent = self, id = -1)
             aboutOpen = True
-
-class OverWriteFrame(wx.Frame):
-    def __init__(self, path, parent, id):
-        self.parent = parent
-        wx.Frame.__init__(self, parent, id, 'Overwrite outputs?')
-        self.SetSize((280,120))
-        self.SetBackgroundColour(wx.Colour(227,227,227))
-        self.warningText = wx.StaticText(parent = self, id = -1, label = 'Are you sure you want to overwrite\n ' + path + '?', pos = (35,7), style = wx.ALIGN_CENTER)
-        self.yesButton = wx.Button(parent = self, id = -1, label = 'Yes', pos = (35,50))
-        self.noButton = wx.Button(parent = self, id = -1, label = 'No', pos = (145,50))
-        self.yesButton.Bind(wx.EVT_BUTTON, self.onYes)
-        self.noButton.Bind(wx.EVT_BUTTON, self.onNo)
-        self.Centre()
-        self.Show()
-    def onNo(self, event):
-        self.Destroy()
-    def onYes(self, event):
-        self.parent.Destroy()
-        worker = WorkerThread()
 
 class WarnFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -755,18 +734,26 @@ class InvalidPath(wx.Frame):
     def onOkay(self, event):
         self.Destroy()
 
-#### Launches worker processes ####
-        
-# class WorkerThread(threading.Thread):
-#     def __init__(self):
-#         threading.Thread.__init__(self)
-#         self.start()
-# 
-#     def run(self):
-#         self.num = -1
-#         diffPhotCall = "from oscaar import differentialPhotometry"
-#         subprocess.check_call(['python','-c',diffPhotCall])
-#             
+### Launches worker processes ####
+         
+class WorkerThread(threading.Thread):
+    def __init__(self, outputText = ''):
+        threading.Thread.__init__(self)
+        self.output = outputText
+        self.start()
+
+    def run(self):
+        self.num = -1
+        diffPhotCall = "from oscaar import differentialPhotometry"
+        subprocess.check_call(['python','-c',diffPhotCall])
+        wx.CallAfter(self.createFrame)
+
+    def createFrame(self):
+        global loadFittingFrame
+        if loadFittingFrame == False:
+            FittingFrame(self.output)
+            loadFittingFrame = True
+             
 class PlotThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -2042,10 +2029,9 @@ def checkParams(self,list):
 
     return True
 
-
 class InvalidParameter(wx.Frame):
 
-    def __init__(self, num, parent, id, str='', max='0'):
+    def __init__(self, num, parent, id, str='', max='0', columns=2):
 
         if sys.platform == "win32":
             wx.Frame.__init__(self, parent, id, 'Invalid Parameter', size = (500,110))
@@ -2056,6 +2042,8 @@ class InvalidParameter(wx.Frame):
         if str == "params":
             self.SetTitle("Updated Parameters")
             self.Bind(wx.EVT_CHAR_HOOK, self.onOkay)
+        elif str == "overwrite":
+            self.SetTitle("Overwrite Output File")
         self.panel = wx.Panel(self)
         self.string = "Incorrect"
 
@@ -2096,20 +2084,29 @@ class InvalidParameter(wx.Frame):
         elif str == "mod":
             self.string = "The iterative step to be saved cannot be greater than the total number of steps."
 
+        self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
+        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
+        
         if str == "path":
-            self.paths = wx.StaticText(self.panel, -1,"The following is an invalid output path: " + num)
+            self.paths = wx.StaticText(self.panel, -1, "The following is an invalid output path: " + num)
         elif str == "params":
-            self.paths = wx.StaticText(self.panel, -1,"The appropriate parameters have been updated.")
+            self.paths = wx.StaticText(self.panel, -1, "The appropriate parameters have been updated.")
+        elif str == "overwrite":
+            self.num = num
+            self.paths = wx.StaticText(self.panel, -1, "Are you sure you want to overwrite\n" + num + "?")
+            self.yesButton = wx.Button(self.panel, label = "Yes", pos = (125,30))
+            self.Bind(wx.EVT_BUTTON, self.onYes, self.yesButton)
+            self.okButton.SetLabel("No")
         else:           
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
-        self.okButton = wx.Button(self.panel,label = 'Okay', pos = (125,30))
-        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-
-        self.sizer0 = wx.FlexGridSizer(rows=2, cols=2)        
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=columns) 
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
+        
+        if str == "overwrite":
+            self.sizer0.Add(self.yesButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
 
         self.panel.SetSizer(self.hbox)
@@ -2134,6 +2131,10 @@ class InvalidParameter(wx.Frame):
         self.keycode = event.GetKeyCode()
         if self.keycode == wx.WXK_RETURN:
             self.Destroy()
+    
+    def onYes(self, event):
+        self.Destroy()
+        worker = WorkerThread(self.num)
     
     def onOkay(self, event):
         self.Destroy()
