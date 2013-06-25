@@ -53,7 +53,6 @@ class dataBank:
         self.imagesPaths = self.dict["imagesPaths"]
         
         assert len(self.imagesPaths) > 1, 'Must have at least one data image'
-        print 'self.flatPath',self.flatPath
         if self.flatPath != '':
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
@@ -280,7 +279,7 @@ class dataBank:
             '''        
         init = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'init.par'), 'r').read().splitlines()
         for line in init:
-            if line.split() > 1:
+            if len(line.split()) > 1:
                 inline = line.split(':', 1)
                 name = inline[0].strip()
                 value = str(inline[1].strip())

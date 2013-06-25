@@ -43,7 +43,6 @@ for expNumber in range(0,N_exposures):
         statusBarAx.get_yaxis().set_ticks([])
         statusBarAx.barh([0],[100.0*expNumber/len(data.getPaths())],[1],color='k')
 
-    print '\n'+'Loading file: '+data.getPaths()[expNumber]
     image = (pyfits.getdata(data.getPaths()[expNumber]) - meanDarkFrame)/masterFlat    ## Open image from FITS file
     data.storeTime(expNumber)                                   ## Store the exposure time from the FITS header
     
