@@ -354,8 +354,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 		##destroy oscaarFrame and run photometry script in separate thread to avoid freezing up the GUI
                 #self.Destroy()
                 if not worker:
-                    worker = WorkerThread()
-    
+                    diffPhotCall = "from oscaar import differentialPhotometry"
+                    subprocess.check_call(['python','-c',diffPhotCall])
+                    global loadFittingFrame
+                    if loadFittingFrame == False:
+                        FittingFrame(self.outputTxt.GetValue())
+                        loadFittingFrame = True
+
     ##This function takes a field and paths separated by commas and writes the field name and the comma separated list of paths
     def addStarFits(self, init, field, path):
         pathList = []
@@ -752,14 +757,16 @@ class InvalidPath(wx.Frame):
 
 #### Launches worker processes ####
         
-class WorkerThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.start()
-
-    def run(self):
-        diffPhotCall = "from oscaar import differentialPhotometry"
-        subprocess.call(['python','-c',diffPhotCall])
+# class WorkerThread(threading.Thread):
+#     def __init__(self):
+#         threading.Thread.__init__(self)
+#         self.start()
+# 
+#     def run(self):
+#         self.num = -1
+#         diffPhotCall = "from oscaar import differentialPhotometry"
+#         subprocess.check_call(['python','-c',diffPhotCall])
+#             
 class PlotThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -1033,13 +1040,14 @@ class AddLCB(wx.Panel):
 
 class FittingFrame(wx.Frame):
 
-    def __init__(self):
+    def __init__(self, path = ''):
 
         global loadLSFit
         global loadMCMC
         loadLSFit = False
         loadMCMC = False
-          
+        
+        self.path = path
         self.title = "Fitting Methods"
         
         wx.Frame.__init__(self, None,-1, self.title)
@@ -1049,6 +1057,7 @@ class FittingFrame(wx.Frame):
         self.box = AddLCB(self.panel,-1,name='browse')
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        self.box.txtbox.SetValue(self.path)
         
         self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
         self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))

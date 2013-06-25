@@ -21,6 +21,7 @@ def ut2jd(ut):
     RETURNS: jd - Julian Date (JD)
     '''
     [date, Time] = ut.split(';')
+    Time = Time.strip()
     [year, month, day] = date.split('-')
     [hour, min, sec] = Time.split(':')
     year = int(year); month = int(month); day = int(day)
@@ -49,6 +50,7 @@ def ut2jdSplitAtT(ut):
     RETURNS: jd - Julian Date (JD)
     '''
     [date, Time] = ut.split('T')
+    Time = Time.strip()
     [year, month, day] = date.split('-')
     [hour, min, sec] = Time.split(':')
     year = int(year); month = int(month); day = int(day)

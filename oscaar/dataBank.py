@@ -33,8 +33,25 @@ class dataBank:
             the run.
             INPUTS: None.
             '''
+
+        self.dict = {}
         self.parseInit() ## parse init.par using the parseInit() method
         self.parseObservatory()
+        
+        self.flatPath = self.dict["flatPath"]
+        self.regsPath = self.dict["regsPath"]
+        self.ingress = self.dict["ingress"]
+        self.egress = self.dict["egress"]
+        self.apertureRadius = self.dict["apertureRadius"]
+        self.trackingZoom = self.dict["trackingZoom"]
+        self.ccdGain = self.dict["ccdGain"]
+        self.trackPlots = self.dict["trackPlots"]
+        self.photPlots = self.dict["photPlots"]
+        self.smoothConst = self.dict ["smoothConst"]
+        self.initGui = self.dict["initGui"]
+        self.darksPath = self.dict["darksPath"]
+        self.imagesPaths = self.dict["imagesPaths"]
+        
         assert len(self.imagesPaths) > 1, 'Must have at least one data image'
         print 'self.flatPath',self.flatPath
         if self.flatPath != '':
@@ -260,55 +277,52 @@ class dataBank:
     def parseInit(self):
         '''
             Parses init.par
-            '''
+            '''        
         init = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'init.par'), 'r').read().splitlines()
         for line in init:
-            if line.split() > 1 and line[0] != '#':
+            if line.split() > 1:
                 inline = line.split(':', 1)
-                inline[0] = inline[0].strip()
-                if inline[0] == 'Path to Dark Frames': 
-                	if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
-                		self.darksPath = np.sort(glob(inline[1].split('#')[0].strip()))
-                	else: 
-		                darkpaths = []
-		                for path in str(inline[1].split('#')[0].strip()).split(','):
-		                    path = os.path.join(oscaarpathplus,os.path.abspath(path))
-		                    darkpaths.append(path)
-		                self.darksPath = np.sort(darkpaths)
-                elif inline[0] == 'Path to Master-Flat Frame': self.flatPath = str(inline[1].split('#')[0].strip())
-                elif inline[0] == 'Path to data images':
-                    # 					if any(np.array(glob(inline[1].split('#')[0].strip())) == inline[1].split('#')[0].strip()) == False:## if glob turns up more results,
-					if len(glob(inline[1].split('#')[0].strip())) > 0:## if glob turns up more results,
-                        
-						self.imagesPaths = np.sort(glob(inline[1].split('#')[0].strip()))
-					else: 
-						impaths = []
-						for path in str(inline[1].split('#')[0].strip()).split(','):
-						    path = os.path.join(oscaarpathplus,os.path.abspath(path))
-						    impaths.append(path)
-						self.imagesPaths = np.sort(impaths)
-                elif inline[0] == 'Path to regions file': self.regsPath = str(inline[1].split('#')[0].strip())
-                elif inline[0] == 'Ingress':  self.ingress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
-                elif inline[0] == 'Egress':  self.egress = oscaar.ut2jd(str(inline[1].split('#')[0].strip()))
-                elif inline[0] == 'Radius':   self.apertureRadius = float(inline[1].split('#')[0].strip())
-                elif inline[0] == 'Tracking Zoom':   self.trackingZoom = float(inline[1].split('#')[0].strip())
-                elif inline[0] == 'CCD Gain':    self.ccdGain = float(inline[1].split('#')[0].strip())
-                elif inline[0] == 'GUI': self.gui = inline[1].split('#')[0].strip()
-                elif inline[0] == 'Plot Tracking': self.trackPlots = True if inline[1].split('#')[0].strip() == 'on' else False
-                elif inline[0] == 'Plot Photometry': self.photPlots = True if inline[1].split('#')[0].strip() == 'on' else False
-                elif inline[0] == 'Smoothing Constant': self.smoothConst = float(inline[1].split('#')[0].strip())
-                elif inline[0] == 'Init GUI': self.initGui = inline[1].split('#')[0].strip()
-                elif inline[0] == 'Output Path': self.outputPath = inline[1].split('#')[0].strip()
-        
-        self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(self.outputPath))
-        #self.flatPath = os.path.join(os.path.abspath(self.flatPath))
-        
-        def wilds(self,inputString):
-            if any(np.array(glob(inputString)) == inputString):
-                return ','.join(glob(inputString))
-            else: 
-                return 
-    
+                name = inline[0].strip()
+                value = str(inline[1].strip())
+                list = [("Path to Master-Flat Frame", "flatPath"),
+                        ("Path to regions file", "regsPath"),
+                        ("Ingress", "ingress"),("Egress", "egress"),
+                        ("Radius", "apertureRadius"),("Tracking Zoom", "trackingZoom"),
+                        ("CCD Gain", "ccdGain"),("Plot Tracking", "trackPlots"),
+                        ("Plot Photometry", "photPlots"),("Smoothing Constant", "smoothConst"),
+                        ("Init GUI", "initGui"),("Output Path","outputPath"),
+                        ("Path to Dark Frames", "darksPath"),("Path to data images", "imagesPaths")
+                        ]
+                for string,save in list:
+                    if string == name:
+                        if name == "Smoothing Constant" or name == "Radius" or name == "Tracking Zoom" or name == "CCD Gain":
+                            self.dict[save] = float(value)
+                        elif name == "Ingress" or name == "Egress":
+                            self.dict[save] = oscaar.ut2jd(value)
+                        elif name == "Plot Photometry" or name == "Plot Tracking":
+                            if value == "on":
+                                self.dict[save] = True
+                            else:
+                                self.dict[save] = False
+                        elif name == "Path to Dark Frames" or name == "Path to data images":
+                            value = inline[1].strip()
+                            if len(glob(value)) > 0:
+                                self.dict[save] = np.sort(glob(value))
+                            else:
+                                tempArr = []
+                                for path in str(inline[1]).split(','):
+                                    path = path.strip()
+                                    path = os.path.join(oscaarpathplus,os.path.abspath(path))
+                                    tempArr.append(path)
+                                self.dict[save] = np.sort(tempArr)
+                                
+                                
+
+                        elif name == "Output Path":
+                            self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(value))
+                        else:
+                            self.dict[save] = value
+
     def parseObservatory(self):
         '''
             Parses observatory.par
