@@ -2030,6 +2030,8 @@ def checkParams(self,list):
 
     return True
 
+# TESTING THE NEW BRANCH
+
 class InvalidParameter(wx.Frame):
 
     def __init__(self, num, parent, id, str='', max='0', columns=2):
