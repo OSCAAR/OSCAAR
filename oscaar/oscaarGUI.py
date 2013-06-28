@@ -2033,8 +2033,6 @@ def checkParams(self,list):
 
     return True
 
-# Test COMMIT
-
 class InvalidParameter(wx.Frame):
 
     def __init__(self, num, parent, id, str='', max='0'):
