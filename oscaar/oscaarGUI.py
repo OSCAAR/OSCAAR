@@ -2033,6 +2033,7 @@ def checkParams(self,list):
 
     return True
 
+# Test COMMIT
 
 class InvalidParameter(wx.Frame):
 
