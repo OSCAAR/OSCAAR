@@ -26,6 +26,21 @@ import pylab
 APP_EXIT = 1
 
 class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
+    
+#     def __init__(self):
+#          
+#         self.Title = "OSCAAR"
+#         wx.Frame.__init__(self,None,-1, self.Title)
+#         self.panel = wx.Panel(self)
+#         
+#         self.pathDark = AddLCB(self.panel, -1, name = "browse", )
+#     
+#     
+    
+    
+    
+     
+     
     def __init__(self, *args, **kwargs):
         super(OscaarFrame, self).__init__(*args, **kwargs)
         self.InitUI()
@@ -986,17 +1001,21 @@ class AddLCB(wx.Panel):
 
             sizer0 = wx.FlexGridSizer(rows=1, cols=3)
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-            if name == 'browse':
-                self.label = wx.StaticText(self, -1, "Path to Output File: ", style=wx.ALIGN_CENTER)
-                self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
-            elif name == 'planet':
+
+            if name == 'planet':
                 self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
                 self.txtbox = wx.TextCtrl(self, -1, value='GJ 1214 b')
                 self.txtbox.SetToolTipString('Enter the name of a planet from the exoplanet.org database here.')
+            else:
+                self.label = wx.StaticText(self, -1, name, style=wx.ALIGN_CENTER)
+                self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
            
             sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
             sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-            if name == 'browse':
+            if name == 'planet':
+                self.updateButton = wx.Button(self, -1, "Update Parameters")
+                sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
+            else:
                 if sys.platform == 'win32':
                     self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-O)")
                 else:
@@ -1005,9 +1024,6 @@ class AddLCB(wx.Panel):
                 self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
                                                                              self.txtbox,True,wx.FD_OPEN))
                 sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
-            elif name == 'planet':
-                self.updateButton = wx.Button(self, -1, "Update Parameters")
-                sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
             
             self.SetSizer(sizer)
             sizer.Fit(self)
@@ -1042,22 +1058,22 @@ class FittingFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         
-        self.box = AddLCB(self.panel,-1,name='browse')
+        self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
         self.box.txtbox.SetValue(self.path)
         
-        self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
+        #self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
         self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
         
-        self.Bind(wx.EVT_BUTTON, self.plotLSFit, self.plotLSFitButton)
+        #self.Bind(wx.EVT_BUTTON, self.plotLSFit, self.plotLSFitButton)
         self.Bind(wx.EVT_BUTTON, self.plotMCMC, self.plotMCMCButton)
         
         self.sizer0 = wx.FlexGridSizer(rows=2, cols=4)
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
         
-        self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+        #self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         
         self.pklPathTxt = self.box.txtbox
@@ -1163,7 +1179,7 @@ class LoadOldPklFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         
-        self.box = AddLCB(self.panel,-1,name='browse')
+        self.box = AddLCB(self.panel,-1,name="Path to Output File")
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
         
@@ -1605,7 +1621,7 @@ class LeastSquaresFitFrame(wx.Frame):
         self.pT = pathText
         self.data = oscaar.load(self.pT)
          
-        self.box1 = AddLCB(self.panel,-1,name='planet')
+        self.box1 = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.box1.updateButton)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.box1, border=5, flag=wx.ALL)
@@ -1763,7 +1779,7 @@ class MCMCFrame(wx.Frame):
         self.pT = pathText
         self.data = oscaar.load(self.pT)
         
-        self.LCB = AddLCB(self.panel,-1,name='planet')
+        self.LCB = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.LCB.updateButton)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.LCB, border=5, flag=wx.ALL)
