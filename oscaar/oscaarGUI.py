@@ -27,23 +27,52 @@ APP_EXIT = 1
 
 class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     
-#     def __init__(self):
-#          
-#         self.Title = "OSCAAR"
-#         wx.Frame.__init__(self,None,-1, self.Title)
-#         self.panel = wx.Panel(self)
-#         
-#         self.pathDark = AddLCB(self.panel, -1, name = "browse", )
-#     
-#     
-    
-    
+    def __init__(self):
+          
+        self.title = "OSCAAR"
+        wx.Frame.__init__(self,None,-1, self.title)
+        self.panel = wx.Panel(self)
+         
+        self.paths = AddLCB(self.panel, -1, name = "mainGUI", vNum= 15, hNum = 5)
+        
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.hbox.Add(self.paths, border = 5, flag = wx.ALL)
+        list = [('zoom',"Track Zoom: ",
+                 'Enter a number for the zoom here.'),
+                ('ccd',"CCD Gain: ",
+                 'Enter a decimal for the gain here.'),
+                ('radius',"Aperture Radius: ",
+                 'Enter a decimal for the radius here.'),
+                ('smoothing',"Smoothing Constant: ", 
+                 'Enter an integer for smoothing here.'),
+                ('notes',"Notes: ","Enter notes for later here.")]
+        
+        self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        self.leftBox = ParameterBox(self.panel,-1,list,"",rows=4,cols=2, vNum=10, hNum=10, font=self.fontType)
+        
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.static_bitmap = wx.StaticBitmap(parent = self.panel)
+        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
+        self.bitmap = wx.BitmapFromImage(self.logo)
+        self.static_bitmap.SetBitmap(self.bitmap)
+        
+        self.vbox.Add(self.static_bitmap,0,flag = wx.ALIGN_LEFT)
+        self.vbox.Add(self.hbox, 0, flag = wx.ALIGN_CENTER)
+        self.vbox.Add(self.leftBox, 0, flag = wx.ALIGN_LEFT | wx.LEFT, border = 5)
+        #self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()
+
     
      
-     
-    def __init__(self, *args, **kwargs):
-        super(OscaarFrame, self).__init__(*args, **kwargs)
-        self.InitUI()
+#      
+#     def __init__(self, *args, **kwargs):
+#         super(OscaarFrame, self).__init__(*args, **kwargs)
+#         self.InitUI()
 
     #### Creates and initializes the GUI ####
     def InitUI(self):
@@ -993,42 +1022,83 @@ class EphFrame(wx.Frame):
 
 class AddLCB(wx.Panel):
             
-        def __init__(self, parent,id,name=''):
+        def __init__(self, parent,id,name='',rowNum=1,colNum=3,vNum=0,hNum=0):
             wx.Panel.__init__(self,parent,id)
             
             box1 = wx.StaticBox(self, -1)
             sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
 
-            sizer0 = wx.FlexGridSizer(rows=1, cols=3)
+            sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-            if name == 'planet':
-                self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
-                self.txtbox = wx.TextCtrl(self, -1, value='GJ 1214 b')
-                self.txtbox.SetToolTipString('Enter the name of a planet from the exoplanet.org database here.')
-            else:
-                self.label = wx.StaticText(self, -1, name, style=wx.ALIGN_CENTER)
-                self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
-           
-            sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-            sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-            if name == 'planet':
-                self.updateButton = wx.Button(self, -1, "Update Parameters")
-                sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
-            else:
-                if sys.platform == 'win32':
-                    self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-O)")
-                else:
-                    self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-O)")
-                
-                self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
-                                                                             self.txtbox,True,wx.FD_OPEN))
-                sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
             
+            if name != "mainGUI":
+                if name == 'planet':
+                    self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
+                    self.txtbox = wx.TextCtrl(self, -1, value='GJ 1214 b')
+                    self.txtbox.SetToolTipString('Enter the name of a planet from the exoplanet.org database here.')
+                else:
+                    self.label = wx.StaticText(self, -1, name, style=wx.ALIGN_CENTER)
+                    self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
+                sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+                
+                if name == 'planet':
+                    self.updateButton = wx.Button(self, -1, "Update Parameters")
+                    sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
+                else:
+                    if sys.platform == 'win32':
+                        self.browseButton = wx.Button(self, -1, "Browse\t (Cntrl-O)")
+                    else:
+                        self.browseButton = wx.Button(self, -1, "Browse\t("+u'\u2318'"-O)")
+                    
+                    self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
+                                                                                 self.txtbox,True,wx.FD_OPEN))
+                    sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
+            else:
+                list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
+                        "Output Path: "]
+                self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+                
+                box0 = wx.TextCtrl(self, -1, size=(500,20))
+                box1 = wx.TextCtrl(self, -1, size=(500,20))
+                box2 = wx.TextCtrl(self, -1, size=(500,20))
+                box3 = wx.TextCtrl(self, -1, size=(500,20))
+                box4 = wx.TextCtrl(self, -1, size=(500,20))
+                self.boxes = [box0,box1,box2,box3,box4]
+
+                list = [("Path to Dark Frames: ",0), ("Path to Master Flat: ",1), ("Path to Data Images: ",2),
+                        ("Path to Regions File: ",3), ("Output Path: ",4)]
+                
+                for (name,num) in list:
+                    box = self.boxes[num]
+                    self.label = wx.StaticText(self, -1, name, style=wx.ALIGN_CENTER)
+                    self.label.SetFont(self.fontType)
+                    sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                    sizer0.Add(box, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+                    button = wx.Button(self, -1, "Browse")
+                    
+                    if name == "Path to Dark Frames: ":
+                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
+                                                                                      0,False,None))
+                    elif name == "Path to Master Flat: ":
+                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
+                                                                                      1,True,wx.FD_OPEN))
+                    elif name == "Path to Data Images: ":
+                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
+                                                                                      2,False,None))
+                    elif name == "Path to Regions File: ":
+                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
+                                                                                      3,True,wx.FD_OPEN))
+                    elif name == "Output Path: ":
+                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
+                                                                                      4,True,wx.FD_SAVE))
+                    sizer0.Add(button,0,wx.ALIGN_CENTRE|wx.ALL,0)
+                    
             self.SetSizer(sizer)
             sizer.Fit(self)
 
-        def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+        def browseButtonEvent(self, event, message, textControlNum, fileDialog, saveDialog):
+            textControl = self.boxes[textControlNum]
             if fileDialog:
                 dlg = wx.FileDialog(self, message = message, style = saveDialog)
             else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
@@ -1040,7 +1110,7 @@ class AddLCB(wx.Panel):
                         textControl.WriteText(filenames[i] + ',')
                     else:
                         textControl.WriteText(filenames[i])
-            dlg.Destroy()
+            dlg.Destroy() 
 
 class FittingFrame(wx.Frame):
 
@@ -1744,21 +1814,30 @@ class LeastSquaresFitFrame(wx.Frame):
 
 class ParameterBox(wx.Panel):
 
-        def __init__(self, parent, id,list,name="",rows=1,cols=10):
+        def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT):
+
                 wx.Panel.__init__(self,parent,id)
                 box1 = wx.StaticBox(self, -1, name)
                 sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
                 self.userParams = {}
-                sizer0 = wx.FlexGridSizer(rows=rows, cols=cols)
+                sizer0 = wx.FlexGridSizer(rows=rows, cols=cols, vgap=vNum, hgap=hNum)
                 sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
                 for (widget,label,ToolTip) in list:
-                    label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER)
-                    sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                    label = wx.StaticText(self, -1, label, style=wx.ALIGN_CENTER) 
+                    
+                    if widget != 'notes':
+                        sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+                    else: 
+                        sizer0.Add(label, 0, (wx.ALIGN_CENTER_HORIZONTAL) | wx.ALL, 0)
+                    
+                    label.SetFont(font)
                     if widget == 'limbdark':
                         self.userParams[widget] = wx.TextCtrl(self, -1, value='False')
                     elif (widget == 'gamma1') or (widget == 'gamma2') or (widget =='pericenter'):
                         self.userParams[widget] = wx.TextCtrl(self, -1, value='0.0')
+                    elif widget == 'notes':
+                        self.userParams[widget] = wx.TextCtrl(self, -1, value = 'Enter notes to be saved here', size = (220, 48), style = wx.TE_MULTILINE)
                     else:
                         self.userParams[widget] = wx.TextCtrl(self, -1)
                     self.userParams[widget].SetToolTipString(ToolTip)
@@ -2158,5 +2237,5 @@ class InvalidParameter(wx.Frame):
 
 app = wx.App(False)
 #### Runs the GUI ####
-OscaarFrame(None)
+OscaarFrame()
 app.MainLoop()
