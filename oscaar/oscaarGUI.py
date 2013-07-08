@@ -36,6 +36,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.loadMasterFlat = False
         self.overWrite = False
         self.ds9Open = False
+        self.loadFitError = False
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -243,13 +244,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 init.write("Tracking Zoom: " + str(values["zoom"]) + '\n')
                 init.write("Init GUI: on")
                 init.close()
-                if os.path.isfile(outputFile) or os.path.isfile(outputFile + '.pkl'):
-                    if self.overWrite == False:
-                        OverWrite(self, -1, "Overwrite Output File", outputFile, "Output File")
-                        self.overWrite = True
+                if self.loadFittingOpen == False:
+                    if os.path.isfile(outputFile) or os.path.isfile(outputFile + '.pkl'):
+                        if self.overWrite == False:
+                            OverWrite(self, -1, "Overwrite Output File", outputFile, "Output File")
+                            self.overWrite = True
+                    else:
+                        if not self.worker:
+                            self.worker = WorkerThread(self, -1, outputFile)
                 else:
-                    if not self.worker:
-                        self.worker = WorkerThread(self, -1, outputFile)
+                    if self.loadFitError == False:
+                        InvalidParameter("", self, -1, str="fitOpen")
+                        self.loadFitError = True
             except ValueError:
                 string2 = string
                 if string2 == "ccd":
@@ -1937,10 +1943,13 @@ class InvalidParameter(wx.Frame):
             self.Bind(wx.EVT_CHAR_HOOK, self.onOkay)
         elif str == "ds9":
             self.SetTitle("DS9 Error")
+        elif str == "fitOpen":
+            self.SetTitle("Fitting Frame Open Error")
 
         self.panel = wx.Panel(self)
         self.string = "Incorrect"
         self.ds9 = False
+        self.fitError = False
         
         if max != '0':
             self.string = "The bin size must be between 5 and "+max+"."
@@ -2006,6 +2015,9 @@ class InvalidParameter(wx.Frame):
             self.ds9 = True
             self.paths = wx.StaticText(self.panel, -1, 
                                        "It seems that ds9 may not have installed correctly, please try again.")
+        elif str == "fitOpen":
+            self.fitError = True
+            self.paths = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
         else:
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
@@ -2042,6 +2054,8 @@ class InvalidParameter(wx.Frame):
     def onOkay(self, event):
         if self.ds9:
             self.parent.ds9Open = False
+        elif self.fitError:
+            self.parent.loadFitError = False
         self.Destroy()
 
 def checkParams(self,list):
