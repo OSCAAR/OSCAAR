@@ -205,10 +205,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                    self.radioBox.userParams['egress'].GetValue()) == True:
             try:
                 values = {}
-                list = ["smoothing","radius","ccd", "zoom"]
+                list = ["smoothing", "zoom"]
                 for string in list:
-                    values[string] = (float(self.leftBox.userParams[string].GetValue()))
-                    
+                    values[string] = int(self.leftBox.userParams[string].GetValue())
+                list = ["radius","ccd"]
+                for string in list:
+                    values[string] = float(self.leftBox.userParams[string].GetValue())
+
                 # This code here writes all the parameters to the init.par file.
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
