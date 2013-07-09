@@ -44,15 +44,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 
         if sys.platform == "win32":
             self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+            self.row = 1
         else: 
             self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+            self.row = 5
         
         self.static_bitmap = wx.StaticBitmap(self.panel)
         self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-         
-        self.paths = AddLCB(self.panel, -1, name = "mainGUI", str = "Browse", vNum = 15, hNum = 5, font = self.fontType)
+        
+        self.paths = AddLCB(self.panel, -1, name = "mainGUI", str = "Browse", rowNum=self.row, vNum = 15, hNum = 5, font = self.fontType)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.paths, border = 5, flag = wx.ALL)
 
@@ -65,7 +67,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 ('smoothing',"Smoothing Constant: ", 
                  'Enter an integer for smoothing here.','3'),
                 ('notes',"Notes: ","",'Enter notes to be saved here.')]
-        self.leftBox = ParameterBox(self.panel,-1,list,rows=4,cols=2, vNum=10, hNum=10, font=self.fontType)
+        
+        if sys.platform == "win32":
+            self.row = 4
+        
+        self.leftBox = ParameterBox(self.panel,-1,list,rows=self.row,cols=2, vNum=10, hNum=10, font=self.fontType)
         
         list = [('trackPlot',"Tracking Plots: ","none",''),
                 ('photPlot',"Photometry Plots: ","none",''),
@@ -73,7 +79,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
                 ('egress',"Egress, UT (YYYY/MM/DD)",
                  "Enter a date in the correct format here.","YYYY/MM/DD")]
-        self.radioBox = ParameterBox(self.panel,-1,list, rows = 2, cols = 3, vNum = 10, hNum = 10, font = self.fontType)
+        
+        if sys.platform == "win32":
+            self.row = 2
+        else:
+            self.row = 4
+            
+        self.radioBox = ParameterBox(self.panel,-1,list, rows = self.row, cols = 3, vNum = 10, hNum = 10, font = self.fontType)
         
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=4)
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
