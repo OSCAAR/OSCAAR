@@ -184,7 +184,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         masterFlat = self.paths.boxes[1].GetValue()
         invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), "fit")
         regionsFile = self.paths.boxes[3].GetValue()
-        outputFile = self.paths.boxes[4].GetValue()
+        self.outputFile = self.paths.boxes[4].GetValue()
                 
         if invalidDarkFrames != "": 
             InvalidParameter(invalidDarkFrames, None, -1, str="fits", max="the path to Dark Frames")
@@ -210,9 +210,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     else:
                         tempString += "\n" + string.strip()
             InvalidParameter(tempString, None, -1, str="master", max="path to Regions File")
-        elif not os.path.isdir(outputFile[outputFile.rfind(os.sep)]) or \
-             not len(outputFile) > (len(outputFile[:outputFile.rfind(os.sep)]) + 1):
-            InvalidParameter(outputFile, None, -1, str="output", max="output file")
+        elif not os.path.isdir(self.outputFile[self.outputFile.rfind(os.sep)]) or \
+             not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
+            InvalidParameter(self.outputFile, None, -1, str="output", max="output file")
         
         elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].GetValue(),
                                    self.radioBox.userParams['egress1'].GetValue(),
@@ -259,13 +259,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 init.write("Init GUI: on")
                 init.close()
                 if self.loadFittingOpen == False:
-                    if os.path.isfile(outputFile) or os.path.isfile(outputFile + '.pkl'):
+                    if os.path.isfile(self.outputFile) or os.path.isfile(self.outputFile + '.pkl'):
                         if self.overWrite == False:
-                            OverWrite(self, -1, "Overwrite Output File", outputFile, "Output File")
+                            OverWrite(self, -1, "Overwrite Output File", self.outputFile, "Output File")
                             self.overWrite = True
                     else:
                         diffPhotCall = "from oscaar import differentialPhotometry"
                         subprocess.check_call(['python','-c',diffPhotCall])
+                        wx.CallAfter(self.createFrame)
+
                 else:
                     if self.loadFitError == False:
                         InvalidParameter("", self, -1, str="fitOpen")
@@ -427,20 +429,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         else:
             filename.write(text + 'off\n')
 
-#     def openDS9(self, event):
-#         if sys.platform == "win32":
-#             errorType = WindowsError
-#         else:
-#             errorType = OSError
-#         
-#         try:
-#             if self.ds9Open == False:
-#                 subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
-#                                                'extras','ds9',sys.platform,'ds9')])
-#        
-#         except errorType:
-#             self.ds9Open = True
-#             InvalidParameter("", self, -1, str="ds9")
+    def createFrame(self):
+        if self.loadFittingOpen == False:
+            if not self.outputFile.endswith(".pkl"):
+                FittingFrame(self, -1, self.outputFile + ".pkl")
+                self.loadFittingOpen = True
+            else:
+                FittingFrame(self, -1, self.outputFile)
+            self.loadFittingOpen = True
 
     def openLink(self, event, string):
         webbrowser.open_new_tab(string)
@@ -637,6 +633,7 @@ class OverWrite(wx.Frame):
         self.parent.overWrite = False
         diffPhotCall = "from oscaar import differentialPhotometry"
         subprocess.check_call(['python','-c',diffPhotCall])
+        wx.CallAfter(self.parent.createFrame)
 
     def onOkay(self, event):
         self.parent.overWrite = False    
@@ -1719,12 +1716,15 @@ class AddLCB(wx.Panel):
             else:
                 list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
                         "Output Path: "]
-                
-                box0 = wx.TextCtrl(self, -1, size=(500,20), style = wx.TE_RICH)
-                box1 = wx.TextCtrl(self, -1, size=(500,20), style = wx.TE_RICH)
-                box2 = wx.TextCtrl(self, -1, size=(500,20), style = wx.TE_RICH)
-                box3 = wx.TextCtrl(self, -1, size=(500,20), style = wx.TE_RICH)
-                box4 = wx.TextCtrl(self, -1, size=(500,20))
+                if sys.platform == "win32":
+                    tempSize = 25
+                else:
+                    tempSize = 35
+                box0 = wx.TextCtrl(self, -1, size=(500,tempSize), style = wx.TE_RICH)
+                box1 = wx.TextCtrl(self, -1, size=(500,25), style = wx.TE_RICH)
+                box2 = wx.TextCtrl(self, -1, size=(500,tempSize), style = wx.TE_RICH)
+                box3 = wx.TextCtrl(self, -1, size=(500,25), style = wx.TE_RICH)
+                box4 = wx.TextCtrl(self, -1, size=(500,25))
                 self.boxes = [box0,box1,box2,box3,box4]
                
                 list = [("Path to Dark Frames: ",0), ("Path to Master Flat: ",1), ("Path to Data Images: ",2),
