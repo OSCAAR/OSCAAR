@@ -1717,14 +1717,16 @@ class AddLCB(wx.Panel):
                 list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
                         "Output Path: "]
                 if sys.platform == "win32":
-                    tempSize = 25
+                    tempSize1 = 20
+                    tempSize2 = 20
                 else:
-                    tempSize = 35
-                box0 = wx.TextCtrl(self, -1, size=(500,tempSize), style = wx.TE_RICH)
-                box1 = wx.TextCtrl(self, -1, size=(500,25), style = wx.TE_RICH)
-                box2 = wx.TextCtrl(self, -1, size=(500,tempSize), style = wx.TE_RICH)
-                box3 = wx.TextCtrl(self, -1, size=(500,25), style = wx.TE_RICH)
-                box4 = wx.TextCtrl(self, -1, size=(500,25))
+                    tempSize1 = 35
+                    tempSize2 = 25
+                box0 = wx.TextCtrl(self, -1, size=(500,tempSize1), style = wx.TE_RICH)
+                box1 = wx.TextCtrl(self, -1, size=(500,tempSize2), style = wx.TE_RICH)
+                box2 = wx.TextCtrl(self, -1, size=(500,tempSize1), style = wx.TE_RICH)
+                box3 = wx.TextCtrl(self, -1, size=(500,tempSize2), style = wx.TE_RICH)
+                box4 = wx.TextCtrl(self, -1, size=(500,tempSize2))
                 self.boxes = [box0,box1,box2,box3,box4]
                
                 list = [("Path to Dark Frames: ",0), ("Path to Master Flat: ",1), ("Path to Data Images: ",2),
