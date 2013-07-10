@@ -168,6 +168,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)       
 
     def runOscaar(self, event):
+        print "HEY I SHOULD WORK NOW"
         self.worker = None
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
@@ -263,7 +264,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                             self.overWrite = True
                     else:
                         if not self.worker:
-                            self.worker = WorkerThread(self, -1, outputFile)
+                            #self.worker = WorkerThread(self, -1, outputFile)
+                            diffPhotCall = "from oscaar import differentialPhotometry"
+                            subprocess.check_call(['python','-c',diffPhotCall])
                 else:
                     if self.loadFitError == False:
                         InvalidParameter("", self, -1, str="fitOpen")
@@ -609,8 +612,9 @@ class OverWrite(wx.Frame):
         self.Destroy()
         self.parent.overWrite = False
         if not self.parent.worker:
-            self.parent.worker = WorkerThread(self.parent, -1, self.path)
-            
+            #self.parent.worker = WorkerThread(self.parent, -1, self.path)
+            diffPhotCall = "from oscaar import differentialPhotometry"
+            subprocess.check_call(['python','-c',diffPhotCall])
 
     def onOkay(self, event):
         self.parent.overWrite = False    
@@ -619,25 +623,27 @@ class OverWrite(wx.Frame):
     def doNothing(self,event):
         pass
 
-class WorkerThread(threading.Thread):
-    def __init__(self, parent, id, outputText = ''):
-        threading.Thread.__init__(self)
-        self.output = outputText
-        self.parent = parent
-        self.start()
+#class WorkerThread(threading.Thread):
+#    def __init__(self, parent, id, outputText = ''):
+#        threading.Thread.__init__(self)
+#        self.output = outputText
+#        self.parent = parent
+#        self.start()
 
-    def run(self):
-        diffPhotCall = "from oscaar import differentialPhotometry"
-        subprocess.check_call(['python','-c',diffPhotCall])
-        wx.CallAfter(self.createFrame)
+#    def run(self):
+#        print "should start running now"
+#        diffPhotCall = "from oscaar import differentialPhotometry"
+#        subprocess.check_call(['python','-c',diffPhotCall])
+#        #execfile(os.path.join(os.path.dirname(__file__),'differentialPhotometry.py'))
+#        wx.CallAfter(self.createFrame)
 
-    def createFrame(self):
-        if self.parent.loadFittingOpen == False:
-            if not self.output.endswith(".pkl"):
-                FittingFrame(self.parent, -1, self.output + ".pkl")
-            else:
-                FittingFrame(self.parent, -1, self.output)
-            self.parent.loadFittingOpen = True
+#    def createFrame(self):
+#        if self.parent.loadFittingOpen == False:
+#            if not self.output.endswith(".pkl"):
+#                FittingFrame(self.parent, -1, self.output + ".pkl")
+#            else:
+#                FittingFrame(self.parent, -1, self.output)
+#            self.parent.loadFittingOpen = True
             
             
             
