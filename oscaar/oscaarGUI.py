@@ -263,7 +263,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                             self.overWrite = True
                     else:
                         if not self.worker:
-                            self.worker = WorkerThread(self, -1, outputFile)
+                            diffPhotCall = "from oscaar import differentialPhotometry"
+                            subprocess.check_call(['python','-c',diffPhotCall])
                 else:
                     if self.loadFitError == False:
                         InvalidParameter("", self, -1, str="fitOpen")
@@ -609,7 +610,8 @@ class OverWrite(wx.Frame):
         self.Destroy()
         self.parent.overWrite = False
         if not self.parent.worker:
-            self.parent.worker = WorkerThread(self.parent, -1, self.path)
+            diffPhotCall = "from oscaar import differentialPhotometry"
+            subprocess.check_call(['python','-c',diffPhotCall])
             
 
     def onOkay(self, event):
@@ -1837,14 +1839,20 @@ class AddLCB(wx.Panel):
                 textControl = self.boxes[textControlNum]
             if fileDialog:
                 dlg = wx.FileDialog(self, message = message, style = saveDialog)
-            else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+            else: 
+                dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
             if dlg.ShowModal() == wx.ID_OK:
-                filenames = dlg.GetPaths()
+                if saveDialog == wx.SAVE:
+                    filenames = [dlg.GetPath()]
+                else:
+                    filenames = dlg.GetPaths()
                 textControl.Clear()
+                print filenames
                 for i in range(0,len(filenames)):
                     if i != len(filenames)-1:
                         textControl.WriteText(filenames[i] + ',')
                     else:
+                        print "WHAT"
                         textControl.WriteText(filenames[i])
             dlg.Destroy() 
 
