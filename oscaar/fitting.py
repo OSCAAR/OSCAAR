@@ -36,9 +36,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import optimize
 import oscaar
+import IO
+import transitModel
 from matplotlib.ticker import FormatStrFormatter
 from time import sleep
-
 def fitLinearTrend(xVector,yVector):
     '''Fit a line to the set {xVectorCropped,yVectorCropped}, then remove that linear trend
        from the full set {xVector,yVector}'''
@@ -370,17 +371,17 @@ def get_uncertainties(param,bestFitParameter):
 
 def histplot(parameter,axis,title,bestFitParameter):
     postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
-    Nbins = 15              ## Plot histograms with 15 bins
-    n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
+    Nbins = 50              ## Plot histograms with 15 bins
+    n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white',histtype='stepfilled')  ## Generate histogram
     plus,minus = get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
     axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
     axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')        
     axis.set_title(title)
 
 def updatePKL(bestp,allparams,acceptanceRate,pklPath):
-    data = oscaar.load(pklPath)
+    data = IO.load(pklPath)
     data.updateMCMC(bestp,allparams,acceptanceRate,pklPath)
-    oscaar.save(data,pklPath)
+    IO.save(data,pklPath)
     
 class mcmcfit:
     def __init__(self,dataBankPath,initParams,initBeta,Nsteps,saveInterval,idealAcceptanceRate,burnFraction):
@@ -412,7 +413,7 @@ class mcmcfit:
                                     to discard when computing uncertainties. Typically ~0.20
         '''
         ## Load parameters
-        self.data = oscaar.load(dataBankPath)
+        self.data = IO.load(dataBankPath)
         self.dataBankPath = dataBankPath
         self.initParams = np.require(initParams,dtype=np.float64)
         self.Nsteps = Nsteps
@@ -421,7 +422,7 @@ class mcmcfit:
         self.saveInterval = saveInterval
         self.burnFraction = burnFraction
         ## Choose the implementation of transit light curve function to use:
-        self.func = oscaar.transitModel.occultquad  
+        self.func = transitModel.occultquad  
     
     def run(self,updatepkl=False):
         '''
@@ -432,7 +433,7 @@ class mcmcfit:
             '''Allow 4 parameters to vary freely, keep the others fixed at the values assigned below'''
             RpOverRs_free,aOverRs_free,inc_free,t0_free = freeparams
             RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = allparams
-            return oscaar.occultquad(t,[RpOverRs_free,aOverRs_free,per,inc_free,gamma1,gamma2,ecc,longPericenter,t0_free])
+            return transitModel.occultquad(t,[RpOverRs_free,aOverRs_free,per,inc_free,gamma1,gamma2,ecc,longPericenter,t0_free])
 
         RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = self.initParams
         initParams = [RpOverRs,aOverRs,inc,t0]
@@ -451,12 +452,12 @@ class mcmcfit:
             '''Allow 4 parameters to vary freely, keep the others fixed at the values assigned below'''
             RpOverRs_free,aOverRs_free,inc_free,t0_free = freeparams
             RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = allparams
-            return oscaar.occultquad(t,[RpOverRs_free,aOverRs_free,per,inc_free,gamma1,gamma2,ecc,longPericenter,t0_free])
+            return transitModel.occultquad(t,[RpOverRs_free,aOverRs_free,per,inc_free,gamma1,gamma2,ecc,longPericenter,t0_free])
 
         bestp = self.bestp
         allparams = self.allparams
         acceptanceRate = self.acceptanceRate
-        data = oscaar.load(self.dataBankPath)
+        data = IO.load(self.dataBankPath)
         burnFraction = self.burnFraction
         x = data.times
         y = data.lightCurve
@@ -536,9 +537,9 @@ class mcmcfit:
 
         def histplot(parameter,axis,title,bestFitParameter,format):
             postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
-            Nbins = 15              ## Plot histograms with 15 bins
-            n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
-            plus,minus = oscaar.fitting.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+            Nbins = 50              ## Plot histograms with 15 bins
+            n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white',histtype='stepfilled',linewidth=1.5)  ## Generate histogram
+            plus,minus = get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
             axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls='--',color='r',linewidth=1.5)    ## Plot vertical lines representing uncertainties
             axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls='--',color='r',linewidth=1.5)       
             axis.axvline(ymin=0,ymax=1,x=bestFitParameter,color='r',linewidth=2)       

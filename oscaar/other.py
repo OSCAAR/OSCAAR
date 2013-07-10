@@ -10,7 +10,6 @@ def paddedStr(num,pad):
     return str((lenpad*'0')+str(num))
 
 
-
 def overWriteCheck(filename, checkfiles, varcheck):
     """Checks to see if a particular file should be overwritten based on whether varcheck is on or off"""
     overcheck = None

@@ -10,9 +10,8 @@ from glob import glob
 
 import os
 import oscaar
-from IO import *
-from other import *
-from mathMethods import *
+import mathMethods
+import IO
 oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
 oscaarpathplus = os.path.join(oscaarpath,'extras')
 
@@ -61,18 +60,18 @@ class dataBank:
             dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
             self.masterFlat = np.ones([dim1,dim2])
         self.allStarsDict = {}
-        init_x_list,init_y_list = parseRegionsFile(self.regsPath)        
+        init_x_list,init_y_list = IO.parseRegionsFile(self.regsPath)        
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
         self.targetKey = '000'
         for i in range(0,len(init_x_list)):
-            self.allStarsDict[paddedStr(i,3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
+            self.allStarsDict[str(i).zfill(3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
                 'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
                 'scaledFlux':np.copy(zeroArray), 'scaledError':np.copy(zeroArray), 'chisq':0}
-            self.allStarsDict[paddedStr(i,3)]['x-pos'][0] = init_x_list[i]
-            self.allStarsDict[paddedStr(i,3)]['y-pos'][0] = init_y_list[i]
-            self.keys.append(paddedStr(i,3))
+            self.allStarsDict[str(i).zfill(3)]['x-pos'][0] = init_x_list[i]
+            self.allStarsDict[str(i).zfill(3)]['y-pos'][0] = init_y_list[i]
+            self.keys.append(str(i).zfill(3))
     
     def getDict(self):
         '''Return master dictionary of all star data'''
@@ -124,12 +123,12 @@ class dataBank:
             
             time - Time as read-in from the FITS header
             '''
-        try:
-            timeStamp = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
-        except KeyError: 
-            print 'Input Error: The Exposure Time Keyword indicated in observatory.par is not a valid key: ',self.timeKeyword
-        finally: 
-            self.times[expNumber] = self.convertToJD(timeStamp)
+        #try:
+        timeStamp = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
+        #except KeyError: 
+        #    print 'Input Error: The Exposure Time Keyword indicated in observatory.par is not a valid key: ',self.timeKeyword
+        #finally: 
+        self.times[expNumber] = self.convertToJD(timeStamp)
     
     def getTimes(self):
         '''Return all times collected with dataBank.storeTime()'''
@@ -163,7 +162,7 @@ class dataBank:
             '''
         for star in self.allStarsDict:
             if star != self.targetKey:
-                self.allStarsDict[star]['scaledFlux'], m = regressionScale(self.getFluxes(star),self.getFluxes(self.targetKey),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
+                self.allStarsDict[star]['scaledFlux'], m = mathMethods.regressionScale(self.getFluxes(star),self.getFluxes(self.targetKey),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
                 print m
                 self.allStarsDict[star]['scaledError'] = np.abs(m)*self.getErrors(star)
             if star == self.targetKey:	## (Keep the target star the same)
@@ -181,7 +180,7 @@ class dataBank:
     
     def calcChiSq(self):
         for star in self.allStarsDict:
-            self.allStarsDict[star]['chisq'] = chiSquared(self.getFluxes(self.targetKey),self.getFluxes(star))
+            self.allStarsDict[star]['chisq'] = mathMethods.chiSquared(self.getFluxes(self.targetKey),self.getFluxes(star))
         chisq = []
         for star in self.allStarsDict:
             chisq.append(self.allStarsDict[star]['chisq'])
@@ -297,7 +296,7 @@ class dataBank:
                         if name == "Smoothing Constant" or name == "Radius" or name == "Tracking Zoom" or name == "CCD Gain":
                             self.dict[save] = float(value)
                         elif name == "Ingress" or name == "Egress":
-                            self.dict[save] = oscaar.ut2jd(value)
+                            self.dict[save] = oscaar.mathMethods.ut2jd(value)
                         elif name == "Plot Photometry" or name == "Plot Tracking":
                             if value == "on":
                                 self.dict[save] = True
@@ -334,7 +333,7 @@ class dataBank:
                 if inline[0] == 'Exposure Time Keyword': self.timeKeyword = str(inline[1].split('#')[0].strip())
         
         if self.timeKeyword == 'JD': self.convertToJD = lambda x: x ## If the keyword is "JD", no conversion is needed
-        elif self.timeKeyword == 'DATE-OBS': self.convertToJD = ut2jdSplitAtT ## If the keyword is "DATE-OBS", converstion is needed
+        elif self.timeKeyword == 'DATE-OBS': self.convertToJD = mathMethods.ut2jdSplitAtT ## If the keyword is "DATE-OBS", converstion is needed
     ##elif inline[0] == '':
     
     def plot(self,pointsPerBin=10):
@@ -344,7 +343,7 @@ class dataBank:
         times = self.getTimes()
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
         lightCurve, lightCurveErr = self.computeLightCurve(meanComparisonStar, meanComparisonStarError)
-        binnedTime, binnedFlux, binnedStd = medianBin(times,lightCurve,pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(times,lightCurve,pointsPerBin)
         
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
@@ -365,7 +364,7 @@ class dataBank:
     
     def plotLightCurve(self,pointsPerBin=10):
         
-		binnedTime, binnedFlux, binnedStd = medianBin(self.times,self.lightCurve,pointsPerBin)
+		binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurve,pointsPerBin)
         
 		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
 		fig.canvas.set_window_title('OSCAAR')

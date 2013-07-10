@@ -12,24 +12,27 @@ Core developer: Brett Morris
 '''
 
 import oscaar
-from oscaar import astrometry
-from oscaar import photometry
+import astrometry
+import photometry
+import dataBank
+import systematics
+import IO
 import pyfits
 import numpy as np
 from matplotlib import pyplot as plt
 plt.ion()	## Turn on interactive plots
 
-data = oscaar.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
+data = dataBank.dataBank()#imagesPath,darksPath,flatPath,regsPath,ingress,egress)  ## initalize databank for data storage
 allStars = data.getDict()               ## Store initialized dictionary
 outputPath = data.outputPath
 N_exposures = len(data.getPaths())
 
 ## Prepare systematic corrections: dark frame, flat field
-meanDarkFrame = oscaar.meanDarkFrame(data.darksPath)
+meanDarkFrame = systematics.meanDarkFrame(data.darksPath)
 masterFlat = data.masterFlat
 
 ## Tell oscaar what figure settings to use 
-plottingThings,statusBarFig,statusBarAx = oscaar.plottingSettings(data.trackPlots,data.photPlots)   
+plottingThings,statusBarFig,statusBarAx = IO.plottingSettings(data.trackPlots,data.photPlots)   
 
 ## Main loop: iterate through each exposures
 for expNumber in range(0,N_exposures):  
@@ -83,7 +86,7 @@ meanComparisonStar, meanComparisonStarError = data.calcMeanComparison(ccdGain = 
 lightCurve, lightCurveError = data.computeLightCurve(meanComparisonStar,meanComparisonStarError)
 
 ## Save the dataBank object for later use
-oscaar.save(data,outputPath)
+IO.save(data,outputPath)
 
 ## Plot the resulting light curve
 data.plotLightCurve(pointsPerBin=N_exposures/20)

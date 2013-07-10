@@ -11,8 +11,11 @@ import shutil
 import zipfile
 
 from mathMethods import medianBin
-import oscaar
 import random
+import oscaar
+import transiterFit
+import systematics
+import IO
 from matplotlib import pyplot
 import matplotlib
 from oscaar.extras.knownSystemParameters import returnSystemParams
@@ -509,10 +512,10 @@ class MasterFlatFrame(wx.Frame):
                     self.overWrite = True
             else:
                 if self.flatBox.userParams['flatType'].GetValue() == True:
-                    oscaar.standardFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
+                    systematics.standardFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
                                               self.plotCheck)
                 else:
-                    oscaar.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
+                    systematics.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
                                               self.plotCheck)
 
 class AboutFrame(wx.Frame):
@@ -615,10 +618,10 @@ class OverWrite(wx.Frame):
         self.parent.overWrite = False  
         os.remove(self.path)
         if self.parent.flatBox.userParams['flatType'].GetValue() == True:
-            oscaar.standardFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
+            systematics.standardFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
                                      self.parent.path3.txtbox.GetValue(), self.parent.plotCheck)
         else:
-            oscaar.twilightFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
+            systematics.twilightFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
                                      self.parent.path3.txtbox.GetValue(), self.parent.plotCheck)
     def onOutputFile(self,event):
         self.Destroy()
@@ -1139,14 +1142,14 @@ class LoadOldPklFrame(wx.Frame):
     def plotLightCurve(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
             subprocess.Popen(['python','-c',commandstring])
 
     def plotRawFlux(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
 
             subprocess.Popen(['python','-c',commandstring])
 
@@ -1154,7 +1157,7 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
 
             subprocess.Popen(['python','-c',commandstring])
     
@@ -1162,7 +1165,7 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
 
             subprocess.Popen(['python','-c',commandstring])
 
@@ -1170,7 +1173,7 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar; data=oscaar.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
 
             subprocess.Popen(['python','-c',commandstring])
     
@@ -1282,7 +1285,7 @@ class GraphFrame(wx.Frame):
         # Initializes the first plot with a bin size of 10.
         
         # We make an instance of the dataBank class with all the paramters of the pkl file loaded.
-        self.data = oscaar.load(self.pT)
+        self.data = IO.load(self.pT)
         self.pointsPerBin = 10
         
         # Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
@@ -1396,7 +1399,7 @@ class LeastSquaresFitFrame(wx.Frame):
         self.panel = wx.Panel(self)
         
         self.pT = pathText
-        self.data = oscaar.load(self.pT)
+        self.data = IO.load(self.pT)
          
         self.box1 = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.box1.updateButton)
@@ -1416,7 +1419,7 @@ class LeastSquaresFitFrame(wx.Frame):
                      'Enter a value for the eccentricity here.',''),
                     ('t0',"t0:",
                      'Enter a value for t0 here.',
-                     str(oscaar.transiterFit.calcMidTranTime(self.data.times,self.data.lightCurve))),
+                     str(transiterFit.calcMidTranTime(self.data.times,self.data.lightCurve))),
                     ('gamma1',"Gamma 1:",
                      'Enter a value for gamma 1 here.','0.0'),
                     ('gamma2'," Gamma 2:",
@@ -1471,7 +1474,7 @@ class LeastSquaresFitFrame(wx.Frame):
             if self.box.userParams['limbdark'].GetValue() == 'False':
                 self.tempLimbDark = False
             
-            fit, success = oscaar.transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
+            fit, success = transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
                               float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
                               float(self.box.userParams['inc'].GetValue()),float(self.box.userParams['t0'].GetValue()),
                               float(self.box.userParams['gamma1'].GetValue()),float(self.box.userParams['gamma2'].GetValue()),
@@ -1531,7 +1534,7 @@ class MCMCFrame(wx.Frame):
         self.panel = wx.Panel(self)
         
         self.pT = parent.pathText
-        self.data = oscaar.load(self.pT)
+        self.data = IO.load(self.pT)
         
         self.LCB = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.LCB.updateButton)
@@ -1671,7 +1674,7 @@ class MCMCFrame(wx.Frame):
             #mcmcinstance.plot()
             
             ## Spawn a new process to execute the MCMC run separately
-            mcmcCall = 'import oscaar; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True); mcmcinstance.plot()' % \
+            mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True); mcmcinstance.plot()' % \
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
             subprocess.call(['python','-c',mcmcCall])
 
