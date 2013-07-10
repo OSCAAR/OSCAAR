@@ -40,7 +40,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.overWrite = False
         self.ds9Open = False
         self.loadFitError = False
-        self.ephFrame = False
+        self.loadEphFrame = False
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
         self.panel = wx.Panel(self)
@@ -99,10 +99,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ds9Button = wx.Button(self.panel, label = "Open DS9")
         self.runButton = wx.Button(self.panel, label = "Run")
         
-        self.Bind(wx.EVT_BUTTON, self.openEphGUI, self.ephButton)
+        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadEphFrame, "ephemeris"), self.ephButton)
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadMasterFlat, "masterFlat"),
                   self.masterFlatButton)
-        self.Bind(wx.EVT_BUTTON, self.openDS9, self.ds9Button)
+        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.ds9Open, "ds9"), self.ds9Button)
         self.Bind(wx.EVT_BUTTON, self.runOscaar, self.runButton)
    
         self.sizer0.Add(self.ephButton,0,wx.ALIGN_CENTER|wx.ALL,5)
@@ -171,7 +171,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)       
 
     def runOscaar(self, event):
-        self.worker = None
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
@@ -265,10 +264,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                             OverWrite(self, -1, "Overwrite Output File", outputFile, "Output File")
                             self.overWrite = True
                     else:
-                        if not self.worker:
-                            #self.worker = WorkerThread(self, -1, outputFile)
-                            diffPhotCall = "from oscaar import differentialPhotometry"
-                            subprocess.check_call(['python','-c',diffPhotCall])
+                        diffPhotCall = "from oscaar import differentialPhotometry"
+                        subprocess.check_call(['python','-c',diffPhotCall])
                 else:
                     if self.loadFitError == False:
                         InvalidParameter("", self, -1, str="fitOpen")
@@ -397,6 +394,25 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             elif name == "masterFlat":
                 MasterFlatFrame(self, -1)
                 self.loadMasterFlat = True
+            elif name == "ephemeris":
+                try:
+                    import ephem
+                    EphFrame(self)
+                    self.loadEphFrame = True
+                except ImportError:
+                    InvalidParameter("", None, -1, str="importError")
+            elif name == "ds9":
+                if sys.platform == "win32":
+                    errorType = WindowsError
+                else:
+                    errorType = OSError
+                
+                try:
+                    subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                                                       'extras','ds9',sys.platform,'ds9')])
+                except errorType:
+                    self.ds9Open = True
+                    InvalidParameter("", self, -1, str="ds9")
 
     def parseTime(self, date, time, text, filename):
         
@@ -411,30 +427,23 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         else:
             filename.write(text + 'off\n')
 
-    def openDS9(self, event):
-        try:
-            if self.ds9Open == False:
-                subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
-                                               'extras','ds9',sys.platform,'ds9')])
-        except WindowsError:
-            self.ds9Open = True
-            InvalidParameter("", self, -1, str="ds9")
+#     def openDS9(self, event):
+#         if sys.platform == "win32":
+#             errorType = WindowsError
+#         else:
+#             errorType = OSError
+#         
+#         try:
+#             if self.ds9Open == False:
+#                 subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+#                                                'extras','ds9',sys.platform,'ds9')])
+#        
+#         except errorType:
+#             self.ds9Open = True
+#             InvalidParameter("", self, -1, str="ds9")
 
     def openLink(self, event, string):
         webbrowser.open_new_tab(string)
- 
-    #### Bound to the openEphGui button, opens the Ephemeris GUI
-    def openEphGUI(self,event):
-        self.ephframe = True
-        if self.ephframe == False:
-            try:
-                import ephem
-            except ImportError:
-                WarnFrame(self)
-        else:
-            self.ephframe = True
-            EphFrame(self)
-
     
     def on_exit(self, event):
         self.Destroy()
@@ -626,10 +635,8 @@ class OverWrite(wx.Frame):
     def onOutputFile(self,event):
         self.Destroy()
         self.parent.overWrite = False
-        if not self.parent.worker:
-            #self.parent.worker = WorkerThread(self.parent, -1, self.path)
-            diffPhotCall = "from oscaar import differentialPhotometry"
-            subprocess.check_call(['python','-c',diffPhotCall])
+        diffPhotCall = "from oscaar import differentialPhotometry"
+        subprocess.check_call(['python','-c',diffPhotCall])
 
     def onOkay(self, event):
         self.parent.overWrite = False    
@@ -637,62 +644,11 @@ class OverWrite(wx.Frame):
         
     def doNothing(self,event):
         pass
-
-#class WorkerThread(threading.Thread):
-#    def __init__(self, parent, id, outputText = ''):
-#        threading.Thread.__init__(self)
-#        self.output = outputText
-#        self.parent = parent
-#        self.start()
-
-#    def run(self):
-#        print "should start running now"
-#        diffPhotCall = "from oscaar import differentialPhotometry"
-#        subprocess.check_call(['python','-c',diffPhotCall])
-#        #execfile(os.path.join(os.path.dirname(__file__),'differentialPhotometry.py'))
-#        wx.CallAfter(self.createFrame)
-
-#    def createFrame(self):
-#        if self.parent.loadFittingOpen == False:
-#            if not self.output.endswith(".pkl"):
-#                FittingFrame(self.parent, -1, self.output + ".pkl")
-#            else:
-#                FittingFrame(self.parent, -1, self.output)
-#            self.parent.loadFittingOpen = True
-            
-   
-#     #### Bound to the openEphGui button, opens the Ephemeris GUI
-#     def openEphGUI(self,event):
-#         global ephGUIOpen
-#         if ephGUIOpen == False:
-#             try:
-#                 import ephem
-#             except ImportError:
-#                 WarnFrame(self)
-#         else:
-#             ephGUIOpen = True
-#             EphFrame(self)
-# 
-# 
-# class WarnFrame(wx.Frame):
-#     def __init__(self, *args, **kwargs):
-#         super(WarnFrame, self).__init__(*args, **kwargs)
-#         self.SetTitle('Install PyEphem')
-#         self.SetSize((290,120))
-#         self.SetBackgroundColour(wx.Colour(227,227,227))
-#         self.warningText = wx.StaticText(parent = self, id = -1, label = 'You must install PyEphem to use this feature', pos = (15,7), style = wx.ALIGN_CENTER)
-#         self.okButton = wx.Button(parent = self, id = -1, label = 'Okay', pos = (100,50))
-#         self.okButton.Bind(wx.EVT_BUTTON, self.destroy)
-#         self.Centre()
-#         self.Show()
-#     def destroy(self, event):
-#         self.Destroy()
-
-
         
 class EphFrame(wx.Frame):
      def __init__(self, *args, **kwargs):
          super(EphFrame, self).__init__(*args, **kwargs)
+         self.parent = args[0]
          self.initUI()
      
      def initUI(self):
@@ -900,25 +856,7 @@ class EphFrame(wx.Frame):
              outputArchive.close()
  
      def onDestroy(self, event):
-         global ephGUIOpen
-         ephGUIOpen = False
- 
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+         self.parent.loadEphFrame = False
 
 class FittingFrame(wx.Frame):
 
@@ -1824,9 +1762,13 @@ class AddLCB(wx.Panel):
                 textControl = self.boxes[textControlNum]
             if fileDialog:
                 dlg = wx.FileDialog(self, message = message, style = saveDialog)
-            else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+            else: 
+                dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
             if dlg.ShowModal() == wx.ID_OK:
-                filenames = dlg.GetPaths()
+                if saveDialog == wx.SAVE:
+                    filenames = [dlg.GetPath()]
+                else:
+                    filenames = dlg.GetPaths()
                 textControl.Clear()
                 for i in range(0,len(filenames)):
                     if i != len(filenames)-1:
@@ -2014,6 +1956,8 @@ class InvalidParameter(wx.Frame):
             self.ds9 = True
             self.paths = wx.StaticText(self.panel, -1, 
                                        "It seems that ds9 may not have installed correctly, please try again.")
+        elif str == "importError":
+            self.paths = wx.StaticText(self.panel, -1, "Failed to import ephem, please try again.")
         elif str == "fitOpen":
             self.fitError = True
             self.paths = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
