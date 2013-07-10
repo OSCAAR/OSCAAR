@@ -37,7 +37,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.overWrite = False
         self.ds9Open = False
         self.loadFitError = False
-        
+        self.ephFrame = False
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
         self.panel = wx.Panel(self)
@@ -96,7 +96,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ds9Button = wx.Button(self.panel, label = "Open DS9")
         self.runButton = wx.Button(self.panel, label = "Run")
         
-        #self.Bind(wx.EVT_BUTTON, self.openEphGUI, self.ephButton)
+        self.Bind(wx.EVT_BUTTON, self.openEphGUI, self.ephButton)
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadMasterFlat, "masterFlat"),
                   self.masterFlatButton)
         self.Bind(wx.EVT_BUTTON, self.openDS9, self.ds9Button)
@@ -168,7 +168,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)       
 
     def runOscaar(self, event):
-        print "HEY I SHOULD WORK NOW"
         self.worker = None
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
@@ -420,6 +419,19 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     def openLink(self, event, string):
         webbrowser.open_new_tab(string)
+ 
+    #### Bound to the openEphGui button, opens the Ephemeris GUI
+    def openEphGUI(self,event):
+        self.ephframe = True
+        if self.ephframe == False:
+            try:
+                import ephem
+            except ImportError:
+                WarnFrame(self)
+        else:
+            self.ephframe = True
+            EphFrame(self)
+
     
     def on_exit(self, event):
         self.Destroy()
@@ -645,40 +657,6 @@ class OverWrite(wx.Frame):
 #                FittingFrame(self.parent, -1, self.output)
 #            self.parent.loadFittingOpen = True
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-     
-
    
 #     #### Bound to the openEphGui button, opens the Ephemeris GUI
 #     def openEphGUI(self,event):
@@ -709,220 +687,220 @@ class OverWrite(wx.Frame):
 
 
         
-# class EphFrame(wx.Frame):
-#     def __init__(self, *args, **kwargs):
-#         super(EphFrame, self).__init__(*args, **kwargs)
-#         self.initUI()
-#     
-#     def initUI(self):
-#         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
-#         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-#             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-#         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-#         self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-#     self.subTitleFont = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-#         self.SetTitle('Ephemerides')
-#         self.ctrlList = []
-#         self.ephSizer = wx.GridBagSizer(5,5)
-#         obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
-#         nameList = []
-#         for file in obsList:        ## Gather all available observatory names
-#             openfile = open(file,'r').read().splitlines()
-#             for line in openfile: 
-#                 if line.split(':')[0] == 'name':
-#                     nameList.append(line.split(':')[1].strip())
-#         nameList += ['Enter New Observatory']
-#     
-#     self.menuBar = wx.MenuBar()
-#     self.fileMenu = wx.Menu()
-#     self.menuBar.Append(self.fileMenu, '&File')
-#     self.save = self.fileMenu.Append(-1, 'Save', 'Save')
-#     self.SetMenuBar(self.menuBar)
-#         self.Bind(wx.EVT_MENU, self.saveOutput, self.save)
-#     
-#         self.observatory = wx.ComboBox(self, value = 'Observatories', choices = nameList, name = 'Observatories', size = (320,25))
-#         self.observatory.Bind(wx.EVT_COMBOBOX, self.enterNewObs)
-#         self.title = wx.StaticText(self, -1, 'Ephemeris Calculator')
-#         self.title.SetFont(self.titleFont)
-#         self.name = wx.TextCtrl(self, value = 'Name', size = (205,25))
-#         self.filename = wx.TextCtrl(self, value = 'Filename', size = (205,25))
-#     self.startSemDate = wx.TextCtrl(self, value = datetime.datetime.now().strftime("%Y/%m/%d"))
-#         self.endSemDate = wx.TextCtrl(self, value = (datetime.datetime.now()+datetime.timedelta(days=7)).strftime("%Y/%m/%d"))
-#         self.latitude = wx.TextCtrl(self, value = 'deg:min:sec')
-#         self.longitude = wx.TextCtrl(self, value = 'deg:min:sec')
-#         self.elevation = wx.TextCtrl(self, value = '0.0')
-#         self.temp = wx.TextCtrl(self, value = '0.0')
-#         self.v_limit = wx.TextCtrl(self, value = '0.0')
-#         self.depth_limit = wx.TextCtrl(self, value = '0.0')
-#         self.selectObsLbl = wx.StaticText(self, -1, 'Select Observatory: ')
-#         self.selectObsLbl.SetFont(self.labelFont)
-#         self.html_out = wx.RadioBox(self, -1, label = 'HTML Out', choices = ['True', 'False'])
-#         self.text_out = wx.RadioBox(self, -1, label = 'Text Out', choices = ['True', 'False'])
-#         self.calc_transits = wx.RadioBox(self, -1, label = 'Calc Transits', choices = ['True', 'False'])
-#         self.calc_eclipses = wx.RadioBox(self, -1, label = 'Calc Eclipses', choices = ['True', 'False'])
-#         self.twilightType = wx.TextCtrl(self,-1, value = '0')
-#         self.min_horizon = wx.TextCtrl(self,-1,value = 'deg:min:sec')
-#         self.calcButton = wx.Button(self,-1,label = 'Calculate', size = (110,25))
-#     self.advancedOptions = wx.StaticText(self, -1, 'Advanced Options')
-#     self.advancedOptions.SetFont(self.subTitleFont)
-#         self.ephSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
-#         self.ephSizer.Add(self.selectObsLbl, (1,0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-#         self.ephSizer.Add(self.observatory, (1,1), (1,3), wx.TOP | wx.LEFT, 7)
-#     self.ephSizer.Add(self.advancedOptions, (6,0), (1,2), wx.TOP | wx.LEFT, 7)
-#             
-#         self.addTextCtrl(2,0, self.name, wx.StaticText(self,-1,'Name of Observatory: '), (1,2))
-#         self.addTextCtrl(3,0, self.filename, wx.StaticText(self,-1,'Enter File Name: '), (1,2))
-#         self.addDateCtrl(4,0, self.startSemDate,wx.StaticText(self, -1, "Start of Obs, UT (YYYY/MM/DD): "))
-#         self.addDateCtrl(5,0, self.endSemDate, wx.StaticText(self, -1, "End of Obs, UT (YYYY/MM/DD): "))
-#         self.addTextCtrl(7,0, self.latitude, wx.StaticText(self, -1, 'Latitude (deg:min:sec):'), wx.DefaultSpan)
-#         self.addTextCtrl(8,0, self.longitude, wx.StaticText(self, -1, 'Longitude (deg:min:sec):'), wx.DefaultSpan)
-#         self.addTextCtrl(9,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation (m): '), wx.DefaultSpan)
-#         self.addTextCtrl(10,0, self.temp, wx.StaticText(self, -1, 'Temperature (Celcius): '), wx.DefaultSpan)
-#         self.addTextCtrl(4,3, self.v_limit, wx.StaticText(self,-1, '     V upper limit: '), wx.DefaultSpan)
-#         self.addTextCtrl(5,3, self.depth_limit, wx.StaticText(self,-1,'     Depth Lower Limit: '), wx.DefaultSpan)
-#         self.addTextCtrl(11,0, self.twilightType, wx.StaticText(self,-1, 'Twilight Type (Default = -6): '), wx.DefaultSpan)
-#         self.addTextCtrl(12,0, self.min_horizon, wx.StaticText(self,-1, 'Lower Elevation Limit (deg:min:sec): '), wx.DefaultSpan)
-#         self.addRadioBox(7,3, self.html_out)
-#         self.addRadioBox(9,3, self.text_out)
-#         self.addRadioBox(11,3, self.calc_transits)
-#         self.addRadioBox(2,4, self.calc_eclipses)
-# 
-#         self.addButton(1,3, self.calcButton)
-#         self.Bind(wx.EVT_BUTTON, self.calculate)
-#         
-#         self.bestSize = self.GetBestSizeTuple()
-#         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-# 
-#         self.SetBackgroundColour(wx.Colour(233,233,233))
-#         self.SetSizer(self.ephSizer)
-#         self.bestSize = self.GetBestSizeTuple()
-#         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-#         self.Centre()
-#         self.Show()
-#         
-#     def addDateCtrl(self, row, colStart, dateCtrl, label):
-#         label.SetFont(self.labelFont)
-#         self.ephSizer.Add(label, (row, colStart), (1,2), wx.LEFT | wx.TOP, 7)
-#         self.ephSizer.Add(dateCtrl, (row, colStart+2), wx.DefaultSpan, wx.TOP , 7)
-#         
-#     def addTextCtrl(self, row, colStart, textCtrl, label, span):
-#         label.SetFont(self.labelFont)
-#         self.ephSizer.Add(label, (row, colStart), (1,2), wx.LEFT | wx.TOP, 7)
-#         self.ephSizer.Add(textCtrl, (row, colStart+2), span, wx.TOP, 7)
-#         
-#     def addButton(self, row, colStart, button):
-#         self.ephSizer.Add(button, (row, colStart+2), (1,2), wx.TOP | wx.RIGHT, 7)
-#         
-#     def addRadioBox(self, row, colStart, radioBox):
-#         self.ephSizer.Add(radioBox, (row, colStart), (2,2), wx.LEFT | wx.TOP, 12)
-#         
-#     def enterNewObs(self, event):
-#         if self.observatory.GetValue() == 'Enter New Observatory':
-#             self.filename.SetValue('Enter Filename for Observatory')
-#             self.name.SetValue('Enter Name of Observatory')
-#         else:
-#             '''This is a hack so as to display the observatory names in the drop down menu but to
-#                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
-#             obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
-#             nameList = []
-#             #for i in obsList:
-#             #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
-#             for file in obsList:        ## Gather all available observatory names
-#                 openfile = open(file,'r').read().splitlines()
-#                 for line in openfile: 
-#                     if line.split(':')[0] == 'name':
-#                         nameList.append(line.split(':')[1].strip())
-#             
-#             for ind in range(0,len(nameList)):
-#                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
-#             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
-#             self.loadValues(obsPath)
-#    
-#     def loadValues(self, obsPath):
-#     filename = os.path.split(obsPath)
-#     self.filename.SetValue(filename[1].split('.')[0])
-#         obsPath = file(obsPath, 'r')
-#         for line in obsPath:
-#             if line.split(':',1) > 1 and line[0] != '#':
-#                 line = line.split(':',1)
-#                 if line[0] == 'name':  self.name.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'latitude':  self.latitude.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'longitude':  self.longitude.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'elevation':   self.elevation.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'temperature':   self.temp.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'min_horizon':    self.min_horizon.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'v_limit': self.v_limit.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'depth_limit': self.depth_limit.SetValue(str(line[1].split('#')[0].strip()))
-#                 elif line[0] == 'calc_transits':
-#                     if bool(line[1].split('#')[0].strip()):
-#                         self.calc_transits.SetSelection(0)
-#                     else:
-#                         self.calc_transits.SetSelection(1)
-#                 elif line[0] == 'calc_eclipses':
-#                     if bool(line[1].split('#')[0].strip()):
-#                         self.calc_eclipses.SetSelection(0)
-#                     else:
-#                         self.calc_eclipses.SetSelection(1)
-#                 elif line[0] == 'html_out':
-#                     if bool(line[1].split('#')[0].strip()):
-#                         self.html_out.SetSelection(0)
-#                     else:
-#                         self.html_out.SetSelection(1)
-#                 elif line[0] == 'text_out':
-#                     if bool(line[1].split('#')[0].strip()):
-#                         self.text_out.SetSelection(0)
-#                     else:
-#                         self.text_out.SetSelection(1)
-#                 elif line[0] == 'twilight': self.twilightType.SetValue(str(line[1].split('#')[0].strip()))
-#         obsPath.close()
-#         
-#     def saveFile(self, filename):
-#         semdateArr = self.startSemDate.GetValue().split('/')
-#         enddateArr = self.endSemDate.GetValue().split('/')
-#         newobs = open(filename, 'w')
-#         newobs.write('name: ' + self.name.GetValue() + '\n')
-#         newobs.write('latitude: ' + self.latitude.GetValue() + '\n')
-#         newobs.write('longitude: ' + self.longitude.GetValue() + '\n')
-#         newobs.write('elevation: ' + self.elevation.GetValue() + '\n')
-#         newobs.write('temperature: ' + self.temp.GetValue() + '\n')
-#         newobs.write('min_horizon: ' + self.min_horizon.GetValue() + '\n')
-#         newobs.write('start_date: ' + '(' + semdateArr[0] + ',' + semdateArr[1] + ',' + semdateArr[2] + ',0,0,0)\n')
-#         newobs.write('end_date: ' + '(' + enddateArr[0] + ',' + enddateArr[1] + ',' + enddateArr[2] + ',0,0,0)\n')
-#         newobs.write('v_limit: ' + self.v_limit.GetValue() + '\n')
-#         newobs.write('depth_limit: ' + self.depth_limit.GetValue() + '\n')
-#         newobs.write('calc_transits: ' + str(self.calc_transits.GetSelection()==0) + '\n')
-#         newobs.write('calc_eclipses: ' + str(self.calc_eclipses.GetSelection()==0) + '\n')
-#         newobs.write('html_out: ' + str(self.html_out.GetSelection()==0) + '\n')
-#         newobs.write('text_out: ' + str(self.text_out.GetSelection()==0) + '\n')
-#         newobs.write('twilight: ' + self.twilightType.GetValue() + '\n')
-#         newobs.close()
-#         
-#     def calculate(self, event):
-#         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
-#         path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
-#     self.saveFile(path)
-#         import oscaar.extras.eph.calculateEphemerides as eph
-#         eph.calculateEphemerides(path)
-#         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
-#         self.Destroy()
-#         
-#     def saveOutput(self, event):
-#     dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
-#     if dlg.ShowModal() == wx.ID_OK:
-#         outputPath = dlg.GetPath()
-#         self.calculate(None)
-#         shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
-#         outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
-#         for name in glob(outputPath+os.sep+'*'):
-#         outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
-#         shutil.rmtree(outputPath)
-#         outputArchive.close()
-# 
-#     def onDestroy(self, event):
-#         global ephGUIOpen
-#         ephGUIOpen = False
-# 
-# 
+class EphFrame(wx.Frame):
+     def __init__(self, *args, **kwargs):
+         super(EphFrame, self).__init__(*args, **kwargs)
+         self.initUI()
+     
+     def initUI(self):
+         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
+             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+         self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+         self.subTitleFont = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+         self.SetTitle('Ephemerides')
+         self.ctrlList = []
+         self.ephSizer = wx.GridBagSizer(5,5)
+         obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
+         nameList = []
+         for file in obsList:        ## Gather all available observatory names
+             openfile = open(file,'r').read().splitlines()
+             for line in openfile: 
+                 if line.split(':')[0] == 'name':
+                     nameList.append(line.split(':')[1].strip())
+         nameList += ['Enter New Observatory']
+     
+         self.menuBar = wx.MenuBar()
+         self.fileMenu = wx.Menu()
+         self.menuBar.Append(self.fileMenu, '&File')
+         self.save = self.fileMenu.Append(-1, 'Save', 'Save')
+         self.SetMenuBar(self.menuBar)
+         self.Bind(wx.EVT_MENU, self.saveOutput, self.save)
+     
+         self.observatory = wx.ComboBox(self, value = 'Observatories', choices = nameList, name = 'Observatories', size = (320,25))
+         self.observatory.Bind(wx.EVT_COMBOBOX, self.enterNewObs)
+         self.title = wx.StaticText(self, -1, 'Ephemeris Calculator')
+         self.title.SetFont(self.titleFont)
+         self.name = wx.TextCtrl(self, value = 'Name', size = (205,25))
+         self.filename = wx.TextCtrl(self, value = 'Filename', size = (205,25))
+         self.startSemDate = wx.TextCtrl(self, value = datetime.datetime.now().strftime("%Y/%m/%d"))
+         self.endSemDate = wx.TextCtrl(self, value = (datetime.datetime.now()+datetime.timedelta(days=7)).strftime("%Y/%m/%d"))
+         self.latitude = wx.TextCtrl(self, value = 'deg:min:sec')
+         self.longitude = wx.TextCtrl(self, value = 'deg:min:sec')
+         self.elevation = wx.TextCtrl(self, value = '0.0')
+         self.temp = wx.TextCtrl(self, value = '0.0')
+         self.v_limit = wx.TextCtrl(self, value = '0.0')
+         self.depth_limit = wx.TextCtrl(self, value = '0.0')
+         self.selectObsLbl = wx.StaticText(self, -1, 'Select Observatory: ')
+         self.selectObsLbl.SetFont(self.labelFont)
+         self.html_out = wx.RadioBox(self, -1, label = 'HTML Out', choices = ['True', 'False'])
+         self.text_out = wx.RadioBox(self, -1, label = 'Text Out', choices = ['True', 'False'])
+         self.calc_transits = wx.RadioBox(self, -1, label = 'Calc Transits', choices = ['True', 'False'])
+         self.calc_eclipses = wx.RadioBox(self, -1, label = 'Calc Eclipses', choices = ['True', 'False'])
+         self.twilightType = wx.TextCtrl(self,-1, value = '0')
+         self.min_horizon = wx.TextCtrl(self,-1,value = 'deg:min:sec')
+         self.calcButton = wx.Button(self,-1,label = 'Calculate', size = (110,25))
+         self.advancedOptions = wx.StaticText(self, -1, 'Advanced Options')
+         self.advancedOptions.SetFont(self.subTitleFont)
+         self.ephSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
+         self.ephSizer.Add(self.selectObsLbl, (1,0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
+         self.ephSizer.Add(self.observatory, (1,1), (1,3), wx.TOP | wx.LEFT, 7)
+         self.ephSizer.Add(self.advancedOptions, (6,0), (1,2), wx.TOP | wx.LEFT, 7)
+             
+         self.addTextCtrl(2,0, self.name, wx.StaticText(self,-1,'Name of Observatory: '), (1,2))
+         self.addTextCtrl(3,0, self.filename, wx.StaticText(self,-1,'Enter File Name: '), (1,2))
+         self.addDateCtrl(4,0, self.startSemDate,wx.StaticText(self, -1, "Start of Obs, UT (YYYY/MM/DD): "))
+         self.addDateCtrl(5,0, self.endSemDate, wx.StaticText(self, -1, "End of Obs, UT (YYYY/MM/DD): "))
+         self.addTextCtrl(7,0, self.latitude, wx.StaticText(self, -1, 'Latitude (deg:min:sec):'), wx.DefaultSpan)
+         self.addTextCtrl(8,0, self.longitude, wx.StaticText(self, -1, 'Longitude (deg:min:sec):'), wx.DefaultSpan)
+         self.addTextCtrl(9,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation (m): '), wx.DefaultSpan)
+         self.addTextCtrl(10,0, self.temp, wx.StaticText(self, -1, 'Temperature (Celcius): '), wx.DefaultSpan)
+         self.addTextCtrl(4,3, self.v_limit, wx.StaticText(self,-1, '     V upper limit: '), wx.DefaultSpan)
+         self.addTextCtrl(5,3, self.depth_limit, wx.StaticText(self,-1,'     Depth Lower Limit: '), wx.DefaultSpan)
+         self.addTextCtrl(11,0, self.twilightType, wx.StaticText(self,-1, 'Twilight Type (Default = -6): '), wx.DefaultSpan)
+         self.addTextCtrl(12,0, self.min_horizon, wx.StaticText(self,-1, 'Lower Elevation Limit (deg:min:sec): '), wx.DefaultSpan)
+         self.addRadioBox(7,3, self.html_out)
+         self.addRadioBox(9,3, self.text_out)
+         self.addRadioBox(11,3, self.calc_transits)
+         self.addRadioBox(2,4, self.calc_eclipses)
+ 
+         self.addButton(1,3, self.calcButton)
+         self.Bind(wx.EVT_BUTTON, self.calculate)
+         
+         self.bestSize = self.GetBestSizeTuple()
+         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
+ 
+         self.SetBackgroundColour(wx.Colour(233,233,233))
+         self.SetSizer(self.ephSizer)
+         self.bestSize = self.GetBestSizeTuple()
+         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
+         self.Centre()
+         self.Show()
+         
+     def addDateCtrl(self, row, colStart, dateCtrl, label):
+         label.SetFont(self.labelFont)
+         self.ephSizer.Add(label, (row, colStart), (1,2), wx.LEFT | wx.TOP, 7)
+         self.ephSizer.Add(dateCtrl, (row, colStart+2), wx.DefaultSpan, wx.TOP , 7)
+         
+     def addTextCtrl(self, row, colStart, textCtrl, label, span):
+         label.SetFont(self.labelFont)
+         self.ephSizer.Add(label, (row, colStart), (1,2), wx.LEFT | wx.TOP, 7)
+         self.ephSizer.Add(textCtrl, (row, colStart+2), span, wx.TOP, 7)
+         
+     def addButton(self, row, colStart, button):
+         self.ephSizer.Add(button, (row, colStart+2), (1,2), wx.TOP | wx.RIGHT, 7)
+         
+     def addRadioBox(self, row, colStart, radioBox):
+         self.ephSizer.Add(radioBox, (row, colStart), (2,2), wx.LEFT | wx.TOP, 12)
+         
+     def enterNewObs(self, event):
+         if self.observatory.GetValue() == 'Enter New Observatory':
+             self.filename.SetValue('Enter Filename for Observatory')
+             self.name.SetValue('Enter Name of Observatory')
+         else:
+             '''This is a hack so as to display the observatory names in the drop down menu but to
+                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
+             obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
+             nameList = []
+             #for i in obsList:
+             #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
+             for file in obsList:        ## Gather all available observatory names
+                 openfile = open(file,'r').read().splitlines()
+                 for line in openfile: 
+                     if line.split(':')[0] == 'name':
+                         nameList.append(line.split(':')[1].strip())
+             
+             for ind in range(0,len(nameList)):
+                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
+             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
+             self.loadValues(obsPath)
+    
+     def loadValues(self, obsPath):
+         filename = os.path.split(obsPath)
+         self.filename.SetValue(filename[1].split('.')[0])
+         obsPath = file(obsPath, 'r')
+         for line in obsPath:
+             if line.split(':',1) > 1 and line[0] != '#':
+                 line = line.split(':',1)
+                 if line[0] == 'name':  self.name.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'latitude':  self.latitude.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'longitude':  self.longitude.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'elevation':   self.elevation.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'temperature':   self.temp.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'min_horizon':    self.min_horizon.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'v_limit': self.v_limit.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'depth_limit': self.depth_limit.SetValue(str(line[1].split('#')[0].strip()))
+                 elif line[0] == 'calc_transits':
+                     if bool(line[1].split('#')[0].strip()):
+                         self.calc_transits.SetSelection(0)
+                     else:
+                         self.calc_transits.SetSelection(1)
+                 elif line[0] == 'calc_eclipses':
+                     if bool(line[1].split('#')[0].strip()):
+                         self.calc_eclipses.SetSelection(0)
+                     else:
+                         self.calc_eclipses.SetSelection(1)
+                 elif line[0] == 'html_out':
+                     if bool(line[1].split('#')[0].strip()):
+                         self.html_out.SetSelection(0)
+                     else:
+                         self.html_out.SetSelection(1)
+                 elif line[0] == 'text_out':
+                     if bool(line[1].split('#')[0].strip()):
+                         self.text_out.SetSelection(0)
+                     else:
+                         self.text_out.SetSelection(1)
+                 elif line[0] == 'twilight': self.twilightType.SetValue(str(line[1].split('#')[0].strip()))
+         obsPath.close()
+         
+     def saveFile(self, filename):
+         semdateArr = self.startSemDate.GetValue().split('/')
+         enddateArr = self.endSemDate.GetValue().split('/')
+         newobs = open(filename, 'w')
+         newobs.write('name: ' + self.name.GetValue() + '\n')
+         newobs.write('latitude: ' + self.latitude.GetValue() + '\n')
+         newobs.write('longitude: ' + self.longitude.GetValue() + '\n')
+         newobs.write('elevation: ' + self.elevation.GetValue() + '\n')
+         newobs.write('temperature: ' + self.temp.GetValue() + '\n')
+         newobs.write('min_horizon: ' + self.min_horizon.GetValue() + '\n')
+         newobs.write('start_date: ' + '(' + semdateArr[0] + ',' + semdateArr[1] + ',' + semdateArr[2] + ',0,0,0)\n')
+         newobs.write('end_date: ' + '(' + enddateArr[0] + ',' + enddateArr[1] + ',' + enddateArr[2] + ',0,0,0)\n')
+         newobs.write('v_limit: ' + self.v_limit.GetValue() + '\n')
+         newobs.write('depth_limit: ' + self.depth_limit.GetValue() + '\n')
+         newobs.write('calc_transits: ' + str(self.calc_transits.GetSelection()==0) + '\n')
+         newobs.write('calc_eclipses: ' + str(self.calc_eclipses.GetSelection()==0) + '\n')
+         newobs.write('html_out: ' + str(self.html_out.GetSelection()==0) + '\n')
+         newobs.write('text_out: ' + str(self.text_out.GetSelection()==0) + '\n')
+         newobs.write('twilight: ' + self.twilightType.GetValue() + '\n')
+         newobs.close()
+         
+     def calculate(self, event):
+         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
+         path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
+         self.saveFile(path)
+         import oscaar.extras.eph.calculateEphemerides as eph
+         eph.calculateEphemerides(path)
+         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
+         self.Destroy()
+         
+     def saveOutput(self, event):
+         dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
+         if dlg.ShowModal() == wx.ID_OK:
+             outputPath = dlg.GetPath()
+             self.calculate(None)
+             shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
+             outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
+             for name in glob(outputPath+os.sep+'*'):
+                 outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
+             shutil.rmtree(outputPath)
+             outputArchive.close()
+ 
+     def onDestroy(self, event):
+         global ephGUIOpen
+         ephGUIOpen = False
+ 
+ 
 
 
 
