@@ -16,8 +16,8 @@ Core developer: Brett Morris (NASA GSFC)
 
 from calculateEphemerides import *
 
-parFile = 'observatories/umo.par'   ## Path to observatory input parameter file
+parFile = 'maunaKea.par'   ## Path to observatory input parameter file
 rootPath = 'ephOutputs/'           ## Path to output directory (with path separator suffix)
 
-calculateEphemerides(parFile,rootPath)
+calculateEphemerides(parFile)
 print 'runEpehemerisGenerator.py: Done.'
