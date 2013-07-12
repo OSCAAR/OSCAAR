@@ -171,6 +171,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)       
 
     def runOscaar(self, event):
+        values = {}
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
@@ -185,7 +186,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), "fit")
         regionsFile = self.paths.boxes[3].GetValue()
         self.outputFile = self.paths.boxes[4].GetValue()
-                
+        values["radius"] = self.leftBox.userParams["radius"].GetValue()
+        
         if invalidDarkFrames != "": 
             InvalidParameter(invalidDarkFrames, None, -1, str="fits", max="the path to Dark Frames")
         elif os.path.isfile(masterFlat) != True:
@@ -213,19 +215,21 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         elif not os.path.isdir(self.outputFile[self.outputFile.rfind(os.sep)]) or \
              not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
             InvalidParameter(self.outputFile, None, -1, str="output", max="output file")
-        
+        elif self.checkAperture(values["radius"]) != True:
+            InvalidParameter(self.leftBox.userParams["radius"].GetValue(),None,-1, str="leftbox", max="radius")
+    
         elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].GetValue(),
                                    self.radioBox.userParams['egress1'].GetValue(),
                                    self.radioBox.userParams['ingress'].GetValue(),
                                    self.radioBox.userParams['egress'].GetValue()) == True:
             try:
-                values = {}
-                list = ["smoothing", "zoom"]
+                
+                list = ["smoothing", "zoom", "ccd"]
                 for string in list:
-                    values[string] = int(self.leftBox.userParams[string].GetValue())
-                list = ["ccd"]#["radius","ccd"]
-                for string in list:
-                    values[string] = float(self.leftBox.userParams[string].GetValue())
+                    if string != "ccd":
+                        values[string] = int(self.leftBox.userParams[string].GetValue())
+                    else:
+                        values[string] = float(self.leftBox.userParams[string].GetValue())
 
                 # This code here writes all the parameters to the init.par file.
                 
@@ -254,7 +258,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 
                 init.write("Smoothing Constant: " + str(values["smoothing"]) + '\n')
                 init.write("CCD Gain: " + str(values["ccd"]) + '\n')
-                init.write("Radius: " + str(self.leftBox.userParams["radius"].GetValue()) + '\n')
+                init.write("Radius: " + str(values["radius"]) + '\n')
                 init.write("Tracking Zoom: " + str(values["zoom"]) + '\n')
                 init.write("Init GUI: on")
                 init.close()
@@ -314,6 +318,30 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 return False
             
         return True
+    
+    def checkAperture(self, stringVal):
+        if len(stringVal.split(",")) == 1:
+            try:
+                float(stringVal)
+                return True
+            except ValueError:
+                return False
+        elif len(stringVal.split(",")) == 3:
+            min = stringVal.split(",")[0]
+            max = stringVal.split(",")[1]
+            stepSize = stringVal.split(",")[2]
+            try:
+                min = float(min)
+                max = float(max)
+                stepSize = float(stepSize)
+                if (min != max) and ((max-min) > stepSize):
+                    return True
+                else:
+                    return False
+            except ValueError:
+                return False
+        else:
+            return False
     
     def setDefaults(self):
         oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
