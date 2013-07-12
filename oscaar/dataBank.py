@@ -548,12 +548,17 @@ class dataBank:
                             if len(value.split(',')) == 3:
                                 ## If multiple aperture radii are requested by dictating the range, enumerate the range:
                                 apertureRadiusMin, apertureRadiusMax, apertureRadiusStep = map(float,value.split(','))
-                                apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax+apertureRadiusStep, apertureRadiusStep)
+                                
+                                if (apertureRadiusMax-apertureRadiusMin) % apertureRadiusStep == 0:
+                                    apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax+apertureRadiusStep, apertureRadiusStep)
+                                else: 
+                                    apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax, apertureRadiusStep)
+
                                 self.dict[save] = apertureRadii
                             elif len(value.split(',')) == 1:
                                 ## If only one aperture radius is requested, make a list with only that one element
                                 self.dict[save] = [float(value)]
-                            elif len(value.split(',') > 3:
+                            else:
                                 self.dict[save] = [float(i) for i in value.split(',')]                                    
 
                         elif name == "Output Path":
