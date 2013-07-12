@@ -341,7 +341,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             except ValueError:
                 return False
         else:
-            return False
+            for num in stringVal.split(","):
+                try:
+                    float(num)
+                except ValueError:
+                    return False
+            return True
     
     def setDefaults(self):
         oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
