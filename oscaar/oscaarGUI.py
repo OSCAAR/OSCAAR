@@ -223,7 +223,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 list = ["smoothing", "zoom"]
                 for string in list:
                     values[string] = int(self.leftBox.userParams[string].GetValue())
-                list = ["radius","ccd"]
+                list = ["ccd"]#["radius","ccd"]
                 for string in list:
                     values[string] = float(self.leftBox.userParams[string].GetValue())
 
@@ -254,7 +254,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 
                 init.write("Smoothing Constant: " + str(values["smoothing"]) + '\n')
                 init.write("CCD Gain: " + str(values["ccd"]) + '\n')
-                init.write("Radius: " + str(values["radius"]) + '\n')
+                init.write("Radius: " + str(self.leftBox.userParams["radius"].GetValue()) + '\n')
                 init.write("Tracking Zoom: " + str(values["zoom"]) + '\n')
                 init.write("Init GUI: on")
                 init.close()
