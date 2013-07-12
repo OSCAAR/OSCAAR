@@ -1044,6 +1044,7 @@ class LoadOldPklFrame(wx.Frame):
             self.plotComparisonStarWeightingsButton = wx.Button(self.panel,-1,label = 'Plot Comparison\nStar Weightings', size = (150,45))
             self.plotInteractiveLightCurveButton = wx.Button(self.panel,-1,label = 'Plot Interactive Light Curve', size = (195,30))
 
+        #self.Bind(wx.EVT_BUTTON, self.plotLightCurve, self.plotLightCurveButton)
         self.Bind(wx.EVT_BUTTON, self.plotLightCurve, self.plotLightCurveButton)
         self.Bind(wx.EVT_BUTTON, self.plotRawFlux, self.plotRawFluxButton)
         self.Bind(wx.EVT_BUTTON, self.plotScaledFluxes,self.plotScaledFluxesButton)
