@@ -553,7 +553,7 @@ class dataBank:
                             elif len(value.split(',')) == 1:
                                 ## If only one aperture radius is requested, make a list with only that one element
                                 self.dict[save] = [float(value)]
-                            else len(value.split(',') > 3:
+                            elif len(value.split(',') > 3:
                                 self.dict[save] = [float(i) for i in value.split(',')]                                    
 
                         elif name == "Output Path":
