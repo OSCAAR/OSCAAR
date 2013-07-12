@@ -545,14 +545,16 @@ class dataBank:
                                 self.dict[save] = np.sort(tempArr)
                                 
                         elif name == "Radius":
-                            if len(value.split(',')) > 1:
-                                ## If multiple aperture radii are requested, enumerate the range:
+                            if len(value.split(',')) == 3:
+                                ## If multiple aperture radii are requested by dictating the range, enumerate the range:
                                 apertureRadiusMin, apertureRadiusMax, apertureRadiusStep = map(float,value.split(','))
-                                apertureRadiusRange = np.arange(apertureRadiusMin, apertureRadiusMax+apertureRadiusStep, apertureRadiusStep)
-                                self.dict[save] = apertureRadiusRange
-                            else: 
+                                apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax+apertureRadiusStep, apertureRadiusStep)
+                                self.dict[save] = apertureRadii
+                            elif len(value.split(',')) == 1:
                                 ## If only one aperture radius is requested, make a list with only that one element
                                 self.dict[save] = [float(value)]
+                            else len(value.split(',') > 3:
+                                self.dict[save] = [float(i) for i in value.split(',')]                                    
 
                         elif name == "Output Path":
                             self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(value))
