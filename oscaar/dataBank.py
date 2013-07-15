@@ -190,7 +190,7 @@ class dataBank:
                 self.allStarsDict[star]['scaledFlux'], m = mathMethods.regressionScale(self.getFluxes(star),self.getFluxes(self.targetKey),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
                 print m
                 self.allStarsDict[star]['scaledError'] = np.abs(m)*self.getErrors(star)
-            if star == self.targetKey:	## (Keep the target star the same)
+            if star == self.targetKey:    ## (Keep the target star the same)
                 self.allStarsDict[star]['scaledFlux'] = self.allStarsDict[star]['rawFlux']
                 self.allStarsDict[star]['scaledError'] = self.allStarsDict[star]['rawError']
 
@@ -607,45 +607,44 @@ class dataBank:
         plt.ioff()
         plt.show()
     
-    def plotLightCurve(self,pointsPerBin=10):
+    def plotLightCurve(self,pointsPerBin=10,radiiNum=0):
+        binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurves[radiiNum],pointsPerBin)
         
-		binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurve,pointsPerBin)
-        
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		axis = fig.add_subplot(111)
-		def format_coord(x, y):
-			'''Function to give data value on mouse over plot.'''
-			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-		axis.format_coord = format_coord 
-		axis.errorbar(self.times,self.lightCurve,yerr=self.lightCurveError,fmt='k.',ecolor='gray')
-		axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
-		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-		axis.set_title('Light Curve')
-		axis.set_xlabel('Time (JD)')
-		axis.set_ylabel('Relative Flux')
-		plt.ioff()
-		plt.show()
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        axis.errorbar(self.times,self.lightCurves[radiiNum],yerr=self.lightCurveErrors[radiiNum],fmt='k.',ecolor='gray')
+        axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title('Light Curve')
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Relative Flux')
+        plt.ioff()
+        plt.show()
     
     def plotRawFluxes(self,pointsPerBin=10):
         plt.ion()
         for apertureRadiusIndex in range(len(self.apertureRadii)):
-    		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-    		fig.canvas.set_window_title('OSCAAR')
-    		axis = fig.add_subplot(111)
-    		def format_coord(x, y):
-    			'''Function to give data value on mouse over plot.'''
-    			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-    		axis.format_coord = format_coord 
-    		for star in self.allStarsDict:
-    			axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
+            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+            fig.canvas.set_window_title('OSCAAR')
+            axis = fig.add_subplot(111)
+            def format_coord(x, y):
+                '''Function to give data value on mouse over plot.'''
+                return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+            axis.format_coord = format_coord 
+            for star in self.allStarsDict:
+                axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
             
-    		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-    		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-    		axis.set_title('Raw Fluxes')
-    		axis.set_xlabel('Time (JD)')
-    		axis.set_ylabel('Counts')
+            axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+            axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+            axis.set_title('Raw Fluxes')
+            axis.set_xlabel('Time (JD)')
+            axis.set_ylabel('Counts')
         plt.ioff()
         plt.show()
     
@@ -653,62 +652,62 @@ class dataBank:
     def plotScaledFluxes(self,pointsPerBin=10):
         plt.ion()
         for apertureRadiusIndex in range(len(self.apertureRadii)):
-    		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-    		fig.canvas.set_window_title('OSCAAR')
-    		axis = fig.add_subplot(111)
-    		def format_coord(x, y):
-    			'''Function to give data value on mouse over plot.'''
-    			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-    		axis.format_coord = format_coord 
-    		for star in self.allStarsDict:
-    			axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['scaledError'][apertureRadiusIndex],fmt='o')
+            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+            fig.canvas.set_window_title('OSCAAR')
+            axis = fig.add_subplot(111)
+            def format_coord(x, y):
+                '''Function to give data value on mouse over plot.'''
+                return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+            axis.format_coord = format_coord 
+            for star in self.allStarsDict:
+                axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['scaledError'][apertureRadiusIndex],fmt='o')
             
-    		axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-    		axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-    		axis.set_title(('Scaled fluxes for aperture radius: %s' % self.apertureRadii[apertureRadiusIndex]))
-    		axis.set_xlabel('Time (JD)')
-    		axis.set_ylabel('Counts')
+            axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+            axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+            axis.set_title(('Scaled fluxes for aperture radius: %s' % self.apertureRadii[apertureRadiusIndex]))
+            axis.set_xlabel('Time (JD)')
+            axis.set_ylabel('Counts')
         plt.ioff()
         plt.show()
 
     def plotCentroidsTrace(self,pointsPerBin=10):
         
-		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-		fig.canvas.set_window_title('OSCAAR')
-		axis = fig.add_subplot(111)
-		def format_coord(x, y):
-			'''Function to give data value on mouse over plot.'''
-			return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-		axis.format_coord = format_coord 
-		for star in self.allStarsDict:
-			axis.plot(self.allStarsDict[star]['y-pos'],self.allStarsDict[star]['x-pos'])
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        for star in self.allStarsDict:
+            axis.plot(self.allStarsDict[star]['y-pos'],self.allStarsDict[star]['x-pos'])
         
-		axis.set_title('Tracing Stellar Centroids')
-		axis.set_xlabel('X')
-		axis.set_ylabel('Y')
-		plt.ioff()
-		plt.show()
+        axis.set_title('Tracing Stellar Centroids')
+        axis.set_xlabel('X')
+        axis.set_ylabel('Y')
+        plt.ioff()
+        plt.show()
     
     def plotComparisonWeightings(self):
         plt.ion()
         for apertureRadiusIndex in range(len(self.apertureRadii)):
-    		weights = self.comparisonStarWeights[apertureRadiusIndex]
-    		weights = np.sort(weights,axis=1)
-    		width = 0.5
-    		indices = weights[0,:]
-    		coefficients = weights[1,:]
-    		ind = np.arange(len(indices))
-    		fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-    		fig.canvas.set_window_title('OSCAAR')
-    		ax = fig.add_subplot(111)
-    		ax.set_xlim([0,len(indices)+1])
-    		ax.set_xticks(indices+width/2)
-    		ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
-    		ax.set_xlabel('Comparison Star')
-    		ax.set_ylabel('Normalized Weighting')
-    		ax.set_title('Comparison Star Weights into the Composite Comparison Star')
-    		ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
-    		ax.bar(indices,coefficients,width,color='w')
+            weights = self.comparisonStarWeights[apertureRadiusIndex]
+            weights = np.sort(weights,axis=1)
+            width = 0.5
+            indices = weights[0,:]
+            coefficients = weights[1,:]
+            ind = np.arange(len(indices))
+            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+            fig.canvas.set_window_title('OSCAAR')
+            ax = fig.add_subplot(111)
+            ax.set_xlim([0,len(indices)+1])
+            ax.set_xticks(indices+width/2)
+            ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
+            ax.set_xlabel('Comparison Star')
+            ax.set_ylabel('Normalized Weighting')
+            ax.set_title('Comparison Star Weights into the Composite Comparison Star')
+            ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
+            ax.bar(indices,coefficients,width,color='w')
         plt.ioff()
         plt.show()
 

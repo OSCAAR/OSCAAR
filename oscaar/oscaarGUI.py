@@ -35,7 +35,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.aboutOpen = False
         self.loadOldPklOpen = False
         self.loadFittingOpen = False
-        self.loadMCMC = False
         self.loadMasterFlat = False
         self.overWrite = False
         self.ds9Open = False
@@ -94,7 +93,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
         self.buttonBox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
 
-        self.ephButton = wx.Button(self.panel,label="Ephemeris")
+        self.ephButton = wx.Button(self.panel, label="Ephemeris")
         self.masterFlatButton = wx.Button(self.panel, label = "Master Flat Maker")
         self.ds9Button = wx.Button(self.panel, label = "Open DS9")
         self.runButton = wx.Button(self.panel, label = "Run")
@@ -171,7 +170,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)       
 
     def runOscaar(self, event):
-        values = {}
+        self.values = {}
         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
         notes.write('\n\n\n------------------------------------------'+\
                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
@@ -181,12 +180,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+ self.leftBox.userParams['notes'].GetValue())
         notes.close()
         
-        invalidDarkFrames = self.checkArray(self.paths.boxes[0].GetValue(), "fit")
-        masterFlat = self.paths.boxes[1].GetValue()
-        invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), "fit")
-        regionsFile = self.paths.boxes[3].GetValue()
-        self.outputFile = self.paths.boxes[4].GetValue()
-        values["radius"] = self.leftBox.userParams["radius"].GetValue()
+        invalidDarkFrames = self.checkArray(self.paths.boxes[0].GetValue())
+        masterFlat = self.paths.boxes[1].GetValue().strip()
+        invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), saveNum=2)
+        regionsFile = self.paths.boxes[3].GetValue().strip()
+        self.outputFile = self.paths.boxes[4].GetValue().strip()
+        self.values["radius"] = self.leftBox.userParams["radius"].GetValue()
+        self.radiusError = "radius"
         
         if invalidDarkFrames != "": 
             InvalidParameter(invalidDarkFrames, None, -1, str="fits", max="the path to Dark Frames")
@@ -212,12 +212,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     else:
                         tempString += "\n" + string.strip()
             InvalidParameter(tempString, None, -1, str="master", max="path to Regions File")
-        elif not os.path.isdir(self.outputFile[self.outputFile.rfind(os.sep)]) or \
+        elif not os.path.isdir(self.outputFile.rpartition(str(os.sep))[0]) or \
              not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
             InvalidParameter(self.outputFile, None, -1, str="output", max="output file")
-        elif self.checkAperture(values["radius"]) != True:
-            InvalidParameter(self.leftBox.userParams["radius"].GetValue(),None,-1, str="leftbox", max="radius")
-    
+        elif self.checkAperture(self.values["radius"]) != True:
+            InvalidParameter(self.leftBox.userParams["radius"].GetValue(), self, -1, str = self.radiusError)
         elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].GetValue(),
                                    self.radioBox.userParams['egress1'].GetValue(),
                                    self.radioBox.userParams['ingress'].GetValue(),
@@ -227,10 +226,16 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 list = ["smoothing", "zoom", "ccd"]
                 for string in list:
                     if string != "ccd":
-                        values[string] = int(self.leftBox.userParams[string].GetValue())
+                        self.values[string] = int(self.leftBox.userParams[string].GetValue())
+                        self.leftBox.userParams[string].SetValue(str(self.values[string]))
                     else:
-                        values[string] = float(self.leftBox.userParams[string].GetValue())
+                        self.values[string] = float(self.leftBox.userParams[string].GetValue())
+                        self.leftBox.userParams[string].SetValue(str(self.values[string]))
 
+                self.paths.boxes[1].SetValue(masterFlat)
+                self.paths.boxes[3].SetValue(regionsFile)
+                self.paths.boxes[4].SetValue(self.outputFile)
+                
                 # This code here writes all the parameters to the init.par file.
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
@@ -244,9 +249,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     init.write("Output Path: " + self.paths.boxes[4].GetValue() + "\n")
         
                 self.parseTime(self.radioBox.userParams["ingress"].GetValue(),
-                               self.radioBox.userParams["ingress1"].GetValue(), 'Ingress: ',  init)
+                               self.radioBox.userParams["ingress1"].GetValue(), 'Ingress: ',  init, name="ingress")
                 self.parseTime(self.radioBox.userParams["egress"].GetValue(),
-                               self.radioBox.userParams["egress1"].GetValue(), 'Egress: ',  init)
+                               self.radioBox.userParams["egress1"].GetValue(), 'Egress: ',  init, name="egress")
                 if self.radioBox.userParams['trackPlot'].GetValue():
                     init.write("Plot Tracking: " + "on"+ "\n")
                 else:
@@ -256,10 +261,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 else:
                     init.write("Plot Photometry: " + "off"+ "\n")
                 
-                init.write("Smoothing Constant: " + str(values["smoothing"]) + '\n')
-                init.write("CCD Gain: " + str(values["ccd"]) + '\n')
-                init.write("Radius: " + str(values["radius"]) + '\n')
-                init.write("Tracking Zoom: " + str(values["zoom"]) + '\n')
+                init.write("Smoothing Constant: " + str(self.values["smoothing"]) + '\n')
+                init.write("CCD Gain: " + str(self.values["ccd"]) + '\n')
+                init.write("Radius: " + str(self.values["radius"]) + '\n')
+                init.write("Tracking Zoom: " + str(self.values["zoom"]) + '\n')
                 init.write("Init GUI: on")
                 init.close()
                 if self.loadFittingOpen == False:
@@ -285,67 +290,150 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 InvalidParameter(self.leftBox.userParams[string].GetValue(),None,-1, str="leftbox", max=string2)
     
     def timeAndDateCheck(self, time1, time2, date1, date2):
-        timeCheck = False
-        dateCheck = False
-        for eachTime in [time1,time2]:
-            if len(eachTime.split(":")) != 3:
-                InvalidParameter(eachTime, None, -1, str = "dateTime", max = "time")
+        
+        years = []
+        months = []
+        days = []
+        hours = []
+        minutes = []
+        seconds = []
+        
+        for timeArray, value in [(time1.split(":"), time1),
+                                 (time2.split(":"), time2)]:
+            if len(timeArray) != 3:
+                InvalidParameter(value, self, -1, str="dateTime", max = "time")
                 return False
-            for num in eachTime.split(":"):
-                num = num.strip()
-                if len(num) > 2:
-                    InvalidParameter(eachTime, None, -1, str = "dateTime", max = "time")
-                    return False
+            else:
                 try:
-                    int(num)
+                    hour = int(timeArray[0].strip())
+                    hours.append(hour)
+                    minute = int(timeArray[1].strip())
+                    minutes.append(minute)
+                    second = int(timeArray[2].strip())
+                    seconds.append(second)
+    
+                    if len(timeArray[0].strip()) > 2 or len(timeArray[1].strip()) > 2 or len(timeArray[2].strip()) > 2:
+                        InvalidParameter(value, None, -1, str = "dateTime", max = "time")
+                        return False
+                    
+                    if hour > 23 or hour < 0 or minute > 59 or minute < 0 or second > 59 or second < 0:
+                        InvalidParameter(value, None, -1, str = "dateTime", max = "time")
+                        return False
+                    
                 except ValueError:
-                    InvalidParameter(eachTime, None, -1, str = "dateTime", max = "time")
+                    InvalidParameter(value, self, -1, str = "dateTime", max = "time")
                     return False
-        for eachDate in [date1,date2]:
-            if len(eachDate.split("/")) != 3:
-                InvalidParameter(eachDate, None, -1, str = "dateTime", max = "date")
+                
+        for dateArray,value in [(date1.split("/"),date1),
+                                (date2.split("/"),date2)]:
+            if len(dateArray) != 3:
+                InvalidParameter(value, self, -1, str="dateTime", max = "date")
                 return False
-            dateArray = eachDate.split("/")
-            dateArray = [x.strip() for x in dateArray]
-            if len(dateArray[0]) > 4 or len(dateArray[1]) > 2 or len(dateArray[2]) > 2:
-                InvalidParameter(eachDate, None, -1, str = "dateTime", max = "date")
+            else:
+                try:
+                    year = int(dateArray[0].strip())
+                    years.append(year)
+                    month = int(dateArray[1].strip())
+                    months.append(month)
+                    day = int(dateArray[2].strip())
+                    days.append(day)
+                    
+                    if len(dateArray[0].strip()) != 4 or len(dateArray[1].strip()) > 2 or len(dateArray[2].strip()) > 2:
+                        InvalidParameter(value, self, -1, str="dateTime", max = "date")
+                        return False
+                    minYear = datetime.date.today().year - 100
+                    maxYear = datetime.date.today().year + 100
+                    if year < minYear or year > maxYear or month > 12 or month < 0 or day > 31 or day < 0 or \
+                       month == 0 or year == 0 or day == 0:
+                        InvalidParameter(value, self, -1, str="dateTime", max = "date")
+                        return False
+                except ValueError:
+                    InvalidParameter(value, self, -1, str="dateTime", max = "date")
+                    return False
+
+        if years[0] > years[1]:
+            InvalidParameter(date1, self, -1, str = "logicalDate")
+            return False
+        elif years[0] == years[1]:
+            if months[0] > months[1]:
+                InvalidParameter(date1, self, -1, str = "logicalDate")
                 return False
-            try:
-                for num in dateArray:
-                    int(num)
-            except ValueError:
-                InvalidParameter(eachDate, None, -1, str = "dateTime", max = "date")
-                return False
-            
+            elif months[0] == months[1]:
+                if days[0] > days[1]:
+                    InvalidParameter(date1, self, -1, str = "logicalDate")
+                    return False
+                elif days[0] == days[1]:
+                    if hours[0] > hours[1]:
+                        InvalidParameter(time1, self, -1, str = "logicalTime")
+                        return False
+                    elif hours[0] == hours[1]:
+                        if minutes[0] > minutes[1]:
+                            InvalidParameter(time1, self, -1, str = "logicalTime")
+                            return False
+                        elif minutes[0] == minutes[1]:
+                            if seconds[0] >= seconds [1]:
+                                InvalidParameter(time1, self, -1, str = "logicalTime")
+                                return False
         return True
     
     def checkAperture(self, stringVal):
-        if len(stringVal.split(",")) == 1:
+        splitString = stringVal.split(",")
+        if len(splitString) == 1:
             try:
-                float(stringVal)
+                float(splitString[0])
+                self.leftBox.userParams["radius"].SetValue(str(float(splitString[0])))
                 return True
             except ValueError:
+                self.radiusError = "radiusNum"
                 return False
-        elif len(stringVal.split(",")) == 3:
-            min = stringVal.split(",")[0]
-            max = stringVal.split(",")[1]
-            stepSize = stringVal.split(",")[2]
+
+        elif len( splitString) == 3:
+            min = splitString[0].strip()
+            max = splitString[1].strip()
+            stepSize = splitString[2].strip()
             try:
                 min = float(min)
                 max = float(max)
                 stepSize = float(stepSize)
-                if (min != max) and ((max-min) > stepSize):
-                    return True
-                else:
+                if min == max:
+                    self.radiusError = "radiusEqual"
                     return False
+                elif min > max:
+                    self.radiusError = "radiusLogic"
+                    return False
+                elif (max-min) < stepSize:
+                    self.radiusError = "radiusStep"
+                    return False
+                
+                if stepSize == 0:
+                    self.radiusError = "radiusLogic"
+                    return False
+                elif min == 0 or max == 0:
+                    self.radiusError = "radiusLogic"
+                    return False
+                self.values["radius"] = str(min) + "," + str(max) + "," + str(stepSize)
+                self.leftBox.userParams["radius"].SetValue(str(min) + "," + str(max) + "," + str(stepSize))
+                return True
+
             except ValueError:
+                self.radiusError = "radiusNum"
                 return False
         else:
-            for num in stringVal.split(","):
+            stringTemp = ""
+            for num in splitString:
+                numStrip = num.strip()
                 try:
-                    float(num)
+                    float(numStrip)
+                    if numStrip == 0:
+                        self.radiusError = "radiusLogic2"
+                        return False
                 except ValueError:
+                    self.radiusError = "radiusNum"
                     return False
+                stringTemp += str(float(numStrip)) + ","
+            
+            self.values["radius"] = stringTemp.rpartition(",")[0]
+            self.leftBox.userParams["radius"].SetValue(stringTemp.rpartition(",")[0])
             return True
     
     def setDefaults(self):
@@ -366,20 +454,44 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 
                 for string,save in list:
                     if string == name:
-                        if name == "Smoothing Constant" or name == "Radius" or name == "Tracking Zoom" or name == "CCD Gain":
+                        if name == "Smoothing Constant" or name == "Tracking Zoom" or name == "CCD Gain":
                             self.leftBox.userParams[save].SetValue(value)
+                        elif name == "Radius":
+                            stripTemp = [x.strip() for x in value.split(",")]
+                            stringTemp = ""
+                            for eachTemp in stripTemp:
+                                stringTemp += eachTemp + ","
+                            self.leftBox.userParams[save].SetValue(stringTemp.rpartition(",")[0])
                         elif name == "Plot Photometry" or name == "Plot Tracking":
                             if value == "off":
                                 save += "1"
                             self.radioBox.userParams[save].SetValue(True)
-                        elif name == "Path to Dark Frames" or name == "Path to Master-Flat Frame" or \
-                        name == "Path to data images" or name == "Path to regions file" or name == "Output Path":
+                        elif name == "Path to Dark Frames" or name == "Path to data images":
+                            tempArray = value.split(",")
+                            tempArray[:] = [x.strip() for x in tempArray]
+                            finalString = ""
+                            for eachString in tempArray:
+                                finalString += eachString + ","
+                            self.paths.boxes[save].SetValue(finalString.rpartition(",")[0])
+                        elif name == "Path to Master-Flat Frame" or name == "Path to regions file" or\
+                             name == "Output Path":
                             self.paths.boxes[save].SetValue(value)
                         else:
                             date = value.split(";")[0].strip().replace("-","/")
                             time = value.split(";")[1].strip()
-                            self.radioBox.userParams[save].SetValue(date)
-                            self.radioBox.userParams[save+"1"].SetValue(time)
+                            for eachOne, other in [(date,""),(time,"1")]:
+                                if other == "1":
+                                    separator = ":"
+                                else:
+                                    separator = "/"
+                                stripTemp = [x.strip() for x in eachOne.split(separator)]
+                                stringTemp = ""
+                                for eachTemp in stripTemp:
+                                    stringTemp += eachTemp + separator
+                                if other == "1":
+                                    self.radioBox.userParams[save+"1"].SetValue(stringTemp.rpartition(separator)[0])
+                                else:
+                                    self.radioBox.userParams[save].SetValue(stringTemp.rpartition(separator)[0])
             
     def addFits(self, init, field, path):
         pathList = []
@@ -399,19 +511,21 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write(field + initText + '\n')
         return pathList
                 
-    def checkArray(self,array,param1):
+    def checkArray(self,array,saveNum=0):
         errorString = ""
-        if param1 == 'fit':
-            for element in array.split(","):
-                if not element.endswith('.fit') and not element.endswith('.fits'):
-                    errorString += "\n" + element
-        else:
-            for element in array.split(","):
-                if not element.endswith('.reg'):
-                    return False
+        setValueString = ""
+        for element in array.split(","):
+            element = element.strip()
+            if not element.endswith('.fit') and not element.endswith('.fits'):
+                errorString += "\n" + element
+            if os.path.isfile(element) != True:
+                errorString += "\n" + element
+            setValueString += element + ","
         if not array:
             return "No Values Entered"
         else:
+            if errorString == "":
+                self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
             return errorString   
     
     def singularExistance(self, event, value, name):
@@ -432,7 +546,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             elif name == "ephemeris":
                 try:
                     import ephem
-                    EphFrame(self)
+                    EphemerisFrame(self, -1)
                     self.loadEphFrame = True
                 except ImportError:
                     InvalidParameter("", None, -1, str="importError")
@@ -449,12 +563,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     self.ds9Open = True
                     InvalidParameter("", self, -1, str="ds9")
 
-    def parseTime(self, date, time, text, filename):
+    def parseTime(self, date, time, text, filename, name=""):
         
         dateArr = str(date).split('/')
-        result = str(dateArr[0]).strip() + '-' + str(dateArr[1]).strip() + '-' + str(dateArr[2]).strip() + ' ; '
-        result += str(time)
+        result = dateArr[0].strip() + '-' + dateArr[1].strip() + '-' + dateArr[2].strip() + ' ; '
+        timeArr = str(time).split(":")
+        result += timeArr[0].strip() + ":" + timeArr[1].strip() + ':' + timeArr[2].strip()
         filename.write(text + result + '\n')
+        
+        self.radioBox.userParams[name].SetValue(dateArr[0].strip() + '/' + dateArr[1].strip() + '/' + dateArr[2].strip())
+        self.radioBox.userParams[name+"1"].SetValue(timeArr[0].strip() + ":" + timeArr[1].strip() + ':' +
+                                                    timeArr[2].strip())
     
     def checkRB(self, button, text, filename):
         if button.GetValue() == True:
@@ -512,13 +631,12 @@ class MasterFlatFrame(wx.Frame):
         self.vbox.Add(self.path3, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 10)
         self.vbox.Add(self.hbox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 10)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.create_menu()
+        self.CreateStatusBar()
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
         self.Center()
         self.Show()
-        
-    def onDestroy(self,event):
-        self.parent.loadMasterFlat = False
 
     def run(self,event):
         
@@ -555,6 +673,21 @@ class MasterFlatFrame(wx.Frame):
                 else:
                     systematics.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
                                               self.plotCheck)
+    def create_menu(self):
+          
+        menubar = wx.MenuBar()
+        menu_file = wx.Menu()
+        m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_quit)
+    
+        menubar.Append(menu_file, "File")
+        self.SetMenuBar(menubar)
+    
+    def on_exit(self,event):
+        self.Destroy()
+
+    def onDestroy(self,event):
+        self.parent.loadMasterFlat = False
 
 class AboutFrame(wx.Frame):
 
@@ -674,219 +807,406 @@ class OverWrite(wx.Frame):
         
     def doNothing(self,event):
         pass
+
+
+class EphemerisFrame(wx.Frame):
+
+    def __init__(self, parent, id):
+
+        wx.Frame.__init__(self, parent, id, "Ephemerides")
         
-class EphFrame(wx.Frame):
-     def __init__(self, *args, **kwargs):
-         super(EphFrame, self).__init__(*args, **kwargs)
-         self.parent = args[0]
-         self.initUI()
-     
-     def initUI(self):
-         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
-         if(sys.platform == 'darwin' or sys.platform == 'linux2'):
-             self.labelFont = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-         else: self.labelFont = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-         self.titleFont = wx.Font(17, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-         self.subTitleFont = wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-         self.SetTitle('Ephemerides')
-         self.ctrlList = []
-         self.ephSizer = wx.GridBagSizer(5,5)
-         obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
-         nameList = []
-         for file in obsList:        ## Gather all available observatory names
-             openfile = open(file,'r').read().splitlines()
-             for line in openfile: 
-                 if line.split(':')[0] == 'name':
-                     nameList.append(line.split(':')[1].strip())
-         nameList += ['Enter New Observatory']
-     
-         self.menuBar = wx.MenuBar()
-         self.fileMenu = wx.Menu()
-         self.menuBar.Append(self.fileMenu, '&File')
-         self.save = self.fileMenu.Append(-1, 'Save', 'Save')
-         self.SetMenuBar(self.menuBar)
-         self.Bind(wx.EVT_MENU, self.saveOutput, self.save)
-     
-         self.observatory = wx.ComboBox(self, value = 'Observatories', choices = nameList, name = 'Observatories', size = (320,25))
-         self.observatory.Bind(wx.EVT_COMBOBOX, self.enterNewObs)
-         self.title = wx.StaticText(self, -1, 'Ephemeris Calculator')
-         self.title.SetFont(self.titleFont)
-         self.name = wx.TextCtrl(self, value = 'Name', size = (205,25))
-         self.filename = wx.TextCtrl(self, value = 'Filename', size = (205,25))
-         self.startSemDate = wx.TextCtrl(self, value = datetime.datetime.now().strftime("%Y/%m/%d"))
-         self.endSemDate = wx.TextCtrl(self, value = (datetime.datetime.now()+datetime.timedelta(days=7)).strftime("%Y/%m/%d"))
-         self.latitude = wx.TextCtrl(self, value = 'deg:min:sec')
-         self.longitude = wx.TextCtrl(self, value = 'deg:min:sec')
-         self.elevation = wx.TextCtrl(self, value = '0.0')
-         self.temp = wx.TextCtrl(self, value = '0.0')
-         self.v_limit = wx.TextCtrl(self, value = '0.0')
-         self.depth_limit = wx.TextCtrl(self, value = '0.0')
-         self.selectObsLbl = wx.StaticText(self, -1, 'Select Observatory: ')
-         self.selectObsLbl.SetFont(self.labelFont)
-         self.html_out = wx.RadioBox(self, -1, label = 'HTML Out', choices = ['True', 'False'])
-         self.text_out = wx.RadioBox(self, -1, label = 'Text Out', choices = ['True', 'False'])
-         self.calc_transits = wx.RadioBox(self, -1, label = 'Calc Transits', choices = ['True', 'False'])
-         self.calc_eclipses = wx.RadioBox(self, -1, label = 'Calc Eclipses', choices = ['True', 'False'])
-         self.twilightType = wx.TextCtrl(self,-1, value = '0')
-         self.min_horizon = wx.TextCtrl(self,-1,value = 'deg:min:sec')
-         self.calcButton = wx.Button(self,-1,label = 'Calculate', size = (110,25))
-         self.advancedOptions = wx.StaticText(self, -1, 'Advanced Options')
-         self.advancedOptions.SetFont(self.subTitleFont)
-         self.ephSizer.Add(self.title, (0,0), (1,2), wx.LEFT | wx.TOP, 7)
-         self.ephSizer.Add(self.selectObsLbl, (1,0), wx.DefaultSpan, wx.LEFT | wx.TOP, 7)
-         self.ephSizer.Add(self.observatory, (1,1), (1,3), wx.TOP | wx.LEFT, 7)
-         self.ephSizer.Add(self.advancedOptions, (6,0), (1,2), wx.TOP | wx.LEFT, 7)
-             
-         self.addTextCtrl(2,0, self.name, wx.StaticText(self,-1,'Name of Observatory: '), (1,2))
-         self.addTextCtrl(3,0, self.filename, wx.StaticText(self,-1,'Enter File Name: '), (1,2))
-         self.addDateCtrl(4,0, self.startSemDate,wx.StaticText(self, -1, "Start of Obs, UT (YYYY/MM/DD): "))
-         self.addDateCtrl(5,0, self.endSemDate, wx.StaticText(self, -1, "End of Obs, UT (YYYY/MM/DD): "))
-         self.addTextCtrl(7,0, self.latitude, wx.StaticText(self, -1, 'Latitude (deg:min:sec):'), wx.DefaultSpan)
-         self.addTextCtrl(8,0, self.longitude, wx.StaticText(self, -1, 'Longitude (deg:min:sec):'), wx.DefaultSpan)
-         self.addTextCtrl(9,0, self.elevation, wx.StaticText(self, -1, 'Observatory Elevation (m): '), wx.DefaultSpan)
-         self.addTextCtrl(10,0, self.temp, wx.StaticText(self, -1, 'Temperature (Celcius): '), wx.DefaultSpan)
-         self.addTextCtrl(4,3, self.v_limit, wx.StaticText(self,-1, '     V upper limit: '), wx.DefaultSpan)
-         self.addTextCtrl(5,3, self.depth_limit, wx.StaticText(self,-1,'     Depth Lower Limit: '), wx.DefaultSpan)
-         self.addTextCtrl(11,0, self.twilightType, wx.StaticText(self,-1, 'Twilight Type (Default = -6): '), wx.DefaultSpan)
-         self.addTextCtrl(12,0, self.min_horizon, wx.StaticText(self,-1, 'Lower Elevation Limit (deg:min:sec): '), wx.DefaultSpan)
-         self.addRadioBox(7,3, self.html_out)
-         self.addRadioBox(9,3, self.text_out)
-         self.addRadioBox(11,3, self.calc_transits)
-         self.addRadioBox(2,4, self.calc_eclipses)
- 
-         self.addButton(1,3, self.calcButton)
-         self.Bind(wx.EVT_BUTTON, self.calculate)
-         
-         self.bestSize = self.GetBestSizeTuple()
-         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
- 
-         self.SetBackgroundColour(wx.Colour(233,233,233))
-         self.SetSizer(self.ephSizer)
-         self.bestSize = self.GetBestSizeTuple()
-         self.SetSize((self.bestSize[0]+20,self.bestSize[1]+20))
-         self.Centre()
-         self.Show()
-         
-     def addDateCtrl(self, row, colStart, dateCtrl, label):
-         label.SetFont(self.labelFont)
-         self.ephSizer.Add(label, (row, colStart), (1,2), wx.LEFT | wx.TOP, 7)
-         self.ephSizer.Add(dateCtrl, (row, colStart+2), wx.DefaultSpan, wx.TOP , 7)
-         
-     def addTextCtrl(self, row, colStart, textCtrl, label, span):
-         label.SetFont(self.labelFont)
-         self.ephSizer.Add(label, (row, colStart), (1,2), wx.LEFT | wx.TOP, 7)
-         self.ephSizer.Add(textCtrl, (row, colStart+2), span, wx.TOP, 7)
-         
-     def addButton(self, row, colStart, button):
-         self.ephSizer.Add(button, (row, colStart+2), (1,2), wx.TOP | wx.RIGHT, 7)
-         
-     def addRadioBox(self, row, colStart, radioBox):
-         self.ephSizer.Add(radioBox, (row, colStart), (2,2), wx.LEFT | wx.TOP, 12)
-         
-     def enterNewObs(self, event):
-         if self.observatory.GetValue() == 'Enter New Observatory':
-             self.filename.SetValue('Enter Filename for Observatory')
-             self.name.SetValue('Enter Name of Observatory')
-         else:
-             '''This is a hack so as to display the observatory names in the drop down menu but to
-                open files using the glob() retrieved paths. It could be cleaned up. -BM'''
-             obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
-             nameList = []
-             #for i in obsList:
-             #    nameList.insert(0,i[i.rfind(os.sep)+1:i.rfind('.')])
-             for file in obsList:        ## Gather all available observatory names
-                 openfile = open(file,'r').read().splitlines()
-                 for line in openfile: 
-                     if line.split(':')[0] == 'name':
-                         nameList.append(line.split(':')[1].strip())
-             
-             for ind in range(0,len(nameList)):
-                 if nameList[ind] == self.observatory.GetValue(): openFile = obsList[ind]
-             obsPath = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),openFile)
-             self.loadValues(obsPath)
+        self.panel = wx.Panel(self)
+        self.parent = parent
+        
+        self.titlebox = wx.StaticText(self.panel, -1, 'Ephemeris Calculator')
+        self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        self.titlebox.SetFont(self.titleFont)
+        
+        self.titlebox2 = wx.StaticText(self.panel, -1, 'Advanced Options')
+        self.titlebox2.SetFont(self.titleFont)
+        
+        if sys.platform == "win32":
+            self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        else: 
+            self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+            
+        self.calculateButton = wx.Button(self.panel, -1, label = "Calculate")
+        self.Bind(wx.EVT_BUTTON, self.calculate, self.calculateButton)
+        
+        obsList = glob(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories','*.par'))
+        self.nameList = {}
+        for file in obsList:
+            for line in open(file,'r').read().splitlines():
+                if line.split(":")[0] == "name":
+                    self.nameList[line.split(":")[1].strip()] = file
+        
+        self.obsLabel = wx.StaticText(self.panel, -1, 'Select Observatory: ')
+        self.obsLabel.SetFont(self.fontType)
+        self.obsList = wx.ComboBox(self.panel, value = 'Observatories',
+                                   choices = sorted(self.nameList.keys()) + ["Enter New Observatory"])
+        self.obsList.Bind(wx.EVT_COMBOBOX, self.update)
+        
+        self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.dropBox.Add(self.obsLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.dropBox.Add(self.obsList, 0, flag = wx.ALIGN_CENTER)
+        
+        list = [('observatoryName',"Name of Observatory: ","",""),
+                ('fileName',"Enter File Name: ","",""),
+                ('obsStart',"Start of Observation, UT (YYYY/MM/DD): ",
+                 "Enter a date in the correct format here.",datetime.date.today().strftime("%Y/%m/%d")),
+                ('obsEnd',"End of Observation, UT (YYYY/MM/DD): ",
+                 "Enter a date in the correct format here.",(datetime.datetime.now()+datetime.timedelta(days=7)
+                                                             ).strftime("%Y/%m/%d")),
+                ('upperLimit',"V Upper Limit: ","","0.0"),
+                ('lowerLimit',"Depth Lower Limit: ","","0.0")]
+        self.leftBox = ParameterBox(self.panel,-1,list, rows=6, cols=2, vNum = 5, hNum = 15, font = self.fontType)
+        
+        list = [("latitude","Latitude (deg:min:sec): ","","deg:min:sec"),
+                ("longitude","Longitude (deg:min:sec): ","","deg:min:sec"),
+                ("elevation","Observatory Elevation (m): ","","0.0"),
+                ("temperature","Temperature (C"+ "" +"): ","","0.0"),
+                ("twilight","Twilight Type: ","","-6"),
+                ("lowerElevation","Lower Elevation Limit (deg:min:sec): ","","deg:min:sec"),
+                ]
+        self.leftBox2 = ParameterBox(self.panel, -1, list, rows=6, cols=2, vNum = 5, hNum = 15, font =self.fontType)
+        
+        list = [('flatType',"","True","False")]
+        self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", other = False)
+        list = [('flatType',"","True", "False")]
+        self.htmlBox = ParameterBox(self.panel,-1,list, name = "HTML Out", other = False)
+        list = [('flatType',"","True","False")]
+        self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out", other = False)
+        list = [('flatType',"","True","False")]
+        self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits", other = False)
+        
+        self.radioBox = wx.BoxSizer(wx.VERTICAL)
+        self.radioBox.Add(self.calcEclipseBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.radioBox.Add(self.htmlBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.radioBox.Add(self.textBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.radioBox.Add(self.calcTransitsBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        
+        self.topBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.topBox.Add(self.leftBox, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 5)
+        self.topBox.Add(self.calculateButton, 0, flag = wx.ALIGN_CENTER | wx.RIGHT | wx.LEFT, border = 5)
+        
+        self.botBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.botBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.botBox.Add(self.radioBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.titlebox, 0, flag = wx.ALIGN_CENTER | wx.TOP, border = 5)
+        self.vbox.Add(self.dropBox, 0, flag = wx.ALIGN_LEFT | wx.TOP, border = 10)
+        self.vbox.Add(self.topBox, 0, flag = wx.ALIGN_CENTER)
+        self.vbox.Add(self.titlebox2, 0, flag = wx.ALIGN_CENTER)
+        self.vbox.Add(self.botBox, 0, flag = wx.ALIGN_CENTER)
+        
+        self.create_menu()
+        self.CreateStatusBar()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()
     
-     def loadValues(self, obsPath):
-         filename = os.path.split(obsPath)
-         self.filename.SetValue(filename[1].split('.')[0])
-         obsPath = file(obsPath, 'r')
-         for line in obsPath:
-             if line.split(':',1) > 1 and line[0] != '#':
-                 line = line.split(':',1)
-                 if line[0] == 'name':  self.name.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'latitude':  self.latitude.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'longitude':  self.longitude.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'elevation':   self.elevation.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'temperature':   self.temp.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'min_horizon':    self.min_horizon.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'v_limit': self.v_limit.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'depth_limit': self.depth_limit.SetValue(str(line[1].split('#')[0].strip()))
-                 elif line[0] == 'calc_transits':
-                     if bool(line[1].split('#')[0].strip()):
-                         self.calc_transits.SetSelection(0)
-                     else:
-                         self.calc_transits.SetSelection(1)
-                 elif line[0] == 'calc_eclipses':
-                     if bool(line[1].split('#')[0].strip()):
-                         self.calc_eclipses.SetSelection(0)
-                     else:
-                         self.calc_eclipses.SetSelection(1)
-                 elif line[0] == 'html_out':
-                     if bool(line[1].split('#')[0].strip()):
-                         self.html_out.SetSelection(0)
-                     else:
-                         self.html_out.SetSelection(1)
-                 elif line[0] == 'text_out':
-                     if bool(line[1].split('#')[0].strip()):
-                         self.text_out.SetSelection(0)
-                     else:
-                         self.text_out.SetSelection(1)
-                 elif line[0] == 'twilight': self.twilightType.SetValue(str(line[1].split('#')[0].strip()))
-         obsPath.close()
-         
-     def saveFile(self, filename):
-         semdateArr = self.startSemDate.GetValue().split('/')
-         enddateArr = self.endSemDate.GetValue().split('/')
-         newobs = open(filename, 'w')
-         newobs.write('name: ' + self.name.GetValue() + '\n')
-         newobs.write('latitude: ' + self.latitude.GetValue() + '\n')
-         newobs.write('longitude: ' + self.longitude.GetValue() + '\n')
-         newobs.write('elevation: ' + self.elevation.GetValue() + '\n')
-         newobs.write('temperature: ' + self.temp.GetValue() + '\n')
-         newobs.write('min_horizon: ' + self.min_horizon.GetValue() + '\n')
-         newobs.write('start_date: ' + '(' + str(int(semdateArr[0])) + ',' + str(int(semdateArr[1])) + ',' + str(int(semdateArr[2])) + ',0,0,0)\n')
-         newobs.write('end_date: ' + '(' + str(int(enddateArr[0])) + ',' + str(int(enddateArr[1])) + ',' + str(int(enddateArr[2])) + ',0,0,0)\n')
-         newobs.write('v_limit: ' + self.v_limit.GetValue() + '\n')
-         newobs.write('depth_limit: ' + self.depth_limit.GetValue() + '\n')
-         newobs.write('calc_transits: ' + str(self.calc_transits.GetSelection()==0) + '\n')
-         newobs.write('calc_eclipses: ' + str(self.calc_eclipses.GetSelection()==0) + '\n')
-         newobs.write('html_out: ' + str(self.html_out.GetSelection()==0) + '\n')
-         newobs.write('text_out: ' + str(self.text_out.GetSelection()==0) + '\n')
-         newobs.write('twilight: ' + self.twilightType.GetValue() + '\n')
-         newobs.close()
-         
-     def calculate(self, event):
-         outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs','eventReport.html'))
-         path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','observatories',self.filename.GetValue() + '.par')
-         self.saveFile(path)
-         import oscaar.extras.eph.calculateEphemerides as eph
-         eph.calculateEphemerides(path)
-         if self.html_out.GetSelection() == 0: webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
-         self.Destroy()
-         
-     def saveOutput(self, event):
-         dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
-         if dlg.ShowModal() == wx.ID_OK:
-             outputPath = dlg.GetPath()
-             self.calculate(None)
-             shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
-             outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
-             for name in glob(outputPath+os.sep+'*'):
-                 outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
-             shutil.rmtree(outputPath)
-             outputArchive.close()
- 
-     def onDestroy(self, event):
-         self.parent.loadEphFrame = False
+    def calculate(self, event):
+        
+        if self.parameterCheck() == True:
+            
+            
+            outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                                          'extras','eph','ephOutputs','eventReport.html'))
+            path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                                'extras','eph','observatories', self.leftBox.userParams["fileName"].GetValue() + '.par')
+            
+            if not self.nameList.has_key(self.name):
+                self.nameList[self.name] = path
+                self.obsList.Append(self.name)
+            
+            self.saveFile(path)
+            import oscaar.extras.eph.calculateEphemerides as eph
+            eph.calculateEphemerides(path)
+    
+            if self.htmlBox.userParams["flatType"].GetValue() == True: 
+                webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
+
+    def parameterCheck(self):
+
+        self.name = self.leftBox.userParams["observatoryName"].GetValue().strip()
+        self.fileName = self.leftBox.userParams["fileName"].GetValue().strip()
+        self.latitude = self.leftBox2.userParams["latitude"].GetValue().strip()
+        self.longitude = self.leftBox2.userParams["longitude"].GetValue().strip()
+        self.elevation = self.leftBox2.userParams["elevation"].GetValue().strip()
+        self.temperature = self.leftBox2.userParams["temperature"].GetValue().strip()
+        self.lowerElevation = self.leftBox2.userParams["lowerElevation"].GetValue().strip()
+        self.startingDate = self.leftBox.userParams["obsStart"].GetValue().strip()
+        self.endingDate = self.leftBox.userParams["obsEnd"].GetValue().strip()
+        self.upperLimit = self.leftBox.userParams["upperLimit"].GetValue().strip()
+        self.lowerLimit = self.leftBox.userParams["lowerLimit"].GetValue().strip()
+        self.twilight = self.leftBox2.userParams["twilight"].GetValue().strip()
+
+        if self.name == "" or self.name == "Enter the name of the Observatory":
+            InvalidParameter(self.name, self, -1, str = "obsName")
+            return False
+        elif self.fileName == "" or self.fileName == "Enter the name of the file":
+            InvalidParameter(self.fileName, self, -1, str ="obsFile")
+            return False
+        years = []
+        months = []
+        days = []
+        for dateArray,value in [(self.startingDate.split("/"),self.startingDate),
+                                (self.endingDate.split("/"),self.endingDate)]:
+            if len(dateArray) != 3:
+                InvalidParameter(value, self, -1, str="obsDate")
+                return False
+            else:
+                try:
+                    year = int(dateArray[0].strip())
+                    years.append(year)
+                    month = int(dateArray[1].strip())
+                    months.append(month)
+                    day = int(dateArray[2].strip())
+                    days.append(day)
+                    
+                    if len(dateArray[0].strip()) != 4 or len(dateArray[1].strip()) > 2 or len(dateArray[2].strip()) > 2:
+                        InvalidParameter(value, self, -1, str="obsDate")
+                        return False
+                    minYear = datetime.date.today().year - 100
+                    maxYear = datetime.date.today().year + 100
+                    if year < minYear or year > maxYear or month > 12 or month < 0 or day > 31 or day < 0 or \
+                       month == 0 or year == 0 or day == 0:
+                        InvalidParameter(value, self, -1, str="dateRange")
+                        return False
+                except ValueError:
+                    InvalidParameter(value, self, -1, str="obsDate")
+                    return False
+
+        if years[0] > years[1]:
+            InvalidParameter(self.startingDate, self, -1, str = "logicalDate")
+            return False
+        elif years[0] == years[1]:
+            if months[0] > months[1]:
+                InvalidParameter(self.startingDate, self, -1, str = "logicalDate")
+                return False
+            elif months[0] == months[1]:
+                if days[0] >= days[1]:
+                    InvalidParameter(self.startingDate, self, -1, str = "logicalDate")
+                    return False
+        
+        for coordArray, value, type in [(self.latitude.split(":"),self.latitude, "lat"), 
+                                  (self.longitude.split(":"),self.longitude, "long")]:
+            if(len(coordArray) != 3):
+                InvalidParameter(value, self, -1, str = "coordTime")
+                return False
+            else:
+                try:
+                    deg = float(coordArray[0].strip())
+                    min = float(coordArray[1].strip())
+                    sec = float(coordArray[2].strip())
+                    if type == "lat":
+                        self.latitude = str(deg) + ":" + str(min) + ":" + str(sec)
+                        if abs(deg) > 90.0 or min > 59.0 or min < 0.0 or sec > 59.0 or sec < 0.0:
+                            InvalidParameter(value, self, -1, str = "coordRange")
+                            return False
+                    elif type == "long":
+                        self.longitude = str(deg) + ":" + str(min) + ":" + str(sec)
+                        if abs(deg) > 180.0 or min > 59.0 or min < 0.0 or sec > 59.0 or sec < 0.0:
+                            InvalidParameter(value, self, -1, str = "coordRange")
+                            return False
+                    if abs(deg) == 90:
+                        if min != 0 and sec != 0:
+                            InvalidParameter(value, self, -1, str = "coordRange")
+                            return False               
+                except ValueError:
+                    InvalidParameter(value, self, -1, str = "coordTime")
+                    return False
+        try:
+            tempString = "elevation"
+            temp1 = float(self.elevation)
+            tempString = "temperature"
+            temp2 = float(self.temperature)
+            tempString = "v upper limit"
+            temp3 = float(self.upperLimit)
+            tempString = "depth lower limit"
+            temp4 = float(self.lowerLimit)
+            tempString = "twilight"
+            temp5 = float(self.twilight)
+            tempString = "lower elevation limit"
+            
+            stripElevation = self.lowerElevation.split(":")
+
+            if len(stripElevation) != 3:
+                InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+                return False
+
+            temp6 = int(stripElevation[0])
+            temp7 = int(stripElevation[1])
+            temp8 = int(stripElevation[2])
+            
+            if temp7 > 59.0 or temp7 < 0.0 or temp8 > 59.0 or temp8 < 0.0:
+                InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+                return False
+            self.lowerElevation = stripElevation[0].strip() + ":" + stripElevation[1].strip() + ":" +\
+                                  stripElevation[2].strip()
+            
+            if temp1 < 0:
+                InvalidParameter(self.elevation, self, -1, str = "tempElevNum", max = "elevation")
+                return False
+            
+            elif temp2 < 0:
+                InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = "temperature")
+                return False
+            
+            elif temp3 < 0:
+                InvalidParameter(self.upperLimit, self, -1, str = "tempElevNum", max = "v upper limit")
+                return False
+            
+            elif temp4 < 0:
+                InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = "depth lower limit")
+                return False
+                
+            elif temp4 > temp3:
+                InvalidParameter(self.lowerLimit, self, -1, str = "lowerLimit")
+                return False
+
+        except:
+            if tempString == "temperature":
+                InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = tempString)
+            elif tempString == "v upper limit":
+                InvalidParameter(self.upperLimit, self, -1, str = "tempElevNum", max = tempString)
+            elif tempString == "depth lower limit":
+                InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = tempString)
+            elif tempString == "twilight":
+                InvalidParameter(self.twilight, self, -1, str = "twilight")
+            elif tempString == "lower elevation limit":
+                InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+            else:
+                InvalidParameter(self.elevation, self, -1, str = "tempElevNum", max = tempString)
+            return False
+        
+        
+        return True
+    
+    def update(self, event):
+
+        if self.obsList.GetValue() == "Enter New Observatory":
+            self.leftBox.userParams["observatoryName"].SetValue("Enter the name of the Observatory")
+            self.leftBox.userParams["fileName"].SetValue("Enter the name of the file")
+        else:
+            radioBoxes = self.radioBox.GetChildren()
+            radioList = []
+            for eachBox in radioBoxes:
+                window = eachBox.GetWindow()
+                children = window.GetChildren()
+                for child in children:
+                    if isinstance(child, wx.RadioButton):
+                        radioList.append(child)
+                        
+            lines = open(self.nameList[self.obsList.GetValue()],"r").read().splitlines()
+            self.leftBox.userParams["fileName"].SetValue(os.path.split(self.nameList[self.obsList.GetValue()
+                                                                                     ])[1].split(".")[0])
+            for eachLine in lines:
+                if len(eachLine.split()) > 1:
+                    inline = eachLine.split(':', 1)
+                    name = inline[0].strip()
+                    value = str(inline[1].strip())
+                    list = [("name","observatoryName"),("min_horizon","lowerElevation"),("start_date","obsStart"),
+                            ("end_date","obsEnd"),("v_limit","upperLimit"),("depth_limit","lowerLimit"),
+                            ("latitude",""),("longitude",""),("elevation",""),("temperature",""),("twilight",""),
+                            ("calc_transits",6),("calc_eclipses",0),("html_out",2),("text_out",4)]
+                
+                    for string,saveName in list:
+                        if string == name:
+                            if any(temp == name for temp in ["name","start_date","end_date","v_limit","depth_limit"]):
+                                if name == "start_date" or name == "end_date":
+                                    value = value.split("(")[1].split(",")
+                                    value = value[0] + "/" + value[1] + "/" + value[2]
+                                self.leftBox.userParams[saveName].SetValue(str(value))
+                            elif any(temp == name for temp in ["latitude","longitude","elevation","temperature",
+                                                               "twilight","min_horizon"]):
+                                if saveName == "":
+                                    saveName = name
+                                self.leftBox2.userParams[saveName].SetValue(str(value))
+                            elif any(temp == name for temp in ["calc_transits","calc_eclipses","html_out","text_out"]):
+                                if(value == "False"):
+                                    saveName = saveName + 1
+                                radioList[saveName].SetValue(True)
+
+    def saveFile(self, fileName):
+        
+        startDate = [x.strip() for x in self.leftBox.userParams["obsStart"].GetValue().split("/")]
+        endDate = [x.strip() for x in self.leftBox.userParams["obsEnd"].GetValue().split("/")]
+        dates = {}
+        for date, stringDate in [(startDate,"date1"), (endDate,"date2")]:
+            for stringNum in date:
+                if stringNum == "08":
+                    date[date.index(stringNum)] = "8"
+                elif stringNum == "09":
+                    date[date.index(stringNum)] = "9"
+
+            date += ["0","0","0"]
+            tempString = "("
+            for num in range(0,len(date)):
+                if num != len(date)-1:
+                    tempString += date[num] + ","
+                else:
+                    tempString += date[num]
+            tempString += ")"
+            dates[stringDate] = tempString
+        
+        newObs = open(fileName, "w")
+        newObs.write("name: " + self.name + "\n")
+        newObs.write("latitude: " + self.latitude + "\n")
+        newObs.write("longitude: " + self.longitude + "\n")
+        newObs.write("elevation: " + self.elevation + "\n")
+        newObs.write("temperature: " + self.temperature + "\n")
+        newObs.write("min_horizon: " + self.lowerElevation + "\n")
+        newObs.write("start_date: " + dates["date1"] + "\n")
+        newObs.write("end_date: " + dates["date2"] + "\n")
+        newObs.write("v_limit: " + self.upperLimit + "\n")
+        newObs.write("depth_limit: " + self.lowerLimit + "\n")
+        newObs.write("calc_eclipses: " + str(self.calcEclipseBox.userParams["flatType"].GetValue()) + "\n")
+        newObs.write("html_out: " + str(self.htmlBox.userParams["flatType"].GetValue()) + "\n")
+        newObs.write("text_out: " + str(self.textBox.userParams["flatType"].GetValue()) + "\n")
+        newObs.write("calc_transits: " + str(self.calcTransitsBox.userParams["flatType"].GetValue()) + "\n")
+        newObs.write("twilight: " + self.twilight + "\n")
+        newObs.close()
+
+    def create_menu(self):
+    
+        # These commands create the menu bars that are at the top of the GUI.
+    
+        menubar = wx.MenuBar()
+        
+        menu_file = wx.Menu()
+        m_save = menu_file.Append(wx.ID_SAVE, "Save\tCtrl+S", "Save data to a zip folder.")
+        m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_quit)
+        self.Bind(wx.EVT_MENU, self.saveOutput, m_save)
+        
+        menubar.Append(menu_file, "File")
+        self.SetMenuBar(menubar)
+
+    def saveOutput(self, event):
+        dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            outputPath = dlg.GetPath()
+            if self.parameterCheck():
+                self.calculate(None)
+                shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
+                outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
+                for name in glob(outputPath+os.sep+'*'):
+                    outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
+                shutil.rmtree(outputPath)
+                outputArchive.close()
+        dlg.Destroy()
+
+    def onDestroy(self, event):
+        self.parent.loadEphFrame = False
+    
+    def on_exit(self,event):
+        self.parent.loadEphFrame = False
+        self.Destroy()
 
 class FittingFrame(wx.Frame):
 
@@ -894,7 +1214,7 @@ class FittingFrame(wx.Frame):
         
         self.path = path
         self.title = "Fitting Methods"
-        
+        self.loadMCMC = False
         wx.Frame.__init__(self, parent, id, self.title)
         
         self.panel = wx.Panel(self)
@@ -948,13 +1268,16 @@ class FittingFrame(wx.Frame):
         self.menubar.Append(menu_file, "&File")
         self.SetMenuBar(self.menubar)
 
-    #####Functions for event handling#####
-    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):                    
         if fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
-        else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        else: 
+            dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
-            filenames = dlg.GetPaths()
+            if saveDialog == wx.SAVE:
+                filenames = [dlg.GetPath()]
+            else:
+                filenames = dlg.GetPaths()
             textControl.Clear()
             for i in range(0,len(filenames)):
                 if i != len(filenames)-1:
@@ -975,9 +1298,9 @@ class FittingFrame(wx.Frame):
     def plotMCMC(self,event):
         if self.validityCheck():
             self.pathText = self.pklPathTxt.GetValue()
-            if self.parent.loadMCMC == False:
+            if self.loadMCMC == False:
                 MCMCFrame(self, -1)
-                self.parent.loadMCMC = True
+                self.loadMCMC = True
      
     def validityCheck(self):
         invalidString = ""
@@ -1009,18 +1332,35 @@ class FittingFrame(wx.Frame):
 class LoadOldPklFrame(wx.Frame):
 
     def __init__(self, parent, id):
-        
-        global loadGraphFrame
-        loadGraphFrame = False
 
         self.title = "Load An Old .pkl File"
         wx.Frame.__init__(self, parent, id, self.title)
         
         self.panel = wx.Panel(self)
         self.parent = parent
-        self.box = AddLCB(self.panel,-1,name="Path to Output File")
+        self.loadGraphFrame = False
+        
+        self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File", updateRadii = True)    
+         
+        self.apertureRadii = []
+        self.radiusNum = 0
+        self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
+        self.radiusList = wx.ComboBox(self.panel, value = "", choices = "", size = (100, wx.DefaultSize.GetHeight()))
+        self.radiusList.Bind(wx.EVT_COMBOBOX, self.radiusIndexUpdate)    
+         
+        self.updateRadiiButton = wx.Button(self.panel, label = "Update Radii List")
+        self.Bind(wx.EVT_BUTTON, self.updateRadiiList, self.updateRadiiButton)
+        
+        self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.dropBox.Add(self.radiusLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.dropBox.Add(self.radiusList, 0, flag = wx.ALIGN_CENTER)
+        
+        self.rightBox = wx.BoxSizer(wx.VERTICAL)
+        self.rightBox.Add(self.updateRadiiButton, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 10)
+        self.rightBox.Add(self.dropBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 10)
+        
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        self.hbox.Add(self.box, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 10)
         
         if sys.platform == 'win32':
             self.plotLightCurveButton = wx.Button(self.panel,label = 'Plot Light Curve', size = (130,25)) 
@@ -1054,7 +1394,8 @@ class LoadOldPklFrame(wx.Frame):
         
         self.sizer0 = wx.FlexGridSizer(rows=2, cols=3)
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.hbox2.Add(self.sizer0, 0, wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox2.Add(self.rightBox, 0, wx.ALIGN_CENTER |wx. ALL, border = 5)
 
         self.sizer0.Add(self.plotLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotRawFluxButton,0,wx.ALIGN_CENTER|wx.ALL,5)
@@ -1093,25 +1434,40 @@ class LoadOldPklFrame(wx.Frame):
         self.menubar.Append(menu_file, "&File")
         self.SetMenuBar(self.menubar)
 
-    #####Functions for event handling#####
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
         if fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
-        else: dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        else: 
+            dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
-            filenames = dlg.GetPaths()
+            if saveDialog == wx.SAVE:
+                filenames = [dlg.GetPath()]
+            else:
+                filenames = dlg.GetPaths()
             textControl.Clear()
             for i in range(0,len(filenames)):
                 if i != len(filenames)-1:
                     textControl.WriteText(filenames[i] + ',')
                 else:
                     textControl.WriteText(filenames[i])
+        
+        if self.validityCheck(throwException = False):
+            self.radiusList.Clear()
+            self.data = IO.load(self.box.txtbox.GetValue())
+            self.apertureRadii = np.empty_like(self.data.apertureRadii)
+            self.apertureRadii[:] = self.data.apertureRadii
+            radiiString = [str(x) for x in self.data.apertureRadii]
+            for string in radiiString:
+                self.radiusList.Append(string)
+            self.radiusList.SetValue(radiiString[0])
+
         dlg.Destroy()
 
     def plotLightCurve(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotLightCurve()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"');\
+                            data.plotLightCurve(radiiNum=%s)" % self.radiusNum
             subprocess.Popen(['python','-c',commandstring])
 
     def plotRawFlux(self, event):
@@ -1148,14 +1504,11 @@ class LoadOldPklFrame(wx.Frame):
     
     def plotInteractiveLightCurve(self, event):
         if self.validityCheck():
-            global pathText
-            global loadGraphFrame
-            pathText = self.pklPathTxt.GetValue()
-            if loadGraphFrame == False:   
-                GraphFrame()
-                loadGraphFrame = True
+            if self.loadGraphFrame == False:   
+                GraphFrame(self, -1)
+                self.loadGraphFrame = True
             
-    def validityCheck(self):
+    def validityCheck(self, throwException=True):
         invalidString = ""
         pathTxt = self.pklPathTxt.GetValue()
         if pathTxt:
@@ -1164,10 +1517,13 @@ class LoadOldPklFrame(wx.Frame):
             if invalidString == "":
                 return True
             else:
-                 InvalidParameter(invalidString, None, -1, str='path')
-            return False
+                if throwException:
+                    InvalidParameter(invalidString, None, -1, str='path')
+                return False
         else:
-            InvalidParameter(invalidString, None, -1, str='path')
+            if throwException:
+                InvalidParameter(invalidString, None, -1, str='path')
+            return False
 
     def correctOutputFile(self, pathname):
         if pathname == '':
@@ -1175,7 +1531,28 @@ class LoadOldPklFrame(wx.Frame):
         if pathname.endswith('.pkl'):
             return True
         return False
-            
+    
+    def updateRadiiList(self, event):
+        if self.validityCheck():
+            self.radiusList.Clear()
+            self.data = IO.load(self.box.txtbox.GetValue())
+            self.apertureRadii = np.empty_like(self.data.apertureRadii)
+            self.apertureRadii[:] = self.data.apertureRadii
+            radiiString = [str(x) for x in self.data.apertureRadii]
+            for string in radiiString:
+                self.radiusList.Append(string)
+            self.radiusList.SetValue(radiiString[0])
+
+    def epsilonCheck(self,a,b,rtol=1e-5,atol=1e-8):
+        try:
+            return np.abs(a-b)<(atol+rtol*np.abs(b))
+        except TypeError:
+            return False
+       
+
+    def radiusIndexUpdate(self, event):
+        self.radiusNum = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+
     def onDestroy(self, event):
         self.parent.loadOldPklOpen = False
     
@@ -1189,17 +1566,18 @@ class GraphFrame(wx.Frame):
     
     title = 'Light Curve Plot'
 
-    def __init__(self):
+    def __init__(self, parent, id):
     
         # This initializes the wx.frame with the title.
         
-        wx.Frame.__init__(self, None, -1, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+        wx.Frame.__init__(self, parent, id, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
         #wx.Frame(None, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         
         # This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
         
-        self.pT = pathText
-        
+        self.pT = parent.pklPathTxt.GetValue()
+        self.parent = parent
+        self.radiusNum = self.parent.radiusNum
         # The rest of these commands just create the window.
         
         self.create_menu()
@@ -1260,7 +1638,7 @@ class GraphFrame(wx.Frame):
         # Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
         # to plot it.
 
-        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.radiusNum],self.pointsPerBin)
         self.fig = pyplot.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         self.dpi = 100
         self.axes = self.fig.add_subplot(111)
@@ -1270,7 +1648,8 @@ class GraphFrame(wx.Frame):
             # '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
         self.axes.format_coord = format_coord 
-        self.axes.errorbar(self.data.times,self.data.lightCurve,yerr=self.data.lightCurveError,fmt='k.',ecolor='gray')
+        self.axes.errorbar(self.data.times,self.data.lightCurves[self.radiusNum],
+                           yerr=self.data.lightCurveErrors[self.radiusNum],fmt='k.',ecolor='gray')
         self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
         self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
@@ -1294,7 +1673,7 @@ class GraphFrame(wx.Frame):
             self.plotTitle = self.box.userinfo['title'].GetValue()
             self.pointsPerBin = int(self.box.userinfo['bin'].GetValue())
             
-            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurve,self.pointsPerBin)
+            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.radiusNum],self.pointsPerBin)
            
             if sys.platform == 'win32': 
                 self.fig = pyplot.figure(num=None, figsize=(10, 6.75), facecolor='w',edgecolor='k')
@@ -1309,7 +1688,8 @@ class GraphFrame(wx.Frame):
                  # '''Function to give data value on mouse over plot.'''
                 return 'JD=%1.5f, Flux=%1.4f' % (x, y)
             self.axes.format_coord = format_coord 
-            self.axes.errorbar(self.data.times,self.data.lightCurve,yerr=self.data.lightCurveError,fmt='k.',ecolor='gray')
+            self.axes.errorbar(self.data.times,self.data.lightCurves[self.radiusNum],
+                               yerr=self.data.lightCurveErrors[self.radiusNum],fmt='k.',ecolor='gray')
             self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
             self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
             self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
@@ -1354,8 +1734,7 @@ class GraphFrame(wx.Frame):
         self.statusbar.SetStatusText('')
     
     def onDestroy(self, event):
-        global loadGraphFrame
-        loadGraphFrame = False
+        self.parent.loadGraphFrame = False
 
 class LeastSquaresFitFrame(wx.Frame):
     
@@ -1388,7 +1767,7 @@ class LeastSquaresFitFrame(wx.Frame):
                      'Enter a value for the eccentricity here.',''),
                     ('t0',"t0:",
                      'Enter a value for t0 here.',
-                     str(transiterFit.calcMidTranTime(self.data.times,self.data.lightCurve))),
+                     str(transiterFit.calcMidTranTime(self.data.times,self.data.lightCurves[radiusNum]))),
                     ('gamma1',"Gamma 1:",
                      'Enter a value for gamma 1 here.','0.0'),
                     ('gamma2'," Gamma 2:",
@@ -1443,12 +1822,18 @@ class LeastSquaresFitFrame(wx.Frame):
             if self.box.userParams['limbdark'].GetValue() == 'False':
                 self.tempLimbDark = False
             
-            fit, success = transiterFit.run_LMfit(self.data.getTimes(),self.data.lightCurve, self.data.lightCurveError,
-                              float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
-                              float(self.box.userParams['inc'].GetValue()),float(self.box.userParams['t0'].GetValue()),
-                              float(self.box.userParams['gamma1'].GetValue()),float(self.box.userParams['gamma2'].GetValue()),
-                              float(self.box.userParams['per'].GetValue()),float(self.box.userParams['ecc'].GetValue()),
-                              float(self.box.userParams['pericenter'].GetValue()),fitLimbDark=self.tempLimbDark, plotting=True)
+            fit, success = transiterFit.run_LMfit(self.data.getTimes(), self.data.lightCurves[radiusNum],
+                                                  self.data.lightCurveErrors[radiusNum],
+                                                  float(self.box.userParams['Rp/Rs'].GetValue()),
+                                                  float(self.box.userParams['a/Rs'].GetValue()),
+                                                  float(self.box.userParams['inc'].GetValue()),
+                                                  float(self.box.userParams['t0'].GetValue()),
+                                                  float(self.box.userParams['gamma1'].GetValue()),
+                                                  float(self.box.userParams['gamma2'].GetValue()),
+                                                  float(self.box.userParams['per'].GetValue()),
+                                                  float(self.box.userParams['ecc'].GetValue()),
+                                                  float(self.box.userParams['pericenter'].GetValue()),
+                                                  fitLimbDark=self.tempLimbDark, plotting=True)
             n_iter = 300
 #             Rp,aRs,inc,t0,gam1,gam2=oscaar.transiterFit.run_MCfit(n_iter,self.data.getTimes(),
 #                 self.data.lightCurve, self.data.lightCurveError,fit,success,
@@ -1501,14 +1886,27 @@ class MCMCFrame(wx.Frame):
         wx.Frame.__init__(self, parent, id, self.title)
         
         self.panel = wx.Panel(self)
-        
+        self.parent = parent
         self.pT = parent.pathText
         self.data = IO.load(self.pT)
         
         self.LCB = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.LCB.updateButton)
+        
+        radiiString = [str(x) for x in self.data.apertureRadii]
+        
+        self.radiusNum = 0
+        self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
+        self.radiusList = wx.ComboBox(self.panel, value = str(self.data.apertureRadii[0]), choices = radiiString)
+        self.radiusList.Bind(wx.EVT_COMBOBOX, self.radiusUpdate)    
+        
+        self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.dropBox.Add(self.radiusLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.dropBox.Add(self.radiusList, 0, flag = wx.ALIGN_CENTER)
+        
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.topBox.Add(self.LCB, border=5, flag=wx.ALL)
+        self.topBox.Add(self.LCB, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.topBox.Add(self.dropBox, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         
         list = [('Rp/Rs',"Ratio of Radii (Rp/Rs):",
                  'Enter a ratio of the radii here.','0.11'),
@@ -1605,13 +2003,6 @@ class MCMCFrame(wx.Frame):
         
         self.menubar.Append(menu_file, "&File")
         self.SetMenuBar(self.menubar)
-        
-    def on_exit(self, event):
-        self.Destroy()
-    
-    def onDestroy(self, event):
-        global loadMCMC
-        loadMCMC = False
 
     def plot(self,event):
        list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
@@ -1629,7 +2020,7 @@ class MCMCFrame(wx.Frame):
                           float(self.box3.userParams['gamma1'].GetValue()),float(self.box3.userParams['gamma2'].GetValue()),
                           float(self.box3.userParams['ecc'].GetValue()),float(self.box3.userParams['pericenter'].GetValue()),
                           float(self.box.userParams['t0'].GetValue())]
-            
+            apertureRadius = 4.5
             nSteps = float(self.box4.userParams['number'].GetValue())
             initBeta = (np.zeros([4]) + 0.012).tolist()        ## << The .tolist() method type casts the Numpy ndarray into a python list
     #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
@@ -1643,8 +2034,8 @@ class MCMCFrame(wx.Frame):
             #mcmcinstance.plot()
             
             ## Spawn a new process to execute the MCMC run separately
-            mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True); mcmcinstance.plot()' % \
-                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
+            mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, num=%s); mcmcinstance.plot(num=%s)' % \
+                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,self.radiusNum,self.radiusNum)
             subprocess.call(['python','-c',mcmcCall])
 
     def update(self,event):
@@ -1664,9 +2055,24 @@ class MCMCFrame(wx.Frame):
                 self.box3.userParams['ecc'].SetValue(str(ecc))
                 InvalidParameter("",None,-1, str="params")
 
+    def epsilonCheck(self,a,b,rtol=1e-5,atol=1e-8):
+        try:
+            return np.abs(a-b)<(atol+rtol*np.abs(b))
+        except TypeError:
+            return False
+
+    def radiusUpdate(self, event):
+        self.radiusNum = np.where(self.epsilonCheck(self.data.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+        
+    def on_exit(self, event):
+        self.Destroy()
+    
+    def onDestroy(self, event):
+        self.parent.loadMCMC = False
+
 class ParameterBox(wx.Panel):
 
-        def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT):               
+        def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT, other=True):               
             wx.Panel.__init__(self,parent,id)
             box1 = wx.StaticBox(self, -1, name)
             sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
@@ -1683,7 +2089,9 @@ class ParameterBox(wx.Panel):
                 label.SetFont(font)
                 
                 if widget == 'notes':
-                    self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220, 48), style = wx.TE_MULTILINE)
+                    self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220, 50), style = wx.TE_MULTILINE)
+                elif widget == "observatoryName" or widget == "fileName":
+                    self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220,wx.DefaultSize.GetHeight()))
                 elif widget != 'trackPlot' and widget != 'photPlot' and widget != 'flatType':
                     self.userParams[widget] = wx.TextCtrl(self, -1, value = value)
  
@@ -1696,7 +2104,12 @@ class ParameterBox(wx.Panel):
                         label2 = "Off"
                     self.userParams[widget] = wx.RadioButton(self, label = label1, style = wx.RB_GROUP)
                     sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                    self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
+                    if other == False:
+                        self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
+                        self.userParams[widget+"1"].SetValue(True)
+                    else:
+                        self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
+                        
                     sizer0.Add(self.userParams[widget+"1"], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
                 else:
                     self.userParams[widget].SetToolTipString(ToolTip)
@@ -1713,11 +2126,13 @@ class ParameterBox(wx.Panel):
 
 class AddLCB(wx.Panel):
             
-        def __init__(self, parent,id,name='',str="Browse\t (Cntrl-O)",rowNum=1,colNum=3,vNum=0,hNum=0, font = wx.NORMAL_FONT):
+        def __init__(self, parent,id, parent2 = None, name = '', str = "Browse\t (Cntrl-O)",
+                     rowNum = 1, colNum = 3, vNum = 0, hNum = 0, font = wx.NORMAL_FONT, updateRadii = False):
             wx.Panel.__init__(self,parent,id)
             
             box1 = wx.StaticBox(self, -1)
             sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+            self.parent = parent2
 
             sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
@@ -1743,9 +2158,9 @@ class AddLCB(wx.Panel):
                         self.browseButton = wx.Button(self, -1, str)
                     else:
                         self.browseButton = wx.Button(self, -1, str)
-                    
-                    self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
-                                                                                 True,wx.FD_OPEN,textControl = self.txtbox))
+                        self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
+                                                                                     True,wx.FD_OPEN,
+                                                                                     textControl = self.txtbox,update=updateRadii))
                     sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
             else:
                 list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
@@ -1793,7 +2208,7 @@ class AddLCB(wx.Panel):
             self.SetSizer(sizer)
             sizer.Fit(self)
 
-        def browseButtonEvent(self, event, message, fileDialog, saveDialog, textControl = '', textControlNum = -1):
+        def browseButtonEvent(self, event, message, fileDialog, saveDialog, textControl = '', textControlNum = -1, update=False):
             if textControlNum != -1:
                 textControl = self.boxes[textControlNum]
             if fileDialog:
@@ -1811,6 +2226,18 @@ class AddLCB(wx.Panel):
                         textControl.WriteText(filenames[i] + ',')
                     else:
                         textControl.WriteText(filenames[i])
+            
+            if update == True:
+                if self.parent.validityCheck(throwException = False):
+                    self.parent.radiusList.Clear()
+                    self.data = IO.load(self.parent.box.txtbox.GetValue())
+                    self.parent.apertureRadii = np.empty_like(self.data.apertureRadii)
+                    self.parent.apertureRadii[:] = self.data.apertureRadii
+                    radiiString = [str(x) for x in self.data.apertureRadii]
+                    for string in radiiString:
+                        self.parent.radiusList.Append(string)
+                    self.parent.radiusList.SetValue(radiiString[0])
+                
             dlg.Destroy() 
 
 class ScanParamsBox(wx.Panel):
@@ -1979,8 +2406,50 @@ class InvalidParameter(wx.Frame):
         elif str == "leftbox":
             self.string = "Please enter a number for the " + max + "."
         elif str == "dateTime":
-            self.string = "Please check the format and values entered for the ingress or egress " + max + "."
-
+            self.string = "Please check the format and values entered for the ingress or egress " + max + ".\n"
+            if max == "date":
+                self.string += "The year must be within 100 years of today, the month must be between 1 and 12\nand" +\
+                               " the day must be between 1 and 31."
+            elif max == "time":
+                self.string += "The hour must be between 0 and 23, while both the minutes and seconds must be between"+\
+                              " 0 and 59.\nThe format is hh:mm:ss."
+        elif str == "obsName" or str == "obsFile":
+            self.string = "The observatory name or file name must be fixed."
+        elif str == "logicalDate":
+            self.string = "The starting date must come before the ending date."
+        elif str == "logicalTime":
+            self.string = "The starting time must come before the ending time when the dates are equal."
+        elif str == "obsDate":
+            self.string = "The starting date and ending date both need to be in the format YYYY/MM/DD with integers."
+        elif str == "dateRange":
+            self.string = "The year must be within 100 years of today, the month must be between 1 and 12,\nand the"+\
+                          " day must be between 1 and 31."
+        elif str == "coordRange":
+            self.string = "The latitude must be between 90 and -90 degrees, while the longitude must be \nbetween "+\
+                          "0 and 180 degrees. Both must have min and sec in between 0 and 59."
+        elif str == "coordTime":
+            self.string = "The longitude and latitude must be in the format Deg:Min:Sec with numbers."
+        elif str == "tempElevNum":
+            self.string = "The " + max + " must be a number greater than or equal to 0."
+        elif str == "lowerLimit":
+            self.string = "The lower limit cannot be greater than the upper limit."
+        elif str == "twilight":
+            self.string = "The twilight must be a number. The default is -6."
+        elif str == "lowerElevation":
+            self.string = "The lower elevation needs to be in the format Deg:Min:Sec, with min and sec between 0 and 59."
+        elif str == "radiusNum":
+            self.string = "The aperture radii values must be numbers."
+        elif str == "radiusEqual":
+            self.string = "The min and max aperture radii cannot be equal."
+        elif str == "radiusStep":
+            self.string = "The aperture radii step size cannot be smaller than the difference between the maximum\n" + \
+                          "radius and the minimum radius. The format for this is \"min, max, stepsize\"."
+        elif str == "radiusLogic":
+            self.string = "The minimum aperture radius must be smaller than the maximum. None of the 3 parameters\n" + \
+                          "can be equal to 0."
+        elif str == "radiusLogic2":
+            self.string = "None of the aperture radii can be equal to 0."
+        
         self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
         

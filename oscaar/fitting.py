@@ -356,7 +356,7 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True
                     plt.xlim([0,iterationCounter+1])
                     plt.draw()
     if plot:
-        sleep(1)	## Pause for a second so the user can see that the solution has been reached
+        sleep(1)    ## Pause for a second so the user can see that the solution has been reached
         plt.ioff()
         plt.close()
     return beta
@@ -424,7 +424,7 @@ class mcmcfit:
         ## Choose the implementation of transit light curve function to use:
         self.func = transitModel.occultquad  
     
-    def run(self,updatepkl=False):
+    def run(self,updatepkl=False, num=0):
         '''
         Run the MCMC algorithms: 
         '''
@@ -437,17 +437,17 @@ class mcmcfit:
 
         RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = self.initParams
         initParams = [RpOverRs,aOverRs,inc,t0]
-        beta = optimizeBeta(self.data.times,self.data.lightCurve,self.data.lightCurveError,\
+        beta = optimizeBeta(self.data.times,self.data.lightCurves[num],self.data.lightCurveErrors[num],\
                                             initParams,occult4params,self.initBeta,idealAcceptanceRate=self.idealAcceptanceRate)
 
 
-        self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurve,\
-                                    self.data.lightCurveError,initParams,occult4params,self.Nsteps,beta,\
+        self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurves[num],\
+                                    self.data.lightCurveErrors[num],initParams,occult4params,self.Nsteps,beta,\
                                     self.saveInterval,verbose=True,loadingbar=True)
         print self.bestp,self.allparams,self.acceptanceRate
         if updatepkl: updatePKL(self.bestp,self.allparams,self.acceptanceRate,self.dataBankPath)
 
-    def plot(self):
+    def plot(self, num=0):
         def occult4params(t,freeparams,allparams=self.initParams):
             '''Allow 4 parameters to vary freely, keep the others fixed at the values assigned below'''
             RpOverRs_free,aOverRs_free,inc_free,t0_free = freeparams
@@ -460,8 +460,8 @@ class mcmcfit:
         data = IO.load(self.dataBankPath)
         burnFraction = self.burnFraction
         x = data.times
-        y = data.lightCurve
-        sigma_y = data.lightCurveError
+        y = data.lightCurves[num]
+        sigma_y = data.lightCurveErrors[num]
     
         ##############################
         # Prepare figures
