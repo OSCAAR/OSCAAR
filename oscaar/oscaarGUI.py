@@ -518,8 +518,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             element = element.strip()
             if not element.endswith('.fit') and not element.endswith('.fits'):
                 errorString += "\n" + element
-            if os.path.isfile(element) != True:
-                errorString += "\n" + element
+#             if os.path.isfile(element) != True:
+#                 errorString += "\n" + element
             setValueString += element + ","
         if not array:
             return "No Values Entered"
