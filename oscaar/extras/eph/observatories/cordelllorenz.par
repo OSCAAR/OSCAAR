@@ -1,0 +1,15 @@
+name: Cordell-Lorenz Observatory
+latitude: 35:12:11.2
+longitude: -85:55:16.0
+elevation: 597.1
+temperature: 15.0
+min_horizon: 20:00:00
+start_date: (2013,6,1,0,0,0)
+end_date: (2013,6,8,0,0,0)
+v_limit: 12.1
+depth_limit: 0.008
+calc_transits: True
+calc_eclipses: False
+html_out: True
+text_out: True
+twilight: -6
