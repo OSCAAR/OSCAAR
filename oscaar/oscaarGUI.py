@@ -75,12 +75,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
         self.leftBox = ParameterBox(self.panel,-1,list,rows=self.row,cols=2, vNum=10, hNum=10, font=self.fontType)
         
-        list = [('trackPlot',"Tracking Plots: ","none",''),
-                ('photPlot',"Photometry Plots: ","none",''),
-                ('ingress',"Ingress, UT (YYYY/MM/DD)",
+        list = [('ingress',"Ingress, UT (YYYY/MM/DD)",
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
                 ('egress',"Egress, UT (YYYY/MM/DD)",
-                 "Enter a date in the correct format here.","YYYY/MM/DD")]
+                 "Enter a date in the correct format here.","YYYY/MM/DD"),
+                ('trackPlot',"Tracking Plots: ","none",''),
+                ('photPlot',"Photometry Plots: ","none",'')]
         
         if sys.platform == "win32":
             self.row = 2
@@ -899,8 +899,8 @@ class EphemerisFrame(wx.Frame):
         self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out", other = False)
         list = [('flatType',"","True","False")]
         self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits", other = False)
-        list = [('flatType',"","Daylight Savings","Standard Time")]
-        self.daylightSavings = ParameterBox(self.panel,-1,list, name = "Daylight Savings", other = False)
+        list = [('flatType',"","Daylight Savings ","Standard Time")]
+        self.daylightSavings = ParameterBox(self.panel,-1,list, other = False)
         
         self.radioBox = wx.BoxSizer(wx.VERTICAL)
         self.radioBox.Add(self.calcEclipseBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
