@@ -880,7 +880,16 @@ class EphemerisFrame(wx.Frame):
         
         self.dropBox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.dropBox2.Add(self.twilightLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
-        self.dropBox2.Add(self.twilightList, 0, flag = wx.ALIGN_CENTER)
+        self.dropBox2.Add(self.twilightList, 0, flag = wx.ALIGN_CENTER)       
+        
+        self.utChoices = [str(x) for x in range(-12,13)]
+        self.utLabel = wx.StaticText(self.panel, -1, "Select time zone from UT: ")
+        self.utLabel.SetFont(self.fontType)
+        self.utList = wx.ComboBox(self.panel, value = "0", choices = self.utChoices)
+        
+        self.dropBox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.dropBox3.Add(self.utLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.dropBox3.Add(self.utList, 0, flag = wx.ALIGN_CENTER)
 
         list = [('flatType',"","True","False")]
         self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", other = False)
@@ -890,6 +899,8 @@ class EphemerisFrame(wx.Frame):
         self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out", other = False)
         list = [('flatType',"","True","False")]
         self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits", other = False)
+        list = [('flatType',"","Daylight Savings","Standard Time")]
+        self.daylightSavings = ParameterBox(self.panel,-1,list, name = "Daylight Savings", other = False)
         
         self.radioBox = wx.BoxSizer(wx.VERTICAL)
         self.radioBox.Add(self.calcEclipseBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -904,6 +915,8 @@ class EphemerisFrame(wx.Frame):
         self.leftVertBox = wx.BoxSizer(wx.VERTICAL)
         self.leftVertBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.leftVertBox.Add(self.dropBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.leftVertBox.Add(self.dropBox3, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.leftVertBox.Add(self.daylightSavings, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         
         self.botBox = wx.BoxSizer(wx.HORIZONTAL)
         self.botBox.Add(self.leftVertBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -960,6 +973,7 @@ class EphemerisFrame(wx.Frame):
         self.upperLimit = self.leftBox.userParams["upperLimit"].GetValue().strip()
         self.lowerLimit = self.leftBox.userParams["lowerLimit"].GetValue().strip()
         self.twilight = self.twilightList.GetValue().strip()
+        self.utZone = self.utList.GetValue().strip()
 
         if self.name == "" or self.name == "Enter the name of the Observatory":
             InvalidParameter(self.name, self, -1, str = "obsName")
@@ -1111,6 +1125,10 @@ class EphemerisFrame(wx.Frame):
             InvalidParameter(self.twilight, self, -1, str = "twilight")
             return False
         
+        elif all(self.utZone != temp for temp in self.utChoices):
+            InvalidParameter(self.utZone, self, -1, str = "utZone")
+            return False
+        
         return True
     
     def update(self, event):
@@ -1139,20 +1157,27 @@ class EphemerisFrame(wx.Frame):
                     list = [("name","observatoryName"),("min_horizon","lowerElevation"),("v_limit","upperLimit"),
                             ("depth_limit","lowerLimit"),("latitude",""),("longitude",""),("elevation",""),
                             ("temperature",""),("twilight",""),("calc_transits",6),("calc_eclipses",0),
-                            ("html_out",2),("text_out",4)]
+                            ("html_out",2),("text_out",4), ("time_zone",""), ("daylight_savings","flatType")]
                 
                     for string,saveName in list:
                         if string == name:
                             if any(temp == name for temp in ["name","v_limit","depth_limit"]):
                                 self.leftBox.userParams[saveName].SetValue(str(value))
                             elif any(temp == name for temp in ["latitude","longitude","elevation","temperature",
-                                                               "twilight","min_horizon"]):
+                                                               "twilight","min_horizon","time_zone","daylight_savings"]):
                                 if saveName == "":
                                     saveName = name
                                 if name == "twilight":
                                     tempStr = [temp for temp in self.twilightChoices.keys() \
                                                if self.twilightChoices[temp] == value]
-                                    self.twilightList.SetValue(tempStr[0])
+                                    if len(tempStr) != 0:
+                                        self.twilightList.SetValue(tempStr[0])
+                                elif name == "time_zone":
+                                    self.utList.SetValue(value)
+                                elif name == "daylight_savings":
+                                    if (value == "False"):
+                                        saveName = saveName + "1"
+                                    self.daylightSavings.userParams[saveName].SetValue(True)
                                 else:
                                     self.leftBox2.userParams[saveName].SetValue(str(value))
                             elif any(temp == name for temp in ["calc_transits","calc_eclipses","html_out","text_out"]):
@@ -1198,6 +1223,8 @@ class EphemerisFrame(wx.Frame):
         newObs.write("text_out: " + str(self.textBox.userParams["flatType"].GetValue()) + "\n")
         newObs.write("calc_transits: " + str(self.calcTransitsBox.userParams["flatType"].GetValue()) + "\n")
         newObs.write("twilight: " + self.twilightChoices[self.twilight] + "\n")
+        newObs.write("time_zone: " + self.utZone + "\n")
+        newObs.write("daylight_savings: " + str(self.daylightSavings.userParams["flatType"].GetValue()) + "\n")
         newObs.close()
 
     def create_menu(self):
@@ -1331,25 +1358,19 @@ class FittingFrame(wx.Frame):
                 self.loadMCMC = True
      
     def validityCheck(self):
-        invalidString = ""
-        pathTxt = self.pklPathTxt.GetValue()
-        if pathTxt:
-            if not self.correctOutputFile(pathTxt):
-                invalidString += pathTxt;
-            if invalidString == "":
-                return True
+        pathName = self.pklPathTxt.GetValue()
+        if pathName != "":
+            if pathName.endswith(".pkl"):
+                if os.path.isfile(pathName) == False:
+                   InvalidParameter(pathName, self, -1, str="path")
+                   return False
             else:
-                 InvalidParameter(invalidString, None, -1, str='path')
-            return False
+                InvalidParameter(pathName, self, -1, str="path")
+                return False 
         else:
-            InvalidParameter(invalidString, None, -1, str='path')
-
-    def correctOutputFile(self, pathname):
-        if pathname == '':
+            InvalidParameter(pathName, self, -1, str="path")
             return False
-        if pathname.endswith('.pkl'):
-            return True
-        return False
+        return True
     
     def onDestroy(self, event):
         self.parent.loadFittingOpen = False
@@ -1492,14 +1513,19 @@ class LoadOldPklFrame(wx.Frame):
         dlg.Destroy()
 
     def plotLightCurve(self, event):
-        if self.validityCheck():
+        if self.validityCheck() and self.radiusCheck():
+            if self.tempNum[0][0] != self.apertureRadiusIndex:
+                self.apertureRadiusIndex = self.tempNum[0][0]
             print 'Loading file: '+self.pklPathTxt.GetValue() 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotLightCurve(apertureRadiusIndex=%s)" \
                              % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
             subprocess.Popen(['python','-c',commandstring])
 
+
     def plotRawFlux(self, event):
-        if self.validityCheck():
+        if self.validityCheck() and self.radiusCheck():
+            if self.tempNum[0][0] != self.apertureRadiusIndex:
+                self.apertureRadiusIndex = self.tempNum[0][0]
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotRawFluxes(apertureRadiusIndex=%s)" \
@@ -1508,7 +1534,9 @@ class LoadOldPklFrame(wx.Frame):
             subprocess.Popen(['python','-c',commandstring])
 
     def plotScaledFluxes(self, event):
-        if self.validityCheck():
+        if self.validityCheck() and self.radiusCheck():
+            if self.tempNum[0][0] != self.apertureRadiusIndex:
+                self.apertureRadiusIndex = self.tempNum[0][0]
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotScaledFluxes(apertureRadiusIndex=%s)" \
@@ -1526,43 +1554,60 @@ class LoadOldPklFrame(wx.Frame):
             subprocess.Popen(['python','-c',commandstring])
 
     def plotComparisonStarWeightings(self, event):
-        if self.validityCheck():
+        if self.validityCheck() and self.radiusCheck():
+            if self.tempNum[0][0] != self.apertureRadiusIndex:
+                self.apertureRadiusIndex = self.tempNum[0][0]
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotComparisonWeightings()" \
-                                % self.pklPathTxt.GetValue()
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s');" \
+                            "data.plotComparisonWeightings(apertureRadiusIndex=%s)" \
+                            % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
 
             subprocess.Popen(['python','-c',commandstring])
     
     def plotInteractiveLightCurve(self, event):
-        if self.validityCheck():
+        if self.validityCheck() and self.radiusCheck():
+            if self.tempNum[0][0] != self.apertureRadiusIndex:
+                self.apertureRadiusIndex = self.tempNum[0][0]
             if self.loadGraphFrame == False:   
                 GraphFrame(self, -1)
                 self.loadGraphFrame = True
             
     def validityCheck(self, throwException=True):
-        invalidString = ""
-        pathTxt = self.pklPathTxt.GetValue()
-        if pathTxt:
-            if not self.correctOutputFile(pathTxt):
-                invalidString += pathTxt;
-            if invalidString == "":
-                return True
+        pathName = self.pklPathTxt.GetValue()
+        if pathName != "":
+            if pathName.endswith(".pkl"):
+                if os.path.isfile(pathName) == False:
+                    if throwException:
+                        InvalidParameter(pathName, self, -1, str="path")
+                    return False
             else:
                 if throwException:
-                    InvalidParameter(invalidString, None, -1, str='path')
-                return False
+                    InvalidParameter(pathName, self, -1, str="path")
+                return False 
         else:
             if throwException:
-                InvalidParameter(invalidString, None, -1, str='path')
+                InvalidParameter(pathName, self, -1, str="path")
             return False
+        return True
 
-    def correctOutputFile(self, pathname):
-        if pathname == '':
+    def radiusCheck(self):
+        if len(self.apertureRadii) == 0:
+            InvalidParameter(str(self.apertureRadii), self, -1, str = "radiusListError")
             return False
-        if pathname.endswith('.pkl'):
-            return True
-        return False
+        elif self.radiusList.GetValue() == "":
+            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            return False
+        try:
+            self.tempNum = np.where(self.epsilonCheck(self.apertureRadii,float(self.radiusList.GetValue())))
+            if len(self.tempNum[0]) == 0:
+                tempString = self.radiusList.GetValue() + " not found in " + str(self.apertureRadii)
+                InvalidParameter(tempString, self, -1, str = "radiusListError2")
+                return False
+        except:
+            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            return False
+        return True
     
     def updateRadiiList(self, event):
         if self.validityCheck():
@@ -2482,7 +2527,17 @@ class InvalidParameter(wx.Frame):
                           "can be equal to 0."
         elif str == "radiusLogic2":
             self.string = "None of the aperture radii can be equal to 0."
-        
+        elif str == "radiusError":
+            self.string = "The radius you entered was empty or not a number. Please enter a valid number."
+        elif str == "radiusListError":
+            self.string = "The plotting methods rely on the aperture radii list from the .pkl file. You\n" + \
+                          "must update the radii list to continue."
+        elif str == "radiusListError2":
+            self.string = "The radius you entered was not in the aperture radii list for this .pkl file.\n" + \
+                          "Please pick a radius from the approved radii in the drop down menu."
+        elif str == "utZone":
+            self.string = "The time zone must be between -12 and 12. Please choose one from the drop down menu."
+            
         self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
         
