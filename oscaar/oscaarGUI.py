@@ -1609,7 +1609,7 @@ class GraphFrame(wx.Frame):
         
         self.pT = parent.pklPathTxt.GetValue()
         self.parent = parent
-        self.apertureRadiusIndex = self.parent.radiusNum
+        self.apertureRadiusIndex = self.parent.apertureRadiusIndex
         # The rest of these commands just create the window.
         
         self.create_menu()
