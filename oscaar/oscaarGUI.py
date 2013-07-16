@@ -1494,15 +1494,16 @@ class LoadOldPklFrame(wx.Frame):
     def plotLightCurve(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"');\
-                            data.plotLightCurve(radiiNum=%s)" % self.radiusNum
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotLightCurve(apertureRadiusIndex=%s)" \
+                             % (self.pklPathTxt.GetValue(),self.radiusNum)
             subprocess.Popen(['python','-c',commandstring])
 
     def plotRawFlux(self, event):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotRawFluxes()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotRawFluxes(apertureRadiusIndex=%s)" \
+                                % (self.pklPathTxt.GetValue(),self.radiusNum)
 
             subprocess.Popen(['python','-c',commandstring])
 
@@ -1510,7 +1511,8 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotScaledFluxes()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotScaledFluxes(apertureRadiusIndex=%s)" \
+                              % (self.pklPathTxt.GetValue(),self.radiusNum)
 
             subprocess.Popen(['python','-c',commandstring])
     
@@ -1518,7 +1520,8 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotCentroidsTrace()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotCentroidsTrace()" \
+                                % (self.pklPathTxt.GetValue())
 
             subprocess.Popen(['python','-c',commandstring])
 
@@ -1526,7 +1529,8 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
-            commandstring = "import oscaar.IO; data=oscaar.IO.load('"+self.pklPathTxt.GetValue()+"'); data.plotComparisonWeightings()"
+            commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotComparisonWeightings()" \
+                                % self.pklPathTxt.GetValue()
 
             subprocess.Popen(['python','-c',commandstring])
     

@@ -607,8 +607,8 @@ class dataBank:
         plt.ioff()
         plt.show()
     
-    def plotLightCurve(self,pointsPerBin=10,radiiNum=0):
-        binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurves[radiiNum],pointsPerBin)
+    def plotLightCurve(self,pointsPerBin=10,apertureRadiusIndex=0):
+        binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurves[apertureRadiusIndex],pointsPerBin)
         
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
@@ -617,56 +617,54 @@ class dataBank:
             '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
         axis.format_coord = format_coord 
-        axis.errorbar(self.times,self.lightCurves[radiiNum],yerr=self.lightCurveErrors[radiiNum],fmt='k.',ecolor='gray')
+        axis.errorbar(self.times,self.lightCurves[apertureRadiusIndex],yerr=self.lightCurveErrors[apertureRadiusIndex],fmt='k.',ecolor='gray')
         axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
         axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-        axis.set_title('Light Curve')
+        axis.set_title(('Light curve for aperture radius %s' % self.apertureRadii[apertureRadiusIndex]))
         axis.set_xlabel('Time (JD)')
         axis.set_ylabel('Relative Flux')
         plt.ioff()
         plt.show()
     
-    def plotRawFluxes(self,pointsPerBin=10):
+    def plotRawFluxes(self,apertureRadiusIndex=0,pointsPerBin=10):
         plt.ion()
-        for apertureRadiusIndex in range(len(self.apertureRadii)):
-            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-            fig.canvas.set_window_title('OSCAAR')
-            axis = fig.add_subplot(111)
-            def format_coord(x, y):
-                '''Function to give data value on mouse over plot.'''
-                return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-            axis.format_coord = format_coord 
-            for star in self.allStarsDict:
-                axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
-            
-            axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-            axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-            axis.set_title('Raw Fluxes')
-            axis.set_xlabel('Time (JD)')
-            axis.set_ylabel('Counts')
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        for star in self.allStarsDict:
+            axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
+        
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title(('Raw fluxes for aperture radius %s' % self.apertureRadii[apertureRadiusIndex]))
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Counts')
         plt.ioff()
         plt.show()
     
     
-    def plotScaledFluxes(self,pointsPerBin=10):
+    def plotScaledFluxes(self,apertureRadiusIndex=0,pointsPerBin=10):
         plt.ion()
-        for apertureRadiusIndex in range(len(self.apertureRadii)):
-            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-            fig.canvas.set_window_title('OSCAAR')
-            axis = fig.add_subplot(111)
-            def format_coord(x, y):
-                '''Function to give data value on mouse over plot.'''
-                return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-            axis.format_coord = format_coord 
-            for star in self.allStarsDict:
-                axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['scaledError'][apertureRadiusIndex],fmt='o')
-            
-            axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
-            axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
-            axis.set_title(('Scaled fluxes for aperture radius: %s' % self.apertureRadii[apertureRadiusIndex]))
-            axis.set_xlabel('Time (JD)')
-            axis.set_ylabel('Counts')
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        axis = fig.add_subplot(111)
+        def format_coord(x, y):
+            '''Function to give data value on mouse over plot.'''
+            return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        axis.format_coord = format_coord 
+        for star in self.allStarsDict:
+            axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['scaledError'][apertureRadiusIndex],fmt='o')
+        
+        axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
+        axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
+        axis.set_title(('Scaled fluxes for aperture radius: %s' % self.apertureRadii[apertureRadiusIndex]))
+        axis.set_xlabel('Time (JD)')
+        axis.set_ylabel('Counts')
         plt.ioff()
         plt.show()
 
