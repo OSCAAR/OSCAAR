@@ -1371,7 +1371,7 @@ class LoadOldPklFrame(wx.Frame):
         self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File", updateRadii = True)    
          
         self.apertureRadii = []
-        self.radiusNum = 0
+        self.apertureRadiusIndex = 0
         self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
         self.radiusList = wx.ComboBox(self.panel, value = "", choices = "", size = (100, wx.DefaultSize.GetHeight()))
         self.radiusList.Bind(wx.EVT_COMBOBOX, self.radiusIndexUpdate)    
@@ -1495,7 +1495,7 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotLightCurve(apertureRadiusIndex=%s)" \
-                             % (self.pklPathTxt.GetValue(),self.radiusNum)
+                             % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
             subprocess.Popen(['python','-c',commandstring])
 
     def plotRawFlux(self, event):
@@ -1503,7 +1503,7 @@ class LoadOldPklFrame(wx.Frame):
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotRawFluxes(apertureRadiusIndex=%s)" \
-                                % (self.pklPathTxt.GetValue(),self.radiusNum)
+                                % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
 
             subprocess.Popen(['python','-c',commandstring])
 
@@ -1512,7 +1512,7 @@ class LoadOldPklFrame(wx.Frame):
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotScaledFluxes(apertureRadiusIndex=%s)" \
-                              % (self.pklPathTxt.GetValue(),self.radiusNum)
+                              % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
 
             subprocess.Popen(['python','-c',commandstring])
     
@@ -1583,7 +1583,7 @@ class LoadOldPklFrame(wx.Frame):
         return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusIndexUpdate(self, event):
-        self.radiusNum = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]#map(float,self.apertureRadii) == float(self.radiusList.GetValue()))[0][0]
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]#map(float,self.apertureRadii) == float(self.radiusList.GetValue()))[0][0]
         
     def onDestroy(self, event):
         self.parent.loadOldPklOpen = False
@@ -1609,7 +1609,7 @@ class GraphFrame(wx.Frame):
         
         self.pT = parent.pklPathTxt.GetValue()
         self.parent = parent
-        self.radiusNum = self.parent.radiusNum
+        self.apertureRadiusIndex = self.parent.radiusNum
         # The rest of these commands just create the window.
         
         self.create_menu()
@@ -1670,7 +1670,7 @@ class GraphFrame(wx.Frame):
         # Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
         # to plot it.
 
-        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.radiusNum],self.pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],self.pointsPerBin)
         self.fig = pyplot.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         self.dpi = 100
         self.axes = self.fig.add_subplot(111)
@@ -1680,8 +1680,8 @@ class GraphFrame(wx.Frame):
             # '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
         self.axes.format_coord = format_coord 
-        self.axes.errorbar(self.data.times,self.data.lightCurves[self.radiusNum],
-                           yerr=self.data.lightCurveErrors[self.radiusNum],fmt='k.',ecolor='gray')
+        self.axes.errorbar(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
+                           yerr=self.data.lightCurveErrors[self.apertureRadiusIndex],fmt='k.',ecolor='gray')
         self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
         self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
@@ -1705,7 +1705,7 @@ class GraphFrame(wx.Frame):
             self.plotTitle = self.box.userinfo['title'].GetValue()
             self.pointsPerBin = int(self.box.userinfo['bin'].GetValue())
             
-            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.radiusNum],self.pointsPerBin)
+            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],self.pointsPerBin)
            
             if sys.platform == 'win32': 
                 self.fig = pyplot.figure(num=None, figsize=(10, 6.75), facecolor='w',edgecolor='k')
@@ -1720,8 +1720,8 @@ class GraphFrame(wx.Frame):
                  # '''Function to give data value on mouse over plot.'''
                 return 'JD=%1.5f, Flux=%1.4f' % (x, y)
             self.axes.format_coord = format_coord 
-            self.axes.errorbar(self.data.times,self.data.lightCurves[self.radiusNum],
-                               yerr=self.data.lightCurveErrors[self.radiusNum],fmt='k.',ecolor='gray')
+            self.axes.errorbar(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
+                               yerr=self.data.lightCurveErrors[self.apertureRadiusIndex],fmt='k.',ecolor='gray')
             self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
             self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
             self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
@@ -1927,7 +1927,7 @@ class MCMCFrame(wx.Frame):
         
         radiiString = [str(x) for x in self.data.apertureRadii]
         
-        self.radiusNum = 0
+        self.apertureRadiusIndex = 0
         self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
         self.radiusList = wx.ComboBox(self.panel, value = str(self.data.apertureRadii[0]), choices = radiiString)
         self.radiusList.Bind(wx.EVT_COMBOBOX, self.radiusUpdate)    
@@ -2067,7 +2067,7 @@ class MCMCFrame(wx.Frame):
             
             ## Spawn a new process to execute the MCMC run separately
             mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, num=%s); mcmcinstance.plot(num=%s)' % \
-                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,self.radiusNum,self.radiusNum)
+                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.call(['python','-c',mcmcCall])
 
     def update(self,event):
@@ -2094,7 +2094,7 @@ class MCMCFrame(wx.Frame):
             return False
 
     def radiusUpdate(self, event):
-        self.radiusNum = np.where(self.epsilonCheck(self.data.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.data.apertureRadii, float(self.radiusList.GetValue())))[0][0]
         
     def on_exit(self, event):
         self.Destroy()
