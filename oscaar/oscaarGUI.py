@@ -1543,16 +1543,16 @@ class LoadOldPklFrame(wx.Frame):
                 self.radiusList.Append(string)
             self.radiusList.SetValue(radiiString[0])
 
-    def epsilonCheck(self,a,b,rtol=1e-5,atol=1e-8):
-        try:
-            return np.abs(a-b)<(atol+rtol*np.abs(b))
-        except TypeError:
-            return False
-       
+    def epsilonCheck(self,a,b):
+        ''' Check variables `a` and `b` are within machine precision of each other
+            because otherwise we get machine precision difference errors when mixing
+            single and double precion NumPy floats and pure Python built-in float types.
+        '''
+        return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusIndexUpdate(self, event):
-        self.radiusNum = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]
-
+        self.radiusNum = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]#map(float,self.apertureRadii) == float(self.radiusList.GetValue()))[0][0]
+        
     def onDestroy(self, event):
         self.parent.loadOldPklOpen = False
     
