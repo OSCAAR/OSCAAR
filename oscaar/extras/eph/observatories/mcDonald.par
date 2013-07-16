@@ -13,3 +13,5 @@ calc_eclipses: True
 html_out: True
 text_out: True
 twilight: -6
+time_zone: -6
+daylight_savings: False

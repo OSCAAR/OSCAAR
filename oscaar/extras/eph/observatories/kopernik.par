@@ -1,15 +1,17 @@
 name: Kopernik Observatory and Science Center
-latitude: 42:00:07.2
-longitude: -76:02:00.5
+latitude: 42.0:0.0:7.2
+longitude: -76.0:2.0:0.5
 elevation: 520.0
 temperature: 10.0
 min_horizon: 20:00:00
-start_date: (2013,6,1,0,0,0)
-end_date: (2013,6,8,0,0,0)
+start_date: (2013,7,15,0,0,0)
+end_date: (2013,7,18,0,0,0)
 v_limit: 13.0
 depth_limit: 0.008
-calc_transits: True
-calc_eclipses: False
+calc_eclipses: True
 html_out: True
 text_out: True
+calc_transits: True
 twilight: -6
+time_zone: -5
+daylight_savings: False
