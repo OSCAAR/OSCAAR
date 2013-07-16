@@ -46,10 +46,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 
         if sys.platform == "win32":
             self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-            self.row = 1
         else: 
             self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-            self.row = 5
+        self.row = 5
         
         self.static_bitmap = wx.StaticBitmap(self.panel)
         self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
@@ -70,9 +69,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                  'Enter an integer for smoothing here.','3'),
                 ('notes',"Notes: ","",'Enter notes to be saved here.')]
         
-        if sys.platform == "win32":
-            self.row = 4
-        
         self.leftBox = ParameterBox(self.panel,-1,list,rows=self.row,cols=2, vNum=10, hNum=10, font=self.fontType)
         
         list = [('ingress',"Ingress, UT (YYYY/MM/DD)",
@@ -82,10 +78,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 ('trackPlot',"Tracking Plots: ","none",''),
                 ('photPlot',"Photometry Plots: ","none",'')]
         
-        if sys.platform == "win32":
-            self.row = 2
-        else:
-            self.row = 4
+        self.row = 4
             
         self.radioBox = ParameterBox(self.panel,-1,list, rows = self.row, cols = 3, vNum = 10, hNum = 10, font = self.fontType)
         
