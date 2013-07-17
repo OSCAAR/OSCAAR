@@ -46,17 +46,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 
         if sys.platform == "win32":
             self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-            self.row = 1
         else: 
             self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-            self.row = 5
         
         self.static_bitmap = wx.StaticBitmap(self.panel)
         self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         
-        self.paths = AddLCB(self.panel, -1, name = "mainGUI", str = "Browse", rowNum=self.row, vNum = 15, hNum = 5, font = self.fontType)
+        self.paths = AddLCB(self.panel, -1, name="mainGUI", str="Browse", rowNum=5, vNum=15, hNum=5, font=self.fontType)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.paths, border = 5, flag = wx.ALL)
 
@@ -70,24 +68,17 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                  'Enter an integer for smoothing here.','3'),
                 ('notes',"Notes: ","",'Enter notes to be saved here.')]
         
-        if sys.platform == "win32":
-            self.row = 4
+        self.leftBox = ParameterBox(self.panel, -1, list, rows=5, cols=2, vNum=10, hNum=10, font=self.fontType)
         
-        self.leftBox = ParameterBox(self.panel,-1,list,rows=self.row,cols=2, vNum=10, hNum=10, font=self.fontType)
-        
-        list = [('trackPlot',"Tracking Plots: ","none",''),
-                ('photPlot',"Photometry Plots: ","none",''),
-                ('ingress',"Ingress, UT (YYYY/MM/DD)",
+        list = [('ingress',"Ingress, UT (YYYY/MM/DD)",
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
                 ('egress',"Egress, UT (YYYY/MM/DD)",
-                 "Enter a date in the correct format here.","YYYY/MM/DD")]
-        
-        if sys.platform == "win32":
-            self.row = 2
-        else:
-            self.row = 4
-            
-        self.radioBox = ParameterBox(self.panel,-1,list, rows = self.row, cols = 3, vNum = 10, hNum = 10, font = self.fontType)
+                 "Enter a date in the correct format here.","YYYY/MM/DD"),
+                ('trackPlot',"Tracking Plots: ","none",''),
+                ('photPlot',"Photometry Plots: ","none",''),
+                ('flatType',"Fit After Photometry ","On","Off")]
+
+        self.radioBox = ParameterBox(self.panel, -1, list, rows=5, cols=3, vNum=10, hNum=10, font=self.fontType)
         
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=4)
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -275,7 +266,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     else:
                         diffPhotCall = "from oscaar import differentialPhotometry"
                         subprocess.check_call(['python','-c',diffPhotCall])
-                        wx.CallAfter(self.createFrame)
+                        if self.radioBox.userParams["flatType"].GetValue() == True:
+                            wx.CallAfter(self.createFrame)
 
                 else:
                     if self.loadFitError == False:
@@ -799,7 +791,8 @@ class OverWrite(wx.Frame):
         self.parent.overWrite = False
         diffPhotCall = "from oscaar import differentialPhotometry"
         subprocess.check_call(['python','-c',diffPhotCall])
-        wx.CallAfter(self.parent.createFrame)
+        if self.parent.radioBox.userParams["flatType"].GetValue() == True:
+            wx.CallAfter(self.parent.createFrame)
 
     def onOkay(self, event):
         self.parent.overWrite = False    
@@ -846,9 +839,13 @@ class EphemerisFrame(wx.Frame):
                                    choices = sorted(self.nameList.keys()) + ["Enter New Observatory"])
         self.obsList.Bind(wx.EVT_COMBOBOX, self.update)
         
+        list = [('flatType',"","Daylight Savings ","Standard Time")]
+        self.daylightSavings = ParameterBox(self.panel,-1,list, other = False)
+
         self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
         self.dropBox.Add(self.obsLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
         self.dropBox.Add(self.obsList, 0, flag = wx.ALIGN_CENTER)
+        self.dropBox.Add(self.daylightSavings, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border=10)
         
         list = [('observatoryName',"Name of Observatory: ","",""),
                 ('fileName',"Enter File Name: ","",""),
@@ -861,13 +858,13 @@ class EphemerisFrame(wx.Frame):
                 ('lowerLimit',"Depth Lower Limit: ","","0.0")]
         self.leftBox = ParameterBox(self.panel,-1,list, rows=6, cols=2, vNum = 5, hNum = 15, font = self.fontType)
         
-        list = [("latitude","Latitude (deg:min:sec): ","","deg:min:sec"),
-                ("longitude","Longitude (deg:min:sec): ","","deg:min:sec"),
+        list = [("latitude","Latitude (deg:min:sec): ","","00:00:00"),
+                ("longitude","Longitude (deg:min:sec): ","","00:00:00"),
                 ("elevation","Observatory Elevation (m): ","","0.0"),
                 ("temperature","Temperature ("u"\u00b0""C): ","","0.0"),
-                ("lowerElevation","Lower Elevation Limit (deg:min:sec): ","","deg:min:sec"),
+                ("lowerElevation","Lower Elevation Limit (deg:min:sec): ","","00:00:00"),
                 ]
-        self.leftBox2 = ParameterBox(self.panel, -1, list, rows=6, cols=2, vNum = 5, hNum = 15, font =self.fontType)
+        self.leftBox2 = ParameterBox(self.panel, -1, list, rows=5, cols=2, vNum = 5, hNum = 15, font =self.fontType)
         
         self.twilightChoices = {}
         self.twilightChoices["Civil Twilight (-6"u"\u00b0"+")"] = "-6"
@@ -894,14 +891,12 @@ class EphemerisFrame(wx.Frame):
         list = [('flatType',"","True","False")]
         self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", other = False)
         list = [('flatType',"","True", "False")]
-        self.htmlBox = ParameterBox(self.panel,-1,list, name = "HTML Out", other = False)
+        self.htmlBox = ParameterBox(self.panel,-1,list, name = "HTML Out")
         list = [('flatType',"","True","False")]
-        self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out", other = False)
+        self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out")
         list = [('flatType',"","True","False")]
-        self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits", other = False)
-        list = [('flatType',"","Daylight Savings","Standard Time")]
-        self.daylightSavings = ParameterBox(self.panel,-1,list, name = "Daylight Savings", other = False)
-        
+        self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits")
+
         self.radioBox = wx.BoxSizer(wx.VERTICAL)
         self.radioBox.Add(self.calcEclipseBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.radioBox.Add(self.htmlBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -916,7 +911,6 @@ class EphemerisFrame(wx.Frame):
         self.leftVertBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.leftVertBox.Add(self.dropBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.leftVertBox.Add(self.dropBox3, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        self.leftVertBox.Add(self.daylightSavings, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         
         self.botBox = wx.BoxSizer(wx.HORIZONTAL)
         self.botBox.Add(self.leftVertBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -941,8 +935,7 @@ class EphemerisFrame(wx.Frame):
     def calculate(self, event):
         
         if self.parameterCheck() == True:
-            
-            
+
             outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
                                           'extras','eph','ephOutputs','eventReport.html'))
             path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
