@@ -504,21 +504,21 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         return pathList
     
      def checkArray(self,array,saveNum=0):
-        errorString = ""
-        setValueString = ""
-        for element in array.split(","):
-            element = element.strip()
-            if not element.endswith('.fit') and not element.endswith('.fits'):
-                errorString += "\n" + element
+         errorString = ""
+         setValueString = ""
+         for element in array.split(","):
+             element = element.strip()
+             if not element.endswith('.fit') and not element.endswith('.fits'):
+                 errorString += "\n" + element
 #             if os.path.isfile(element) != True:
-#                 errorString += "\n" + element
-            setValueString += element + ","
-        if not array:
-            return "No Values Entered"
-        else:
-            if errorString == "":
-                self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
-            return errorString   
+#                 errorString += "\n" + elemen
+             setValueString += element + ","
+         if not array:
+             return "No Values Entered"
+         else:
+             if errorString == "":
+                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
+             return errorString   
                 
 #     def checkArray(self,array,saveNum=0):
 #         errorString = ""
