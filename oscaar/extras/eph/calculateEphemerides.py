@@ -55,7 +55,7 @@ def calculateEphemerides(parFile):
             elif parameter == 'text_out': textOut = returnBool(value)
             elif parameter == 'twilight': twilightType = value
             elif parameter == 'time_zone': time_zone = float(value)
-            elif parameter == 'daylight_savings': daylight_savings = -1 if returnBool(value) else 0
+            elif parameter == 'daylight_savings': daylight_savings = 1 if returnBool(value) else 0
     from oscaar.extras.knownSystemParameters import getLatestParams
     exoplanetDB = getLatestParams.downloadAndPickle()
 
