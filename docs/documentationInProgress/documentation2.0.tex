@@ -54,7 +54,7 @@ There are several packages in addition to Python (v2.7) that must be installed o
 \noindent Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in future versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues}).
 
 \subsection{Installing \oscaar}
-\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory (using commands like \code{cd}). Once there, type 
+\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory (using commands like \code{cd}). Once there, type: 
 \begin{verbatim}
 python setup.py install
 \end{verbatim}
@@ -62,9 +62,14 @@ python setup.py install
 \begin{verbatim}
 python setup.py install --user
 \end{verbatim}
-Next, change directories to some other directory. If you were to import \oscaar from this ``OSCAAR-master'' directory, Python would use the source files that you downloaded, rather than the ones you installed. Since installation builds C libraries and downloads SAOImage DS9, it's important to run \oscaar from the installed directories, so change to some other directory before working with \oscaar.
+Next, change directories to some other directory. If you were to import \oscaar from this ``OSCAAR-master'' directory, Python would use the source files that you downloaded, rather than the ones you installed. Since installation builds C libraries and downloads SAOImage DS9, it's important to run \oscaar from the installed directories. If you click the "Open DS9" button without changing from the "OSCAAR-master" directory, a "DS9 error" box stating that DS9 has not installed correctly will appear. So, change to some other directory before working with \oscaar.
 
 \textit{Note for programmers:} For the reasons described above, if you want to develop new features for \oscaar, you can edit the source files that you downloaded in the  ``OSCAAR-master'' directory and run \oscaar from there, though be mindful of the extra work that the \code{setup.py} and \code{post\_setup.py} files do during the system install that will not be done in the  ``OSCAAR-master'' directory.
+\textit{Note for Windows Users:} The Command Prompt will not recognize the command "python" until you type:
+\begin{verbatim}
+set path=%path%;C:\python27
+\end{verbatim}
+This command will need to be entered for every Command Prompt you open unless you add a new path variable in Windows. After this command has been entered, you will be able to proceed with installation as described above.
 
 \section{Collecting Data} \label{sec:collectingData}
 
