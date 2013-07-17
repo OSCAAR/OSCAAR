@@ -76,10 +76,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 ('egress',"Egress, UT (YYYY/MM/DD)",
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
                 ('trackPlot',"Tracking Plots: ","none",''),
-                ('photPlot',"Photometry Plots: ","none",'')]
-        
-        self.row = 4
-            
+                ('photPlot',"Photometry Plots: ","none",''),
+                ('flatType',"Fit After Photometry ","On","Off")]
+
         self.radioBox = ParameterBox(self.panel,-1,list, rows = self.row, cols = 3, vNum = 10, hNum = 10, font = self.fontType)
         
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=4)
@@ -268,7 +267,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     else:
                         diffPhotCall = "from oscaar import differentialPhotometry"
                         subprocess.check_call(['python','-c',diffPhotCall])
-                        wx.CallAfter(self.createFrame)
+                        if self.radioBox.userParams["flatType"].GetValue() == True:
+                            wx.CallAfter(self.createFrame)
 
                 else:
                     if self.loadFitError == False:
@@ -792,7 +792,8 @@ class OverWrite(wx.Frame):
         self.parent.overWrite = False
         diffPhotCall = "from oscaar import differentialPhotometry"
         subprocess.check_call(['python','-c',diffPhotCall])
-        wx.CallAfter(self.parent.createFrame)
+        if self.parent.radioBox.userParams["flatType"].GetValue() == True:
+            wx.CallAfter(self.parent.createFrame)
 
     def onOkay(self, event):
         self.parent.overWrite = False    
