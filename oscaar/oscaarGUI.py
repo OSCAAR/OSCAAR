@@ -40,6 +40,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.ds9Open = False
         self.loadFitError = False
         self.loadEphFrame = False
+        self.singularOccurance = 0
+        
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
         self.panel = wx.Panel(self)
@@ -868,14 +870,10 @@ class EphemerisFrame(wx.Frame):
         self.obsList = wx.ComboBox(self.panel, value = 'Observatories',
                                    choices = sorted(self.nameList.keys()) + ["Enter New Observatory"])
         self.obsList.Bind(wx.EVT_COMBOBOX, self.update)
-        
-        list = [('flatType',"","Daylight Savings ","Standard Time")]
-        self.daylightSavings = ParameterBox(self.panel,-1,list, other = False)
 
         self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
         self.dropBox.Add(self.obsLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
         self.dropBox.Add(self.obsList, 0, flag = wx.ALIGN_CENTER)
-        self.dropBox.Add(self.daylightSavings, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border=10)
         
         list = [('observatoryName',"Name of Observatory: ","",""),
                 ('fileName',"Enter File Name: ","",""),
@@ -909,18 +907,14 @@ class EphemerisFrame(wx.Frame):
         self.dropBox2.Add(self.twilightLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
         self.dropBox2.Add(self.twilightList, 0, flag = wx.ALIGN_CENTER)       
         
-        self.utChoices = [str(x) for x in range(-12,13)]
-        self.utLabel = wx.StaticText(self.panel, -1, "Select time zone from UT: ")
-        self.utLabel.SetFont(self.fontType)
-        self.utList = wx.ComboBox(self.panel, value = "0", choices = self.utChoices)
-        
         list = [('flatType',"","V","K")]
         self.band = ParameterBox(self.panel,-1,list, name = "Band Type")
+        list = [('flatType',"","On","Off")]
+        self.showLT = ParameterBox(self.panel,-1,list, name = "Show Local Times")
         
-        self.dropBox3 = wx.BoxSizer(wx.HORIZONTAL)
-        self.dropBox3.Add(self.utLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
-        self.dropBox3.Add(self.utList, 0, flag = wx.ALIGN_CENTER)
-        self.dropBox3.Add(self.band, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 15)
+        self.botRadioBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.botRadioBox.Add(self.showLT, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.botRadioBox.Add(self.band, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 15)
        
         list = [('flatType',"","True","False")]
         self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", other = False)
@@ -945,7 +939,7 @@ class EphemerisFrame(wx.Frame):
         self.leftVertBox = wx.BoxSizer(wx.VERTICAL)
         self.leftVertBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.leftVertBox.Add(self.dropBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        self.leftVertBox.Add(self.dropBox3, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.leftVertBox.Add(self.botRadioBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
          
         self.botBox = wx.BoxSizer(wx.HORIZONTAL)
         self.botBox.Add(self.leftVertBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -970,22 +964,26 @@ class EphemerisFrame(wx.Frame):
     def calculate(self, event):
         
         if self.parameterCheck() == True:
-
-            outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
-                                          'extras','eph','ephOutputs','eventReport.html'))
-            path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
-                                'extras','eph','observatories', self.leftBox.userParams["fileName"].GetValue() + '.par')
             
-            if not self.nameList.has_key(self.name):
-                self.nameList[self.name] = path
-                self.obsList.Append(self.name)
-            
-            self.saveFile(path)
-            import oscaar.extras.eph.calculateEphemerides as eph
-            eph.calculateEphemerides(path)
-    
-            if self.htmlBox.userParams["flatType"].GetValue() == True: 
-                webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
+            if self.parent.singularOccurance == 0 and self.showLT.userParams["flatType"].GetValue():
+                self.parent.singularOccurance = 1
+                InvalidParameter("", self, -1, str = "warnError")
+            else:
+                outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                                              'extras','eph','ephOutputs','eventReport.html'))
+                path = os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                                    'extras','eph','observatories', self.leftBox.userParams["fileName"].GetValue() + '.par')
+                
+                if not self.nameList.has_key(self.name):
+                    self.nameList[self.name] = path
+                    self.obsList.Append(self.name)
+                
+                self.saveFile(path)
+                import oscaar.extras.eph.calculateEphemerides as eph
+                eph.calculateEphemerides(path)
+        
+                if self.htmlBox.userParams["flatType"].GetValue() == True: 
+                    webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
 
     def parameterCheck(self):
 
@@ -1001,7 +999,6 @@ class EphemerisFrame(wx.Frame):
         self.upperLimit = self.leftBox.userParams["upperLimit"].GetValue().strip()
         self.lowerLimit = self.leftBox.userParams["lowerLimit"].GetValue().strip()
         self.twilight = self.twilightList.GetValue().strip()
-        self.utZone = self.utList.GetValue().strip()
 
         if self.name == "" or self.name == "Enter the name of the Observatory":
             InvalidParameter(self.name, self, -1, str = "obsName")
@@ -1144,11 +1141,7 @@ class EphemerisFrame(wx.Frame):
                                          "Astronomical Twilight (-18"u"\u00b0"")"]):
             InvalidParameter(self.twilight, self, -1, str = "twilight")
             return False
-        
-        elif all(self.utZone != temp for temp in self.utChoices):
-            InvalidParameter(self.utZone, self, -1, str = "utZone")
-            return False
-        
+                
         return True
     
     def update(self, event):
@@ -1177,16 +1170,14 @@ class EphemerisFrame(wx.Frame):
                     list = [("name","observatoryName"),("min_horizon","lowerElevation"),("mag_limit","upperLimit"),
                             ("depth_limit","lowerLimit"),("latitude",""),("longitude",""),("elevation",""),
                             ("temperature",""),("twilight",""),("calc_transits",6),("calc_eclipses",0),
-                            ("html_out",2),("text_out",4), ("time_zone",""), ("daylight_savings","flatType"),
-                            ("band","flatType")]
+                            ("html_out",2),("text_out",4), ("show_lt","flatType"), ("band","flatType")]
                 
                     for string,saveName in list:
                         if string == name:
                             if any(temp == name for temp in ["name","mag_limit","depth_limit"]):
                                 self.leftBox.userParams[saveName].SetValue(str(value))
                             elif any(temp == name for temp in ["latitude","longitude","elevation","temperature",
-                                                               "twilight","min_horizon","time_zone","daylight_savings",
-                                                               "band"]):
+                                                               "twilight","min_horizon","time_zone", "band"]):
                                 if saveName == "":
                                     saveName = name
                                 if name == "twilight":
@@ -1194,12 +1185,10 @@ class EphemerisFrame(wx.Frame):
                                                if self.twilightChoices[temp] == value]
                                     if len(tempStr) != 0:
                                         self.twilightList.SetValue(tempStr[0])
-                                elif name == "time_zone":
-                                    self.utList.SetValue(value)
-                                elif name == "daylight_savings":
-                                    if (value == "False"):
+                                elif name == "show_lt":
+                                    if value == "0":
                                         saveName = saveName + "1"
-                                    self.daylightSavings.userParams[saveName].SetValue(True)
+                                    self.showLT.userParams[saveName].SetValue(True)
                                 elif name == "band":
                                     if value == "K":
                                         saveName = saveName + "1"
@@ -1249,8 +1238,12 @@ class EphemerisFrame(wx.Frame):
         newObs.write("text_out: " + str(self.textBox.userParams["flatType"].GetValue()) + "\n")
         newObs.write("calc_transits: " + str(self.calcTransitsBox.userParams["flatType"].GetValue()) + "\n")
         newObs.write("twilight: " + self.twilightChoices[self.twilight] + "\n")
-        newObs.write("time_zone: " + self.utZone + "\n")
-        newObs.write("daylight_savings: " + str(self.daylightSavings.userParams["flatType"].GetValue()) + "\n")
+        tempLT = str(self.showLT.userParams["flatType"].GetValue())
+        if tempLT == "True":
+            tempLT = "1"
+        else:
+            tempLT = "0"
+        newObs.write("show_lt: " + tempLT + "\n")
         tempString = str(self.band.userParams["flatType"].GetValue())
         if tempString == "True":
             bandString = "V"
@@ -2458,11 +2451,11 @@ class InvalidParameter(wx.Frame):
             self.SetTitle("DS9 Error")
         elif str == "fitOpen":
             self.SetTitle("Fitting Frame Open Error")
+        elif str == "warnError":
+            self.SetTitle("Warning about local times")
 
         self.panel = wx.Panel(self)
         self.string = "Incorrect"
-        self.ds9 = False
-        self.fitError = False
         
         if max != '0':
             self.string = "The bin size must be between 5 and "+max+"."
@@ -2509,7 +2502,8 @@ class InvalidParameter(wx.Frame):
         elif str == "fits":
             self.string = "One or more of the files in " + max + " need to be fixed."
         elif str == "master":
-            self.string = "Either more than one file has been entered, or the file entered needs to be fixed in the " + max + "."
+            self.string = "Either more than one file has been entered, or the file entered needs to be fixed in the " +max+ \
+                          "."
         elif str == "output":
             self.string = "Either you entered a directory, or the specified path cannot be made for the " + max + "."
         elif str == "leftbox":
@@ -2579,14 +2573,20 @@ class InvalidParameter(wx.Frame):
         elif str == "params":
             self.paths = wx.StaticText(self.panel, -1, "The appropriate parameters have been updated.")
         elif str == "ds9":
-            self.ds9 = True
+            self.Bind(wx.EVT_WINDOW_DESTROY, self.ds9Error)
             self.paths = wx.StaticText(self.panel, -1, 
                                        "It seems that ds9 may not have installed correctly, please try again.")
         elif str == "importError":
             self.paths = wx.StaticText(self.panel, -1, "Failed to import ephem, please try again.")
         elif str == "fitOpen":
-            self.fitError = True
+            self.Bind(wx.EVT_WINDOW_DESTROY, self.fitError)
             self.paths = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
+        elif str == "warnError":
+            self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.calculate)
+            self.paths = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
+                                       "PyEphem's ephem.localtime(\"input\") method.\nMake sure that this method " + \
+                                       "produces the correct local time for yourself. If you don't know\nhow to check" + \
+                                       " this, please refer to the documentation.")
         else:
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
@@ -2601,7 +2601,13 @@ class InvalidParameter(wx.Frame):
         self.hbox.Fit(self)
         self.Center()
         self.Show()
-    
+
+    def ds9Error(self, event):
+        self.parent.ds9Open = False
+
+    def fitError(self, event):
+        self.parent.loadFitError = False
+
     def create_menu(self):
         
         # These commands create a drop down menu with the exit command.
@@ -2621,11 +2627,8 @@ class InvalidParameter(wx.Frame):
             self.Destroy()
     
     def onOkay(self, event):
-        if self.ds9:
-            self.parent.ds9Open = False
-        elif self.fitError:
-            self.parent.loadFitError = False
         self.Destroy()
+            
 
 def checkParams(self,list):
     
