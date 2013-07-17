@@ -504,22 +504,22 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         return pathList
     
     def checkArray(self,array,saveNum=0):
-         errorString = ""
-         setValueString = ""
-         for element in array.split(","):
-             element = element.strip()
-             if not element.endswith('.fit') and not element.endswith('.fits'):
-                 errorString += "\n" + element
-#             if os.path.isfile(element) != True:
-#                 errorString += "\n" + elemen
-             setValueString += element + ","
-         if not array:
-             return "No Values Entered"
-         else:
-             if errorString == "":
-                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
-             return errorString   
-                
+        errorString = ""
+        setValueString = ""
+        for element in array.split(","):
+            element = element.strip()
+            if not element.endswith('.fit') and not element.endswith('.fits'):
+                errorString += "\n" + element
+        #             if os.path.isfile(element) != True:
+        #                 errorString += "\n" + elemen
+            setValueString += element + ","
+        if not array:
+            return "No Values Entered"
+        else:
+            if errorString == "":
+                self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
+            return errorString   
+               
 #     def checkArray(self,array,saveNum=0):
 #         errorString = ""
 #         setValueString = ""
@@ -1087,7 +1087,7 @@ class EphemerisFrame(wx.Frame):
             temp1 = float(self.elevation)
             tempString = "temperature"
             temp2 = float(self.temperature)
-            tempString = "band upper limit"
+            tempString = "apparent magnitude upper limit"
             temp3 = float(self.upperLimit)
             tempString = "depth lower limit"
             temp4 = float(self.lowerLimit)
@@ -1129,7 +1129,7 @@ class EphemerisFrame(wx.Frame):
         except:
             if tempString == "temperature":
                 InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = tempString)
-            elif tempString == "band upper limit":
+            elif tempString == "apparent magnitude upper limit":
                 InvalidParameter(self.upperLimit, self, -1, str = "tempElevNum", max = tempString)
             elif tempString == "depth lower limit":
                 InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = tempString)
@@ -2539,7 +2539,10 @@ class InvalidParameter(wx.Frame):
         elif str == "coordTime":
             self.string = "The longitude and latitude must be in the format Deg:Min:Sec with numbers."
         elif str == "tempElevNum":
-            self.string = "The " + max + " must be a number greater than or equal to 0."
+            if max == "apparent magnitude upper limit":
+                self.string = "The " + max + " must be a number."
+            else:
+                self.string = "The " + max + " must be a number greater than or equal to 0."
         elif str == "twilight":
             self.string = "The twilight must be -6, -12, or -18. Please select one from the drop down menu."
         elif str == "lowerElevation":
