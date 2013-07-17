@@ -503,7 +503,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         init.write(field + initText + '\n')
         return pathList
     
-     def checkArray(self,array,saveNum=0):
+    def checkArray(self,array,saveNum=0):
          errorString = ""
          setValueString = ""
          for element in array.split(","):
