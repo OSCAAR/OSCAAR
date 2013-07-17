@@ -6,9 +6,10 @@ temperature: 10.0
 min_horizon: 20:00:00
 start_date: (2013,7,15,0,0,0)
 end_date: (2013,7,18,0,0,0)
-v_limit: 13.0
+band: v
+mag_limit: 13.0
 depth_limit: 0.008
-calc_eclipses: True
+calc_eclipses: False
 html_out: True
 text_out: True
 calc_transits: True

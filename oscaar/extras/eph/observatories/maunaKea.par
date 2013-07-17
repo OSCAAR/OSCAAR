@@ -6,12 +6,13 @@ temperature: 2.5
 min_horizon: 36:48:00
 start_date: (2013,07,9,0,0,0)
 end_date: (2013,07,16,0,0,0)
-v_limit: 15.0
+band: k
+mag_limit: 15.0
 depth_limit: 0.000
 calc_transits: True
 calc_eclipses: True
 html_out: True
 text_out: True
-twilight: -6
+twilight: 6
 time_zone: -10
 daylight_savings: False

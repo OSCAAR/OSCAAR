@@ -31,8 +31,9 @@ def calculateEphemerides(parFile):
 
     def returnBool(value):
         '''Return booleans from strings'''
-        if value == 'True': return True
-        elif value == 'False': return False
+        if value.upper() == 'TRUE': return True
+        elif value.upper() == 'FALSE': return False
+        else: assert True,""
 
     for line in parFileText:
         parameter = line.split(':')[0]
@@ -46,14 +47,16 @@ def calculateEphemerides(parFile):
             elif parameter == 'min_horizon': observatory_minHorizon = value
             elif parameter == 'start_date': startSem = gd2jd(eval(value))
             elif parameter == 'end_date': endSem = gd2jd(eval(value))
-            elif parameter == 'v_limit': v_limit = float(value)
+            elif parameter == 'mag_limit': mag_limit = float(value)
+            elif parameter == 'band': band = value
             elif parameter == 'depth_limit': depth_limit = float(value)
             elif parameter == 'calc_transits': calcTransits = returnBool(value)
             elif parameter == 'calc_eclipses': calcEclipses = returnBool(value)
             elif parameter == 'html_out': htmlOut = returnBool(value)
             elif parameter == 'text_out': textOut = returnBool(value)
             elif parameter == 'twilight': twilightType = value
-
+            elif parameter == 'time_zone': time_zone = float(value)
+            elif parameter == 'daylight_savings': daylight_savings = -1 if returnBool(value) else 0
     from oscaar.extras.knownSystemParameters import getLatestParams
     exoplanetDB = getLatestParams.downloadAndPickle()
 
@@ -95,7 +98,12 @@ def calculateEphemerides(parFile):
         '''KS mag'''
         if exoplanetDB[planet]['KS'] == '': return 0.0
         else: return float(exoplanetDB[planet]['KS'])
-
+    
+    def bandMagnitude(planet):
+        if band.upper() == 'V':
+            return V(planet)
+        elif band.upper() == 'K':
+            return KS(planet)
     def depth(planet):
         '''Transit depth'''
         if exoplanetDB[planet]['DEPTH'] == '': return 0.0
@@ -133,6 +141,33 @@ def calculateEphemerides(parFile):
         #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
         return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong>, '+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)+'<br /> '+alt+'&deg; '+direction
 
+    def list2datestrHTML_UTnoaltdir(inList,alt,direction):
+        '''Converse function to datestr2list'''
+        inList = map(str,inList)
+        #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
+        return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong>, '+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)
+
+
+    def convertUTtoLT(inList):
+        YYYY,MM,DD,hh,mm,ss = inList
+        if hh+time_zone+daylight_savings < 0:
+            if DD == 1: DD -= 2    ## "zeroth" day gets corrected to the first, so subtract to to make it -1 days
+            else: DD -= 1
+            hh += 24 + time_zone + daylight_savings
+        else: 
+            hh += time_zone + daylight_savings
+        lt_list = datestr2list(str(ephem.date(("%s/%s/%s %s:%s:%s" % (YYYY,MM,DD,hh,mm,ss)))))    
+        return lt_list
+
+    def list2datestrHTML_LT(inList,alt,direction):
+        '''Converse function to datestr2list for daylight savings time'''
+        #print "original",inList
+        inList = convertUTtoLT(inList)#ephem.date(("%s/%s/%s %s:%s:%s" % (inList[0],inList[1],inList[2],float(inList[3])+time_zone,inList[4],inList[5])))   ## minus hours
+        #print "converted",lt_inList,'\n'
+        inList = map(str,inList)
+        #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
+        return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong>, '+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)+'<br /> '+alt+'&deg; '+direction
+
     def simbadURL(planet):
         if exoplanetDB[planet]['SIMBADURL'] == '': return 'http://simbad.harvard.edu/simbad/'
         else: return exoplanetDB[planet]['SIMBADURL']
@@ -145,6 +180,10 @@ def calculateEphemerides(parFile):
 
     def orbitReference(planet):
         return exoplanetDB[planet]['TRANSITURL']
+
+    def orbitReferenceYear(planet):
+        '''ORBREF returns the citation in the format "<first author> <year>", so parse and return just the year'''
+        return exoplanetDB[planet]['ORBREF'].split()[1]
 
     def nameWithLink(planet):
         return '<a href="'+orbitReference(planet)+'">'+planet+'</a>'
@@ -182,7 +221,7 @@ def calculateEphemerides(parFile):
         assemble a list of them.'''
     planets = []
     for planet in exoplanetDB:
-        if V(planet) != 0.0 and depth(planet) != 0.0 and float(V(planet)) <= v_limit and float(depth(planet)) >= depth_limit and transitBool(planet):
+        if bandMagnitude(planet) != 0.0 and depth(planet) != 0.0 and float(bandMagnitude(planet)) <= mag_limit and float(depth(planet)) >= depth_limit and transitBool(planet):
             planets.append(planet)
 
     if calcTransits: transits = {}
@@ -332,7 +371,7 @@ def calculateEphemerides(parFile):
         for key in allKeys:
             def writeCSVtransit():
                 middle = ','.join([planet[0],str(planet[3]),list2datestrCSV(jd2gd(float(planet[1]-planet[2]))),planet[4],planet[5],\
-                                   list2datestrCSV(jd2gd(float(planet[1]+planet[2]))),planet[6],planet[7],trunc(V(str(planet[0])),2),\
+                                   list2datestrCSV(jd2gd(float(planet[1]+planet[2]))),planet[6],planet[7],trunc(bandMagnitude(str(planet[0])),2),\
                                    trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RA(planet[0]),dec(planet[0]),constellation(planet[0]),\
                                    mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
                 line = middle+'\n'
@@ -340,7 +379,7 @@ def calculateEphemerides(parFile):
             
             def writeCSVeclipse():
                 middle = ','.join([planet[0],str(planet[3]),list2datestrCSV(jd2gd(float(planet[1]-planet[2]))),planet[4],planet[5],\
-                                   list2datestrCSV(jd2gd(float(planet[1]+planet[2]))),planet[6],planet[7],trunc(V(str(planet[0])),2),\
+                                   list2datestrCSV(jd2gd(float(planet[1]+planet[2]))),planet[6],planet[7],trunc(bandMagnitude(str(planet[0])),2),\
                                    trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RA(planet[0]),dec(planet[0]),constellation(planet[0]),\
                                    mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
                 line = middle+'\n'
@@ -423,11 +462,20 @@ def calculateEphemerides(parFile):
                                 '		<tr><td><a href="#" onclick="changeCSS(\'stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
                                 '		</table>'])
         
-        tableheader = '\n'.join([
-                                 '\n		<table class="sortable" id="eph">',\
-                                 '		<tr> <th>Planet<br /><span class="small">[Link: Orbit ref.]</span></th>	  <th>Event</th>	<th>Ingress <br /><span class="small">(MM/DD<br />HH:MM, UT)</span></th> <th>Egress <br /><span class="small">(MM/DD<br />HH:MM, UT)</span></th>'+\
-                                 '<th>V mag</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec<br /><span class="small">[Link: Simbad ref.]</span></th> <th>Const.</th> <th>Mass<br />(M<sub>J</sub>)</th>'+\
-                                 '<th>Semimajor <br />Axis (AU)</th> <th>Radius<br />(R<sub>J</sub>)</th></tr>'])
+        if time_zone == 0:
+            tableheader = '\n'.join([
+                                     '\n		<table class="sortable" id="eph">',\
+                                     '		<tr> <th>Planet<br /><span class="small">[Link: Orbit ref.]</span></th>	  <th>Event<br /><span class="small">[Transit/<br />Eclipse]</span></th>	<th>Ingress <br /><span class="small">(MM/DD<br />HH:MM, UT)</span></th> <th>Egress <br /><span class="small">(MM/DD<br />HH:MM, (UT), Alt., Dir.)</span></th>'+\
+                                     '<th>'+band.upper()+'</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec<br /><span class="small">[Link: Simbad ref.]</span></th> <th>Const.</th> <th>Mass<br />(M<sub>J</sub>)</th>'+\
+                                     '<th>Radius<br />(R<sub>J</sub>)</th> <th>Ref. Year</th></tr>'])
+        else:
+            tableheader = '\n'.join([
+                                     '\n        <table class="sortable" id="eph">',\
+                                     '        <tr> <th>Planet<br /><span class="small">[Link: Orbit ref.]</span></th>      <th>Event<br /><span class="small">[Transit/<br />Eclipse]</span></th> <th>Ingress <br /><span class="small">(MM/DD<br />HH:MM (LT), Alt., Dir.)</span></th> <th>Egress <br /><span class="small">(MM/DD<br />HH:MM (LT), Alt., Dir.)</span></th>   '+\
+                                     '<th>'+band.upper()+'</th> <th>Depth<br />(mag)</th> <th>Duration<br />(hrs)</th> <th>RA/Dec<br /><span class="small">[Link: Simbad ref.]</span></th> <th>Const.</th> <th>Mass<br />(M<sub>J</sub>)</th>'+\
+                                     ' <th>Radius<br />(R<sub>J</sub>)</th> <th>Ref. Year</th> <th>Ingress <br /><span class="small">(MM/DD<br />HH:MM (UT))</span></th> <th>Egress <br /><span class="small">(MM/DD<br />HH:MM, (UT))</span></th></tr>'])
+    
+        
         tablefooter = '\n'.join([
                                  '\n		</table>',\
                                  '		<br /><br />',])
@@ -446,19 +494,34 @@ def calculateEphemerides(parFile):
         for key in allKeys:
             def writeHTMLtransit():
                 indentation = '		'
-                middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
-                                           list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(V(str(planet[0])),2),\
-                                           trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
-                                           mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
+                if time_zone != 0: 
+                    middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML_LT(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                               list2datestrHTML_LT(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(bandMagnitude(str(planet[0])),2),\
+                                               trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
+                                               mass(planet[0]),radius(planet[0]),orbitReferenceYear(planet[0]),list2datestrHTML_UTnoaltdir(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                               list2datestrHTML_UTnoaltdir(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7])])
+                else:
+                    middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                               list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(bandMagnitude(str(planet[0])),2),\
+                                               trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
+                                               mass(planet[0]),radius(planet[0]),orbitReferenceYear(planet[0])])
                 line = indentation+'<tr><td>'+middle+'</td></tr>\n'
                 report.write(line)
             
             def writeHTMLeclipse():
                 indentation = '		'
-                middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
-                                           list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(V(str(planet[0])),2),\
-                                           '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
-                                           mass(planet[0]),semimajorAxis(planet[0]),radius(planet[0])])
+                if time_zone != 0:
+                    middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML_LT(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                               list2datestrHTML_LT(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(bandMagnitude(str(planet[0])),2),\
+                                               '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
+                                               mass(planet[0]),radius(planet[0]),orbitReferenceYear(planet[0]),list2datestrHTML_UTnoaltdir(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                               list2datestrHTML_UTnoaltdir(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7])])
+                else: 
+                    middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
+                                               list2datestrHTML(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(bandMagnitude(str(planet[0])),2),\
+                                               '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
+                                               mass(planet[0]),radius(planet[0]),orbitReferenceYear(planet[0])])
+
                 line = indentation+'<tr><td>'+middle+'</td></tr>\n'
                 report.write(line)
             
