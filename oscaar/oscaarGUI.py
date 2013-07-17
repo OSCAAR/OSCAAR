@@ -884,7 +884,7 @@ class EphemerisFrame(wx.Frame):
                 ('obsEnd',"End of Observation, UT (YYYY/MM/DD): ",
                  "Enter a date in the correct format here.",(datetime.datetime.now()+datetime.timedelta(days=7)
                                                              ).strftime("%Y/%m/%d")),
-                ('upperLimit',"BandPass Upper Limit: ","","0.0"),
+                ('upperLimit',"Apparent Mag. Upper Limit: ","","0.0"),
                 ('lowerLimit',"Depth Lower Limit: ","","0.0")]
         self.leftBox = ParameterBox(self.panel,-1,list, rows=6, cols=2, vNum = 5, hNum = 15, font = self.fontType)
         
@@ -1174,7 +1174,7 @@ class EphemerisFrame(wx.Frame):
                     inline = eachLine.split(':', 1)
                     name = inline[0].strip()
                     value = str(inline[1].strip())
-                    list = [("name","observatoryName"),("min_horizon","lowerElevation"),("band_limit","upperLimit"),
+                    list = [("name","observatoryName"),("min_horizon","lowerElevation"),("mag_limit","upperLimit"),
                             ("depth_limit","lowerLimit"),("latitude",""),("longitude",""),("elevation",""),
                             ("temperature",""),("twilight",""),("calc_transits",6),("calc_eclipses",0),
                             ("html_out",2),("text_out",4), ("time_zone",""), ("daylight_savings","flatType"),
@@ -1182,7 +1182,7 @@ class EphemerisFrame(wx.Frame):
                 
                     for string,saveName in list:
                         if string == name:
-                            if any(temp == name for temp in ["name","band_limit","depth_limit"]):
+                            if any(temp == name for temp in ["name","mag_limit","depth_limit"]):
                                 self.leftBox.userParams[saveName].SetValue(str(value))
                             elif any(temp == name for temp in ["latitude","longitude","elevation","temperature",
                                                                "twilight","min_horizon","time_zone","daylight_savings",

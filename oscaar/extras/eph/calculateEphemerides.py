@@ -31,9 +31,8 @@ def calculateEphemerides(parFile):
 
     def returnBool(value):
         '''Return booleans from strings'''
-        if value.upper() == 'TRUE': return True
-        elif value.upper() == 'FALSE': return False
-        else: assert True,""
+        if value.upper().strip() == 'TRUE': return True
+        elif value.upper().strip() == 'FALSE': return False
 
     for line in parFileText:
         parameter = line.split(':')[0]
