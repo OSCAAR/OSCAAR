@@ -54,8 +54,7 @@ def calculateEphemerides(parFile):
             elif parameter == 'html_out': htmlOut = returnBool(value)
             elif parameter == 'text_out': textOut = returnBool(value)
             elif parameter == 'twilight': twilightType = value
-            elif parameter == 'time_zone': time_zone = float(value)
-            elif parameter == 'daylight_savings': daylight_savings = 1 if returnBool(value) else 0
+            elif parameter == 'show_lt': show_lt = float(value)
     from oscaar.extras.knownSystemParameters import getLatestParams
     exoplanetDB = getLatestParams.downloadAndPickle()
 
@@ -146,22 +145,11 @@ def calculateEphemerides(parFile):
         #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
         return inList[1].zfill(2)+'/<strong>'+inList[2].zfill(2)+'</strong>, '+inList[3].zfill(2)+':'+inList[4].split('.')[0].zfill(2)
 
-
-    def convertUTtoLT(inList):
-        YYYY,MM,DD,hh,mm,ss = inList
-        if hh+time_zone+daylight_savings < 0:
-            if DD == 1: DD -= 2    ## "zeroth" day gets corrected to the first, so subtract to to make it -1 days
-            else: DD -= 1
-            hh += 24 + time_zone + daylight_savings
-        else: 
-            hh += time_zone + daylight_savings
-        lt_list = datestr2list(str(ephem.date(("%s/%s/%s %s:%s:%s" % (YYYY,MM,DD,hh,mm,ss)))))    
-        return lt_list
-
     def list2datestrHTML_LT(inList,alt,direction):
         '''Converse function to datestr2list for daylight savings time'''
         #print "original",inList
-        inList = convertUTtoLT(inList)#ephem.date(("%s/%s/%s %s:%s:%s" % (inList[0],inList[1],inList[2],float(inList[3])+time_zone,inList[4],inList[5])))   ## minus hours
+        tempDate = ephem.Date(inList)
+        inList = ephem.Date(ephem.localtime(tempDate)).tuple()
         #print "converted",lt_inList,'\n'
         inList = map(str,inList)
         #return inList[1].zfill(2)+'/'+inList[2].zfill(2)+'<br />'+inList[3].zfill(2)+':'+inList[4].zfill(2)
@@ -461,7 +449,7 @@ def calculateEphemerides(parFile):
                                 '		<tr><td><a href="#" onclick="changeCSS(\'stylesheetEphem.css\', 0);">Day</a></td><td><a href="#" onclick="changeCSS(\'stylesheetEphemDark.css\', 0);">Night</a></td></tr>',\
                                 '		</table>'])
         
-        if time_zone == 0:
+        if show_lt == 0:
             tableheader = '\n'.join([
                                      '\n		<table class="sortable" id="eph">',\
                                      '		<tr> <th>Planet<br /><span class="small">[Link: Orbit ref.]</span></th>	  <th>Event<br /><span class="small">[Transit/<br />Eclipse]</span></th>	<th>Ingress <br /><span class="small">(MM/DD<br />HH:MM, UT)</span></th> <th>Egress <br /><span class="small">(MM/DD<br />HH:MM, (UT), Alt., Dir.)</span></th>'+\
@@ -493,7 +481,7 @@ def calculateEphemerides(parFile):
         for key in allKeys:
             def writeHTMLtransit():
                 indentation = '		'
-                if time_zone != 0: 
+                if show_lt != 0: 
                     middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML_LT(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
                                                list2datestrHTML_LT(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(bandMagnitude(str(planet[0])),2),\
                                                trunc(depth(planet[0]),4),trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
@@ -509,7 +497,7 @@ def calculateEphemerides(parFile):
             
             def writeHTMLeclipse():
                 indentation = '		'
-                if time_zone != 0:
+                if show_lt != 0:
                     middle = '</td><td>'.join([nameWithLink(planet[0]),str(planet[3]),list2datestrHTML_LT(jd2gd(float(planet[1]-planet[2])),planet[4],planet[5]),\
                                                list2datestrHTML_LT(jd2gd(float(planet[1]+planet[2])),planet[6],planet[7]),trunc(bandMagnitude(str(planet[0])),2),\
                                                '---',trunc(24.0*duration(planet[0]),2),RADecHTML(planet[0]),constellation(planet[0]),\
