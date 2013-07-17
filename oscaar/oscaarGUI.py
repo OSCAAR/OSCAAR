@@ -171,7 +171,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+ self.leftBox.userParams['notes'].GetValue())
         notes.close()
         
-        invalidDarkFrames = self.checkArray(self.paths.boxes[0].GetValue())
+        invalidDarkFrames = self.checkArray(self.paths.boxes[0].GetValue(), saveNum=0)
         masterFlat = self.paths.boxes[1].GetValue().strip()
         invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), saveNum=2)
         regionsFile = self.paths.boxes[3].GetValue().strip()
@@ -502,8 +502,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 initText += ","
         init.write(field + initText + '\n')
         return pathList
-                
-    def checkArray(self,array,saveNum=0):
+    
+     def checkArray(self,array,saveNum=0):
         errorString = ""
         setValueString = ""
         for element in array.split(","):
@@ -519,6 +519,36 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             if errorString == "":
                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
             return errorString   
+                
+#     def checkArray(self,array,saveNum=0):
+#         errorString = ""
+#         setValueString = ""
+#         array2 = []
+#         for element in array.split(","):
+#             element = element.strip()
+#             if not element.endswith('.fit') and not element.endswith('.fits'):
+#                 errorString += "\n" + element
+#             if len(glob(element)) < 1:
+#                 print element
+#                 errorString += element
+#             elif os.path.isfile(element) != True and len(glob(element)) == 0 :
+#                 print "element" + element
+#                 errorString += "\n" + element
+#             elif len(glob(element)) > 1:
+#                 for element2 in glob(element):
+#                     setValueString += element
+#             else:
+#                 setValueString += element + ","
+#                 array2.append(element)
+#         if not array:
+#             return "No Values Entered"
+#         else:
+#             if errorString == "":
+#                 print setValueString
+#                 x = np.unique(array2).tolist()
+#                 print x
+#                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
+#             return errorString   
     
     def singularExistance(self, event, value, name):
 
@@ -580,7 +610,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 self.loadFittingOpen = True
             else:
                 FittingFrame(self, -1, self.outputFile)
-            self.loadFittingOpen = True
+                self.loadFittingOpen = True
 
     def openLink(self, event, string):
         webbrowser.open_new_tab(string)
@@ -854,7 +884,7 @@ class EphemerisFrame(wx.Frame):
                 ('obsEnd',"End of Observation, UT (YYYY/MM/DD): ",
                  "Enter a date in the correct format here.",(datetime.datetime.now()+datetime.timedelta(days=7)
                                                              ).strftime("%Y/%m/%d")),
-                ('upperLimit',"V Upper Limit: ","","0.0"),
+                ('upperLimit',"BandPass Upper Limit: ","","0.0"),
                 ('lowerLimit',"Depth Lower Limit: ","","0.0")]
         self.leftBox = ParameterBox(self.panel,-1,list, rows=6, cols=2, vNum = 5, hNum = 15, font = self.fontType)
         
@@ -884,10 +914,14 @@ class EphemerisFrame(wx.Frame):
         self.utLabel.SetFont(self.fontType)
         self.utList = wx.ComboBox(self.panel, value = "0", choices = self.utChoices)
         
+        list = [('flatType',"","V","K")]
+        self.band = ParameterBox(self.panel,-1,list, name = "Band Type")
+        
         self.dropBox3 = wx.BoxSizer(wx.HORIZONTAL)
         self.dropBox3.Add(self.utLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
         self.dropBox3.Add(self.utList, 0, flag = wx.ALIGN_CENTER)
-
+        self.dropBox3.Add(self.band, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 15)
+       
         list = [('flatType',"","True","False")]
         self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", other = False)
         list = [('flatType',"","True", "False")]
@@ -896,6 +930,7 @@ class EphemerisFrame(wx.Frame):
         self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out")
         list = [('flatType',"","True","False")]
         self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits")
+        
 
         self.radioBox = wx.BoxSizer(wx.VERTICAL)
         self.radioBox.Add(self.calcEclipseBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -911,7 +946,7 @@ class EphemerisFrame(wx.Frame):
         self.leftVertBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.leftVertBox.Add(self.dropBox2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.leftVertBox.Add(self.dropBox3, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        
+         
         self.botBox = wx.BoxSizer(wx.HORIZONTAL)
         self.botBox.Add(self.leftVertBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.botBox.Add(self.radioBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -1052,7 +1087,7 @@ class EphemerisFrame(wx.Frame):
             temp1 = float(self.elevation)
             tempString = "temperature"
             temp2 = float(self.temperature)
-            tempString = "v upper limit"
+            tempString = "band upper limit"
             temp3 = float(self.upperLimit)
             tempString = "depth lower limit"
             temp4 = float(self.lowerLimit)
@@ -1087,22 +1122,14 @@ class EphemerisFrame(wx.Frame):
                 InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = "temperature")
                 return False
             
-            elif temp3 < 0:
-                InvalidParameter(self.upperLimit, self, -1, str = "tempElevNum", max = "v upper limit")
-                return False
-            
             elif temp4 < 0:
                 InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = "depth lower limit")
-                return False
-                
-            elif temp4 > temp3:
-                InvalidParameter(self.lowerLimit, self, -1, str = "lowerLimit")
                 return False
 
         except:
             if tempString == "temperature":
                 InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = tempString)
-            elif tempString == "v upper limit":
+            elif tempString == "band upper limit":
                 InvalidParameter(self.upperLimit, self, -1, str = "tempElevNum", max = tempString)
             elif tempString == "depth lower limit":
                 InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = tempString)
@@ -1147,17 +1174,19 @@ class EphemerisFrame(wx.Frame):
                     inline = eachLine.split(':', 1)
                     name = inline[0].strip()
                     value = str(inline[1].strip())
-                    list = [("name","observatoryName"),("min_horizon","lowerElevation"),("v_limit","upperLimit"),
+                    list = [("name","observatoryName"),("min_horizon","lowerElevation"),("band_limit","upperLimit"),
                             ("depth_limit","lowerLimit"),("latitude",""),("longitude",""),("elevation",""),
                             ("temperature",""),("twilight",""),("calc_transits",6),("calc_eclipses",0),
-                            ("html_out",2),("text_out",4), ("time_zone",""), ("daylight_savings","flatType")]
+                            ("html_out",2),("text_out",4), ("time_zone",""), ("daylight_savings","flatType"),
+                            ("band","flatType")]
                 
                     for string,saveName in list:
                         if string == name:
-                            if any(temp == name for temp in ["name","v_limit","depth_limit"]):
+                            if any(temp == name for temp in ["name","band_limit","depth_limit"]):
                                 self.leftBox.userParams[saveName].SetValue(str(value))
                             elif any(temp == name for temp in ["latitude","longitude","elevation","temperature",
-                                                               "twilight","min_horizon","time_zone","daylight_savings"]):
+                                                               "twilight","min_horizon","time_zone","daylight_savings",
+                                                               "band"]):
                                 if saveName == "":
                                     saveName = name
                                 if name == "twilight":
@@ -1171,6 +1200,10 @@ class EphemerisFrame(wx.Frame):
                                     if (value == "False"):
                                         saveName = saveName + "1"
                                     self.daylightSavings.userParams[saveName].SetValue(True)
+                                elif name == "band":
+                                    if value == "K":
+                                        saveName = saveName + "1"
+                                    self.band.userParams[saveName].SetValue(True)
                                 else:
                                     self.leftBox2.userParams[saveName].SetValue(str(value))
                             elif any(temp == name for temp in ["calc_transits","calc_eclipses","html_out","text_out"]):
@@ -1209,7 +1242,7 @@ class EphemerisFrame(wx.Frame):
         newObs.write("min_horizon: " + self.lowerElevation + "\n")
         newObs.write("start_date: " + dates["date1"] + "\n")
         newObs.write("end_date: " + dates["date2"] + "\n")
-        newObs.write("v_limit: " + self.upperLimit + "\n")
+        newObs.write("mag_limit: " + self.upperLimit + "\n")
         newObs.write("depth_limit: " + self.lowerLimit + "\n")
         newObs.write("calc_eclipses: " + str(self.calcEclipseBox.userParams["flatType"].GetValue()) + "\n")
         newObs.write("html_out: " + str(self.htmlBox.userParams["flatType"].GetValue()) + "\n")
@@ -1218,6 +1251,12 @@ class EphemerisFrame(wx.Frame):
         newObs.write("twilight: " + self.twilightChoices[self.twilight] + "\n")
         newObs.write("time_zone: " + self.utZone + "\n")
         newObs.write("daylight_savings: " + str(self.daylightSavings.userParams["flatType"].GetValue()) + "\n")
+        tempString = str(self.band.userParams["flatType"].GetValue())
+        if tempString == "True":
+            bandString = "V"
+        else:
+            bandString = "K"
+        newObs.write("band: "+ bandString)
         newObs.close()
 
     def create_menu(self):
@@ -2501,8 +2540,6 @@ class InvalidParameter(wx.Frame):
             self.string = "The longitude and latitude must be in the format Deg:Min:Sec with numbers."
         elif str == "tempElevNum":
             self.string = "The " + max + " must be a number greater than or equal to 0."
-        elif str == "lowerLimit":
-            self.string = "The lower limit cannot be greater than the upper limit."
         elif str == "twilight":
             self.string = "The twilight must be -6, -12, or -18. Please select one from the drop down menu."
         elif str == "lowerElevation":
