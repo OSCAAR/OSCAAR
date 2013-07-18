@@ -1488,17 +1488,20 @@ class LoadOldPklFrame(wx.Frame):
                     textControl.WriteText(filenames[i] + ',')
                 else:
                     textControl.WriteText(filenames[i])
-        
-        if self.validityCheck(throwException = False):
-            self.radiusList.Clear()
-            self.data = IO.load(self.box.txtbox.GetValue())
-            self.apertureRadii = np.empty_like(self.data.apertureRadii)
-            self.apertureRadii[:] = self.data.apertureRadii
-            radiiString = [str(x) for x in self.data.apertureRadii]
-            for string in radiiString:
-                self.radiusList.Append(string)
-            self.radiusList.SetValue(radiiString[0])
 
+        if self.validityCheck(throwException = False): 
+            try:    
+                self.radiusList.Clear()
+                self.data = IO.load(self.box.txtbox.GetValue())
+                self.apertureRadii = np.empty_like(self.data.apertureRadii)
+                self.apertureRadii[:] = self.data.apertureRadii
+                radiiString = [str(x) for x in self.data.apertureRadii]
+                for string in radiiString:
+                    self.radiusList.Append(string)
+                self.radiusList.SetValue(radiiString[0])
+            except:
+                InvalidParameter("", self, -1, str="oldPKL") 
+        
         dlg.Destroy()
 
     def plotLightCurve(self, event):
@@ -1600,14 +1603,17 @@ class LoadOldPklFrame(wx.Frame):
     
     def updateRadiiList(self, event):
         if self.validityCheck():
-            self.radiusList.Clear()
-            self.data = IO.load(self.box.txtbox.GetValue())
-            self.apertureRadii = np.empty_like(self.data.apertureRadii)
-            self.apertureRadii[:] = self.data.apertureRadii
-            radiiString = [str(x) for x in self.data.apertureRadii]
-            for string in radiiString:
-                self.radiusList.Append(string)
-            self.radiusList.SetValue(radiiString[0])
+            try:
+                self.radiusList.Clear()
+                self.data = IO.load(self.box.txtbox.GetValue())
+                self.apertureRadii = np.empty_like(self.data.apertureRadii)
+                self.apertureRadii[:] = self.data.apertureRadii
+                radiiString = [str(x) for x in self.data.apertureRadii]
+                for string in radiiString:
+                    self.radiusList.Append(string)
+                self.radiusList.SetValue(radiiString[0])
+            except:
+                InvalidParameter("", self, -1, str="oldPKL") 
 
     def epsilonCheck(self,a,b):
         ''' Check variables `a` and `b` are within machine precision of each other
@@ -2175,6 +2181,7 @@ class ParameterBox(wx.Panel):
                         self.userParams[widget+"1"].SetValue(True)
                     else:
                         self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
+                        self.userParams[widget].SetValue(True)
                         
                     sizer0.Add(self.userParams[widget+"1"], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
                 else:
@@ -2224,9 +2231,9 @@ class AddLCB(wx.Panel):
                         self.browseButton = wx.Button(self, -1, str)
                     else:
                         self.browseButton = wx.Button(self, -1, str)
-                        self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
-                                                                                     True,wx.FD_OPEN,
-                                                                                     textControl = self.txtbox,update=updateRadii))
+                    self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
+                                                                                 True,wx.FD_OPEN, 
+                                                                                 textControl = self.txtbox,update=updateRadii))
                     sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
             else:
                 list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
@@ -2294,15 +2301,18 @@ class AddLCB(wx.Panel):
                         textControl.WriteText(filenames[i])
             
             if update == True:
-                if self.parent.validityCheck(throwException = False):
-                    self.parent.radiusList.Clear()
-                    self.data = IO.load(self.parent.box.txtbox.GetValue())
-                    self.parent.apertureRadii = np.empty_like(self.data.apertureRadii)
-                    self.parent.apertureRadii[:] = self.data.apertureRadii
-                    radiiString = [str(x) for x in self.data.apertureRadii]
-                    for string in radiiString:
-                        self.parent.radiusList.Append(string)
-                    self.parent.radiusList.SetValue(radiiString[0])
+                try:
+                    if self.parent.validityCheck(throwException = False):
+                        self.parent.radiusList.Clear()
+                        self.data = IO.load(self.parent.box.txtbox.GetValue())
+                        self.parent.apertureRadii = np.empty_like(self.data.apertureRadii)
+                        self.parent.apertureRadii[:] = self.data.apertureRadii
+                        radiiString = [str(x) for x in self.data.apertureRadii]
+                        for string in radiiString:
+                            self.parent.radiusList.Append(string)
+                        self.parent.radiusList.SetValue(radiiString[0])
+                except:
+                    InvalidParameter("", self, -1, str="oldPKL") 
                 
             dlg.Destroy() 
 
@@ -2553,6 +2563,9 @@ class InvalidParameter(wx.Frame):
                                        "this, please refer\nto the documentation from the help menu in the main frame. " + \
                                        "This message is shown once per GUI session,\nand will run the calculations " + \
                                        "for the current parameters as soon as you close this window.")
+        elif str == "oldPKL":
+            self.paths = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating a new" + \
+                                       " .pkl file from the main frame and try again.")
         else:
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
