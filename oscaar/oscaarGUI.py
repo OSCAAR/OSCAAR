@@ -183,7 +183,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         
         if invalidDarkFrames != "": 
             InvalidParameter(invalidDarkFrames, None, -1, str="fits", max="the path to Dark Frames")
-        elif os.path.isfile(masterFlat) != True:
+        elif os.path.isfile(masterFlat) != True or (masterFlat.lower().endswith(".fit") != True and \
+             masterFlat.lower().endswith(".fits") != True) :
             tempString = masterFlat
             if len(masterFlat.split(",")) > 1:
                 tempString = ""
@@ -493,14 +494,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         array2 = []
         for element in array.split(","):
             element = element.strip()
-            if element.endswith(os.sep):
+            if element.lower().endswith(os.sep):
                 element += '*.fits'
             if len(glob(element)) < 1:
                 errorString += element
             elif len(glob(element)) > 1:
                 for element2 in glob(element):
                     array2.append(element2)
-            elif not element.endswith('.fit') and not element.endswith('.fits'):
+            elif not element.lower().endswith('.fit') and not element.lower().endswith('.fits'):
                 errorString += "\n" + element
             else:
                 array2.append(glob(element)[0])
@@ -644,7 +645,7 @@ class MasterFlatFrame(wx.Frame):
              not len(path) > (len(path[:path.rfind(os.sep)]) + 1):
             InvalidParameter(path, None, -1, str="flat3")
         else:
-            if not path.endswith('.fits') and not path.endswith('.fit'):
+            if not path.lower().endswith('.fits') and not path.lower().endswith('.fit'):
                 path += '.fits'
             pathCorrected = path.replace('/', os.sep)
             outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
