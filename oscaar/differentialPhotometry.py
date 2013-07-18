@@ -51,12 +51,7 @@ for expNumber in range(0,N_exposures):
 	
 	## Iterate through each star in each exposure
 	for star in allStars:
-		if expNumber == 0:
-			est_x = allStars[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
-			est_y = allStars[star]['y-pos'][0]  ##	stellar centroid for the first exosure
-		else: 
-			est_x = allStars[star]['x-pos'][expNumber-1]	## All other exposures use the
-			est_y = allStars[star]['y-pos'][expNumber-1]	##	previous exposure centroid as estimate
+		est_x, est_y = data.centroidInitialGuess(expNumber,star)
 
 		## Find the stellar centroid
 		x, y, radius, trackFlag = astrometry.trackSmooth(image, est_x, est_y, data.smoothConst, plottingThings, \

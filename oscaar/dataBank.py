@@ -9,12 +9,12 @@ from scipy import optimize
 from glob import glob
 
 import os
+import re
 import oscaar
 import mathMethods
 import IO
 oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
 oscaarpathplus = os.path.join(oscaarpath,'extras')
-
 
 class dataBank:
     '''
@@ -38,7 +38,8 @@ class dataBank:
         self.parseObservatory()
         
         self.flatPath = self.dict["flatPath"]
-        self.regsPath = self.dict["regsPath"]
+        #self.regsPath = self.dict["regsPath"] **__**
+        self.rawRegionsList = self.dict["regPaths"]
         self.ingress = self.dict["ingress"]
         self.egress = self.dict["egress"]
         #self.apertureRadius = self.dict["apertureRadius"]
@@ -61,7 +62,9 @@ class dataBank:
             dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
             self.masterFlat = np.ones([dim1,dim2])
         self.allStarsDict = {}
-        init_x_list,init_y_list = IO.parseRegionsFile(self.regsPath)        
+        
+        self.regionsFileList, self.regionsFITSrefsList = self.parseRawRegionsList(self.rawRegionsList)
+        init_x_list,init_y_list = self.parseRegionsFile(self.regionsFileList[0])
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
@@ -73,12 +76,7 @@ class dataBank:
         
         
         for i in range(0,len(init_x_list)):
-#            self.allStarsDict[str(i).zfill(3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
-#                'rawFlux':np.copy(zeroArray), 'rawError':np.copy(zeroArray),'flag':False,\
-#                'scaledFlux':np.copy(zeroArray), 'scaledError':np.copy(zeroArray), 'chisq':0}
-#            self.allStarsDict[str(i).zfill(3)]['x-pos'][0] = init_x_list[i]
-#            self.allStarsDict[str(i).zfill(3)]['y-pos'][0] = init_y_list[i]
-#            self.keys.append(str(i).zfill(3))
+
             self.allStarsDict[str(i).zfill(3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
                 'rawFlux':[np.copy(zeroArray) for j in range(Nradii)], 'rawError':[np.copy(zeroArray) for j in range(Nradii)],'flag':False,\
                 'scaledFlux':[np.copy(zeroArray) for j in range(Nradii)], 'scaledError':[np.copy(zeroArray) for j in range(Nradii)], 'chisq':np.zeros_like(self.apertureRadii)}
@@ -88,6 +86,20 @@ class dataBank:
     def getDict(self):
         '''Return master dictionary of all star data'''
         return self.allStarsDict
+    
+    def centroidInitialGuess(self,expNumber,star):
+        if expNumber == 0:
+            est_x = self.allStarsDict[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
+            est_y = self.allStarsDict[star]['y-pos'][0]  ##    stellar centroid for the first exposure
+        elif self.imagesPaths[expNumber] in self.regionsFITSrefsList:
+            refIndex = self.regionsFITSrefsList.index(self.imagesPaths[expNumber])
+            init_x_list, init_y_list = self.parseRegionsFile(self.regionsFileList[refIndex])
+            est_x = init_x_list[int(star)]
+            est_y = init_y_list[int(star)]
+        else: 
+            est_x = self.allStarsDict[star]['x-pos'][expNumber-1]    ## All other exposures use the
+            est_y = self.allStarsDict[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
+        return est_x, est_y
     
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
         '''Store the centroid data collected by oscaar.trackSmooth()
@@ -512,7 +524,7 @@ class dataBank:
                 name = inline[0].strip()
                 value = str(inline[1].strip())
                 list = [("Path to Master-Flat Frame", "flatPath"),
-                        ("Path to regions file", "regsPath"),
+                        ("Path to regions file", "regPaths"),
                         ("Ingress", "ingress"),("Egress", "egress"),
                         ("Radius", "apertureRadius"),("Tracking Zoom", "trackingZoom"),
                         ("CCD Gain", "ccdGain"),("Plot Tracking", "trackPlots"),
@@ -580,11 +592,55 @@ class dataBank:
         if self.timeKeyword == 'JD': self.convertToJD = lambda x: x ## If the keyword is "JD", no conversion is needed
         elif self.timeKeyword == 'DATE-OBS': self.convertToJD = mathMethods.ut2jdSplitAtT ## If the keyword is "DATE-OBS", converstion is needed
     ##elif inline[0] == '':
+
+    def parseRegionsFile(self,regPath):
+        '''Parse the DS9 regions file (written in .txt format) which contains
+           the initial guesses for the stellar centroids, in the following format:
+                 "circle(<y-center>,<x-center>,<radius>)"
+           The reversed x,y order comes from the different directions that FITS files
+           are read-in with DS9 and PyFits.
+           
+           INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords
+           
+           RETURNS: init_x_list - Inital estimates of the x-centroids
+           
+                    init_y_list - Inital estimates of the y-centroids
+           
+        '''
+        regionsData = open(regPath,'r').read().splitlines()
+        init_x_list = []
+        init_y_list = []
+        for i in range(0,len(regionsData)):
+            if regionsData[i][0:6] == 'circle':
+                y,x = re.split("\,",re.split("\(",regionsData[i])[1])[0:2]
+                init_y_list.append(float(y))
+                init_x_list.append(float(x))
+        return init_x_list,init_y_list
+
+    def parseRawRegionsList(self,rawRegionsList):
+        '''Split up the "rawRegionsList", which should be in the format: 
+        
+           <first regions file>,<reference FITS file for the first regs file>;<second> regions file>,
+           <reference FITS file for the first regs file>;....
+           
+           into a list of regions files and a list of FITS reference files.
+        '''
+        regionsFiles = []
+        refFITSFiles = []
+        
+        if len(rawRegionsList.split(';')) < 2:
+            regionsFiles.append(rawRegionsList)
+            refFITSFiles.append(self.imagesPaths[0])
+        else:
+            for pair in rawRegionsList.split(';'):
+                regionsFile, refFITSFile = pair.split(',')
+                regionsFiles.append(regionsFile)
+                refFITSFiles.append(refFITSFile)
+        return regionsFiles, refFITSFiles
+        
     
     def plot(self,pointsPerBin=10):
         plt.close()
-        
-        
         times = self.getTimes()
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
         lightCurve, lightCurveErr = self.computeLightCurve(meanComparisonStar, meanComparisonStarError)
