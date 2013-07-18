@@ -910,7 +910,7 @@ class EphemerisFrame(wx.Frame):
         list = [('flatType',"","V","K")]
         self.band = ParameterBox(self.panel,-1,list, name = "Band Type")
         list = [('flatType',"","On","Off")]
-        self.showLT = ParameterBox(self.panel,-1,list, name = "Show Local Times")
+        self.showLT = ParameterBox(self.panel,-1,list, name = "Show Local Times", other = False)
         
         self.botRadioBox = wx.BoxSizer(wx.HORIZONTAL)
         self.botRadioBox.Add(self.showLT, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
@@ -2452,7 +2452,7 @@ class InvalidParameter(wx.Frame):
         elif str == "fitOpen":
             self.SetTitle("Fitting Frame Open Error")
         elif str == "warnError":
-            self.SetTitle("Warning about local times")
+            self.SetTitle("Warning about local times!")
 
         self.panel = wx.Panel(self)
         self.string = "Incorrect"
@@ -2584,9 +2584,11 @@ class InvalidParameter(wx.Frame):
         elif str == "warnError":
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.calculate)
             self.paths = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
-                                       "PyEphem's ephem.localtime(\"input\") method.\nMake sure that this method " + \
-                                       "produces the correct local time for yourself. If you don't know\nhow to check" + \
-                                       " this, please refer to the documentation.")
+                                       "PyEphem's ephem.localtime(\"input\") method. Make sure that this method " + \
+                                       "produces the correct local time for yourself. If you don't know how to check " + \
+                                       "this, please refer to the documentation from the help menu in the main frame. " + \
+                                       "This message is shown once per GUI session, and will run the calculations " + \
+                                       "for the current parameters as soon as you close this window.",  size = (500,75))
         else:
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
