@@ -1790,7 +1790,7 @@ class GraphFrame(wx.Frame):
         self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
         self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
-        self.axes.set_title('Light Curve')
+        self.axes.set_title(('Light curve for aperture radius %s' % self.data.apertureRadii[self.apertureRadiusIndex]))
         self.axes.set_xlabel('Time (JD)')
         self.axes.set_ylabel('Relative Flux')
 

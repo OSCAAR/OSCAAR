@@ -758,7 +758,7 @@ class dataBank:
         ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
         ax.set_xlabel('Comparison Star')
         ax.set_ylabel('Normalized Weighting')
-        ax.set_title('Comparison Star Weights into the Composite Comparison Star for aperture radius: %s' \
+        ax.set_title('Comparison Star Weights into the Composite Comparison Star for aperture radius %s' \
                      % self.apertureRadii[apertureRadiusIndex])
         ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
         ax.bar(indices,coefficients,width,color='w')
