@@ -232,8 +232,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 # This code here writes all the parameters to the init.par file.
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
-                self.darkFits = self.addFits(init, "Path to Dark Frames: ", self.paths.boxes[0].GetValue())
-                self.imagFits = self.addFits(init, "Path to data images: ", self.paths.boxes[2].GetValue())
+                init.write("Path to Dark Frames: " + self.paths.boxes[0].GetValue() + "\n")
+                init.write("Path to data images: " + self.paths.boxes[2].GetValue() + "\n")
                 init.write("Path to Master-Flat Frame: " + self.paths.boxes[1].GetValue() + "\n")
                 init.write("Path to regions file: " + self.paths.boxes[3].GetValue() + "\n")
                 if not self.paths.boxes[4].GetValue().endswith(".pkl"):
@@ -486,71 +486,34 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                     self.radioBox.userParams[save+"1"].SetValue(stringTemp.rpartition(separator)[0])
                                 else:
                                     self.radioBox.userParams[save].SetValue(stringTemp.rpartition(separator)[0])
-            
-    def addFits(self, init, field, path):
-        pathList = []
-        for impath in path.split(','):
-            newpath = impath
-            if os.path.isdir(impath) and not (impath.endswith(os.sep)):
-                newpath += os.sep
-            if newpath.endswith(os.sep):
-                newpath += '*.fits'
-            pathList += glob(newpath)
-            
-        initText = ''
-        for path in range(len(pathList)):
-            initText += pathList[path]
-            if path != len(pathList)-1:
-                initText += ","
-        init.write(field + initText + '\n')
-        return pathList
-    
+
     def checkArray(self,array,saveNum=0):
         errorString = ""
         setValueString = ""
+        array2 = []
         for element in array.split(","):
             element = element.strip()
-            if not element.endswith('.fit') and not element.endswith('.fits'):
+            if element.endswith(os.sep):
+                element += '*.fits'
+            if len(glob(element)) < 1:
+                errorString += element
+            elif len(glob(element)) > 1:
+                for element2 in glob(element):
+                    array2.append(element2)
+            elif not element.endswith('.fit') and not element.endswith('.fits'):
                 errorString += "\n" + element
-        #             if os.path.isfile(element) != True:
-        #                 errorString += "\n" + elemen
-            setValueString += element + ","
+            else:
+                array2.append(glob(element)[0])
         if not array:
             return "No Values Entered"
         else:
             if errorString == "":
+                setValueString = ""
+                uniqueArray = np.unique(array2).tolist()
+                for eachString in uniqueArray:
+                    setValueString += eachString + ","
                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
             return errorString   
-               
-#     def checkArray(self,array,saveNum=0):
-#         errorString = ""
-#         setValueString = ""
-#         array2 = []
-#         for element in array.split(","):
-#             element = element.strip()
-#             if not element.endswith('.fit') and not element.endswith('.fits'):
-#                 errorString += "\n" + element
-#             if len(glob(element)) < 1:
-#                 print element
-#                 errorString += element
-#             elif os.path.isfile(element) != True and len(glob(element)) == 0 :
-#                 print "element" + element
-#                 errorString += "\n" + element
-#             elif len(glob(element)) > 1:
-#                 for element2 in glob(element):
-#                     setValueString += element
-#             else:
-#                 setValueString += element + ","
-#                 array2.append(element)
-#         if not array:
-#             return "No Values Entered"
-#         else:
-#             if errorString == "":
-#                 print setValueString
-#                 x = np.unique(array2).tolist()
-#                 print x
-#                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
-#             return errorString   
     
     def singularExistance(self, event, value, name):
 
@@ -631,9 +594,9 @@ class MasterFlatFrame(wx.Frame):
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
         
-        self.path1 = AddLCB(self.panel, -1, "Path to Flat Images: ","Browse")
-        self.path2 = AddLCB(self.panel, -1, "Path to Dark Flat Images: ","Browse")
-        self.path3 = AddLCB(self.panel, -1, "Path to Save Master Flat: ","Browse")
+        self.path1 = AddLCB(self.panel, -1, name = "Path to Flat Images: ", str = "Browse")
+        self.path2 = AddLCB(self.panel, -1, name = "Path to Dark Flat Images: ",str = "Browse")
+        self.path3 = AddLCB(self.panel, -1, name = "Path to Save Master Flat: ", str = "Browse")
         
         list = [('trackPlot',"","none",'')]
         self.plotBox = ParameterBox(self.panel,-1,list, name = "Plots")
@@ -831,6 +794,7 @@ class OverWrite(wx.Frame):
         self.Destroy()
         
     def doNothing(self,event):
+        self.parent.overWrite = False
         pass
 
 
