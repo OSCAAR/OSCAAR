@@ -2548,11 +2548,11 @@ class InvalidParameter(wx.Frame):
         elif str == "warnError":
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.calculate)
             self.paths = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
-                                       "PyEphem's ephem.localtime(\"input\") method. Make sure that this method " + \
+                                       "PyEphem's ephem.localtime(\"input\") method. Make sure\nthat this method " + \
                                        "produces the correct local time for yourself. If you don't know how to check " + \
-                                       "this, please refer to the documentation from the help menu in the main frame. " + \
-                                       "This message is shown once per GUI session, and will run the calculations " + \
-                                       "for the current parameters as soon as you close this window.",  size = (500,75))
+                                       "this, please refer\nto the documentation from the help menu in the main frame. " + \
+                                       "This message is shown once per GUI session,\nand will run the calculations " + \
+                                       "for the current parameters as soon as you close this window.")
         else:
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
