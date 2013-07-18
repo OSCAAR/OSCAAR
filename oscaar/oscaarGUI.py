@@ -597,7 +597,7 @@ class MasterFlatFrame(wx.Frame):
         
         self.path1 = AddLCB(self.panel, -1, name = "Path to Flat Images: ", str = "Browse")
         self.path2 = AddLCB(self.panel, -1, name = "Path to Dark Flat Images: ",str = "Browse")
-        self.path3 = AddLCB(self.panel, -1, name = "Path to Save Master Flat: ", str = "Browse")
+        self.path3 = AddLCB(self.panel, -1, name = "Path to Save Master Flat: ", str = "Browse", multFiles = False)
         
         list = [('trackPlot',"","none",'')]
         self.plotBox = ParameterBox(self.panel,-1,list, name = "Plots")
@@ -1305,7 +1305,7 @@ class FittingFrame(wx.Frame):
     
         menu_file = wx.Menu()
         m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
-        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,False,wx.FD_OPEN),m_browse)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -1314,7 +1314,7 @@ class FittingFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):                    
-        if fileDialog:
+        if not fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: 
             dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
@@ -1465,7 +1465,7 @@ class LoadOldPklFrame(wx.Frame):
     
         menu_file = wx.Menu()
         m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
-        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,False,wx.FD_OPEN),m_browse)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -1474,7 +1474,7 @@ class LoadOldPklFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
-        if fileDialog:
+        if not fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: 
             dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
@@ -2200,7 +2200,7 @@ class ParameterBox(wx.Panel):
 
 class AddLCB(wx.Panel):
             
-        def __init__(self, parent,id, parent2 = None, name = '', str = "Browse\t (Cntrl-O)",
+        def __init__(self, parent,id, parent2 = None, name = '', str = "Browse\t (Cntrl-O)", multFiles = True,
                      rowNum = 1, colNum = 3, vNum = 0, hNum = 0, font = wx.NORMAL_FONT, updateRadii = False):
             wx.Panel.__init__(self,parent,id)
             
@@ -2232,9 +2232,10 @@ class AddLCB(wx.Panel):
                         self.browseButton = wx.Button(self, -1, str)
                     else:
                         self.browseButton = wx.Button(self, -1, str)
-                    self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
-                                                                                 True,wx.FD_OPEN, 
-                                                                                 textControl = self.txtbox,update=updateRadii))
+                    self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path(s) to File(s)",
+                                                                                 multFiles,wx.FD_OPEN, 
+                                                                                 textControl = self.txtbox,
+                                                                                 update=updateRadii))
                     sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
             else:
                 list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
@@ -2264,19 +2265,19 @@ class AddLCB(wx.Panel):
                     button = wx.Button(self, -1, "Browse")
                     if name == "Path to Dark Frames: ":
                         button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      False,None,textControlNum = 0))
+                                                                                      True,None,textControlNum = 0))
                     elif name == "Path to Master Flat: ":
                         button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      True,wx.FD_OPEN,textControlNum = 1))
+                                                                                      False,wx.FD_OPEN,textControlNum = 1))
                     elif name == "Path to Data Images: ":
                         button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      False,None,textControlNum = 2))
+                                                                                      True,None,textControlNum = 2))
                     elif name == "Path to Regions File: ":
                         button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      True,wx.FD_OPEN,textControlNum = 3))
+                                                                                      True,None,textControlNum = 3))
                     elif name == "Output Path: ":
                         button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      True,wx.FD_SAVE,textControlNum = 4))
+                                                                                      False,wx.FD_SAVE,textControlNum = 4))
                     sizer0.Add(button,0,wx.ALIGN_CENTRE|wx.ALL,0)
                     
             self.SetSizer(sizer)
@@ -2285,7 +2286,7 @@ class AddLCB(wx.Panel):
         def browseButtonEvent(self, event, message, fileDialog, saveDialog, textControl = '', textControlNum = -1, update=False):
             if textControlNum != -1:
                 textControl = self.boxes[textControlNum]
-            if fileDialog:
+            if not fileDialog:
                 dlg = wx.FileDialog(self, message = message, style = saveDialog)
             else: 
                 dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
