@@ -173,9 +173,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+ self.leftBox.userParams['notes'].GetValue())
         notes.close()
         
-        invalidDarkFrames = self.checkArray(self.paths.boxes[0].GetValue(), saveNum=0)
+        invalidDarkFrames = self.checkFileInputs(self.paths.boxes[0].GetValue(), saveNum=0)
         masterFlat = self.paths.boxes[1].GetValue().strip()
-        invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), saveNum=2)
+        invalidDataImages = self.checkFileInputs(self.paths.boxes[2].GetValue(), saveNum=2)
         regionsFile = self.paths.boxes[3].GetValue().strip()
         self.outputFile = self.paths.boxes[4].GetValue().strip()
         self.values["radius"] = self.leftBox.userParams["radius"].GetValue()
@@ -237,7 +237,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 init.write("Path to data images: " + self.paths.boxes[2].GetValue() + "\n")
                 init.write("Path to Master-Flat Frame: " + self.paths.boxes[1].GetValue() + "\n")
                 init.write("Path to regions file: " + self.paths.boxes[3].GetValue() + "\n")
-                if not self.paths.boxes[4].GetValue().endswith(".pkl"):
+                if not self.paths.boxes[4].GetValue().lower().endswith(".pkl"):
                     init.write("Output Path: " + self.paths.boxes[4].GetValue() + ".pkl\n")
                 else:
                     init.write("Output Path: " + self.paths.boxes[4].GetValue() + "\n")
@@ -488,23 +488,40 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                 else:
                                     self.radioBox.userParams[save].SetValue(stringTemp.rpartition(separator)[0])
 
-    def checkArray(self,array,saveNum=0):
+    def checkFileInputs(self,array,saveNum):
         errorString = ""
         setValueString = ""
         array2 = []
+        smallArray = ""
         for element in array.split(","):
             element = element.strip()
             if element.lower().endswith(os.sep):
-                element += '*.fits'
-            if len(glob(element)) < 1:
-                errorString += element
-            elif len(glob(element)) > 1:
-                for element2 in glob(element):
-                    array2.append(element2)
-            elif not element.lower().endswith('.fit') and not element.lower().endswith('.fits'):
-                errorString += "\n" + element
+                tempElement = element + "*.fit"
+                element += "*.fits"
+                smallArray = "-1"
+            if smallArray == "":
+                if len(glob(element)) < 1:
+                    errorString += element
+                elif len(glob(element)) > 1:
+                    for element2 in glob(element):
+                        if element2.lower().endswith(".fit") or element2.lower().endswith(".fits"):
+                            array2.append(element2)
+                        else:
+                            errorString += "\n" + element2
+                elif not element.lower().endswith(".fit") and not element.lower().endswith(".fits"):
+                    errorString += "\n" + element
+                else:
+                    array2.append(glob(element)[0])
             else:
-                array2.append(glob(element)[0])
+                if len(glob(tempElement)) < 1 and len(glob(element)) < 1:
+                    errorString += "\n" + tempElement + ",\n" + element
+                else:
+                    if len(glob(tempElement)) >= 1:
+                        for element2 in glob(tempElement):
+                            array2.append(element2)
+                    if len(glob(element)) >= 1:
+                        for element2 in glob(element):
+                            array2.append(element2)
         if not array:
             return "No Values Entered"
         else:
@@ -514,7 +531,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 for eachString in uniqueArray:
                     setValueString += eachString + ","
                 self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
-            return errorString   
+            return errorString
     
     def singularExistance(self, event, value, name):
 
@@ -571,7 +588,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     def createFrame(self):
         if self.loadFittingOpen == False:
-            if not self.outputFile.endswith(".pkl"):
+            if not self.outputFile.lower().endswith(".pkl"):
                 FittingFrame(self, -1, self.outputFile + ".pkl")
                 self.loadFittingOpen = True
             else:
@@ -628,23 +645,25 @@ class MasterFlatFrame(wx.Frame):
 
     def run(self,event):
         
-        path = self.path3.txtbox.GetValue()
-        self.flatImages = []
-        self.darkFlatImages = []
-        for pathname in self.path1.txtbox.GetValue().split(','):
-            self.flatImages += glob(pathname)
-        for pathname in self.path2.txtbox.GetValue().split(','):
-            self.darkFlatImages += glob(pathname)
-        if not self.flatImages:
-            InvalidParameter(str(self.path1.txtbox.GetValue()), None, -1, str="flat1")
-        elif not self.darkFlatImages:
-            InvalidParameter(str(self.path2.txtbox.GetValue()), None, -1, str="flat2")
+        path = self.path3.txtbox.GetValue().strip()
+        self.flatImages = self.checkFileInputs(self.path1.txtbox.GetValue(), self.path1.txtbox)
+        self.darkFlatImages = self.checkFileInputs(self.path2.txtbox.GetValue(), self.path2.txtbox)
+        if self.flatImages != "":
+            InvalidParameter(self.flatImages, None, -1, str="flat1")
+        elif self.darkFlatImages != "":
+            InvalidParameter(self.darkFlatImages, None, -1, str="flat2")
         elif not path:
             InvalidParameter(str(path), None, -1, str="flat3")
         elif not os.path.isdir(path[path.rfind(os.sep)]) or \
              not len(path) > (len(path[:path.rfind(os.sep)]) + 1):
             InvalidParameter(path, None, -1, str="flat3")
         else:
+            self.flatImages = []
+            self.darkFlatImages = []
+            for pathname in self.path1.txtbox.GetValue().split(','):
+                self.flatImages += glob(pathname)
+            for pathname in self.path2.txtbox.GetValue().split(','):
+                self.darkFlatImages += glob(pathname)
             if not path.lower().endswith('.fits') and not path.lower().endswith('.fit'):
                 path += '.fits'
             pathCorrected = path.replace('/', os.sep)
@@ -661,6 +680,51 @@ class MasterFlatFrame(wx.Frame):
                 else:
                     systematics.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
                                               self.plotCheck)
+    def checkFileInputs(self,array,box):
+        errorString = ""
+        setValueString = ""
+        array2 = []
+        smallArray = ""
+        for element in array.split(","):
+            element = element.strip()
+            if element.lower().endswith(os.sep):
+                tempElement = element + "*.fit"
+                element += "*.fits"
+                smallArray = "-1"
+            if smallArray == "":
+                if len(glob(element)) < 1:
+                    errorString += element
+                elif len(glob(element)) > 1:
+                    for element2 in glob(element):
+                        if element2.lower().endswith(".fit") or element2.lower().endswith(".fits"):
+                            array2.append(element2)
+                        else:
+                            errorString += "\n" + element2
+                elif not element.lower().endswith(".fit") and not element.lower().endswith(".fits"):
+                    errorString += "\n" + element
+                else:
+                    array2.append(glob(element)[0])
+            else:
+                if len(glob(tempElement)) < 1 and len(glob(element)) < 1:
+                    errorString += "\n" + tempElement + ",\n" + element
+                else:
+                    if len(glob(tempElement)) >= 1:
+                        for element2 in glob(tempElement):
+                            array2.append(element2)
+                    if len(glob(element)) >= 1:
+                        for element2 in glob(element):
+                            array2.append(element2)
+        if not array:
+            return "No Values Entered"
+        else:
+            if errorString == "":
+                setValueString = ""
+                uniqueArray = np.unique(array2).tolist()
+                for eachString in uniqueArray:
+                    setValueString += eachString + ","
+                box.SetValue(setValueString.rpartition(",")[0])
+            return errorString
+
     def create_menu(self):
           
         menubar = wx.MenuBar()
@@ -1350,7 +1414,7 @@ class FittingFrame(wx.Frame):
     def validityCheck(self):
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
-            if pathName.endswith(".pkl"):
+            if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
                    InvalidParameter(pathName, self, -1, str="path")
                    return False
@@ -1569,7 +1633,7 @@ class LoadOldPklFrame(wx.Frame):
     def validityCheck(self, throwException=True):
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
-            if pathName.endswith(".pkl"):
+            if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
                     if throwException:
                         InvalidParameter(pathName, self, -1, str="path")
