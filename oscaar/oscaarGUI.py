@@ -1658,7 +1658,7 @@ class LoadOldPklFrame(wx.Frame):
         try:
             self.tempNum = np.where(self.epsilonCheck(self.apertureRadii,float(self.radiusList.GetValue())))
             if len(self.tempNum[0]) == 0:
-                tempString = self.radiusList.GetValue() + " not found in " + str(self.apertureRadii)
+                tempString = self.radiusList.GetValue() + " was not found in " + str(self.apertureRadii)
                 InvalidParameter(tempString, self, -1, str = "radiusListError2")
                 return False
         except:
@@ -2630,8 +2630,10 @@ class InvalidParameter(wx.Frame):
                                        "This message is shown once per GUI session,\nand will run the calculations " + \
                                        "for the current parameters as soon as you close this window.")
         elif str == "oldPKL":
-            self.paths = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating a new" + \
-                                       " .pkl file from the main frame and try again.")
+            self.paths = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating" + \
+                                       " a new .pkl file from the main frame and try again.\nIf this .pkl file is" + \
+                                       " important and cannot be recreated, talk to our developers for information on" + \
+                                       " how to extract \nthe data from the file.")
         else:
             self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
