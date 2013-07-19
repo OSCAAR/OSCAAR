@@ -742,7 +742,7 @@ class dataBank:
         plt.ioff()
         plt.show()
     
-    def plotComparisonWeightings(self):
+    def plotComparisonWeightings(self, apertureRadiusIndex=0):
         plt.ion()
         weights = self.comparisonStarWeights[apertureRadiusIndex]
         weights = np.sort(weights,axis=1)

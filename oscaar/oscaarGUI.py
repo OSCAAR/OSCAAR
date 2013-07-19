@@ -1152,7 +1152,7 @@ class EphemerisFrame(wx.Frame):
                 InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = "depth lower limit")
                 return False
 
-        except:
+        except ValueError:
             if tempString == "temperature":
                 InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = tempString)
             elif tempString == "apparent magnitude upper limit":
@@ -1406,10 +1406,15 @@ class FittingFrame(wx.Frame):
     
     def plotMCMC(self,event):
         if self.validityCheck():
-            self.pathText = self.pklPathTxt.GetValue()
-            if self.loadMCMC == False:
-                MCMCFrame(self, -1)
-                self.loadMCMC = True
+            try:
+                self.pathText = self.pklPathTxt.GetValue()
+                self.data = IO.load(self.pathText)
+                temp = self.data.apertureRadii
+                if self.loadMCMC == False:
+                    MCMCFrame(self, -1)
+                    self.loadMCMC = True
+            except AttributeError:
+                InvalidParameter("", self, -1, str="oldPKL") 
      
     def validityCheck(self):
         pathName = self.pklPathTxt.GetValue()
@@ -1442,6 +1447,7 @@ class LoadOldPklFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.loadGraphFrame = False
+        self.data = ""
         
         self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File", updateRadii = True)    
          
@@ -1564,7 +1570,7 @@ class LoadOldPklFrame(wx.Frame):
                 for string in radiiString:
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
-            except:
+            except AttributeError:
                 InvalidParameter("", self, -1, str="oldPKL") 
         
         dlg.Destroy()
@@ -1573,9 +1579,11 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
+            print 'Loading file: '+self.pklPathTxt.GetValue()
+            
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotLightCurve(apertureRadiusIndex=%s)" \
-                             % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
+                                % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
+
             subprocess.Popen(['python','-c',commandstring])
 
 
@@ -1587,7 +1595,7 @@ class LoadOldPklFrame(wx.Frame):
 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotRawFluxes(apertureRadiusIndex=%s)" \
                                 % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
-
+                                
             subprocess.Popen(['python','-c',commandstring])
 
     def plotScaledFluxes(self, event):
@@ -1661,7 +1669,7 @@ class LoadOldPklFrame(wx.Frame):
                 tempString = self.radiusList.GetValue() + " was not found in " + str(self.apertureRadii)
                 InvalidParameter(tempString, self, -1, str = "radiusListError2")
                 return False
-        except:
+        except ValueError:
             InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
             return False
         return True
@@ -1677,7 +1685,7 @@ class LoadOldPklFrame(wx.Frame):
                 for string in radiiString:
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
-            except:
+            except AttributeError:
                 InvalidParameter("", self, -1, str="oldPKL") 
 
     def epsilonCheck(self,a,b):
@@ -2024,14 +2032,13 @@ class MCMCFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         self.parent = parent
-        self.pT = parent.pathText
-        self.data = IO.load(self.pT)
+        self.pT = self.parent.pathText
+        self.data = self.parent.data
         
         self.LCB = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.LCB.updateButton)
-        
+
         radiiString = [str(x) for x in self.data.apertureRadii]
-        
         self.apertureRadiusIndex = 0
         self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
         self.radiusList = wx.ComboBox(self.panel, value = str(self.data.apertureRadii[0]), choices = radiiString)
@@ -2150,8 +2157,7 @@ class MCMCFrame(wx.Frame):
             "saveiteration"), (self.box4.userParams['acceptance'].GetValue(),"acceptance"),
             (self.box4.userParams['burnfrac'].GetValue(),"burnfrac"), (self.box4.userParams['number'].GetValue(),"number")]
        
-       if checkParams(self,list) == True:
-            path = self.pT
+       if checkParams(self,list) == True and self.radiusCheck() == True:
             initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
                           float(self.box3.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
                           float(self.box3.userParams['gamma1'].GetValue()),float(self.box3.userParams['gamma2'].GetValue()),
@@ -2175,6 +2181,21 @@ class MCMCFrame(wx.Frame):
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.call(['python','-c',mcmcCall])
 
+    def radiusCheck(self):
+        if self.radiusList.GetValue() == "":
+            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            return False
+        try:
+            self.tempNum = np.where(self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue())))
+            if len(self.tempNum[0]) == 0:
+                tempString = self.radiusList.GetValue() + " was not found in " + str(self.data.apertureRadii)
+                InvalidParameter(tempString, self, -1, str = "radiusListError2")
+                return False
+        except ValueError:
+            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            return False
+        return True
+
     def update(self,event):
         if self.LCB.txtbox.GetValue() == '':
             InvalidParameter(self.LCB.txtbox.GetValue(), None,-1, str="planet")
@@ -2192,11 +2213,12 @@ class MCMCFrame(wx.Frame):
                 self.box3.userParams['ecc'].SetValue(str(ecc))
                 InvalidParameter("",None,-1, str="params")
 
-    def epsilonCheck(self,a,b,rtol=1e-5,atol=1e-8):
-        try:
-            return np.abs(a-b)<(atol+rtol*np.abs(b))
-        except TypeError:
-            return False
+    def epsilonCheck(self,a,b):
+        ''' Check variables `a` and `b` are within machine precision of each other
+            because otherwise we get machine precision difference errors when mixing
+            single and double precion NumPy floats and pure Python built-in float types.
+        '''
+        return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusUpdate(self, event):
         self.apertureRadiusIndex = np.where(self.epsilonCheck(self.data.apertureRadii, float(self.radiusList.GetValue())))[0][0]
@@ -2370,14 +2392,14 @@ class AddLCB(wx.Panel):
                 try:
                     if self.parent.validityCheck(throwException = False):
                         self.parent.radiusList.Clear()
-                        self.data = IO.load(self.parent.box.txtbox.GetValue())
-                        self.parent.apertureRadii = np.empty_like(self.data.apertureRadii)
-                        self.parent.apertureRadii[:] = self.data.apertureRadii
-                        radiiString = [str(x) for x in self.data.apertureRadii]
+                        self.parent.data = IO.load(self.parent.box.txtbox.GetValue())
+                        self.parent.apertureRadii = np.empty_like(self.parent.data.apertureRadii)
+                        self.parent.apertureRadii[:] = self.parent.data.apertureRadii
+                        radiiString = [str(x) for x in self.parent.data.apertureRadii]
                         for string in radiiString:
                             self.parent.radiusList.Append(string)
                         self.parent.radiusList.SetValue(radiiString[0])
-                except:
+                except AttributeError:
                     InvalidParameter("", self, -1, str="oldPKL") 
                 
             dlg.Destroy() 
