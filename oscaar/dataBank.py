@@ -628,14 +628,12 @@ class dataBank:
         regionsFiles = []
         refFITSFiles = []
         
-        if len(rawRegionsList.split(';')) < 2:
-            regionsFiles.append(rawRegionsList)
-            refFITSFiles.append(self.imagesPaths[0])
-        else:
-            for pair in rawRegionsList.split(';'):
+        for pair in rawRegionsList.split(';'):
+            if len(pair.split(",")) == 2:
                 regionsFile, refFITSFile = pair.split(',')
                 regionsFiles.append(regionsFile)
                 refFITSFiles.append(refFITSFile)
+
         return regionsFiles, refFITSFiles
         
     
