@@ -159,7 +159,7 @@ def to_do_at_exit():
 	del_dir('build')
 	del_dir('OSCAAR.egg-info')
 	
-	if sys.argv[-1] == 'install' or sys.argv[-2] == 'install' : 
+	if 'install' in sys.argv: 
 		del_dir('dist')
 		
 		'Installation finished. Starting DS9 downloader and compile C\n'
