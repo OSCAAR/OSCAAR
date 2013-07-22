@@ -42,6 +42,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.loadEphFrame = False
         self.singularOccurance = 0
         self.extraRegionsOpen = False
+        self.programmersEdit = False
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -438,8 +439,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             return True
     
     def setDefaults(self):
-        oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
-        init = open(os.path.join(oscaarpath,'init.par'), 'r').read().splitlines()
+        if self.programmersEdit == True:
+            init = open("init.par","r").read().splitlines()
+        else:
+            oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
+            init = open(os.path.join(oscaarpath,'init.par'), 'r').read().splitlines()
         for line in init:
             if len(line.split()) > 1:
                 inline = line.split(':', 1)
