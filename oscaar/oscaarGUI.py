@@ -87,8 +87,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=4)
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
         self.buttonBox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-        
-        self.extraRegionsButton = wx.Button(self.panel, label = "extra")
         self.ephButton = wx.Button(self.panel, label="Ephemeris")
         self.masterFlatButton = wx.Button(self.panel, label = "Master Flat Maker")
         self.ds9Button = wx.Button(self.panel, label = "Open DS9")
@@ -99,14 +97,11 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                   self.masterFlatButton)
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.ds9Open, "ds9"), self.ds9Button)
         self.Bind(wx.EVT_BUTTON, self.runOscaar, self.runButton)
-        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.extraRegionsOpen, "extra"),
-                  self.extraRegionsButton)
         
         self.sizer0.Add(self.ephButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.masterFlatButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.ds9Button,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.runButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.extraRegionsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         
         self.rightBox = wx.BoxSizer(wx.VERTICAL)
         self.rightBox.Add(self.radioBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
@@ -154,15 +149,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menu_oscaar = wx.Menu()
         m_ttp = menu_oscaar.Append(-1, "Transit Time Predictions", 
                                       "Transit time predictions from the Czech Astronomical Society.")
+        m_about = menu_oscaar.Append(-1, "About", "Contributors of OSCAAR.")
         m_loadOld = menu_oscaar.Append(-1, "Load old output\tCtrl+L", "Load an old output file for further analysis.")
         m_loadFitting = menu_oscaar.Append(-1, "Fitting Routines\tCtrl-F", 
                                               "Different fitting methods for analysis of an old .pkl file.")
-        m_about = menu_oscaar.Append(-1, "About", "Contributors of OSCAAR.")
+        m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets", 
+                                            "Add extra regions files to specific referenced images.")
+        
         self.Bind(wx.EVT_MENU, lambda evt: self.openLink(evt, "http://var2.astro.cz/ETD/predictions.php"), m_ttp)
         self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.aboutOpen, "about"), m_about)
         self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.loadOldPklOpen, "loadOld"), m_loadOld)
         self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.loadFittingOpen, "loadFitting"), m_loadFitting)
-
+        self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.extraRegionsOpen, "extra"), m_extraRegions)
         menubar.Append(menu_file, "File")
         menubar.Append(menu_help, "Help")
         menubar.Append(menu_oscaar, "Oscaar")
