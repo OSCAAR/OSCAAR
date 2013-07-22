@@ -208,7 +208,8 @@ def calculateEphemerides(parFile):
         assemble a list of them.'''
     planets = []
     for planet in exoplanetDB:
-        if bandMagnitude(planet) != 0.0 and depth(planet) != 0.0 and float(bandMagnitude(planet)) <= mag_limit and float(depth(planet)) >= depth_limit and transitBool(planet):
+        if bandMagnitude(planet) != 0.0 and depth(planet) != 0.0 and float(bandMagnitude(planet)) <= mag_limit and \
+           float(depth(planet)) >= depth_limit and transitBool(planet):
             planets.append(planet)
 
     if calcTransits: transits = {}
@@ -255,7 +256,8 @@ def calculateEphemerides(parFile):
             star.compute(observatory)
             #altitudes.append(str(ephem.degrees(star.alt)).split(":")[0])
             altitudes.append(float(repr(star.alt))/(2*np.pi) * 360)	## Convert altitudes to degrees
-        if altitudes[0] > 0 and altitudes[1] > 0: return True
+        #if altitudes[0] > 0 and altitudes[1] > 0: return True
+        if altitudes[0] > float(ephem.degrees(observatory_minHorizon))*(180/np.pi) and altitudes[1] > float(ephem.degrees(observatory_minHorizon))*(180/np.pi): return True
         else: return False
 
     def eventAfterTwilight(planet,observatory,ingress,egress,twilightType):
