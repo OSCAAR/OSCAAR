@@ -16,7 +16,6 @@ oscaardir = os.path.dirname(os.path.abspath(oscaar.__file__))
 """ Function to download the ds9 version for current platform.
     URLs are tested working on 5-29-2013 """            
 def download_ds9():
-    print
     sysplf = sys.platform
     
     oscaardirds9 = os.path.join(oscaardir,'extras','ds9',sysplf)
@@ -138,5 +137,5 @@ def complile_C():
     
 if __name__ == '__main__':
     complile_C()
-    if sys.argv[-1] == 'install' or sys.argv[-1] == os.path.abspath(__file__): 
+    if 'install' in sys.argv or os.path.abspath(__file__) in sys.argv: 
         download_ds9()
