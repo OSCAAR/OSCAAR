@@ -628,14 +628,12 @@ class dataBank:
         regionsFiles = []
         refFITSFiles = []
         
-        if len(rawRegionsList.split(';')) < 2:
-            regionsFiles.append(rawRegionsList)
-            refFITSFiles.append(self.imagesPaths[0])
-        else:
-            for pair in rawRegionsList.split(';'):
+        for pair in rawRegionsList.split(';'):
+            if len(pair.split(",")) == 2:
                 regionsFile, refFITSFile = pair.split(',')
                 regionsFiles.append(regionsFile)
                 refFITSFiles.append(refFITSFile)
+
         return regionsFiles, refFITSFiles
         
     
@@ -742,26 +740,26 @@ class dataBank:
         plt.ioff()
         plt.show()
     
-    def plotComparisonWeightings(self):
+    def plotComparisonWeightings(self, apertureRadiusIndex=0):
         plt.ion()
-        for apertureRadiusIndex in range(len(self.apertureRadii)):
-            weights = self.comparisonStarWeights[apertureRadiusIndex]
-            weights = np.sort(weights,axis=1)
-            width = 0.5
-            indices = weights[0,:]
-            coefficients = weights[1,:]
-            ind = np.arange(len(indices))
-            fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
-            fig.canvas.set_window_title('OSCAAR')
-            ax = fig.add_subplot(111)
-            ax.set_xlim([0,len(indices)+1])
-            ax.set_xticks(indices+width/2)
-            ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
-            ax.set_xlabel('Comparison Star')
-            ax.set_ylabel('Normalized Weighting')
-            ax.set_title('Comparison Star Weights into the Composite Comparison Star')
-            ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
-            ax.bar(indices,coefficients,width,color='w')
+        weights = self.comparisonStarWeights[apertureRadiusIndex]
+        weights = np.sort(weights,axis=1)
+        width = 0.5
+        indices = weights[0,:]
+        coefficients = weights[1,:]
+        ind = np.arange(len(indices))
+        fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
+        fig.canvas.set_window_title('OSCAAR')
+        ax = fig.add_subplot(111)
+        ax.set_xlim([0,len(indices)+1])
+        ax.set_xticks(indices+width/2)
+        ax.set_xticklabels(["Star "+str(i) for i in range(len(indices))])
+        ax.set_xlabel('Comparison Star')
+        ax.set_ylabel('Normalized Weighting')
+        ax.set_title('Comparison Star Weights into the Composite Comparison Star for aperture radius %s' \
+                     % self.apertureRadii[apertureRadiusIndex])
+        ax.axhline(xmin=0,xmax=1,y=1.0/len(indices),linestyle=':',color='k')
+        ax.bar(indices,coefficients,width,color='w')
         plt.ioff()
         plt.show()
 

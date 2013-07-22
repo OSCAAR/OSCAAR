@@ -37,9 +37,16 @@ Development for \oscaar began in the summer of 2011 to take a series of images o
 
 This document is intended to guide you through the observing techniques you need to make your first observations and using \oscaar to analyze them. It is currently still in the process of being written. {\bf This document is a live document, and parts may be incomplete}. We will make a stable version of the documentation for you to refer to as soon as we can!
 
-Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:algorithmNotes} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
+Here we summarize the contents of this documentation. Section 1 lists the dependencies required to run OSCAAR and explains how to install OSCAAR on your computer. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:algorithmNotes} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
 
 \subsection{System Requirements} \label{sec:systemRequirements}
+
+\textbf{\oscaar will run on the following operating systems:}
+
+\indent Windows Vista and later \\
+\indent Mac OS 10.6, 10.7 and 10.8 (with caveats) \\
+\indent Ubuntu 12.04 and later or similar \\
+See instructions throughout this section denotated by italics that are specific to certain operating systems.
 
 There are several packages in addition to Python (v2.7) that must be installed on your machine before running \oscaar. They are all free and available for download via links below. We apologize for the number of packages that are necessary to download before using \oscaar, but we think that these packages enable for the most efficient open-source distro that we can provide.  We think you'll find that if you're going to build on the code within \oscaar, this palette of packages provides most of the tools you need for scientific computation in Python. \\ \\
 \noindent
@@ -53,8 +60,18 @@ There are several packages in addition to Python (v2.7) that must be installed o
 
 \noindent Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in future versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues}).
 
+\texit{Note for Linux Users:} You only need one command to download and install most of the dependencies:
+\begin{verbatim}
+sudo apt-get install python-numpy python-scipy python-matplotlib python-wxgtk2.8
+\end{verbatim}
+The only ones left are PyFITS and PyEphem.
+
+\textit{Note for Mac OS 10.6 and 10.7 Users:} Python will already be installed on your machine, but it likely isn't the most recent version of Python 2.7. Download Python 2.7.X if it's not. Mac OS 10.6 users will also need Xcode, the Apple developer tools app that allows your computer to do things like program for OS X or iOS. Xcode can be downloaded from the App Store for free. However, if you're running OS X 10.6.x and you don't want to upgrade to OS X 10.7 you will need to download the older version of Xcode, v3.2. To do so, visit the Developer Downloads page and search for "Xcode 3.2". You will be prompted for your Apple ID to sign in as an Apple Developer. If you do not have a Developer account, you will need to create one at this stage. This will be a small time commitment. Install this but \textbf{note}: this is a large download, about ~2.4 GB. On OS X 10.7.0 or later, you'll instead need the GCC compiler. Apple provides this in their 'Command Line Tools' at their Developer site. You are now prepared to download Python packages such as PyEphem via their "Source code (.tar.gz)" links. Install them as suggested by each pacakge's INSTALL doc.
+
+\texit{Note for Mac OS 10.8 Users:} When you download python2.7 or any other \oscaar dependencies, there is an error message that pops up because the "GateKeeper", a function added in MacOsX 10.8, will not let you download things from an unidentified source. All of the dependencies have to use solutions found in their ReadMe.txt files to download them because "GateKeeper" will block all the downloads. wxPython can present additional difficulties if you are downloading it on a machine running modern versions of OS X. The standard links to OS X compatible binaries on the wxPython page are misleading. You'll have your best shot at downloading a working version of wxPython for your OS X-running machine if you download the less prominently labeled version "wxPython2.9-osx-cocoa-py2.7". This one is the one to get.
+
 \subsection{Installing \oscaar}
-\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory (using commands like \code{cd}). Once there, type: 
+\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory, using the command \code{"cd (name of destination directory)"} to move from one directory to another. The command \code{"dir"} will allow you to see what directories are found in the current directory. The command \code{"cd .."} is quite useful for moving back one directory. Once at the ``OSCAAR-master'' directory, type: 
 \begin{verbatim}
 python setup.py install
 \end{verbatim}
@@ -65,6 +82,7 @@ python setup.py install --user
 Next, change directories to some other directory. If you were to import \oscaar from this ``OSCAAR-master'' directory, Python would use the source files that you downloaded, rather than the ones you installed. Since installation builds C libraries and downloads SAOImage DS9, it's important to run \oscaar from the installed directories. If you click the "Open DS9" button without changing from the "OSCAAR-master" directory, a "DS9 error" box stating that DS9 has not installed correctly will appear. So, change to some other directory before working with \oscaar.
 
 \textit{Note for programmers:} For the reasons described above, if you want to develop new features for \oscaar, you can edit the source files that you downloaded in the  ``OSCAAR-master'' directory and run \oscaar from there, though be mindful of the extra work that the \code{setup.py} and \code{post\_setup.py} files do during the system install that will not be done in the  ``OSCAAR-master'' directory.
+
 \textit{Note for Windows Users:} The Command Prompt will not recognize the command "python" until you type:
 \begin{verbatim}
 set path=%path%;C:\python27
@@ -191,7 +209,7 @@ The \code{Twilight Type} parameter determines how many degrees below the horizon
 The \code{Lower elevation limit} parameter sets how high above the horizon the object must be before it is visible from your observatory. For photometric observations, it's a good rule of thumb to only observe objects above $30^{\circ}$ elevation, since at smaller angles the thick cross-section of air that you must look through compounds the problems of removing telluric effects.  You may, for example, have trees on the horizon in all directions at your observatory that limit your lowest-possible elevation for observing to $35^{\circ}$, or your observatory dome or roof may not accommodate observations below a similar elevation. You can account for these factors in this parameter so that you only see events that are observable with your equipment, from your observatory. The format for the \code{Lower elevation limit} parameter is  \code{degrees:mm:ss.ss}.
 
 \subsection{Choosing Your Input Files}
-The first step to running \oscaar on your data from the \gui is to select which files you want to use. \oscaar allows you to access your data files a few different ways. Our first task is to select the ``path to dark frames'' (see Figure \ref{fig:gui}). A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
+The first step to running \oscaar on your data from the \gui is to select which \code{.fits} files you want to use. \oscaar allows you to access your data files a few different ways. Our first task is to select the ``path to dark frames'' (see Figure \ref{fig:gui}). A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
 
 The imaging software that you use may allow you to save each image from your CCD with a pre-formatted name and an iterating index for each image. For example, in our sample data set we simulate this behavior by giving all of the dark frames names with the pattern ``simulatedImg-000d.fits'', ``simulatedImg-001d.fits'', ``simulatedImg-002d.fits'', etc. You could press the \code{Browse} button in the \gui and then hold shift and click through every dark frame that you want to select, or you could use a nifty shortcut...
 
@@ -217,13 +235,13 @@ Let's say all of the images in ``folderB'' are dark images, and you want to just
 
 Go ahead and fill in these fields for the dark frame and data image paths. When you use any of these rules, \oscaar will figure out all files that match and use those files for you. The next time you load the \gui, the files that were grabbed will be listed in the text box, separated by commas. 
 
-The ``Output Path'' field asks you to pick a path to the file that \oscaar will produce with the results of all of its algorithms. Pick a place where you can put this output data file.
+The ``Output Path'' field asks you to pick a path to the file that \oscaar will produce with the results of all of its algorithms. Pick a place where you can put this output data file and give the file an appropriate name.
 
 \subsection{Locating Your Stars with DS9} \label{sec:locatingStars}
 
 The next task you'll have to do to prepare \oscaar for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, \oscaar has the user enter each of the stars into \oscaar with the help of \href{http://hea-www.harvard.edu/RD/ds9/site/Home.html}{SAOImage DS9}. 
 
-To begin, click the \code{Open DS9} button at the bottom of the GUI (see Figure \ref{fig:gui}) to start DS9 and open the first image from the series of images you will process. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star along with a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
+To begin, click the \code{Open DS9} button at the bottom of the GUI (see Figure \ref{fig:gui}) to start DS9 and open the first image from the series of images you will process. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star. Double clicking inside the circle will yield a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.2]{imgs/ds9.png}
@@ -279,7 +297,7 @@ In order to visualize the effects of the running parameters that you entered on 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackPlots.png}
-\caption{\code{Track plots} set to \code{True} and \code{Photometry plots} set to \code{False}. The leftmost image shows the star with a cross-hair indicating the centroid, also circled in magenta (the radius of this circle is not meaningful). The plots on the right indicate the sums of the intensities in pixels along the rows and columns, in the transparent curves. The solid curves represent the smoothed intensity profiles, which are used to find the centroid. The bold vertical lines mark the best-fit stellar centroid in each axis.}
+\caption{\code{Track plots} set to \code{On} and \code{Photometry plots} set to \code{Off}. The leftmost image shows the star with a cross-hair indicating the centroid, also circled in magenta (the radius of this circle is not meaningful). The plots on the right indicate the sums of the intensities in pixels along the rows and columns, in the transparent curves. The solid curves represent the smoothed intensity profiles, which are used to find the centroid. The bold vertical lines mark the best-fit stellar centroid in each axis.}
 \label{fig:trackingExamples}
 \end{center}	
 \end{figure}
@@ -287,7 +305,7 @@ In order to visualize the effects of the running parameters that you entered on 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/aperPlots.png}
-\caption{\code{Photometry plots} set \code{True} and \code{Track plots} set to \code{False}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two outer concentric circles (red) circumscribe the ``sky annulus,'' within which the sky background is measured. }
+\caption{\code{Photometry plots} set to \code{On} and \code{Track plots} set to \code{Off}. The innermost circle (magenta) marks the \code{Aperture Radius} (see Section \ref{sec:aperRad}) measured from the stellar centroid found for this star by the tracking algorithm. All pixels that fall inside of this radius are summed to calculate the flux from this star. The next two outer concentric circles (red) circumscribe the ``sky annulus,'' within which the sky background is measured. }
 \label{fig:photPlots}
 \end{center}	
 \end{figure}
@@ -295,7 +313,7 @@ In order to visualize the effects of the running parameters that you entered on 
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.25]{imgs/trackAperPlots.png}
-\caption{\code{Track plots} and \code{Photometry plots} both set \code{True}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image --- see for example how broad the smoothed profile is compared to the raw flux. }
+\caption{\code{Track plots} and \code{Photometry plots} both set to \code{On}. See Figures \ref{fig:trackingExamples} and \ref{fig:photPlots} for more details on each subplot. Note: the \code{Smoothing Constant} may be too large on this image --- see for example how broad the smoothed profile is compared to the raw flux. }
 \label{fig:trackAndPhotPlot}
 \end{center}	
 \end{figure}
@@ -377,7 +395,7 @@ In the next subsections, we'll discuss some of the methods in the \code{dataBank
 
 \subsubsection{\code{dataBank.scaleFluxes()}}
 
-Each star that you observe will have a different apparent magnitude, and the dimmer the star is the more significantly the flux measurements will be affected by sources of noise. If we're going to compare the flux variations of each comparison star to the target star, which all are affected by noise to different degrees, we need to make sure that we're accounting for the lower signal-to-noise ratio for the dim stars and higher signal-to-noise ratio for the bright ones. 
+Each star that you observe will have a different apparent magnitude, and the dimmer the star, the more significantly the flux measurements will be affected by sources of noise. If we're going to compare the flux variations of each comparison star to the target star, which are all affected by noise to different degrees, we need to make sure that we're accounting for the lower signal-to-noise ratio for the dim stars and higher signal-to-noise ratio for the bright ones. 
 
 To accomplish this, we do a linear regression to find a multiplicative coefficient to apply to each comparison star. Multiplying this coefficient to the raw fluxes of the comparison stars ``scales their fluxes'' to the amplitude of the raw fluxes of the target star. It equally scales the scatter of those flux measurements, which has the effect of squeezing down the scatter on brighter stars after scaling or stretching out the scatter in the fluxes of dimmer 
 stars. Figure \ref{fig:rawFluxes} shows the raw fluxes from three simulated stars, calculated by \oscaar, each with a different brightness. You can see the slight decrease in brightness of the target star, shown here in red, at ingress and egress (denoted by the vertical dotted lines). 
@@ -404,7 +422,7 @@ stars. Figure \ref{fig:rawFluxes} shows the raw fluxes from three simulated star
 
 In order to make a transit light curve, we want to divide each flux measurement of the target star by the flux of a star that has no intrinsic flux variations, and ideally a star of similar spectral type to the target. How are we to know which star is the right one to use as a comparison star? To make matters worse, your detector may not be evenly responsive over the whole of the imaging surface, so stars that fall near or far away from the target star on the detector may be better to use as comparisons than others. 
 
-We often take the mean of a bunch of comparison stars so that they can collectively make a ``composite'' comparison star, or ``mean'' comparison star, in the wording of the name of this algorithm. If one star varies a little bit or falls on a worse part of the detector, it may not introduce significant variability into the mean of the comparison stars since it gets diluted by a the non-varying fluxes of the other stars. 
+We often take the mean of a bunch of comparison stars so that they can collectively make a ``composite'' comparison star, or ``mean'' comparison star, in the wording of the name of this algorithm. If one star varies a little bit or falls on a worse part of the detector, it may not introduce significant variability into the mean of the comparison stars since it gets diluted by all the non-varying fluxes of the other stars. 
 
 Let's consider the case with two comparison stars. Ideally, we would have to perfect comparison stars imaged by a perfect detector. Their spatial positions on the CCD would not affect the measurements of their fluxes and they would have no intrinsic flux variations. In this case, the vector of mean comparison star fluxes $\mathbf{f}_{\bar{C}}$, (though unnecessary) could be produced by taking the fluxes of each comparison star $\mathbf{f}_{C,0}$ and $\mathbf{f}_{C,1}$, and taking the average: 
 \begin{equation} \label{eqn:idealcomps}
@@ -437,7 +455,7 @@ We calculate the light curve vector $\mathbf{f}_{relative}$ by simple division o
 \begin{equation}
 \mathbf{f}_{relative}  = \frac{\mathbf{f}_{T}}{\mathbf{f}_{\bar{C}}}
 \end{equation}
-The errors for each light curve flux are calculated by propagating of uncertainties. If $\sigma \mathbf{f}_{\bar{C}}$ is the vector of uncertainties in the composite comparison star fluxes and $\sigma \mathbf{f}_{T}$ is the vector of uncertainties in the fluxes of the target star, the uncertainties in the light curve fluxes $\sigma \mathbf{f}_{relative}$ are
+The errors for each light curve flux are calculated by propagation of uncertainties. If $\sigma \mathbf{f}_{\bar{C}}$ is the vector of uncertainties in the composite comparison star fluxes and $\sigma \mathbf{f}_{T}$ is the vector of uncertainties in the fluxes of the target star, the uncertainties in the light curve fluxes $\sigma \mathbf{f}_{relative}$ are
 \begin{equation}
 \sigma \mathbf{f}_{relative}  = | \mathbf{f}_{relative} |  \sqrt{ \left(\frac{\sigma \mathbf{f}_{T}}{\mathbf{f}_{T}} \right)^2 + \left(\frac{\sigma \mathbf{f}_{\bar{C}}}{\mathbf{f}_{\bar{C}}} \right)^2 }.
 \end{equation}

@@ -41,6 +41,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.loadFitError = False
         self.loadEphFrame = False
         self.singularOccurance = 0
+        self.extraRegionsOpen = False
+        self.programmersEdit = False
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -85,7 +87,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=4)
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
         self.buttonBox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-
         self.ephButton = wx.Button(self.panel, label="Ephemeris")
         self.masterFlatButton = wx.Button(self.panel, label = "Master Flat Maker")
         self.ds9Button = wx.Button(self.panel, label = "Open DS9")
@@ -96,7 +97,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                   self.masterFlatButton)
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.ds9Open, "ds9"), self.ds9Button)
         self.Bind(wx.EVT_BUTTON, self.runOscaar, self.runButton)
-   
+        
         self.sizer0.Add(self.ephButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.masterFlatButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.ds9Button,0,wx.ALIGN_CENTER|wx.ALL,5)
@@ -148,15 +149,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         menu_oscaar = wx.Menu()
         m_ttp = menu_oscaar.Append(-1, "Transit Time Predictions", 
                                       "Transit time predictions from the Czech Astronomical Society.")
+        m_about = menu_oscaar.Append(-1, "About", "Contributors of OSCAAR.")
         m_loadOld = menu_oscaar.Append(-1, "Load old output\tCtrl+L", "Load an old output file for further analysis.")
         m_loadFitting = menu_oscaar.Append(-1, "Fitting Routines\tCtrl-F", 
                                               "Different fitting methods for analysis of an old .pkl file.")
-        m_about = menu_oscaar.Append(-1, "About", "Contributors of OSCAAR.")
+        m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets", 
+                                            "Add extra regions files to specific referenced images.")
+        
         self.Bind(wx.EVT_MENU, lambda evt: self.openLink(evt, "http://var2.astro.cz/ETD/predictions.php"), m_ttp)
         self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.aboutOpen, "about"), m_about)
         self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.loadOldPklOpen, "loadOld"), m_loadOld)
         self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.loadFittingOpen, "loadFitting"), m_loadFitting)
-
+        self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.extraRegionsOpen, "extra"), m_extraRegions)
         menubar.Append(menu_file, "File")
         menubar.Append(menu_help, "Help")
         menubar.Append(menu_oscaar, "Oscaar")
@@ -173,17 +177,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             notes.write('\nNotes: '+ self.leftBox.userParams['notes'].GetValue())
         notes.close()
         
-        invalidDarkFrames = self.checkArray(self.paths.boxes[0].GetValue(), saveNum=0)
-        masterFlat = self.paths.boxes[1].GetValue().strip()
-        invalidDataImages = self.checkArray(self.paths.boxes[2].GetValue(), saveNum=2)
-        regionsFile = self.paths.boxes[3].GetValue().strip()
-        self.outputFile = self.paths.boxes[4].GetValue().strip()
+        invalidDarkFrames = self.checkFileInputs(self.paths.boxList[1].GetValue(), saveNum=1)
+        masterFlat = self.paths.boxList[2].GetValue().strip()
+        invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
+        regionsFile = self.paths.boxList[4].GetValue().strip()
+        self.outputFile = self.paths.boxList[5].GetValue().strip()
         self.values["radius"] = self.leftBox.userParams["radius"].GetValue()
         self.radiusError = "radius"
         
         if invalidDarkFrames != "": 
             InvalidParameter(invalidDarkFrames, None, -1, str="fits", max="the path to Dark Frames")
-        elif os.path.isfile(masterFlat) != True:
+        elif os.path.isfile(masterFlat) != True or (masterFlat.lower().endswith(".fit") != True and \
+             masterFlat.lower().endswith(".fits") != True) :
             tempString = masterFlat
             if len(masterFlat.split(",")) > 1:
                 tempString = ""
@@ -195,16 +200,18 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             InvalidParameter(tempString, None, -1, str="master", max="path to the Master Flat")
         elif invalidDataImages != "":
             InvalidParameter(invalidDataImages, None, -1, str="fits", max="the path to Data Images")
-        elif os.path.isfile(regionsFile) != True or regionsFile.endswith(".reg") != True:
-            tempString = regionsFile
-            if len(regionsFile.split(",")) > 1:
-                tempString = ""
-                for string in regionsFile.split(","):
-                    if string == "" and len(regionsFile.split(",")) == 2:
-                        tempString += ","
-                    else:
-                        tempString += "\n" + string.strip()
-            InvalidParameter(tempString, None, -1, str="master", max="path to Regions File")
+#         elif os.path.isfile(regionsFile) != True or regionsFile.endswith(".reg") != True:
+#             tempString = regionsFile
+#             if len(regionsFile.split(",")) > 1:
+#                 tempString = ""
+#                 for string in regionsFile.split(","):
+#                     if string == "" and len(regionsFile.split(",")) == 2:
+#                         tempString += ","
+#                     else:
+#                         tempString += "\n" + string.strip()
+        elif self.checkRegionsBox(regionsFile) == False:  
+            pass
+#             InvalidParameter(regionsFile, None, -1, str="master", max="path to Regions File")
         elif not os.path.isdir(self.outputFile.rpartition(str(os.sep))[0]) or \
              not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
             InvalidParameter(self.outputFile, None, -1, str="output", max="output file")
@@ -215,7 +222,6 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                    self.radioBox.userParams['ingress'].GetValue(),
                                    self.radioBox.userParams['egress'].GetValue()) == True:
             try:
-                
                 list = ["smoothing", "zoom", "ccd"]
                 for string in list:
                     if string != "ccd":
@@ -225,21 +231,21 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.values[string] = float(self.leftBox.userParams[string].GetValue())
                         self.leftBox.userParams[string].SetValue(str(self.values[string]))
 
-                self.paths.boxes[1].SetValue(masterFlat)
-                self.paths.boxes[3].SetValue(regionsFile)
-                self.paths.boxes[4].SetValue(self.outputFile)
+                self.paths.boxList[2].SetValue(masterFlat)
+#                 self.paths.boxList[4].SetValue(regionsFile)
+                self.paths.boxList[5].SetValue(self.outputFile)
                 
                 # This code here writes all the parameters to the init.par file.
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
-                init.write("Path to Dark Frames: " + self.paths.boxes[0].GetValue() + "\n")
-                init.write("Path to data images: " + self.paths.boxes[2].GetValue() + "\n")
-                init.write("Path to Master-Flat Frame: " + self.paths.boxes[1].GetValue() + "\n")
-                init.write("Path to regions file: " + self.paths.boxes[3].GetValue() + "\n")
-                if not self.paths.boxes[4].GetValue().endswith(".pkl"):
-                    init.write("Output Path: " + self.paths.boxes[4].GetValue() + ".pkl\n")
+                init.write("Path to Dark Frames: " + self.paths.boxList[1].GetValue() + "\n")
+                init.write("Path to data images: " + self.paths.boxList[3].GetValue() + "\n")
+                init.write("Path to Master-Flat Frame: " + self.paths.boxList[2].GetValue() + "\n")
+                init.write("Path to regions file: " + self.paths.boxList[4].GetValue() + "\n")
+                if not self.paths.boxList[5].GetValue().lower().endswith(".pkl"):
+                    init.write("Output Path: " + self.paths.boxList[5].GetValue() + ".pkl\n")
                 else:
-                    init.write("Output Path: " + self.paths.boxes[4].GetValue() + "\n")
+                    init.write("Output Path: " + self.paths.boxList[5].GetValue() + "\n")
         
                 self.parseTime(self.radioBox.userParams["ingress"].GetValue(),
                                self.radioBox.userParams["ingress1"].GetValue(), 'Ingress: ',  init, name="ingress")
@@ -431,20 +437,23 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             return True
     
     def setDefaults(self):
-        oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
-        init = open(os.path.join(oscaarpath,'init.par'), 'r').read().splitlines()
+        if self.programmersEdit == True:
+            init = open("init.par","r").read().splitlines()
+        else:
+            oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
+            init = open(os.path.join(oscaarpath,'init.par'), 'r').read().splitlines()
         for line in init:
             if len(line.split()) > 1:
                 inline = line.split(':', 1)
                 name = inline[0].strip()
                 value = str(inline[1].strip())
-                list = [("Path to Master-Flat Frame", 1),
-                        ("Path to regions file", 3),
+                list = [("Path to Master-Flat Frame", 2),
+                        ("Path to regions file", 4),
                         ("Ingress", "ingress"),("Egress", "egress"),
                         ("Radius", "radius"),("Tracking Zoom", "zoom"),
                         ("CCD Gain", "ccd"),("Plot Tracking", "trackPlot"),
                         ("Plot Photometry", "photPlot"),("Smoothing Constant", "smoothing"),
-                        ("Output Path",4),("Path to Dark Frames", 0),("Path to data images", 2)]
+                        ("Output Path",5),("Path to Dark Frames", 1),("Path to data images", 3)]
                 
                 for string,save in list:
                     if string == name:
@@ -466,10 +475,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                             finalString = ""
                             for eachString in tempArray:
                                 finalString += eachString + ","
-                            self.paths.boxes[save].SetValue(finalString.rpartition(",")[0])
+                            self.paths.boxList[save].SetValue(finalString.rpartition(",")[0])
                         elif name == "Path to Master-Flat Frame" or name == "Path to regions file" or\
                              name == "Output Path":
-                            self.paths.boxes[save].SetValue(value)
+                            self.paths.boxList[save].SetValue(value)
                         else:
                             date = value.split(";")[0].strip().replace("-","/")
                             time = value.split(";")[1].strip()
@@ -487,23 +496,40 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                 else:
                                     self.radioBox.userParams[save].SetValue(stringTemp.rpartition(separator)[0])
 
-    def checkArray(self,array,saveNum=0):
+    def checkFileInputs(self,array,saveNum):
         errorString = ""
         setValueString = ""
         array2 = []
+        smallArray = ""
         for element in array.split(","):
             element = element.strip()
-            if element.endswith(os.sep):
-                element += '*.fits'
-            if len(glob(element)) < 1:
-                errorString += element
-            elif len(glob(element)) > 1:
-                for element2 in glob(element):
-                    array2.append(element2)
-            elif not element.endswith('.fit') and not element.endswith('.fits'):
-                errorString += "\n" + element
+            if element.lower().endswith(os.sep):
+                tempElement = element + "*.fit"
+                element += "*.fits"
+                smallArray = "-1"
+            if smallArray == "":
+                if len(glob(element)) < 1:
+                    errorString += element
+                elif len(glob(element)) > 1:
+                    for element2 in glob(element):
+                        if element2.lower().endswith(".fit") or element2.lower().endswith(".fits"):
+                            array2.append(element2)
+                        else:
+                            errorString += "\n" + element2
+                elif not element.lower().endswith(".fit") and not element.lower().endswith(".fits"):
+                    errorString += "\n" + element
+                else:
+                    array2.append(glob(element)[0])
             else:
-                array2.append(glob(element)[0])
+                if len(glob(tempElement)) < 1 and len(glob(element)) < 1:
+                    errorString += "\n" + tempElement + ",\n" + element
+                else:
+                    if len(glob(tempElement)) >= 1:
+                        for element2 in glob(tempElement):
+                            array2.append(element2)
+                    if len(glob(element)) >= 1:
+                        for element2 in glob(element):
+                            array2.append(element2)
         if not array:
             return "No Values Entered"
         else:
@@ -512,8 +538,109 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 uniqueArray = np.unique(array2).tolist()
                 for eachString in uniqueArray:
                     setValueString += eachString + ","
-                self.paths.boxes[saveNum].SetValue(setValueString.rpartition(",")[0])
-            return errorString   
+                self.paths.boxList[saveNum].SetValue(setValueString.rpartition(",")[0])
+            return errorString
+        
+    def checkRegionsBox(self, boxValue):
+        setValueString = ""
+        tempString = ""
+        if boxValue == "":
+            InvalidParameter(boxValue, self, -1, str="emptyReg")
+            return False
+        splitSets = boxValue.split(";")
+        checkSet = self.paths.boxList[3].GetValue().strip().split(",")
+        try:
+            if len(splitSets[0].split(",")) == 1 and len(splitSets[1]) == 0 and len(splitSets) == 2:
+                setValueString = splitSets[0].strip() + "," + self.paths.boxList[3].GetValue().split(",")[0].strip() + ";"
+            elif splitSets[0].split(",")[1].strip() == "" and len(splitSets[1]) == 0 and len(splitSets) == 2:
+                if splitSets[0].split(",")[0].strip().lower().endswith(".reg") != True or \
+                   len(glob(splitSets[0].split(",")[0])) != 1:
+                    InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0]
+                                     + "\nReference: " + splitSets[0].split(",")[1], self, -1, str="invalidReg")
+                    return False
+                setValueString = splitSets[0].split(",")[0].strip() + "," + \
+                                 self.paths.boxList[3].GetValue().split(",")[0].strip() + ";"
+            else:
+                try:
+                    for eachSet in splitSets:
+                        if eachSet != "":
+                            tempString = "tempReg"
+                            tempReg = eachSet.split(",")[0].strip()
+                            tempString = "tempRef"
+                            tempRef = eachSet.split(",")[1].strip()
+                            if len(glob(tempReg)) != 1 or tempReg.lower().endswith(".reg") == False:
+                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidReg")
+                                return False
+                            elif len(glob(tempRef)) != 1 or (tempRef.lower().endswith(".fits") == False and 
+                                                             tempRef.lower().endswith(".fit") == False):
+                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRef")
+                                return False
+                            elif all(tempRef != temp for temp in checkSet):
+                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRefExist")
+                                return False
+                            setValueString += tempReg + "," + tempRef + ";"
+                except IndexError:
+                    if tempString == "tempReg":
+                        tempReg = ""
+                    elif tempString == "tempRef":
+                        tempRef = ""
+                    if len(eachSet.split(",")) == 1:
+                        InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="outofbounds")
+                        return False
+        except IndexError:
+            if splitSets[0].split(",")[0].strip().lower().endswith(".reg") != True or \
+                   len(glob(splitSets[0].split(",")[0])) != 1:
+                InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0] 
+                                 + "\nReference: " + splitSets[0].split(",")[1], self, -1, str="invalidReg")
+                return False
+            setValueString = splitSets[0].split(",")[0].strip() + "," + \
+                             self.paths.boxList[3].GetValue().split(",")[0].strip()
+            splitSets[0] = setValueString
+            setValueString = ""
+            try:
+                for eachSet in splitSets:
+                    if eachSet != "":
+                        tempString = "tempReg"
+                        tempReg = eachSet.split(",")[0].strip()
+                        tempString = "tempRef"
+                        tempRef = eachSet.split(",")[1].strip()
+                        if len(glob(tempReg)) != 1 or tempReg.lower().endswith(".reg") == False:
+                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidReg")
+                            return False
+                        elif len(glob(tempRef)) != 1 or (tempRef.lower().endswith(".fits") == False and 
+                                                         tempRef.lower().endswith(".fit") == False):
+                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRef")
+                            return False
+                        elif all(tempRef != temp for temp in checkSet):
+                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRefExist")
+                            return False
+                        setValueString += tempReg + "," + tempRef + ";"
+            except IndexError:
+                if tempString == "tempReg":
+                    tempReg = ""
+                elif tempString == "tempRef":
+                    tempRef = ""
+                if len(eachSet.split(",")) == 1:
+                    InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="outofbounds")
+                    return False
+        array = []
+        dict = {}
+        for eachSet in setValueString.split(";"):
+            if len(eachSet.split(",")) != 1:
+                reg = eachSet.split(",")[0]
+                ref = eachSet.split(",")[1]
+                try:
+                    temp = array.index(ref)
+                    if dict[ref] != reg:
+                        tempString = "\nRegions: " + reg + "\nReference: " + ref + "\nBecause ---" + "\nRegions: " + \
+                        dict[ref] + "\nIs already associated with the reference file."
+                        InvalidParameter(tempString, self, -1, str="referenceImageDup")
+                        return False
+                except ValueError:
+                    array.append(ref)
+                    dict[ref] = reg
+        self.paths.boxList[4].SetValue(setValueString)
+        return True
     
     def singularExistance(self, event, value, name):
 
@@ -549,7 +676,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 except errorType:
                     self.ds9Open = True
                     InvalidParameter("", self, -1, str="ds9")
-
+            elif name == "extra":
+                invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
+                if invalidDataImages != "":
+                    InvalidParameter(invalidDataImages, self, -1, str="fits", max="the path to Data Images")
+                elif self.checkRegionsBox(self.paths.boxList[4].GetValue()) == True:
+                    ExtraRegions(self,-1)
+                    self.extraRegionsOpen = True
+                    
     def parseTime(self, date, time, text, filename, name=""):
         
         dateArr = str(date).split('/')
@@ -570,7 +704,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     def createFrame(self):
         if self.loadFittingOpen == False:
-            if not self.outputFile.endswith(".pkl"):
+            if not self.outputFile.lower().endswith(".pkl"):
                 FittingFrame(self, -1, self.outputFile + ".pkl")
                 self.loadFittingOpen = True
             else:
@@ -583,6 +717,179 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     def on_exit(self, event):
         self.Destroy()
 
+class ExtraRegions(wx.Frame):
+
+    def __init__(self, parent, id):
+
+        if sys.platform == "win32":
+            self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        else: 
+            self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+
+        wx.Frame.__init__(self, parent, id, "Extra Regions Files")
+        self.panel = wx.Panel(self)
+        self.parent = parent
+        
+        self.titlebox = wx.StaticText(self.panel, -1, "Extra Regions Files")
+        self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        self.titlebox.SetFont(self.titleFont)
+        self.set1 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
+                            hNum=5, str="Browse", boxName ="Set 1", font=self.fontType)
+        self.set2 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
+                             hNum=5, str="Browse", boxName="Set 2", font=self.fontType)
+        self.set3 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
+                             hNum=5, str="Browse", boxName="Set 3", font=self.fontType)
+        self.set4 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
+                            hNum=5, str="Browse", boxName="Set 4", font=self.fontType)
+        self.set5 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
+                            hNum=5, str="Browse", boxName="Set 5", font=self.fontType)
+        self.addSet1= wx.Button(self.panel, -1, label = "Add Set 1")
+        self.Bind(wx.EVT_BUTTON, lambda evt, lambdaStr=self.addSet1.Label: self.addSet(evt,lambdaStr), self.addSet1)
+        self.addSet2= wx.Button(self.panel, -1, label = "Add Set 2")
+        self.Bind(wx.EVT_BUTTON, lambda evt, lambdaStr=self.addSet2.Label: self.addSet(evt,lambdaStr), self.addSet2)
+        self.addSet3= wx.Button(self.panel, -1, label = "Add Set 3")
+        self.Bind(wx.EVT_BUTTON, lambda evt, lambdaStr=self.addSet3.Label: self.addSet(evt,lambdaStr), self.addSet3)
+        self.addSet4= wx.Button(self.panel, -1, label = "Add Set 4")
+        self.Bind(wx.EVT_BUTTON, lambda evt, lambdaStr=self.addSet4.Label: self.addSet(evt,lambdaStr), self.addSet4)
+        self.addSet5= wx.Button(self.panel, -1, label = "Add Set 5")
+        self.Bind(wx.EVT_BUTTON, lambda evt, lambdaStr=self.addSet5.Label: self.addSet(evt,lambdaStr), self.addSet5)
+        
+        self.vbox2 = wx.BoxSizer(wx.VERTICAL)
+        self.vbox2.Add(self.addSet1, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 35)
+        self.vbox2.Add(self.addSet2, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 35)
+        self.vbox2.Add(self.addSet3, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 35)
+        self.vbox2.Add(self.addSet4, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 35)
+        self.vbox2.Add(self.addSet5, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 35)
+        
+        self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox1.Add(self.set1, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox1.Add(self.addSet1, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.set2, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox2.Add(self.addSet2, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox3.Add(self.set3, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox3.Add(self.addSet3, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox4.Add(self.set4, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox4.Add(self.addSet4, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox5.Add(self.set5, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox5.Add(self.addSet5, 0, flag=wx.ALIGN_CENTER | wx.ALL, border = 5)
+        
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.titlebox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.vbox.Add(self.hbox1, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)
+        self.vbox.Add(self.hbox2, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)
+        self.vbox.Add(self.hbox3, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)
+        self.vbox.Add(self.hbox4, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)       
+        self.vbox.Add(self.hbox5, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.create_menu()
+        self.CreateStatusBar()
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()
+    
+    def addSet(self,event, stringName):
+        if stringName == "Add Set 1":
+            useSet = self.set1
+        elif stringName == "Add Set 2":
+            useSet = self.set2
+        elif stringName == "Add Set 3":
+            useSet = self.set3
+        elif stringName == "Add Set 4":
+            useSet = self.set4
+        elif stringName == "Add Set 5":
+            useSet = self.set5
+        regions = useSet.boxList[1].GetValue().strip()
+        reference = useSet.boxList[2].GetValue().strip()
+        if self.SetCheck(regions, reference) == True:
+            
+            useSet.boxList[1].SetValue(regions)
+            useSet.boxList[2].SetValue(reference)
+            setString = regions + "," + reference
+            dataImages = self.parent.paths.boxList[3].GetValue().strip().split(",")
+            regionsBox = self.parent.paths.boxList[4].GetValue()
+            uniqueSet = True
+            uniqueReg = True
+            uniqueRef = True
+    
+            for eachSet in regionsBox.split(";"):
+                if len(eachSet.split(",")) == 2:
+                    tempReg = eachSet.split(",")[0].strip()
+                    tempRef = eachSet.split(",")[1].strip()
+                    if tempRef == reference and tempReg != regions:
+                        uniqueRef = False
+                        break
+
+            if uniqueRef == False:
+                tempString = "\nRegions: " + regions + "\nReference: " + reference + "\nBecause ---" + "\nRegions: " + \
+                             tempReg + "\nIs already associated with the reference file."
+                InvalidParameter(tempString, self, -1, str="referenceImageDup")
+            elif all(reference != temp for temp in dataImages):
+                InvalidParameter("\nRegions: "+ regions + "\nReference: " + reference, self, -1, str="invalidRefExist")
+            else:
+                regionsBox += setString + ";"
+                self.parent.paths.boxList[4].SetValue(regionsBox)
+                InvalidParameter("", self, -1, str="regionsUpdate")
+    
+    def SetCheck(self, reg, ref):
+        if reg == "":
+            InvalidParameter(reg, self, -1, str="regionsError1")
+            return False
+        elif ref == "":
+            InvalidParameter(ref, self, -1, str="regionsError1")
+            return False
+
+        if len(glob(reg)) != 1:
+            tempString = reg
+            if len(reg.split(",")) > 1:
+                tempString = ""
+                for string in reg.split(","):
+                    if string == "" and len(masterFlat.split(",")) == 2:
+                        tempString += ","
+                    else:
+                        tempString += "\n" + string.strip()
+            InvalidParameter(tempString, self, -1, str="regionsError2")
+            return False
+        elif len(glob(ref)) != 1:
+            tempString = ref
+            if len(ref.split(",")) > 1:
+                tempString = ""
+                for string in ref.split(","):
+                    if string == "" and len(masterFlat.split(",")) == 2:
+                        tempString += ","
+                    else:
+                        tempString += "\n" + string.strip()
+            InvalidParameter(tempString, self, -1, str="regionsError2")
+            return False
+        elif reg.lower().endswith(".reg") == False:
+            InvalidParameter(reg, self, -1, str="regionsError3")
+            return False
+        elif ref.lower().endswith(".fits") == False and ref.lower().endswith(".fit") == False:
+            InvalidParameter(ref, self, -1, str="regionsError4")
+            return False
+        return True        
+
+    def create_menu(self):
+          
+        menubar = wx.MenuBar()
+        menu_file = wx.Menu()
+        m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_quit)
+    
+        menubar.Append(menu_file, "File")
+        self.SetMenuBar(menubar)
+    
+    def on_exit(self,event):
+        self.Destroy()
+
+    def onDestroy(self,event):
+        self.parent.extraRegionsOpen = False
+
 class MasterFlatFrame(wx.Frame):
     def __init__(self, parent, id):
         
@@ -594,9 +901,9 @@ class MasterFlatFrame(wx.Frame):
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
         
-        self.path1 = AddLCB(self.panel, -1, name = "Path to Flat Images: ", str = "Browse")
-        self.path2 = AddLCB(self.panel, -1, name = "Path to Dark Flat Images: ",str = "Browse")
-        self.path3 = AddLCB(self.panel, -1, name = "Path to Save Master Flat: ", str = "Browse")
+        self.path1 = AddLCB(self.panel, -1, name="Path to Flat Images: ", str="Browse", multFiles=True, saveType=None)
+        self.path2 = AddLCB(self.panel, -1, name="Path to Dark Flat Images: ", str="Browse", multFiles=True, saveType=None)
+        self.path3 = AddLCB(self.panel, -1, name="Path to Save Master Flat: ", str="Browse", saveType=wx.FD_SAVE)
         
         list = [('trackPlot',"","none",'')]
         self.plotBox = ParameterBox(self.panel,-1,list, name = "Plots")
@@ -627,24 +934,26 @@ class MasterFlatFrame(wx.Frame):
 
     def run(self,event):
         
-        path = self.path3.txtbox.GetValue()
-        self.flatImages = []
-        self.darkFlatImages = []
-        for pathname in self.path1.txtbox.GetValue().split(','):
-            self.flatImages += glob(pathname)
-        for pathname in self.path2.txtbox.GetValue().split(','):
-            self.darkFlatImages += glob(pathname)
-        if not self.flatImages:
-            InvalidParameter(str(self.path1.txtbox.GetValue()), None, -1, str="flat1")
-        elif not self.darkFlatImages:
-            InvalidParameter(str(self.path2.txtbox.GetValue()), None, -1, str="flat2")
+        path = self.path3.boxList[1].GetValue().strip()
+        self.flatImages = self.checkFileInputs(self.path1.boxList[1].GetValue(), self.path1.boxList[1])
+        self.darkFlatImages = self.checkFileInputs(self.path2.boxList[1].GetValue(), self.path2.boxList[1])
+        if self.flatImages != "":
+            InvalidParameter(self.flatImages, None, -1, str="flat1")
+        elif self.darkFlatImages != "":
+            InvalidParameter(self.darkFlatImages, None, -1, str="flat2")
         elif not path:
             InvalidParameter(str(path), None, -1, str="flat3")
         elif not os.path.isdir(path[path.rfind(os.sep)]) or \
              not len(path) > (len(path[:path.rfind(os.sep)]) + 1):
             InvalidParameter(path, None, -1, str="flat3")
         else:
-            if not path.endswith('.fits') and not path.endswith('.fit'):
+            self.flatImages = []
+            self.darkFlatImages = []
+            for pathname in self.path1.boxList[1].GetValue().split(','):
+                self.flatImages += glob(pathname)
+            for pathname in self.path2.boxList[1].GetValue().split(','):
+                self.darkFlatImages += glob(pathname)
+            if not path.lower().endswith('.fits') and not path.lower().endswith('.fit'):
                 path += '.fits'
             pathCorrected = path.replace('/', os.sep)
             outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
@@ -655,11 +964,56 @@ class MasterFlatFrame(wx.Frame):
                     self.overWrite = True
             else:
                 if self.flatBox.userParams['flatType'].GetValue() == True:
-                    systematics.standardFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
+                    systematics.standardFlatMaker(self.flatImages, self.darkFlatImages, self.path3.boxList[1].GetValue(),
                                               self.plotCheck)
                 else:
-                    systematics.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.txtbox.GetValue(),
+                    systematics.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.boxList[1].GetValue(),
                                               self.plotCheck)
+    def checkFileInputs(self,array,box):
+        errorString = ""
+        setValueString = ""
+        array2 = []
+        smallArray = ""
+        for element in array.split(","):
+            element = element.strip()
+            if element.lower().endswith(os.sep):
+                tempElement = element + "*.fit"
+                element += "*.fits"
+                smallArray = "-1"
+            if smallArray == "":
+                if len(glob(element)) < 1:
+                    errorString += element
+                elif len(glob(element)) > 1:
+                    for element2 in glob(element):
+                        if element2.lower().endswith(".fit") or element2.lower().endswith(".fits"):
+                            array2.append(element2)
+                        else:
+                            errorString += "\n" + element2
+                elif not element.lower().endswith(".fit") and not element.lower().endswith(".fits"):
+                    errorString += "\n" + element
+                else:
+                    array2.append(glob(element)[0])
+            else:
+                if len(glob(tempElement)) < 1 and len(glob(element)) < 1:
+                    errorString += "\n" + tempElement + ",\n" + element
+                else:
+                    if len(glob(tempElement)) >= 1:
+                        for element2 in glob(tempElement):
+                            array2.append(element2)
+                    if len(glob(element)) >= 1:
+                        for element2 in glob(element):
+                            array2.append(element2)
+        if not array:
+            return "No Values Entered"
+        else:
+            if errorString == "":
+                setValueString = ""
+                uniqueArray = np.unique(array2).tolist()
+                for eachString in uniqueArray:
+                    setValueString += eachString + ","
+                box.SetValue(setValueString.rpartition(",")[0])
+            return errorString
+
     def create_menu(self):
           
         menubar = wx.MenuBar()
@@ -710,7 +1064,8 @@ class AboutFrame(wx.Frame):
         
         self.viewRepoButton = wx.Button(self.panel, -1, label = "Open Code Repository (GitHub)")
         self.exitButton = wx.Button(self.panel, -1, label = "Close")
-        self.Bind(wx.EVT_BUTTON, lambda evt: self.parent.openLink(evt, "https://github.com/OSCAAR/OSCAAR"), self.viewRepoButton)
+        self.Bind(wx.EVT_BUTTON, lambda evt: self.parent.openLink(evt, "https://github.com/OSCAAR/OSCAAR"),
+                  self.viewRepoButton)
         self.exitButton.Bind(wx.EVT_BUTTON, self.exit)
         
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -745,7 +1100,7 @@ class OverWrite(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent     
         self.path = path
-        self.paths = wx.StaticText(self.panel, -1, "Are you sure you want to overwrite\n" + self.path + "?")
+        self.text = wx.StaticText(self.panel, -1, "Are you sure you want to overwrite\n" + self.path + "?")
         self.yesButton = wx.Button(self.panel, label = "Yes")
         self.noButton = wx.Button(self.panel,label = "No")
         self.SetFocus()
@@ -762,7 +1117,7 @@ class OverWrite(wx.Frame):
         
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.text,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.buttonBox, 0,wx.ALIGN_CENTER|wx.ALL,5)
         
         self.Bind(wx.EVT_WINDOW_DESTROY, self.doNothing)
@@ -777,10 +1132,10 @@ class OverWrite(wx.Frame):
         os.remove(self.path)
         if self.parent.flatBox.userParams['flatType'].GetValue() == True:
             systematics.standardFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
-                                     self.parent.path3.txtbox.GetValue(), self.parent.plotCheck)
+                                     self.parent.path3.boxList[1].GetValue(), self.parent.plotCheck)
         else:
             systematics.twilightFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
-                                     self.parent.path3.txtbox.GetValue(), self.parent.plotCheck)
+                                     self.parent.path3.boxList[1].GetValue(), self.parent.plotCheck)
     def onOutputFile(self,event):
         self.Destroy()
         self.parent.overWrite = False
@@ -865,7 +1220,8 @@ class EphemerisFrame(wx.Frame):
         
         self.twilightLabel = wx.StaticText(self.panel, -1, "Select Twilight Type: ")
         self.twilightLabel.SetFont(self.fontType)
-        self.twilightList = wx.ComboBox(self.panel, value = "Civil Twilight (-6"u"\u00b0"+")", choices = sorted(self.twilightChoices.keys()))
+        self.twilightList = wx.ComboBox(self.panel, value = "Civil Twilight (-6"u"\u00b0"+")", 
+                                        choices = sorted(self.twilightChoices.keys()))
         
         self.dropBox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.dropBox2.Add(self.twilightLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
@@ -1087,7 +1443,7 @@ class EphemerisFrame(wx.Frame):
                 InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", max = "depth lower limit")
                 return False
 
-        except:
+        except ValueError:
             if tempString == "temperature":
                 InvalidParameter(self.temperature, self, -1, str = "tempElevNum", max = tempString)
             elif tempString == "apparent magnitude upper limit":
@@ -1237,7 +1593,8 @@ class EphemerisFrame(wx.Frame):
             outputPath = dlg.GetPath()
             if self.parameterCheck():
                 self.calculate(None)
-                shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'), outputPath)
+                shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'extras','eph','ephOutputs'),
+                                outputPath)
                 outputArchive = zipfile.ZipFile(outputPath+'.zip', 'w')
                 for name in glob(outputPath+os.sep+'*'):
                     outputArchive.write(name, os.path.basename(name), zipfile.ZIP_DEFLATED)
@@ -1267,7 +1624,7 @@ class FittingFrame(wx.Frame):
         self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
-        self.box.txtbox.SetValue(self.path)
+        self.box.boxList[1].SetValue(self.path)
         
         #self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
         self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
@@ -1282,7 +1639,7 @@ class FittingFrame(wx.Frame):
         #self.sizer0.Add(self.plotLSFitButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         
-        self.pklPathTxt = self.box.txtbox
+        self.pklPathTxt = self.box.boxList[1]
         self.create_menu()
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1304,7 +1661,8 @@ class FittingFrame(wx.Frame):
     
         menu_file = wx.Menu()
         m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
-        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,
+                                                                   False,wx.FD_OPEN),m_browse)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -1313,7 +1671,7 @@ class FittingFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):                    
-        if fileDialog:
+        if not fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: 
             dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
@@ -1341,15 +1699,20 @@ class FittingFrame(wx.Frame):
     
     def plotMCMC(self,event):
         if self.validityCheck():
-            self.pathText = self.pklPathTxt.GetValue()
-            if self.loadMCMC == False:
-                MCMCFrame(self, -1)
-                self.loadMCMC = True
+            try:
+                self.pathText = self.pklPathTxt.GetValue()
+                self.data = IO.load(self.pathText)
+                temp = self.data.apertureRadii
+                if self.loadMCMC == False:
+                    MCMCFrame(self, -1)
+                    self.loadMCMC = True
+            except AttributeError:
+                InvalidParameter("", self, -1, str="oldPKL") 
      
     def validityCheck(self):
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
-            if pathName.endswith(".pkl"):
+            if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
                    InvalidParameter(pathName, self, -1, str="path")
                    return False
@@ -1377,8 +1740,9 @@ class LoadOldPklFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.loadGraphFrame = False
+        self.data = ""
         
-        self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File", updateRadii = True)    
+        self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File: ", updateRadii = True)    
          
         self.apertureRadii = []
         self.apertureRadiusIndex = 0
@@ -1442,7 +1806,7 @@ class LoadOldPklFrame(wx.Frame):
         self.sizer0.Add(self.plotComparisonStarWeightingsButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotInteractiveLightCurveButton,0,wx.ALIGN_CENTER|wx.ALL,5)
          
-        self.pklPathTxt = self.box.txtbox
+        self.pklPathTxt = self.box.boxList[1]
         self.create_menu()
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -1464,7 +1828,8 @@ class LoadOldPklFrame(wx.Frame):
     
         menu_file = wx.Menu()
         m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
-        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,True,wx.FD_OPEN),m_browse)
+        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,False,
+                                                                   wx.FD_OPEN),m_browse)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -1473,7 +1838,7 @@ class LoadOldPklFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
-        if fileDialog:
+        if not fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: 
             dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
@@ -1492,14 +1857,14 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck(throwException = False): 
             try:    
                 self.radiusList.Clear()
-                self.data = IO.load(self.box.txtbox.GetValue())
+                self.data = IO.load(self.box.boxList[1].GetValue())
                 self.apertureRadii = np.empty_like(self.data.apertureRadii)
                 self.apertureRadii[:] = self.data.apertureRadii
                 radiiString = [str(x) for x in self.data.apertureRadii]
                 for string in radiiString:
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
-            except:
+            except AttributeError:
                 InvalidParameter("", self, -1, str="oldPKL") 
         
         dlg.Destroy()
@@ -1508,9 +1873,11 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
-            print 'Loading file: '+self.pklPathTxt.GetValue() 
+            print 'Loading file: '+self.pklPathTxt.GetValue()
+            
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotLightCurve(apertureRadiusIndex=%s)" \
-                             % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
+                                % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
+
             subprocess.Popen(['python','-c',commandstring])
 
 
@@ -1522,7 +1889,7 @@ class LoadOldPklFrame(wx.Frame):
 
             commandstring = "import oscaar.IO; data=oscaar.IO.load('%s'); data.plotRawFluxes(apertureRadiusIndex=%s)" \
                                 % (self.pklPathTxt.GetValue(),self.apertureRadiusIndex)
-
+                                
             subprocess.Popen(['python','-c',commandstring])
 
     def plotScaledFluxes(self, event):
@@ -1568,7 +1935,7 @@ class LoadOldPklFrame(wx.Frame):
     def validityCheck(self, throwException=True):
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
-            if pathName.endswith(".pkl"):
+            if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
                     if throwException:
                         InvalidParameter(pathName, self, -1, str="path")
@@ -1593,10 +1960,10 @@ class LoadOldPklFrame(wx.Frame):
         try:
             self.tempNum = np.where(self.epsilonCheck(self.apertureRadii,float(self.radiusList.GetValue())))
             if len(self.tempNum[0]) == 0:
-                tempString = self.radiusList.GetValue() + " not found in " + str(self.apertureRadii)
+                tempString = self.radiusList.GetValue() + " was not found in " + str(self.apertureRadii)
                 InvalidParameter(tempString, self, -1, str = "radiusListError2")
                 return False
-        except:
+        except ValueError:
             InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
             return False
         return True
@@ -1605,14 +1972,14 @@ class LoadOldPklFrame(wx.Frame):
         if self.validityCheck():
             try:
                 self.radiusList.Clear()
-                self.data = IO.load(self.box.txtbox.GetValue())
+                self.data = IO.load(self.box.boxList[1].GetValue())
                 self.apertureRadii = np.empty_like(self.data.apertureRadii)
                 self.apertureRadii[:] = self.data.apertureRadii
                 radiiString = [str(x) for x in self.data.apertureRadii]
                 for string in radiiString:
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
-            except:
+            except AttributeError:
                 InvalidParameter("", self, -1, str="oldPKL") 
 
     def epsilonCheck(self,a,b):
@@ -1623,7 +1990,8 @@ class LoadOldPklFrame(wx.Frame):
         return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusIndexUpdate(self, event):
-        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]#map(float,self.apertureRadii) == float(self.radiusList.GetValue()))[0][0]
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+        #map(float,self.apertureRadii) == float(self.radiusList.GetValue()))[0][0]
         
     def onDestroy(self, event):
         self.parent.loadOldPklOpen = False
@@ -1642,7 +2010,8 @@ class GraphFrame(wx.Frame):
     
         # This initializes the wx.frame with the title.
         
-        wx.Frame.__init__(self, parent, id, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+        wx.Frame.__init__(self, parent, id, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | 
+                                                                                            wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
         #wx.Frame(None, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         
         # This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
@@ -1710,7 +2079,8 @@ class GraphFrame(wx.Frame):
         # Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
         # to plot it.
 
-        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],self.pointsPerBin)
+        binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
+                                                      self.pointsPerBin)
         self.fig = pyplot.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         self.dpi = 100
         self.axes = self.fig.add_subplot(111)
@@ -1725,7 +2095,7 @@ class GraphFrame(wx.Frame):
         self.axes.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         self.axes.axvline(ymin=0,ymax=1,x=self.data.ingress,color='k',ls=':')
         self.axes.axvline(ymin=0,ymax=1,x=self.data.egress,color='k',ls=':')
-        self.axes.set_title('Light Curve')
+        self.axes.set_title(('Light curve for aperture radius %s' % self.data.apertureRadii[self.apertureRadiusIndex]))
         self.axes.set_xlabel('Time (JD)')
         self.axes.set_ylabel('Relative Flux')
 
@@ -1745,7 +2115,8 @@ class GraphFrame(wx.Frame):
             self.plotTitle = self.box.userinfo['title'].GetValue()
             self.pointsPerBin = int(self.box.userinfo['bin'].GetValue())
             
-            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],self.pointsPerBin)
+            binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
+                                                          self.pointsPerBin)
            
             if sys.platform == 'win32': 
                 self.fig = pyplot.figure(num=None, figsize=(10, 6.75), facecolor='w',edgecolor='k')
@@ -1913,14 +2284,14 @@ class LeastSquaresFitFrame(wx.Frame):
 #                 float(self.box.GetPericenter()),float(self.box.GetGamma1()),float(self.box.GetGamma2()), plotting=False)
 
     def update(self,event):
-        if self.box1.txtbox.GetValue() == '':
-            InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
+        if self.box1.boxList[1].GetValue() == '':
+            InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, str="planet")
         else:
-            self.planet = self.box1.txtbox.GetValue()
+            self.planet = self.box1.boxList[1].GetValue()
             [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
             if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
-                InvalidParameter(self.box1.txtbox.GetValue(), None,-1, str="planet")
+                InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, str="planet")
             else:
                 self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
                 self.box.userParams['a/Rs'].SetValue(str(AOverRs))
@@ -1959,14 +2330,13 @@ class MCMCFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         self.parent = parent
-        self.pT = parent.pathText
-        self.data = IO.load(self.pT)
+        self.pT = self.parent.pathText
+        self.data = self.parent.data
         
         self.LCB = AddLCB(self.panel,-1,name="planet")
         self.Bind(wx.EVT_BUTTON,self.update,self.LCB.updateButton)
-        
+
         radiiString = [str(x) for x in self.data.apertureRadii]
-        
         self.apertureRadiusIndex = 0
         self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
         self.radiusList = wx.ComboBox(self.panel, value = str(self.data.apertureRadii[0]), choices = radiiString)
@@ -2085,8 +2455,7 @@ class MCMCFrame(wx.Frame):
             "saveiteration"), (self.box4.userParams['acceptance'].GetValue(),"acceptance"),
             (self.box4.userParams['burnfrac'].GetValue(),"burnfrac"), (self.box4.userParams['number'].GetValue(),"number")]
        
-       if checkParams(self,list) == True:
-            path = self.pT
+       if checkParams(self,list) == True and self.radiusCheck() == True:
             initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
                           float(self.box3.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
                           float(self.box3.userParams['gamma1'].GetValue()),float(self.box3.userParams['gamma2'].GetValue()),
@@ -2094,31 +2463,49 @@ class MCMCFrame(wx.Frame):
                           float(self.box.userParams['t0'].GetValue())]
             apertureRadius = 4.5
             nSteps = float(self.box4.userParams['number'].GetValue())
-            initBeta = (np.zeros([4]) + 0.012).tolist()        ## << The .tolist() method type casts the Numpy ndarray into a python list
+            initBeta = (np.zeros([4]) + 0.012).tolist()        
+            ## << The .tolist() method type casts the Numpy ndarray into a python list
     #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
     #                     int(self.box2.userParams['b-inc'].GetValue()), int(self.box2.userParams['b-t0'].GetValue())]
             
             idealAcceptanceRate = float(self.box4.userParams['acceptance'].GetValue())
             interval = float(self.box4.userParams['saveiteration'].GetValue())
             burnFraction = float(self.box4.userParams['burnfrac'].GetValue())
-            #mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction)
+            #mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,
+            #burnFraction)
             #mcmcinstance.run(updatepkl=True)
             #mcmcinstance.plot()
             
             ## Spawn a new process to execute the MCMC run separately
             mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, num=%s); mcmcinstance.plot(num=%s)' % \
-                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,self.apertureRadiusIndex,self.apertureRadiusIndex)
+                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
+                         self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.call(['python','-c',mcmcCall])
 
+    def radiusCheck(self):
+        if self.radiusList.GetValue() == "":
+            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            return False
+        try:
+            self.tempNum = np.where(self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue())))
+            if len(self.tempNum[0]) == 0:
+                tempString = self.radiusList.GetValue() + " was not found in " + str(self.data.apertureRadii)
+                InvalidParameter(tempString, self, -1, str = "radiusListError2")
+                return False
+        except ValueError:
+            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            return False
+        return True
+
     def update(self,event):
-        if self.LCB.txtbox.GetValue() == '':
-            InvalidParameter(self.LCB.txtbox.GetValue(), None,-1, str="planet")
+        if self.LCB.boxList[1].GetValue() == '':
+            InvalidParameter(self.LCB.boxList[1].GetValue(), None,-1, str="planet")
         else:
-            self.planet = self.LCB.txtbox.GetValue()
+            self.planet = self.LCB.boxList[1].GetValue()
             [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
             if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
-                InvalidParameter(self.LCB.txtbox.GetValue(), None,-1, str="planet")
+                InvalidParameter(self.LCB.boxList[1].GetValue(), None,-1, str="planet")
             else:
                 self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
                 self.box.userParams['a/Rs'].SetValue(str(AOverRs))
@@ -2127,14 +2514,16 @@ class MCMCFrame(wx.Frame):
                 self.box3.userParams['ecc'].SetValue(str(ecc))
                 InvalidParameter("",None,-1, str="params")
 
-    def epsilonCheck(self,a,b,rtol=1e-5,atol=1e-8):
-        try:
-            return np.abs(a-b)<(atol+rtol*np.abs(b))
-        except TypeError:
-            return False
+    def epsilonCheck(self,a,b):
+        ''' Check variables `a` and `b` are within machine precision of each other
+            because otherwise we get machine precision difference errors when mixing
+            single and double precion NumPy floats and pure Python built-in float types.
+        '''
+        return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusUpdate(self, event):
-        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.data.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.data.apertureRadii,
+                                                              float(self.radiusList.GetValue())))[0][0]
         
     def on_exit(self, event):
         self.Destroy()
@@ -2199,92 +2588,74 @@ class ParameterBox(wx.Panel):
 
 class AddLCB(wx.Panel):
             
-        def __init__(self, parent,id, parent2 = None, name = '', str = "Browse\t (Cntrl-O)",
-                     rowNum = 1, colNum = 3, vNum = 0, hNum = 0, font = wx.NORMAL_FONT, updateRadii = False):
-            wx.Panel.__init__(self,parent,id)
+        def __init__(self, parent, id, parent2=None, name='', str ="Browse\t (Cntrl-O)", multFiles=False, rowNum=1, colNum=3,
+                     vNum=0, hNum=0, font=wx.NORMAL_FONT, updateRadii=False, boxName="", height=20, saveType=wx.FD_OPEN):
             
-            box1 = wx.StaticBox(self, -1)
+            wx.Panel.__init__(self,parent,id)
+            box1 = wx.StaticBox(self, -1, boxName)
+            box1.SetFont(font)
             sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
             self.parent = parent2
-
+            self.boxList = {}
+            self.buttonList = {}
             sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-            
-            if name != "mainGUI":
-                if name == 'planet':
+            iterationNumber = 0
+            if name == "mainGUI":
+                name = "Path to Dark Frames: ,Path to Master Flat: ,Path to Data Images: ,Path to Regions File: ," + \
+                        "Output Path: "
+            for eachName in name.split(","):
+                if sys.platform != "win32":
+                    if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: ":
+                        height = 35
+                    else:
+                        height = 25
+                if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: " or eachName == "Path to "+\
+                               "Regions File: ":
+                    if name == "mainGUI":
+                        multFiles = True
+                        saveType = None
+                elif eachName == "Path to Master Flat: ":
+                    multFiles = False
+                    saveType = wx.FD_OPEN
+                elif eachName == "Output Path: ":
+                    multFiles = False
+                    saveType = wx.FD_SAVE
+                iterationNumber += 1
+                if eachName == 'planet':
                     self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
-                    self.txtbox = wx.TextCtrl(self, -1, value='GJ 1214 b')
-                    self.txtbox.SetToolTipString('Enter the name of a planet from the exoplanet.org database here.')
+                    self.label.SetFont(font)
+                    self.boxList[iterationNumber] = wx.TextCtrl(self, -1, value='GJ 1214 b', style=wx.TE_RICH)
+                    self.boxList[iterationNumber].SetToolTipString("Enter the name of a planet from the" +\
+                                                              "exoplanet.org database here.")
                 else:
-                    self.label = wx.StaticText(self, -1, name, style=wx.ALIGN_CENTER)
-                    self.txtbox = wx.TextCtrl(self, -1, size=(500,20))
+                    self.label = wx.StaticText(self, -1, eachName, style=wx.ALIGN_CENTER)
+                    self.label.SetFont(font)
+                    self.boxList[iterationNumber] = wx.TextCtrl(self, -1, size=(500,height), style=wx.TE_RICH)
+
                 sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                sizer0.Add(self.txtbox, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+                sizer0.Add(self.boxList[iterationNumber], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
                 
-                if name == 'planet':
+                if eachName == 'planet':
                     self.updateButton = wx.Button(self, -1, "Update Parameters")
                     sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
                 else:
                     if sys.platform != 'win32':
                         if str == "Browse\t (Cntrl-O)":
                             str = "Browse\t("+u'\u2318'"-O)"
-                        self.browseButton = wx.Button(self, -1, str)
+                        self.buttonList[iterationNumber] = wx.Button(self, -1, str)
                     else:
-                        self.browseButton = wx.Button(self, -1, str)
-                    self.Bind(wx.EVT_BUTTON, lambda event:self.browseButtonEvent(event,"Choose Path to Output File",
-                                                                                 True,wx.FD_OPEN, 
-                                                                                 textControl = self.txtbox,update=updateRadii))
-                    sizer0.Add(self.browseButton,0,wx.ALIGN_CENTRE|wx.ALL,0)
-            else:
-                list = ["Path to Dark Frames: ", "Path to Master Flat: ", "Path to Data Images: ", "Path to Regions File: ",
-                        "Output Path: "]
-                if sys.platform == "win32":
-                    tempSize1 = 20
-                    tempSize2 = 20
-                else:
-                    tempSize1 = 35
-                    tempSize2 = 25
-                box0 = wx.TextCtrl(self, -1, size=(500,tempSize1), style = wx.TE_RICH)
-                box1 = wx.TextCtrl(self, -1, size=(500,tempSize2), style = wx.TE_RICH)
-                box2 = wx.TextCtrl(self, -1, size=(500,tempSize1), style = wx.TE_RICH)
-                box3 = wx.TextCtrl(self, -1, size=(500,tempSize2), style = wx.TE_RICH)
-                box4 = wx.TextCtrl(self, -1, size=(500,tempSize2))
-                self.boxes = [box0,box1,box2,box3,box4]
-               
-                list = [("Path to Dark Frames: ",0), ("Path to Master Flat: ",1), ("Path to Data Images: ",2),
-                        ("Path to Regions File: ",3), ("Output Path: ",4)]
-                
-                for (name,num) in list:
-                    box = self.boxes[num]
-                    self.label = wx.StaticText(self, -1, name, style=wx.ALIGN_CENTER)
-                    self.label.SetFont(font)
-                    sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                    sizer0.Add(box, 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                    button = wx.Button(self, -1, "Browse")
-                    if name == "Path to Dark Frames: ":
-                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      False,None,textControlNum = 0))
-                    elif name == "Path to Master Flat: ":
-                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      True,wx.FD_OPEN,textControlNum = 1))
-                    elif name == "Path to Data Images: ":
-                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      False,None,textControlNum = 2))
-                    elif name == "Path to Regions File: ":
-                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      True,wx.FD_OPEN,textControlNum = 3))
-                    elif name == "Output Path: ":
-                        button.Bind(wx.EVT_BUTTON, lambda evt: self.browseButtonEvent(evt,"Choose "+name,
-                                                                                      True,wx.FD_SAVE,textControlNum = 4))
-                    sizer0.Add(button,0,wx.ALIGN_CENTRE|wx.ALL,0)
-                    
+                        self.buttonList[iterationNumber] = wx.Button(self, -1, str)
+                    self.buttonList[iterationNumber].Bind(wx.EVT_BUTTON, lambda event, lambdaIter = iterationNumber,
+                                                          lambdaMult = multFiles, lambdaSave = saveType:
+                    self.browseButtonEvent(event, "Choose Path(s) to File(s)",self.boxList[lambdaIter], lambdaMult,
+                                           lambdaSave, update=updateRadii))
+                    sizer0.Add(self.buttonList[iterationNumber],0,wx.ALIGN_CENTRE|wx.ALL,0)         
             self.SetSizer(sizer)
             sizer.Fit(self)
 
-        def browseButtonEvent(self, event, message, fileDialog, saveDialog, textControl = '', textControlNum = -1, update=False):
-            if textControlNum != -1:
-                textControl = self.boxes[textControlNum]
-            if fileDialog:
+        def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog, update=False):
+            if not fileDialog:
                 dlg = wx.FileDialog(self, message = message, style = saveDialog)
             else: 
                 dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
@@ -2304,17 +2675,17 @@ class AddLCB(wx.Panel):
                 try:
                     if self.parent.validityCheck(throwException = False):
                         self.parent.radiusList.Clear()
-                        self.data = IO.load(self.parent.box.txtbox.GetValue())
-                        self.parent.apertureRadii = np.empty_like(self.data.apertureRadii)
-                        self.parent.apertureRadii[:] = self.data.apertureRadii
-                        radiiString = [str(x) for x in self.data.apertureRadii]
+                        self.parent.data = IO.load(self.parent.box.boxList[1].GetValue())
+                        self.parent.apertureRadii = np.empty_like(self.parent.data.apertureRadii)
+                        self.parent.apertureRadii[:] = self.parent.data.apertureRadii
+                        radiiString = [str(x) for x in self.parent.data.apertureRadii]
                         for string in radiiString:
                             self.parent.radiusList.Append(string)
                         self.parent.radiusList.SetValue(radiiString[0])
-                except:
+                except AttributeError:
                     InvalidParameter("", self, -1, str="oldPKL") 
                 
-            dlg.Destroy() 
+            dlg.Destroy()
 
 class ScanParamsBox(wx.Panel):
     
@@ -2427,9 +2798,11 @@ class InvalidParameter(wx.Frame):
             self.SetTitle("Fitting Frame Open Error")
         elif str == "warnError":
             self.SetTitle("Warning about local times!")
+        elif str == "regionsUpdate":
+            self.SetTitle("Regions File Set Added!")
 
         self.panel = wx.Panel(self)
-        self.string = "Incorrect"
+        self.string = "invalid"
         
         if max != '0':
             self.string = "The bin size must be between 5 and "+max+"."
@@ -2538,41 +2911,70 @@ class InvalidParameter(wx.Frame):
                           "Please pick a radius from the approved radii in the drop down menu."
         elif str == "utZone":
             self.string = "The time zone must be between -12 and 12. Please choose one from the drop down menu."
-            
+        elif str == "regionsError1":
+            self.string = "Either the regions file or reference file for this set is empty. You cannot add an " + \
+                          "extra\nregions file without a referenced data image."
+        elif str == "regionsError2":
+            self.string = "You have entered a filename that does not exist or more than one file. There can " + \
+                          "only be one regions file\nand one reference file entered at a time for a set."
+        elif str == "regionsError3":
+            self.string = "The regions file must be a valid .reg file."
+        elif str == "regionsError4":
+            self.string = "The reference file must be a valid .fits or .fit file."
+        elif str == "emptyReg":
+            self.string = "You must enter a regions file. If you wish you can enter additional sets of regions " + \
+                          "files\nafter at least one has been entered."
+        elif str == "invalidReg":
+            self.string = "This regions file was not found, or is not a vaild .reg file."
+        elif str == "invalidRef":
+            self.string = "This reference file was not found, or is not a valid .fits or .fit file."
+        elif str == "invalidRefExist":
+            self.string = "This reference file was not found in the list of data images. Please add it to the list of" + \
+                          "data images and try again."
+        elif str == "outofbounds":
+            self.string = "You must enter extra regions files as sets with a reference file. The format is " + \
+                          "\"regionsFiles,referenceFile;\"."
+        elif str == "referenceImageDup":
+            self.string = "The reference image you have listed in this set is already assigned to another regions file."
+
         self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
         
         if str == "path":
-            self.paths = wx.StaticText(self.panel, -1, "The following is an invalid output path: " + num)
+            self.text = wx.StaticText(self.panel, -1, "The following is an invalid output path: " + num)
         elif str == "params":
-            self.paths = wx.StaticText(self.panel, -1, "The appropriate parameters have been updated.")
+            self.text = wx.StaticText(self.panel, -1, "The appropriate parameters have been updated.")
         elif str == "ds9":
             self.Bind(wx.EVT_WINDOW_DESTROY, self.ds9Error)
-            self.paths = wx.StaticText(self.panel, -1, 
+            self.text = wx.StaticText(self.panel, -1, 
                                        "It seems that ds9 may not have installed correctly, please try again.")
         elif str == "importError":
-            self.paths = wx.StaticText(self.panel, -1, "Failed to import ephem, please try again.")
+            self.text = wx.StaticText(self.panel, -1, "Failed to import ephem, please try again.")
         elif str == "fitOpen":
             self.Bind(wx.EVT_WINDOW_DESTROY, self.fitError)
-            self.paths = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
+            self.text = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
         elif str == "warnError":
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.calculate)
-            self.paths = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
+            self.text = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
                                        "PyEphem's ephem.localtime(\"input\") method. Make sure\nthat this method " + \
                                        "produces the correct local time for yourself. If you don't know how to check " + \
                                        "this, please refer\nto the documentation from the help menu in the main frame. " + \
                                        "This message is shown once per GUI session,\nand will run the calculations " + \
                                        "for the current parameters as soon as you close this window.")
         elif str == "oldPKL":
-            self.paths = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating a new" + \
-                                       " .pkl file from the main frame and try again.")
+            self.text = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating" + \
+                                       " a new .pkl file from the main frame and try again.\nIf this .pkl file is" + \
+                                       " important and cannot be recreated, talk to our developers for information on" + \
+                                       " how to extract \nthe data from the file.")
+        elif str == "regionsUpdate":
+            self.text = wx.StaticText(self.panel, -1, "This set has been added to the list of regions sets in the main GUI.")
         else:
-            self.paths = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
+            self.text = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
         
         self.sizer0 = wx.FlexGridSizer(rows=2, cols=columns) 
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.paths,0,wx.ALIGN_CENTER|wx.ALL,5)
+        self.sizer0.Add(self.text,0,wx.ALIGN_CENTER|wx.ALL,5)
 
         self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
 

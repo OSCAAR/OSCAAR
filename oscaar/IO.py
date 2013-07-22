@@ -64,7 +64,7 @@ def save(data,outputPath):
     if glob(outputPath) > 0 or glob(outputPath+os.sep+'oscaarDataBase.pkl') > 0 or glob(outputPath+'.pkl') > 0: ## Over-write check
         print 'WARNING: could potentially overwrite the most recent oscaarDataBase.pkl'
     
-    if outputPath.endswith('.pkl'):
+    if outputPath.endswith('.pkl') or outputPath.endswith('.PKL'):
         outputName = outputPath
     elif outputPath[-1] == os.sep: 
         outputName = outputPath+'oscaarDataBase.pkl'
