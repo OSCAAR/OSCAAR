@@ -11,7 +11,7 @@ import atexit
 """ Checking for all required packages and if these are recent enough """
 minimum_numpy_version = "1.6"
 minimum_matplotlib_version = "1.0"
-minimum_pyfits_version = "2.4.0" # lower versions may work (not tested)
+minimum_pyfits_version = "3.1.0" # lower versions may work (not tested)
 minimum_scipy_version = "0.10" # lower versions may work (not tested)
 minimum_wxpython_version = "2.0" # lower versions may work (not tested)
 sysplatform = sys.platform
@@ -159,7 +159,7 @@ def to_do_at_exit():
 	del_dir('build')
 	del_dir('OSCAAR.egg-info')
 	
-	if sys.argv[-1] == 'install': 
+	if sys.argv[-1] == 'install' or sys.argv[-2] == 'install' : 
 		del_dir('dist')
 		
 		'Installation finished. Starting DS9 downloader and compile C\n'
