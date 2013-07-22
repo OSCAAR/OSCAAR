@@ -671,7 +671,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     errorType = OSError
                 
                 try:
-                    subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                    #subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                    #                                   'extras','ds9',sys.platform,'ds9')])
+                    subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                        'extras','ds9',sys.platform,'ds9')])
                 except errorType:
                     self.ds9Open = True
