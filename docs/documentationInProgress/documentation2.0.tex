@@ -37,9 +37,16 @@ Development for \oscaar began in the summer of 2011 to take a series of images o
 
 This document is intended to guide you through the observing techniques you need to make your first observations and using \oscaar to analyze them. It is currently still in the process of being written. {\bf This document is a live document, and parts may be incomplete}. We will make a stable version of the documentation for you to refer to as soon as we can!
 
-Here we summarize the contents of this documentation. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:algorithmNotes} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
+Here we summarize the contents of this documentation. Section 1 lists the dependencies required to run OSCAAR and explains how to install OSCAAR on your computer. If you are new to photometry, you may consider reading Section \ref{sec:collectingData}, which will summarize observing techniques to make successful photometric measurements. In Section \ref{sec:run}, we will detail how to run \oscaar from the graphical user interface (GUI) or other ways without directly coding in Python. In Section \ref{sec:algorithmNotes} we discuss the classes and methods that are built into \oscaar that users with programming experience may find useful to design their own analysis tools. 
 
 \subsection{System Requirements} \label{sec:systemRequirements}
+
+\textbf{\oscaar will run on the following operating systems:}
+
+\indent Windows Vista and later \\
+\indent Mac OS 10.6, 10.7 and 10.8 (with caveats) \\
+\indent Ubuntu 12.04 and later or similar \\
+See instructions throughout this section denotated by italics that are specific to certain operating systems.
 
 There are several packages in addition to Python (v2.7) that must be installed on your machine before running \oscaar. They are all free and available for download via links below. We apologize for the number of packages that are necessary to download before using \oscaar, but we think that these packages enable for the most efficient open-source distro that we can provide.  We think you'll find that if you're going to build on the code within \oscaar, this palette of packages provides most of the tools you need for scientific computation in Python. \\ \\
 \noindent
@@ -52,6 +59,16 @@ There are several packages in addition to Python (v2.7) that must be installed o
 \indent \textit{Windows only} --- \href{https://pypi.python.org/pypi/setuptools}{\textbf{setuptools}}: A Python module for installing the \oscaar package\\
 
 \noindent Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in future versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues}).
+
+\texit{Note for Linux Users:} You only need one command to download and install most of the dependencies:
+\begin{verbatim}
+sudo apt-get install python-numpy python-scipy python-matplotlib python-wxgtk2.8
+\end{verbatim}
+The only ones left are PyFITS and PyEphem.
+
+\textit{Note for Mac OS 10.6 and 10.7 Users:} Python will already be installed on your machine, but it likely isn't the most recent version of Python 2.7. Download Python 2.7.X if it's not. Mac OS 10.6 users will also need Xcode, the Apple developer tools app that allows your computer to do things like program for OS X or iOS. Xcode can be downloaded from the App Store for free. However, if you're running OS X 10.6.x and you don't want to upgrade to OS X 10.7 you will need to download the older version of Xcode, v3.2. To do so, visit the Developer Downloads page and search for "Xcode 3.2". You will be prompted for your Apple ID to sign in as an Apple Developer. If you do not have a Developer account, you will need to create one at this stage. This will be a small time commitment. Install this but \textbf{note}: this is a large download, about ~2.4 GB. On OS X 10.7.0 or later, you'll instead need the GCC compiler. Apple provides this in their 'Command Line Tools' at their Developer site. You are now prepared to download Python packages such as PyEphem via their "Source code (.tar.gz)" links. Install them as suggested by each pacakge's INSTALL doc.
+
+\texit{Note for Mac OS 10.8 Users:} When you download python2.7 or any other \oscaar dependencies, there is an error message that pops up because the "GateKeeper", a function added in MacOsX 10.8, will not let you download things from an unidentified source. All of the dependencies have to use solutions found in their ReadMe.txt files to download them because "GateKeeper" will block all the downloads. wxPython can present additional difficulties if you are downloading it on a machine running modern versions of OS X. The standard links to OS X compatible binaries on the wxPython page are misleading. You'll have your best shot at downloading a working version of wxPython for your OS X-running machine if you download the less prominently labeled version "wxPython2.9-osx-cocoa-py2.7". This one is the one to get.
 
 \subsection{Installing \oscaar}
 \oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory, using the command \code{"cd (name of destination directory)"} to move from one directory to another. The command \code{"dir"} will allow you to see what directories are found in the current directory. The command \code{"cd .."} is quite useful for moving back one directory. Once at the ``OSCAAR-master'' directory, type: 
@@ -405,7 +422,7 @@ stars. Figure \ref{fig:rawFluxes} shows the raw fluxes from three simulated star
 
 In order to make a transit light curve, we want to divide each flux measurement of the target star by the flux of a star that has no intrinsic flux variations, and ideally a star of similar spectral type to the target. How are we to know which star is the right one to use as a comparison star? To make matters worse, your detector may not be evenly responsive over the whole of the imaging surface, so stars that fall near or far away from the target star on the detector may be better to use as comparisons than others. 
 
-We often take the mean of a bunch of comparison stars so that they can collectively make a ``composite'' comparison star, or ``mean'' comparison star, in the wording of the name of this algorithm. If one star varies a little bit or falls on a worse part of the detector, it may not introduce significant variability into the mean of the comparison stars since it gets diluted by a the non-varying fluxes of the other stars. 
+We often take the mean of a bunch of comparison stars so that they can collectively make a ``composite'' comparison star, or ``mean'' comparison star, in the wording of the name of this algorithm. If one star varies a little bit or falls on a worse part of the detector, it may not introduce significant variability into the mean of the comparison stars since it gets diluted by all the non-varying fluxes of the other stars. 
 
 Let's consider the case with two comparison stars. Ideally, we would have to perfect comparison stars imaged by a perfect detector. Their spatial positions on the CCD would not affect the measurements of their fluxes and they would have no intrinsic flux variations. In this case, the vector of mean comparison star fluxes $\mathbf{f}_{\bar{C}}$, (though unnecessary) could be produced by taking the fluxes of each comparison star $\mathbf{f}_{C,0}$ and $\mathbf{f}_{C,1}$, and taking the average: 
 \begin{equation} \label{eqn:idealcomps}
@@ -438,7 +455,7 @@ We calculate the light curve vector $\mathbf{f}_{relative}$ by simple division o
 \begin{equation}
 \mathbf{f}_{relative}  = \frac{\mathbf{f}_{T}}{\mathbf{f}_{\bar{C}}}
 \end{equation}
-The errors for each light curve flux are calculated by propagating of uncertainties. If $\sigma \mathbf{f}_{\bar{C}}$ is the vector of uncertainties in the composite comparison star fluxes and $\sigma \mathbf{f}_{T}$ is the vector of uncertainties in the fluxes of the target star, the uncertainties in the light curve fluxes $\sigma \mathbf{f}_{relative}$ are
+The errors for each light curve flux are calculated by propagation of uncertainties. If $\sigma \mathbf{f}_{\bar{C}}$ is the vector of uncertainties in the composite comparison star fluxes and $\sigma \mathbf{f}_{T}$ is the vector of uncertainties in the fluxes of the target star, the uncertainties in the light curve fluxes $\sigma \mathbf{f}_{relative}$ are
 \begin{equation}
 \sigma \mathbf{f}_{relative}  = | \mathbf{f}_{relative} |  \sqrt{ \left(\frac{\sigma \mathbf{f}_{T}}{\mathbf{f}_{T}} \right)^2 + \left(\frac{\sigma \mathbf{f}_{\bar{C}}}{\mathbf{f}_{\bar{C}}} \right)^2 }.
 \end{equation}
