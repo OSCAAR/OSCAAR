@@ -137,5 +137,5 @@ def complile_C():
     
 if __name__ == '__main__':
     complile_C()
-    if 'install' in sys.argv or os.path.abspath(__file__) in sys.argv: 
-        download_ds9()
+    #if 'install' in sys.argv or os.path.abspath(__file__) in sys.argv: 
+    download_ds9()
