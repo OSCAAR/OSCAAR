@@ -22,36 +22,36 @@ def download_ds9():
     
     if os.path.exists(os.path.dirname(oscaardirds9)) == True:
         print "It seems like DS9 is already installed in the OSCAAR directory."
-        print "Press any key to install it again (3s):",
-        if sysplf == 'darwin' or sysplf == 'linux2':
-            from select import select
-            timeout = 3
-            rlist, wlist, xlist = select([sys.stdin], [], [], timeout)
-            if rlist:
-                print 'Reinstall selected'
-                pass
-            else:
-                print 'Skipping DS9 installation'
-                return
-        elif sys.platform == 'win32':
-            import msvcrt
-            timeout = 3
-            startTime = time.time()
-            inp = None
-            while True:
-                if msvcrt.kbhit():
-                    inp = msvcrt.getch()
-                    break
-                elif time.time() - startTime > timeout:
-                    break
-            if inp:
-                print 'Reinstall selected'
-                pass
-            else:
-                print 'Skipping DS9 installation'
-                return
-    else:
-        pass
+#         print "Press any key to install it again (3s):",
+#         if sysplf == 'darwin' or sysplf == 'linux2':
+#             from select import select
+#             timeout = 3
+#             rlist, wlist, xlist = select([sys.stdin], [], [], timeout)
+#             if rlist:
+#                 print 'Reinstall selected'
+#                 pass
+#             else:
+#                 print 'Skipping DS9 installation'
+#                 return
+#        elif sys.platform == 'win32':
+#             import msvcrt
+#             timeout = 3
+#             startTime = time.time()
+#             inp = None
+#             while True:
+#                 if msvcrt.kbhit():
+#                     inp = msvcrt.getch()
+#                     break
+#                 elif time.time() - startTime > timeout:
+#                     break
+#             if inp:
+#                 print 'Reinstall selected'
+#                 pass
+#             else:
+#                 print 'Skipping DS9 installation'
+#                 return
+#     else:
+#         pass
             
     import urllib2
     print 'Downloading platform specific DS9:'
@@ -104,6 +104,8 @@ def download_ds9():
     
     z.extractall()
     fh.close()
+
+    os.chmod('ds9',0o777)
 
     os.chdir(olddir)
     os.remove(file_name)
