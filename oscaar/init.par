@@ -11,4 +11,4 @@ Smoothing Constant: 3
 Radius: 4.5
 Tracking Zoom: 15
 CCD Gain: 1.0
-Exposure Time Keyword: JD ## Keyword in FITS file that designates exposure time.
+Exposure Time Keyword: JD

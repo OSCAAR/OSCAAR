@@ -34,24 +34,26 @@ class dataBank:
             '''
 
         self.dict = {}
-        self.parseInit() ## parse init.par using the parseInit() method
-        self.parseObservatory()
+        self.parseInit()
         
         self.flatPath = self.dict["flatPath"]
-        #self.regsPath = self.dict["regsPath"] **__**
         self.rawRegionsList = self.dict["regPaths"]
         self.ingress = self.dict["ingress"]
         self.egress = self.dict["egress"]
-        #self.apertureRadius = self.dict["apertureRadius"]
         self.apertureRadii = self.dict["apertureRadius"]
         self.trackingZoom = self.dict["trackingZoom"]
         self.ccdGain = self.dict["ccdGain"]
         self.trackPlots = self.dict["trackPlots"]
         self.photPlots = self.dict["photPlots"]
         self.smoothConst = self.dict ["smoothConst"]
-        self.initGui = self.dict["initGui"]
         self.darksPath = self.dict["darksPath"]
         self.imagesPaths = self.dict["imagesPaths"]
+        self.timeKeyword = self.dict["timeKeyword"]
+        
+        if self.timeKeyword == 'JD': 
+            self.convertToJD = lambda x: x
+        elif self.timeKeyword == 'DATE-OBS':
+            self.convertToJD = mathMethods.ut2jdSplitAtT
         
         assert len(self.imagesPaths) > 1, 'Must have at least two data images'
         if self.flatPath != '':
@@ -69,11 +71,8 @@ class dataBank:
         self.times = np.zeros_like(self.imagesPaths,dtype=np.float64)
         self.keys = []
         self.targetKey = '000'
- 
-        #apertureRadiusMin, apertureRadiusMax,apertureRadiusStep = self.apertureRadiusRange
-        #self.apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax,apertureRadiusStep)
+
         Nradii = len(self.apertureRadii)
-        
         
         for i in range(0,len(init_x_list)):
 
@@ -525,13 +524,13 @@ class dataBank:
                 value = str(inline[1].strip())
                 list = [("Path to Master-Flat Frame", "flatPath"),
                         ("Path to regions file", "regPaths"),
-                        ("Ingress", "ingress"),("Egress", "egress"),
-                        ("Radius", "apertureRadius"),("Tracking Zoom", "trackingZoom"),
-                        ("CCD Gain", "ccdGain"),("Plot Tracking", "trackPlots"),
-                        ("Plot Photometry", "photPlots"),("Smoothing Constant", "smoothConst"),
-                        ("Init GUI", "initGui"),("Output Path","outputPath"),
-                        ("Path to Dark Frames", "darksPath"),("Path to data images", "imagesPaths")
-                        ]
+                        ("Ingress", "ingress"), ("Egress", "egress"),
+                        ("Radius", "apertureRadius"), ("Tracking Zoom", "trackingZoom"),
+                        ("CCD Gain", "ccdGain"), ("Plot Tracking", "trackPlots"),
+                        ("Plot Photometry", "photPlots"), ("Smoothing Constant", "smoothConst"),
+                        ("Output Path","outputPath"), ("Path to Dark Frames", "darksPath"),
+                        ("Path to data images", "imagesPaths"), ("Exposure Time Keyword", "timeKeyword")]
+                
                 for string,save in list:
                     if string == name:
                         #if name == "Smoothing Constant" or name == "Radius" or name == "Tracking Zoom" or name == "CCD Gain":
@@ -577,21 +576,6 @@ class dataBank:
                             self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(value))
                         else:
                             self.dict[save] = value
-
-    def parseObservatory(self):
-        '''
-            Parses observatory.par
-            '''
-        obs = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'observatory.par'), 'r').read().splitlines()
-        for line in obs:
-            if line.split() > 1 and line[0] != '#':
-                inline = line.split(':', 1)
-                inline[0] = inline[0].strip()
-                if inline[0] == 'Exposure Time Keyword': self.timeKeyword = str(inline[1].split('#')[0].strip())
-        
-        if self.timeKeyword == 'JD': self.convertToJD = lambda x: x ## If the keyword is "JD", no conversion is needed
-        elif self.timeKeyword == 'DATE-OBS': self.convertToJD = mathMethods.ut2jdSplitAtT ## If the keyword is "DATE-OBS", converstion is needed
-    ##elif inline[0] == '':
 
     def parseRegionsFile(self,regPath):
         '''Parse the DS9 regions file (written in .txt format) which contains

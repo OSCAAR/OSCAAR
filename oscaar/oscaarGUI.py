@@ -263,6 +263,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 init.write("Smoothing Constant: " + str(self.values["smoothing"]) + '\n')
                 init.write("Radius: " + str(self.values["radius"]) + '\n')
                 init.write("Tracking Zoom: " + str(self.values["zoom"]) + '\n')
+                init.write("CCD Gain: 1.0\n")
+                init.write("Exposure Time Keyword: JD\n")
                 init.close()
                 if self.loadFittingOpen == False:
                     if os.path.isfile(self.outputFile) or os.path.isfile(self.outputFile + '.pkl'):
@@ -768,8 +770,7 @@ class ObservatoryFrame(wx.Frame):
             observ = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
             observ.write('\n'.join(string))
             observ.write("\nCCD Gain: " + self.params.userParams["ccd"].GetValue() + "\n")
-            observ.write("Exposure Time Keyword: " + self.params.userParams["keyWord"].GetValue() + 
-                         " ## Keyword in FITS file that designates exposure time.\n")
+            observ.write("Exposure Time Keyword: " + self.params.userParams["keyWord"].GetValue() + "\n")
 
     def checkParams(self):
         
