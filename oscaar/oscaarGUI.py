@@ -45,6 +45,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.extraRegionsOpen = False
         self.programmersEdit = False
         self.loadObservatoryFrame = False
+        self.ccdGain = ""
+        self.exposureTime = ""
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -263,8 +265,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 init.write("Smoothing Constant: " + str(self.values["smoothing"]) + '\n')
                 init.write("Radius: " + str(self.values["radius"]) + '\n')
                 init.write("Tracking Zoom: " + str(self.values["zoom"]) + '\n')
-                init.write("CCD Gain: 1.0\n")
-                init.write("Exposure Time Keyword: JD\n")
+                init.write("CCD Gain: " + self.ccdGain + "\n")
+                init.write("Exposure Time Keyword: " + self.exposureTime + "\n")
                 init.close()
                 if self.loadFittingOpen == False:
                     if os.path.isfile(self.outputFile) or os.path.isfile(self.outputFile + '.pkl'):
@@ -451,7 +453,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         ("Radius", "radius"),("Tracking Zoom", "zoom"),
                         ("Plot Tracking", "trackPlot"),
                         ("Plot Photometry", "photPlot"),("Smoothing Constant", "smoothing"),
-                        ("Output Path",5),("Path to Dark Frames", 1),("Path to data images", 3)]
+                        ("Output Path",5),("Path to Dark Frames", 1),("Path to data images", 3),
+                        ("CCD Gain",""),("Exposure Time Keyword","")]
                 
                 for string,save in list:
                     if string == name:
@@ -477,6 +480,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         elif name == "Path to Master-Flat Frame" or name == "Path to regions file" or\
                              name == "Output Path":
                             self.paths.boxList[save].SetValue(value)
+                        elif name == "CCD Gain":
+                            self.ccdGain = value
+                        elif name == "Exposure Time Keyword":
+                            self.exposureTime = value
                         else:
                             date = value.split(";")[0].strip().replace("-","/")
                             time = value.split(";")[1].strip()
@@ -682,8 +689,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     ExtraRegions(self,-1)
                     self.extraRegionsOpen = True
             elif name == "observatory":
-                ObservatoryFrame(self, -1)
-                self.loadObservatoryFrame = True
+                invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
+                if invalidDataImages != "":
+                    InvalidParameter(invalidDataImages, self, -1, str="fits", max="the path to Data Images")
+                else:
+                    ObservatoryFrame(self, -1)
+                    self.loadObservatoryFrame = True
                 
                     
     def parseTime(self, date, time, text, filename, name=""):
@@ -737,9 +748,9 @@ class ObservatoryFrame(wx.Frame):
         self.titlebox.SetFont(self.titleFont)
         
         list = [('ccd',"CCD Gain: ",
-                 'Enter a decimal for the gain here.','1.0'),
+                 'Enter a decimal for the gain here.', self.parent.ccdGain),
                 ('keyWord',"Exposure Time KeyWord: ",
-                 "Enter the keyword by which the fits files will be parsed.","JD")]
+                 "Enter the keyword by which the fits files will be parsed.", self.parent.exposureTime)]
         
         
         header = pyfits.getheader(self.parent.paths.boxList[3].GetValue().split(",")[0]).keys()        
