@@ -76,7 +76,8 @@ def download_ds9():
     z.extractall()
     fh.close()
 
-    os.chmod('ds9',0o777)
+    if sys.platform != "win32": 
+		os.chmod('ds9',0o777)
 
     os.chdir(olddir)
     os.remove(file_name)
