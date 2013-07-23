@@ -113,7 +113,7 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
     ## Compute chi^2 using initial params
     trialModel = func(t,x_n)
     chisq_n = np.sum(((trialModel-flux)**2)*weights)
-    chisq_min = 1e10    ## Set very high initial chi-squared that will get immediately overwritten
+    chisq_min = 1e100    ## Set very high initial chi-squared that will get immediately overwritten
     for n in range(Nsteps):
         ## Update the loading bar every so often
         if loadingbar and n % 5000 == 0:
@@ -187,7 +187,11 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
     
     '''
     bestp = None
+    timeout_counter = 0
     while bestp == None:
+        timeout_counter += 1
+        assert timeout_counter < 1e3, "mcmc_iterate time out: Your initial parameters are likely very poor,"+\
+                    "and the MCMC script can't find a best-fit solution starting from them. Try better initial parameters."
         Niterations = 5*len(initParams)#20 ##40000    ## Hard coded in Evan's code as 4e4
 
         
@@ -225,7 +229,7 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
             ## Compute chi^2 using initial params
             trialModel = func(t,x_n)
             chisq_n = np.sum(((trialModel-flux)**2)*weights)
-            chisq_min = 1e10    ## Set very high initial chi-squared that will get immediately overwritten
+            chisq_min = 1e100    ## Set very high initial chi-squared that will get immediately overwritten
             for n in range(Nsteps):
                 ## Generate trial step in parameters, **Step 2 in Ford 2005**
                 x_nplus1 = np.random.normal(x_n,beta)     
