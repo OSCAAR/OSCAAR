@@ -543,6 +543,9 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 uniqueArray = np.unique(array2).tolist()
                 for eachString in uniqueArray:
                     setValueString += eachString + ","
+                if saveNum == 3 and (len(uniqueArray) < 2):
+                    errorString = self.paths.boxList[3].GetValue()
+                    return errorString
                 self.paths.boxList[saveNum].SetValue(setValueString.rpartition(",")[0])
             return errorString
         
