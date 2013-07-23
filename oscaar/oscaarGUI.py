@@ -2676,7 +2676,9 @@ class AddLCB(wx.Panel):
             sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
             sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
             iterationNumber = 0
+            extraName = ""
             if name == "mainGUI":
+                extraName = "mainGUI"
                 name = "Path to Dark Frames: ,Path to Master Flat: ,Path to Data Images: ,Path to Regions File: ," + \
                         "Output Path: "
             for eachName in name.split(","):
@@ -2687,7 +2689,7 @@ class AddLCB(wx.Panel):
                         height = 25
                 if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: " or eachName == "Path to "+\
                                "Regions File: ":
-                    if name == "mainGUI":
+                    if extraName == "mainGUI":
                         multFiles = True
                         saveType = None
                 elif eachName == "Path to Master Flat: ":
