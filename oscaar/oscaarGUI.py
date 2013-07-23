@@ -25,6 +25,7 @@ from matplotlib.backends.backend_wxagg import \
     NavigationToolbar2WxAgg as NavigationToolbar
 import numpy as np
 import pylab
+import pyfits
 
 APP_EXIT = 1
 
@@ -43,6 +44,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.singularOccurance = 0
         self.extraRegionsOpen = False
         self.programmersEdit = False
+        self.loadObservatoryFrame = False
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -64,15 +66,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
         list = [('zoom',"Track Zoom: ",
                  'Enter a number for the zoom here.','15'),
-                ('ccd',"CCD Gain: ",
-                 'Enter a decimal for the gain here.','1.0'),
                 ('radius',"Aperture Radius: ",
                  'Enter a decimal for the radius here.','4.5'),
                 ('smoothing',"Smoothing Constant: ", 
-                 'Enter an integer for smoothing here.','3'),
-                ('notes',"Notes: ","",'Enter notes to be saved here.')]
+                 'Enter an integer for smoothing here.','3')]
         
-        self.leftBox = ParameterBox(self.panel, -1, list, rows=5, cols=2, vNum=10, hNum=10, font=self.fontType)
+        self.leftBox = ParameterBox(self.panel, -1, list, rows=5, cols=2, vNum=10, hNum=10, font=self.fontType)    
         
         list = [('ingress',"Ingress, UT (YYYY/MM/DD)",
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
@@ -91,13 +90,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.masterFlatButton = wx.Button(self.panel, label = "Master Flat Maker")
         self.ds9Button = wx.Button(self.panel, label = "Open DS9")
         self.runButton = wx.Button(self.panel, label = "Run")
+        self.observatoryButton = wx.Button(self.panel, label = "Extra Observatory Parameters")
         
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadEphFrame, "ephemeris"), self.ephButton)
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadMasterFlat, "masterFlat"),
                   self.masterFlatButton)
         self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.ds9Open, "ds9"), self.ds9Button)
         self.Bind(wx.EVT_BUTTON, self.runOscaar, self.runButton)
-        
+        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadObservatoryFrame, "observatory"),
+                  self.observatoryButton)
         self.sizer0.Add(self.ephButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.masterFlatButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.ds9Button,0,wx.ALIGN_CENTER|wx.ALL,5)
@@ -106,9 +107,12 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.rightBox = wx.BoxSizer(wx.VERTICAL)
         self.rightBox.Add(self.radioBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.rightBox.Add(self.buttonBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.leftBox2 = wx.BoxSizer(wx.VERTICAL)
+        self.leftBox2.Add(self.leftBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.leftBox2.Add(self.observatoryButton, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
 
         self.bottomBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.bottomBox.Add(self.leftBox, 0, flag = wx.ALIGN_CENTER)
+        self.bottomBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER)
         self.bottomBox.Add(self.rightBox, 0, flag = wx.ALIGN_CENTER|wx.ALL, border =5)
         
         self.vbox = wx.BoxSizer(wx.VERTICAL)
@@ -168,14 +172,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
 
     def runOscaar(self, event):
         self.values = {}
-        notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
-        notes.write('\n\n\n------------------------------------------'+\
-                    '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
-        if self.leftBox.userParams['notes'].GetValue() == 'Enter notes to be saved here.':
-            notes.write('\nNo notes entered.')
-        else:
-            notes.write('\nNotes: '+ self.leftBox.userParams['notes'].GetValue())
-        notes.close()
+#         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
+#         notes.write('\n\n\n------------------------------------------'+\
+#                     '\nRun initiated (LT): '+strftime("%a, %d %b %Y %H:%M:%S"))
+#         if self.leftBox.userParams['notes'].GetValue() == 'Enter notes to be saved here.':
+#             notes.write('\nNo notes entered.')
+#         else:
+#             notes.write('\nNotes: '+ self.leftBox.userParams['notes'].GetValue())
+#         notes.close()
         
         invalidDarkFrames = self.checkFileInputs(self.paths.boxList[1].GetValue(), saveNum=1)
         masterFlat = self.paths.boxList[2].GetValue().strip()
@@ -222,14 +226,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                    self.radioBox.userParams['ingress'].GetValue(),
                                    self.radioBox.userParams['egress'].GetValue()) == True:
             try:
-                list = ["smoothing", "zoom", "ccd"]
+                list = ["smoothing", "zoom"]
                 for string in list:
-                    if string != "ccd":
-                        self.values[string] = int(self.leftBox.userParams[string].GetValue())
-                        self.leftBox.userParams[string].SetValue(str(self.values[string]))
-                    else:
-                        self.values[string] = float(self.leftBox.userParams[string].GetValue())
-                        self.leftBox.userParams[string].SetValue(str(self.values[string]))
+                    self.values[string] = int(self.leftBox.userParams[string].GetValue())
+                    self.leftBox.userParams[string].SetValue(str(self.values[string]))
 
                 self.paths.boxList[2].SetValue(masterFlat)
 #                 self.paths.boxList[4].SetValue(regionsFile)
@@ -261,10 +261,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     init.write("Plot Photometry: " + "off"+ "\n")
                 
                 init.write("Smoothing Constant: " + str(self.values["smoothing"]) + '\n')
-                init.write("CCD Gain: " + str(self.values["ccd"]) + '\n')
                 init.write("Radius: " + str(self.values["radius"]) + '\n')
                 init.write("Tracking Zoom: " + str(self.values["zoom"]) + '\n')
-                init.write("Init GUI: on")
                 init.close()
                 if self.loadFittingOpen == False:
                     if os.path.isfile(self.outputFile) or os.path.isfile(self.outputFile + '.pkl'):
@@ -283,9 +281,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         self.loadFitError = True
             except ValueError:
                 string2 = string
-                if string2 == "ccd":
-                    string2 = "ccd gain"
-                elif string2 == "smoothing":
+                if string2 == "smoothing":
                     string2 = "smoothing constant"
                 InvalidParameter(self.leftBox.userParams[string].GetValue(),None,-1, str="leftbox", max=string2)
     
@@ -451,13 +447,13 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                         ("Path to regions file", 4),
                         ("Ingress", "ingress"),("Egress", "egress"),
                         ("Radius", "radius"),("Tracking Zoom", "zoom"),
-                        ("CCD Gain", "ccd"),("Plot Tracking", "trackPlot"),
+                        ("Plot Tracking", "trackPlot"),
                         ("Plot Photometry", "photPlot"),("Smoothing Constant", "smoothing"),
                         ("Output Path",5),("Path to Dark Frames", 1),("Path to data images", 3)]
                 
                 for string,save in list:
                     if string == name:
-                        if name == "Smoothing Constant" or name == "Tracking Zoom" or name == "CCD Gain":
+                        if name == "Smoothing Constant" or name == "Tracking Zoom":
                             self.leftBox.userParams[save].SetValue(value)
                         elif name == "Radius":
                             stripTemp = [x.strip() for x in value.split(",")]
@@ -671,10 +667,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     errorType = OSError
                 
                 try:
-                    #subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
-                    #                                   'extras','ds9',sys.platform,'ds9')])
-                    subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                       'extras','ds9',sys.platform,'ds9')])
+                    subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
+                                                   'extras','ds9',sys.platform,'ds9')])
                 except errorType:
                     self.ds9Open = True
                     InvalidParameter("", self, -1, str="ds9")
@@ -685,6 +679,10 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 elif self.checkRegionsBox(self.paths.boxList[4].GetValue()) == True:
                     ExtraRegions(self,-1)
                     self.extraRegionsOpen = True
+            elif name == "observatory":
+                ObservatoryFrame(self, -1)
+                self.loadObservatoryFrame = True
+                
                     
     def parseTime(self, date, time, text, filename, name=""):
         
@@ -718,6 +716,86 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     
     def on_exit(self, event):
         self.Destroy()
+
+class ObservatoryFrame(wx.Frame):
+
+    def __init__(self, parent, id):
+
+        if sys.platform == "win32":
+            self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        else: 
+            self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+
+        wx.Frame.__init__(self, parent, id, "Change Observatory Parameters")
+        self.panel = wx.Panel(self)
+        self.parent = parent
+        
+        self.titlebox = wx.StaticText(self.panel, -1, "Observatory Parameters")
+        self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        self.titlebox.SetFont(self.titleFont)
+        
+        list = [('ccd',"CCD Gain: ",
+                 'Enter a decimal for the gain here.','1.0'),
+                ('keyWord',"Exposure Time KeyWord: ",
+                 "Enter the keyword by which the fits files will be parsed.","JD")]
+        
+        
+        header = pyfits.getheader(self.parent.paths.boxList[3].GetValue().split(",")[0]).keys()        
+        
+        self.params = ParameterBox(self.panel, -1, list, rows=5, cols=2, vNum=10, hNum=10, font=self.fontType)
+        self.updateButton = wx.Button(self.panel, label = "Update")
+        self.Bind(wx.EVT_BUTTON, self.update, self.updateButton)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.titlebox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.vbox.Add(self.params, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)
+        self.vbox.Add(self.updateButton, 0, flag=wx.ALIGN_CENTER | wx.ALL, border=5)
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.create_menu()
+        self.CreateStatusBar()
+        self.panel.SetSizer(self.vbox)
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()      
+    
+    def update(self, event):
+        if self.checkParams() == True:            
+            string = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
+            stringCopy = np.copy(string)
+            for line in stringCopy:
+                if ("CCD Gain:" in line) or ("Exposure Time Keyword:" in line):
+                    string.remove(line)
+            observ = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
+            observ.write('\n'.join(string))
+            observ.write("\nCCD Gain: " + self.params.userParams["ccd"].GetValue() + "\n")
+            observ.write("Exposure Time Keyword: " + self.params.userParams["keyWord"].GetValue() + 
+                         " ## Keyword in FITS file that designates exposure time.\n")
+
+    def checkParams(self):
+        
+        try:
+            tempCCD = float(self.params.userParams["ccd"].GetValue())
+            self.params.userParams["ccd"].SetValue(str(tempCCD))
+        except ValueError:
+            InvalidParameter(self.leftBox.userParams["ccd"].GetValue(),None,-1, str="leftbox", max="ccd")
+            return False
+        return True
+
+    def create_menu(self):
+          
+        menubar = wx.MenuBar()
+        menu_file = wx.Menu()
+        m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_quit)
+    
+        menubar.Append(menu_file, "File")
+        self.SetMenuBar(menubar)
+    
+    def on_exit(self,event):
+        self.Destroy()
+
+    def onDestroy(self,event):
+        self.parent.loadObservatoryFrame = False
 
 class ExtraRegions(wx.Frame):
 
@@ -2545,15 +2623,10 @@ class ParameterBox(wx.Panel):
             
             for (widget, labeltxt, ToolTip, value) in list:
                 label = wx.StaticText(self, -1, labeltxt, style=wx.ALIGN_CENTER)
-                if widget != 'notes':
-                    sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                else:
-                    sizer0.Add(label, 0, (wx.ALIGN_CENTER_HORIZONTAL) | wx.ALL, 0)
+                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
                 label.SetFont(font)
                 
-                if widget == 'notes':
-                    self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220, 50), style = wx.TE_MULTILINE)
-                elif widget == "observatoryName" or widget == "fileName":
+                if widget == "observatoryName" or widget == "fileName":
                     self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220,wx.DefaultSize.GetHeight()))
                 elif widget != 'trackPlot' and widget != 'photPlot' and widget != 'flatType':
                     self.userParams[widget] = wx.TextCtrl(self, -1, value = value)

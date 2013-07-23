@@ -8,7 +8,7 @@ Egress: 2013-05-15 ; 11:02:35
 Plot Tracking: off
 Plot Photometry: off
 Smoothing Constant: 3
-CCD Gain: 1.0
 Radius: 4.5
 Tracking Zoom: 15
-Init GUI: on
+CCD Gain: 1.0
+Exposure Time Keyword: JD ## Keyword in FITS file that designates exposure time.
