@@ -22,37 +22,7 @@ def download_ds9():
     
     if os.path.exists(os.path.dirname(oscaardirds9)) == True:
         print "It seems like DS9 is already installed in the OSCAAR directory."
-#         print "Press any key to install it again (3s):",
-#         if sysplf == 'darwin' or sysplf == 'linux2':
-#             from select import select
-#             timeout = 3
-#             rlist, wlist, xlist = select([sys.stdin], [], [], timeout)
-#             if rlist:
-#                 print 'Reinstall selected'
-#                 pass
-#             else:
-#                 print 'Skipping DS9 installation'
-#                 return
-#        elif sys.platform == 'win32':
-#             import msvcrt
-#             timeout = 3
-#             startTime = time.time()
-#             inp = None
-#             while True:
-#                 if msvcrt.kbhit():
-#                     inp = msvcrt.getch()
-#                     break
-#                 elif time.time() - startTime > timeout:
-#                     break
-#             if inp:
-#                 print 'Reinstall selected'
-#                 pass
-#             else:
-#                 print 'Skipping DS9 installation'
-#                 return
-#     else:
-#         pass
-            
+
     import urllib2
     print 'Downloading platform specific DS9:'
 
@@ -60,7 +30,8 @@ def download_ds9():
     if sysplf == 'darwin':
         url = "http://hea-www.harvard.edu/RD/ds9/download/darwinsnowleopard/ds9.darwinsnowleopard.7.2.tar.gz"
     elif sysplf == 'linux2':
-        url = "http://hea-www.harvard.edu/RD/ds9/download/linux/ds9.linux.7.2.tar.gz"
+       # url = "http://hea-www.harvard.edu/RD/ds9/download/linux/ds9.linux.7.2.tar.gz" This 32-bit download seems problematic
+       url = 'http://hea-www.harvard.edu/RD/ds9/download/linux64/ds9.linux64.7.2.tar.gz'
     elif sysplf == 'win32':
         url = "http://hea-www.harvard.edu/RD/ds9/download/windows/SAOImage%20DS9%207.2%20Install.exe"
     
@@ -139,5 +110,4 @@ def complile_C():
     
 if __name__ == '__main__':
     complile_C()
-    #if 'install' in sys.argv or os.path.abspath(__file__) in sys.argv: 
     download_ds9()
