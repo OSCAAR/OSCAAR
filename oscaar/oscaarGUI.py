@@ -26,6 +26,7 @@ from matplotlib.backends.backend_wxagg import \
 import numpy as np
 import pylab
 import pyfits
+import timeConversions
 
 APP_EXIT = 1
 
@@ -45,8 +46,8 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.extraRegionsOpen = False
         self.programmersEdit = False
         self.loadObservatoryFrame = False
-        self.ccdGain = ""
-        self.exposureTime = ""
+        self.ccdGain = "1.0"
+        self.exposureTime = "JD"
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -751,19 +752,31 @@ class ObservatoryFrame(wx.Frame):
         self.titlebox.SetFont(self.titleFont)
         
         list = [('ccd',"CCD Gain: ",
-                 'Enter a decimal for the gain here.', self.parent.ccdGain),
-                ('keyWord',"Exposure Time KeyWord: ",
-                 "Enter the keyword by which the fits files will be parsed.", self.parent.exposureTime)]
+                 'Enter a decimal for the gain here.', self.parent.ccdGain)]
         
         
-        header = pyfits.getheader(self.parent.paths.boxList[3].GetValue().split(",")[0]).keys()        
+        header = pyfits.getheader(self.parent.paths.boxList[3].GetValue().split(",")[0]).keys()   
+        
+        bestKeyword, allKeys, conversion = timeConversions.findKeyword(self.parent.paths.boxList[3].GetValue().split(",")[0])
+        
+        
+        self.timeLabel = wx.StaticText(self.panel, -1, 'Select Exposure Time Keyword: ')
+        self.timeLabel.SetFont(self.fontType)
+        self.timeList = wx.ComboBox(self.panel, value = bestKeyword, choices = sorted(allKeys))
+        self.timeList.Bind(wx.EVT_COMBOBOX, self.updateTime)
+
+        self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.dropBox.Add(self.timeLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.dropBox.Add(self.timeList, 0, flag = wx.ALIGN_CENTER)
         
         self.params = ParameterBox(self.panel, -1, list, rows=5, cols=2, vNum=10, hNum=10, font=self.fontType)
+       
         self.updateButton = wx.Button(self.panel, label = "Update")
         self.Bind(wx.EVT_BUTTON, self.update, self.updateButton)
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox.Add(self.titlebox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        self.vbox.Add(self.params, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 10)
+        self.vbox.Add(self.params, 0, flag = wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT, border = 5)
+        self.vbox.Add(self.dropBox, 0, flag=wx.ALIGN_CENTER | wx.ALL, border=5)
         self.vbox.Add(self.updateButton, 0, flag=wx.ALIGN_CENTER | wx.ALL, border=5)
         
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
@@ -773,6 +786,9 @@ class ObservatoryFrame(wx.Frame):
         self.vbox.Fit(self)
         self.Center()
         self.Show()      
+    
+    def updateTime(self,event):
+        self.parent.exposureTime = self.timeList.GetValue()
     
     def update(self, event):
         if self.checkParams() == True:            
@@ -784,7 +800,7 @@ class ObservatoryFrame(wx.Frame):
             observ = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
             observ.write('\n'.join(string))
             observ.write("\nCCD Gain: " + self.params.userParams["ccd"].GetValue() + "\n")
-            observ.write("Exposure Time Keyword: " + self.params.userParams["keyWord"].GetValue() + "\n")
+            observ.write("Exposure Time Keyword: " + self.timeList.GetValue() + "\n")
 
     def checkParams(self):
         
