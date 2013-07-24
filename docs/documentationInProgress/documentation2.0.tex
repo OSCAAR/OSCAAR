@@ -10,6 +10,7 @@
 \usepackage{hyperref}
 \usepackage{cmbright}	% Font: Computer Modern Bright
 \usepackage[T1]{fontenc}
+\usepackage{multirow}
 \linespread{1.1}% spread lines out a little
 \frenchspacing % remove extra space after punctuation
 %\newcommand{\oscaar}{$ \texttt{OSCAAR}$ }
@@ -18,7 +19,6 @@
 \newcommand{\init}{\code{init.par}~}
 \newcommand{\oscaar}{\code{OSCAAR}~}
 \newcommand{\gui}{\code{oscaarGUI}~}
-
 \begin{document}
 \title{\textbf{OSCAAR}: Open Source differential photometry Code for Amateur Astronomical Research}
 \author{Brett M. Morris and the OSCAAR Team}
@@ -60,7 +60,7 @@ There are several packages in addition to Python (v2.7) that must be installed o
 
 \noindent Though the modules used in this package have been stable historically and probably will not go away any time soon, we want to note here that changes implemented in future versions of these packages could potentially break features in \oscaar. If you notice a broken feature, let us know by posting an issue on our Issue Tracker (see Section \ref{sec:issues}).
 
-\texit{Note for Linux Users:} You only need one command to download and install most of the dependencies:
+\textit{Note for Linux Users:} You only need one command to download and install most of the dependencies:
 \begin{verbatim}
 sudo apt-get install python-numpy python-scipy python-matplotlib python-wxgtk2.8
 \end{verbatim}
@@ -68,7 +68,7 @@ The only ones left are PyFITS and PyEphem.
 
 \textit{Note for Mac OS 10.6 and 10.7 Users:} Python will already be installed on your machine, but it likely isn't the most recent version of Python 2.7. Download Python 2.7.X if it's not. Mac OS 10.6 users will also need Xcode, the Apple developer tools app that allows your computer to do things like program for OS X or iOS. Xcode can be downloaded from the App Store for free. However, if you're running OS X 10.6.x and you don't want to upgrade to OS X 10.7 you will need to download the older version of Xcode, v3.2. To do so, visit the Developer Downloads page and search for "Xcode 3.2". You will be prompted for your Apple ID to sign in as an Apple Developer. If you do not have a Developer account, you will need to create one at this stage. This will be a small time commitment. Install this but \textbf{note}: this is a large download, about ~2.4 GB. On OS X 10.7.0 or later, you'll instead need the GCC compiler. Apple provides this in their 'Command Line Tools' at their Developer site. You are now prepared to download Python packages such as PyEphem via their "Source code (.tar.gz)" links. Install them as suggested by each pacakge's INSTALL doc.
 
-\texit{Note for Mac OS 10.8 Users:} When you download python2.7 or any other \oscaar dependencies, there is an error message that pops up because the "GateKeeper", a function added in MacOsX 10.8, will not let you download things from an unidentified source. All of the dependencies have to use solutions found in their ReadMe.txt files to download them because "GateKeeper" will block all the downloads. wxPython can present additional difficulties if you are downloading it on a machine running modern versions of OS X. The standard links to OS X compatible binaries on the wxPython page are misleading. You'll have your best shot at downloading a working version of wxPython for your OS X-running machine if you download the less prominently labeled version "wxPython2.9-osx-cocoa-py2.7". This one is the one to get.
+\textit{Note for Mac OS 10.8 Users:} When you download python2.7 or any other \oscaar dependencies, there is an error message that pops up because the "GateKeeper", a function added in MacOsX 10.8, will not let you download things from an unidentified source. All of the dependencies have to use solutions found in their ReadMe.txt files to download them because "GateKeeper" will block all the downloads. wxPython can present additional difficulties if you are downloading it on a machine running modern versions of OS X. The standard links to OS X compatible binaries on the wxPython page are misleading. You'll have your best shot at downloading a working version of wxPython for your OS X-running machine if you download the less prominently labeled version "wxPython2.9-osx-cocoa-py2.7". This one is the one to get.
 
 \subsection{Installing \oscaar}
 \oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory, using the command \code{"cd (name of destination directory)"} to move from one directory to another. The command \code{"dir"} will allow you to see what directories are found in the current directory. The command \code{"cd .."} is quite useful for moving back one directory. Once at the ``OSCAAR-master'' directory, type: 
@@ -190,6 +190,7 @@ You've seen the weather report and you know that your observatory will have clea
 \label{fig:ephgui}
 \end{center}	
 \end{figure}
+
 This new window is the \code{Ephemeris} tool, which will calculate transit time predictions for you. Select from the major observatories or friends of \oscaar listed in the \code{Select Observatory} field, or choose Enter New Observatory if yours is not listed, and enter the range of dates that you'd like to observe in the \code{Beginning of Obs} and \code{End of Obs} fields in \code{YYYY/MM/DD} format.  These dates defined in \href{http://en.wikipedia.org/wiki/Universal_time}{Universal Time (UT)}.
 
 We've found in our experience using transit prediction services that it's easy to get drowned in too many transit event suggestions that you don't have the precision to observe. You may know, for instance, that your telescope aperture is too small or the sky brightness from light pollution at your observatory is too bright to do photometry on stars dimmer than a particular visible $V$ magnitude. We built features into this ephemeris generator so you can set the \code{$V$ upper limit} to filter out any results for transiting planets that are dimmer than a ``limiting V magnitude'' for good photometry that you've entered. At the University of Maryland Observatory, located $<15$ km from the White House and within the Washington D.C. beltway, we have plenty of light pollution. The bright sky background makes it hard to get decent photometric precision on stars with magnitudes $V>12$.
@@ -200,6 +201,39 @@ When you press \code{Calculate}, \oscaar will download a copy of the latest know
 
 To provide you with a consistently formatted, nicely rendered table of events, \oscaar generates the output ephemeris in HTML and opens it in your web browser. The columns of this table are sortable --- just click on the title row of each column to sort. We know that you may have this ephemeris open on your computer while you're observing at night, and we don't want you to blind yourself looking at a brightly colored ephemeris, so we included two style sheets so that you can switch between. Try changing the``Day'' to ``Night'' mode with the buttons above the ephemeris table for a dark red color palette that may disturb your night vision less than the bright ``Day'' style sheet. Outputs can also be written in comma-separated value format (CSV).
 
+\pagebreak
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.4}
+\centering
+\caption{\textbf{Ephemeris Cheat Sheet}}
+%\begin{tabular}{l l c}\\
+\begin{tabular}{p{0.8in} p{3.2in} r}
+Field & Definition & Reasonable values\\
+\hline\hline
+%\multirow{2}{*}{$R_p/R_*$}  & \multirow{2}{*}{Ratio of planetary} & \multirow{2}{*}{$0.07759 \pm 0.00003 $} \\ \\
+Name of Observatory & The name of your observatory & Mauna Kea, Hawaii\\
+Enter File Name & Only enter a file name if you're entering a new observatory & \code{maunaKea.par}\\
+Start of Obs. & The start date in Universal Time of your ephemeris, \code{YYYY/MM/DD} & 2013/07/02\\
+End of Obs. & The end date in Universal Time of your ephemeris, \code{YYYY/MM/DD} &  2013/07/09\\
+Apparent Mag. Upper Limit & An upper limit visible (default) magnitude ($V$) of the stars that we'll provide you with (advanced option: enter $K$ magnitudes) & 13.0\\
+Depth Lower Limit & Lower limit on the expected depth of transit & $0.005-0.015$\\
+\hline 
+Latitude & Latitude of your observatory, \code{deg:min:sec}. North is positive, south is negative. & 19:49:15.6\\
+Longitude & Longitude of your observatory, \code{deg:min:sec}. East is positive, west is negative. & -155:28:24\\
+Observatory Elevation & Elevation of your observatory in meters & 4123.0 \\
+Temperature & Air temperature at time of observation in degrees C & 0.0 \\
+Lower Elevation Limit & The lowest altitude that your telescope can slew down to while observing targets, \code{deg:min:sec} & 30:00:00 \\
+Twilight Type & Tweaks the definition of when ``sunset'' has occurred based on the various definitions of ``twilight'' & [Choose from list] \\
+Show Local Times & This includes columns in the table for the conversion from UT to LT, but should not be trusted in general & [Choose on/off] \\
+Band Type & Bandpass for brightness measurements displayed in ephemeris &  [Choose from $V$/$K$]\\
+Calculate Eclipses & Toggle to calculate the times of eclipse events as well as or in place of transits &  [Choose on/off]\\
+Calculate Transits & Toggle to calculate the times of transit events as well as or in place of eclipses &  [Choose on/off]\\
+\hline 
+\end{tabular}
+\end{table}
+
+\pagebreak
+
 \subsubsection{Advanced Options}
 
 The parameters in the lower half of the ephemeris calculator tool allow you to calculate the sky altitudes and directions at ingress and egress with extra-high precision, and to set the behavior of the calculator to give you more control over the results you see. The latitude and longitude of your location can be set in the format: \code{degrees:mm:ss.ss}. Your observatory elevation can be set in meters, and temperature in degrees Celsius. Then there are two parameters that will have a strong affect which transits make it through your filters. 
@@ -209,7 +243,7 @@ The \code{Twilight Type} parameter determines how many degrees below the horizon
 The \code{Lower elevation limit} parameter sets how high above the horizon the object must be before it is visible from your observatory. For photometric observations, it's a good rule of thumb to only observe objects above $30^{\circ}$ elevation, since at smaller angles the thick cross-section of air that you must look through compounds the problems of removing telluric effects.  You may, for example, have trees on the horizon in all directions at your observatory that limit your lowest-possible elevation for observing to $35^{\circ}$, or your observatory dome or roof may not accommodate observations below a similar elevation. You can account for these factors in this parameter so that you only see events that are observable with your equipment, from your observatory. The format for the \code{Lower elevation limit} parameter is  \code{degrees:mm:ss.ss}.
 
 \subsection{Choosing Your Input Files}
-The first step to running \oscaar on your data from the \gui is to select which \code{.fits} files you want to use. \oscaar allows you to access your data files a few different ways. Our first task is to select the ``path to dark frames'' (see Figure \ref{fig:gui}). A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on your hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
+The first step to running \oscaar on your data from the \gui is to select which \code{.fits} files you want to use. \oscaar allows you to access your data files a few different ways. Our first task is to select the ``path to dark frames'' (see Figure \ref{fig:gui}). A \textit{path} is essentially a list of directions to where a file is located on your computer. On Windows you may recognize that paths to files on yourC hard drive are sometimes listed as ``\code{C:$\backslash$some folder$\backslash$some other folder$\backslash$...}'', and on Mac OS X they typically begin with ``\code{/Users/your user name/some folder/...}''. The easiest way to give the paths to \textit{all} of the files that you will be analyzing is to use a feature of \oscaar's path selectors that takes advantage of Python's \code{glob} module. 
 
 The imaging software that you use may allow you to save each image from your CCD with a pre-formatted name and an iterating index for each image. For example, in our sample data set we simulate this behavior by giving all of the dark frames names with the pattern ``simulatedImg-000d.fits'', ``simulatedImg-001d.fits'', ``simulatedImg-002d.fits'', etc. You could press the \code{Browse} button in the \gui and then hold shift and click through every dark frame that you want to select, or you could use a nifty shortcut...
 
@@ -363,7 +397,6 @@ The plot is generated with the Python package \code{matplotlib}, which supports 
 
 \subsection{Loading Previously Saved Results}
 There should now be a file where you placed the ``Output Path''. If you want to look to see the raw data, or the data in various stages of processing, you can click the ``Oscaar'' drop down menu (next to \code{File} and \code{Help} at the top), and select ``Load old outputs''. The small window that pops up allows you to pick the old output file that you generated and then plot its contents in various ways. This can be useful for troubleshooting, if your light curve doesn't look the way you think it should. Light curves can be bad if the raw fluxes of one of the stars was measured improperly, for instance, so clicking the ``Plot Raw Fluxes'' button will produce a plot of the raw fluxes for each star, which may help you to debug. 
-
 
 \section{Algorithm Notes} \label{sec:algorithmNotes}
 \subsection{\code{oscaar.photometry.phot()}}
