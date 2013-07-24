@@ -792,7 +792,8 @@ class ObservatoryFrame(wx.Frame):
     
     def update(self, event):
         if self.checkParams() == True:
-            self.parent.ccdGain = self.params.userParams["ccd"].GetValue()            
+            self.parent.ccdGain = self.params.userParams["ccd"].GetValue()
+            self.parent.exposureTime = self.timeList.GetValue()         
             string = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
             stringCopy = np.copy(string)
             for line in stringCopy:
@@ -804,12 +805,14 @@ class ObservatoryFrame(wx.Frame):
             observ.write("Exposure Time Keyword: " + self.timeList.GetValue() + "\n")
 
     def checkParams(self):
-        
         try:
             tempCCD = float(self.params.userParams["ccd"].GetValue())
             self.params.userParams["ccd"].SetValue(str(tempCCD))
+            if self.timeList.GetValue() == "":
+                InvalidParameter(self.timeList.GetValue(), self, -1, str="emptyKeyword")
+                return False
         except ValueError:
-            InvalidParameter(self.leftBox.userParams["ccd"].GetValue(),None,-1, str="leftbox", max="ccd")
+            InvalidParameter(self.params.userParams["ccd"].GetValue(),None,-1, str="leftbox", max="ccd")
             return False
         return True
 
@@ -3045,6 +3048,9 @@ class InvalidParameter(wx.Frame):
                           "\"regionsFiles,referenceFile;\"."
         elif str == "referenceImageDup":
             self.string = "The reference image you have listed in this set is already assigned to another regions file."
+        elif str == "emptyKeyword":
+            self.string = "The exposure time keyword cannot be empty. Please use a valid phrase, or choose from the drop" + \
+                          "down menu."
 
         self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
