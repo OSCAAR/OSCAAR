@@ -791,7 +791,8 @@ class ObservatoryFrame(wx.Frame):
         self.parent.exposureTime = self.timeList.GetValue()
     
     def update(self, event):
-        if self.checkParams() == True:            
+        if self.checkParams() == True:
+            self.parent.ccdGain = self.params.userParams["ccd"].GetValue()            
             string = open(os.path.join(os.path.dirname(__file__),'init.par'), 'r').read().splitlines()
             stringCopy = np.copy(string)
             for line in stringCopy:
