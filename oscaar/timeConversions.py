@@ -79,7 +79,7 @@ def findKeyword(fitsFile):
             useKeyword = knownkeys[j]
  
     if useKeyword == None: print "No known keywords found"
-    return useKeyword, allKeys, conversionFunction
+    return useKeyword, allKeys, knownkeys, conversionFunction
 
 #for file in fitsfiles: 
 #    #print findKeyword(file)
