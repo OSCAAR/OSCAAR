@@ -48,6 +48,7 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.loadObservatoryFrame = False
         self.ccdGain = "1.0"
         self.exposureTime = "JD"
+        self.switchTimes = 0
         
         self.title = "OSCAAR"
         wx.Frame.__init__(self,None,-1, self.title)
@@ -757,12 +758,22 @@ class ObservatoryFrame(wx.Frame):
         
         header = pyfits.getheader(self.parent.paths.boxList[3].GetValue().split(",")[0]).keys()   
         
-        bestKeyword, allKeys, conversion = timeConversions.findKeyword(self.parent.paths.boxList[3].GetValue().split(",")[0])
-        
+        bestKeyword, self.allKeys, acceptedKeys, conversion = \
+            timeConversions.findKeyword(self.parent.paths.boxList[3].GetValue().split(",")[0])
+        self.unionKeys = []
+        for eachKey in self.allKeys:
+            if eachKey in acceptedKeys:
+                self.unionKeys.append(eachKey)
         
         self.timeLabel = wx.StaticText(self.panel, -1, 'Select Exposure Time Keyword: ')
         self.timeLabel.SetFont(self.fontType)
-        self.timeList = wx.ComboBox(self.panel, value = bestKeyword, choices = sorted(allKeys))
+        if self.parent.switchTimes == 0:
+            self.timeList = wx.ComboBox(self.panel, value = bestKeyword, choices = sorted(self.unionKeys),
+                                        size=(75,wx.DefaultSize.GetHeight()))
+            self.parent.switchTimes = 1
+        else:
+            self.timeList = wx.ComboBox(self.panel, value = self.exposureTime, choices = sorted(self.unionKeys),
+                                        size=(75,wx.DefaultSize.GetHeight()))
         self.timeList.Bind(wx.EVT_COMBOBOX, self.updateTime)
 
         self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -808,9 +819,17 @@ class ObservatoryFrame(wx.Frame):
         try:
             tempCCD = float(self.params.userParams["ccd"].GetValue())
             self.params.userParams["ccd"].SetValue(str(tempCCD))
-            if self.timeList.GetValue() == "":
-                InvalidParameter(self.timeList.GetValue(), self, -1, str="emptyKeyword")
+            timeKey = self.timeList.GetValue().strip()
+            if timeKey == "":
+                InvalidParameter(timeKey, self, -1, str="emptyKeyword")
                 return False
+            elif not timeKey in self.allKeys:
+                InvalidParameter(timeKey, self, -1, str="invalidKeyword")
+                return False
+            elif (not timeKey in self.unionKeys) and (timeKey in self.allKeys):
+                InvalidParameter(timeKey, self, -1, str="emailKeyword")
+                return False
+            self.timeList.SetValue(timeKey)
         except ValueError:
             InvalidParameter(self.params.userParams["ccd"].GetValue(),None,-1, str="leftbox", max="ccd")
             return False
@@ -3051,7 +3070,12 @@ class InvalidParameter(wx.Frame):
         elif str == "emptyKeyword":
             self.string = "The exposure time keyword cannot be empty. Please use a valid phrase, or choose from the drop" + \
                           "down menu."
-
+        elif str == "invalidKeyword":
+            self.string = "The keyword you entered was not found in the header of the first data image."
+        elif str == "emailKeyword":
+            self.string = "This keyword is in the header file of the first data image, but is not something we " + \
+                          "have a conversion method for.\nPlease email us the keyword you are trying to use and we " + \
+                          "will include it into our list of possible keywords."
         self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
         
