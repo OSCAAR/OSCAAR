@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+/*
+ Written in a span of ten minutes by your's truly -- Harley Katz
+*/
 
 
 void masterflat(int nr, int nc, int nh, double (*cube)[nc][nh], double *times, double (*intercept)[nc]);
