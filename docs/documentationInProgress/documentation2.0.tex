@@ -193,38 +193,38 @@ You've seen the weather report and you know that your observatory will have clea
 
 This new window is the \code{Ephemeris} tool, which will calculate transit time predictions for you. Select from the major observatories or friends of \oscaar listed in the \code{Select Observatory} field, or choose Enter New Observatory if yours is not listed, and enter the range of dates that you'd like to observe in the \code{Beginning of Obs} and \code{End of Obs} fields in \code{YYYY/MM/DD} format.  These dates defined in \href{http://en.wikipedia.org/wiki/Universal_time}{Universal Time (UT)}.
 
-We've found in our experience using transit prediction services that it's easy to get drowned in too many transit event suggestions that you don't have the precision to observe. You may know, for instance, that your telescope aperture is too small or the sky brightness from light pollution at your observatory is too bright to do photometry on stars dimmer than a particular visible $V$ magnitude. We built features into this ephemeris generator so you can set the \code{$V$ upper limit} to filter out any results for transiting planets that are dimmer than a ``limiting V magnitude'' for good photometry that you've entered. At the University of Maryland Observatory, located $<15$ km from the White House and within the Washington D.C. beltway, we have plenty of light pollution. The bright sky background makes it hard to get decent photometric precision on stars with magnitudes $V>12$.
+We've found in our experience using transit prediction services that it's easy to get drowned in too many transit event suggestions that you don't have the precision to observe. You may know, for instance, that your telescope aperture is too small or the sky brightness from light pollution at your observatory is too bright to do photometry on stars dimmer than a particular visible $V$ magnitude. We built features into this ephemeris generator so you can set the \code{Apparent Mag. Upper Limit} to filter out any results for transiting planets that are dimmer than a ``limiting V magnitude'' for good photometry that you've entered. At the University of Maryland Observatory, located $<15$ km from the White House and within the Washington D.C. beltway, we have plenty of light pollution. The bright sky background makes it hard to get decent photometric precision on stars with magnitudes $V>12$.
 
-Similarly, your photometric signal-to-noise will limit the transit depths that you can observe. If a transit only causes a $10^{-4}$ fractional decrease in brightness of the star, you probably won't have the precision to be able to detect it at a small observatory. Thus you can filter out shallow (small depth) transits by setting the \code{Depth Lower Limit} field. At the University of Maryland observatory, we generally try to observe transits deeper than 0.010 magnitudes (reminder: depths are measured as positive numbers, even though they represent decreases in fluxes).
+Similarly, your photometric signal-to-noise will limit the transit depths that you can observe. If a transit only causes a fractional decrease in brightness of the star on the order of $10^{-4}$, you probably won't have the precision to be able to detect it at a small observatory. Thus you can filter out shallow (small depth) transits by setting the \code{Depth Lower Limit} field. At the University of Maryland observatory, we generally try to observe transits deeper than 0.010 magnitudes (reminder: depths are measured as positive numbers, even though they represent decreases in fluxes).
 
-When you press \code{Calculate}, \oscaar will download a copy of the latest known transiting system parameters from \href{http://www.exoplanets.org/}{exoplanets.org}. This website created by \href{http://adsabs.harvard.edu/abs/2011PASP..123..412W}{Wright et al. (2011)} catalogs all known system parameters for each planetary system, and is updated frequently as new publications arise. \oscaar will download a copy of the entire database, and will calculate when the next transits and secondary eclipses will occur for each system using published transit times and period measurement. It also uses the right ascension and declination measurements provided by exoplanets.\@org to calculate whether or not each transit event will happen above or below the horizon, and during day or night, by performing ephemeris calculations with \code{PyEphem}. Then the transit or eclipse events that occur completely above the horizon (from ingress to egress entirely), at night, and that satisfy the $V$ limit and depth limit criteria you set are returned. 
+When you press \code{Calculate}, \oscaar will download a copy of the latest known transiting system parameters from \href{http://www.exoplanets.org/}{exoplanets.org}. This website created by \href{http://adsabs.harvard.edu/abs/2011PASP..123..412W}{Wright et al. (2011)} catalogs all known system parameters for each planetary system, and is updated frequently as new publications a released and new planets are discovered. \oscaar will download a copy of the entire database and calculate when the next transits and secondary eclipses will occur for each system using published transit times and period measurement. It also uses the right ascension and declination measurements provided by exoplanets.\@org to calculate whether or not each transit event will happen above or below the horizon from your observing location, and during day or night, by performing ephemeris calculations with \code{PyEphem}. Then the transit or eclipse events that occur completely above the horizon (from ingress to egress entirely), at night, and that satisfy the $V$ limit and depth limit criteria you set are returned. 
 
 To provide you with a consistently formatted, nicely rendered table of events, \oscaar generates the output ephemeris in HTML and opens it in your web browser. The columns of this table are sortable --- just click on the title row of each column to sort. We know that you may have this ephemeris open on your computer while you're observing at night, and we don't want you to blind yourself looking at a brightly colored ephemeris, so we included two style sheets so that you can switch between. Try changing the``Day'' to ``Night'' mode with the buttons above the ephemeris table for a dark red color palette that may disturb your night vision less than the bright ``Day'' style sheet. Outputs can also be written in comma-separated value format (CSV).
 
 \pagebreak
 \begin{table}[H]
-\renewcommand{\arraystretch}{1.4}
+\renewcommand{\arraystretch}{1.5}
 \centering
 \caption{\textbf{Ephemeris Cheat Sheet}}
 %\begin{tabular}{l l c}\\
-\begin{tabular}{p{0.8in} p{3.2in} r}
-Field & Definition & Reasonable values\\
+\begin{tabular}{p{0.8in} |  p{3.2in} r}
+Field & Definition & Example values\\
 \hline\hline
 %\multirow{2}{*}{$R_p/R_*$}  & \multirow{2}{*}{Ratio of planetary} & \multirow{2}{*}{$0.07759 \pm 0.00003 $} \\ \\
 Name of Observatory & The name of your observatory & Mauna Kea, Hawaii\\
 Enter File Name & Only enter a file name if you're entering a new observatory & \code{maunaKea.par}\\
 Start of Obs. & The start date in Universal Time of your ephemeris, \code{YYYY/MM/DD} & 2013/07/02\\
 End of Obs. & The end date in Universal Time of your ephemeris, \code{YYYY/MM/DD} &  2013/07/09\\
-Apparent Mag. Upper Limit & An upper limit visible (default) magnitude ($V$) of the stars that we'll provide you with (advanced option: enter $K$ magnitudes) & 13.0\\
-Depth Lower Limit & Lower limit on the expected depth of transit & $0.005-0.015$\\
+Apparent Mag. Upper Limit & The calculator will filter out any target stars with visible $V$ magnitudes greater than this (alternatively with the advanced option it will filter by $K$ magnitude) & 13.0\\
+Depth Lower Limit & The calculator will filter out any transit events that have a smaller expected transit depth than this& $0.005$\\
 \hline 
 Latitude & Latitude of your observatory, \code{deg:min:sec}. North is positive, south is negative. & 19:49:15.6\\
 Longitude & Longitude of your observatory, \code{deg:min:sec}. East is positive, west is negative. & -155:28:24\\
 Observatory Elevation & Elevation of your observatory in meters & 4123.0 \\
 Temperature & Air temperature at time of observation in degrees C & 0.0 \\
-Lower Elevation Limit & The lowest altitude that your telescope can slew down to while observing targets, \code{deg:min:sec} & 30:00:00 \\
-Twilight Type & Tweaks the definition of when ``sunset'' has occurred based on the various definitions of ``twilight'' & [Choose from list] \\
-Show Local Times & This includes columns in the table for the conversion from UT to LT, but should not be trusted in general & [Choose on/off] \\
+Lower Elevation Limit & Filter out targets below the lowest altitude that your telescope can observe, \code{deg:min:sec} & 30:00:00 \\
+Twilight Type & Tweaks the definition of when ``sunset'' has occurred based on the various definitions of ``\href{http://en.wikipedia.org/wiki/Twilight#Definitions}{twilight}'' & [Choose from list] \\
+Show Local Times & This includes columns in the table for the conversion from UT to LT, \textit{where LT is the local time for the computer running \oscaar, NOT for the location of the entered observatory} & [Choose on/off] \\
 Band Type & Bandpass for brightness measurements displayed in ephemeris &  [Choose from $V$/$K$]\\
 Calculate Eclipses & Toggle to calculate the times of eclipse events as well as or in place of transits &  [Choose on/off]\\
 Calculate Transits & Toggle to calculate the times of transit events as well as or in place of eclipses &  [Choose on/off]\\
