@@ -18,6 +18,14 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 sys.path.insert(0, os.path.abspath('../oscaar'))
+intersphinx_mapping = {
+    'python': ('http://docs.python.org/', None),
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
+    'matplotlib': ('http://matplotlib.sourceforge.net/', None),
+    'astropy': ('http://www.astropy.org/', None),
+    'h5py': ('http://h5py.alfven.org/docs-2.1/', None)
+    }
 
 # -- General configuration -----------------------------------------------------
 
@@ -27,6 +35,9 @@ sys.path.insert(0, os.path.abspath('../oscaar'))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc']
+
+autoclass_content = 'both'
+autodoc_member_order = 'bysource'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -65,7 +76,7 @@ release = '2.0 beta'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', 'oscaar/oscaarGUI.py']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
