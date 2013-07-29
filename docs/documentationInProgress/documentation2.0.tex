@@ -11,6 +11,7 @@
 \usepackage{cmbright}	% Font: Computer Modern Bright
 \usepackage[T1]{fontenc}
 \usepackage{multirow}
+\usepackage{listings}
 \linespread{1.1}% spread lines out a little
 \frenchspacing % remove extra space after punctuation
 %\newcommand{\oscaar}{$ \texttt{OSCAAR}$ }
@@ -29,6 +30,21 @@
 \pagebreak
 \tableofcontents
 \pagebreak
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Current documentation to do list:
+%  - write up subsection on multiple apertures in the GUI section
+%  - write up subsection on multiple regions files in the GUI section
+%  - draw more "cheat sheet" tables of acceptable values
+%  - write up subsection on the "extra observatory params" box (cut and paste the subsection on CCD Gain, add time keyword subsection)
+%  - write up subsection on registering with OSCAAR in the intro section
+%  - neaten up the ephemeris cheat sheet table
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 \section{Introduction}
 
 \oscaar's core is a differential photometry package built for users of any experience level at observatories of any size. The process of differential photometry can be applied to many astrophysical phenomena including transiting extrasolar planets, variable stars, rotating asteroids and more. This package is prepared specially for transiting exoplanet observations, though often other photometric observations can be analyzed with \oscaar without any tweaking to the source code.
@@ -71,7 +87,7 @@ The only ones left are PyFITS and PyEphem.
 \textit{Note for Mac OS 10.8 Users:} When you download python2.7 or any other \oscaar dependencies, there is an error message that pops up because the "GateKeeper", a function added in MacOsX 10.8, will not let you download things from an unidentified source. All of the dependencies have to use solutions found in their ReadMe.txt files to download them because "GateKeeper" will block all the downloads. wxPython can present additional difficulties if you are downloading it on a machine running modern versions of OS X. The standard links to OS X compatible binaries on the wxPython page are misleading. You'll have your best shot at downloading a working version of wxPython for your OS X-running machine if you download the less prominently labeled version "wxPython2.9-osx-cocoa-py2.7". This one is the one to get.
 
 \subsection{Installing \oscaar}
-\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived ``OSCAAR-master'' directory, using the command \code{"cd (name of destination directory)"} to move from one directory to another. The command \code{"dir"} will allow you to see what directories are found in the current directory. The command \code{"cd .."} is quite useful for moving back one directory. Once at the ``OSCAAR-master'' directory, type: 
+\oscaar is currently in beta release, so there is no ``stable'' package to download just yet. Instead, each copy that you download will have the latest up-to-the-second updates. To download \oscaar via GitHub, go to \href{https://github.com/OSCAAR/OSCAAR/zipball/master}{http://github.com/OSCAAR/OSCAAR/zipball/master} to begin downloading and unarchive the ``.zip'' file. Next, open up your Command Prompt (Windows) or Terminal (Mac OS/Linux) and go to the unarchived OSCAAR directory, using the command \code{"cd <name of destination directory>} to move from one directory to another. Once at the ``OSCAAR-master'' directory, enter 
 \begin{verbatim}
 python setup.py install
 \end{verbatim}
@@ -79,9 +95,7 @@ python setup.py install
 \begin{verbatim}
 python setup.py install --user
 \end{verbatim}
-Next, change directories to some other directory. If you were to import \oscaar from this ``OSCAAR-master'' directory, Python would use the source files that you downloaded, rather than the ones you installed. Since installation builds C libraries and downloads SAOImage DS9, it's important to run \oscaar from the installed directories. If you click the "Open DS9" button without changing from the "OSCAAR-master" directory, a "DS9 error" box stating that DS9 has not installed correctly will appear. So, change to some other directory before working with \oscaar.
-
-\textit{Note for programmers:} For the reasons described above, if you want to develop new features for \oscaar, you can edit the source files that you downloaded in the  ``OSCAAR-master'' directory and run \oscaar from there, though be mindful of the extra work that the \code{setup.py} and \code{post\_setup.py} files do during the system install that will not be done in the  ``OSCAAR-master'' directory.
+Next, change directories to some other directory. If you were to import \oscaar from this unarchived OSCAAR directory, Python would use the source files that you downloaded, rather than the ones you installed (the difference is subtle but important). 
 
 \textit{Note for Windows Users:} The Command Prompt will not recognize the command "python" until you type:
 \begin{verbatim}
