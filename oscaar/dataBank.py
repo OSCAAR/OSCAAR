@@ -18,19 +18,25 @@ oscaarpathplus = os.path.join(oscaarpath,'extras')
 
 class dataBank:
     '''
-        Methods for storing information from each star in Python dictionaries.
+        Methods for easily storing and accessing information from the entire 
+        differential photometry process with OSCAAR.
         
         Core Developer: Brett Morris
         '''
     def __init__(self):
         '''
-            Run oscaar.parseRegionsFile() to get the inital guesses for the 
-            initial centroids of the stars from the DS9 regions file, create
-            dictionaries in which to store all of the data collected
-            for each star. Allocate the memory for these arrays wherever possible.
-            Parse the init.par file to grab the paths and initial parameters for 
-            the run.
-            INPUTS: None.
+            Get the inital guesses for the initial centroids of the stars from the DS9 regions file, 
+            create dictionaries in which to store all of the data collected for each star, and for each 
+            aperture radius. Allocate the memory for these arrays wherever possible. Parse the init.par 
+            file to grab the paths and initial parameters for the run.
+            
+            Parameters
+			----------
+			    None
+			    
+			Returns
+			-------
+				Instance of the ``dataBank`` object.
             '''
 
         self.dict = {}
@@ -83,10 +89,39 @@ class dataBank:
             self.allStarsDict[str(i).zfill(3)]['y-pos'][0] = init_y_list[i]
             self.keys.append(str(i).zfill(3))   
     def getDict(self):
-        '''Return master dictionary of all star data'''
+        '''Return dictionary of all star data called ``allStarsDict`.'''
         return self.allStarsDict
     
     def centroidInitialGuess(self,expNumber,star):
+    	'''
+    	
+    	Gets called for each exposure. If called on the first exposure, it will return
+    	the intial centroid guesses input by the DS9 regions file. If any other image
+    	and only one regions file has been submitted, it will return the previous centroid
+    	as the initial guess for subsequent exposures. If multiple regions files have been
+    	submitted, it will return the initial guesses in those regions files when the image path
+    	with index ``expNumber`` is equivalent to the path stored for that regions file's 
+    	"Reference FITS image".
+    	
+    	Parameters
+	    ----------
+	    expNumber : int
+	        The index of the exposure currently being analyzed. The image gets called
+	        by its index from the list of image paths returned by getPaths().
+	    star : str
+	        The key from ``allStarsDict`` that corresponds to the star for which you'd
+	        like a centroid initial guess.
+	
+	    Returns
+	    -------
+	    est_x : float
+	        Estimated centroid position of the star ``star`` along the *x*-axis of pixels for
+	        exposure index ``expNumber``
+	    
+	    est_y : float
+	        Estimated centroid position of the star ``star`` along the *y*-axis of pixels for
+	        exposure index ``expNumber``
+    	'''
         if expNumber == 0:
             est_x = self.allStarsDict[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
             est_y = self.allStarsDict[star]['y-pos'][0]  ##    stellar centroid for the first exposure
@@ -102,50 +137,79 @@ class dataBank:
     
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
         '''Store the centroid data collected by oscaar.trackSmooth()
-            INPUTS: star - Key for the star for which the centroid has been measured
+            Parameters
+            ----------
+            star : str
+            	Key for the star for which the centroid has been measured
             
-            exposureNumber - Index of exposure being considered
+            exposureNumber : int
+            	Index of exposure being considered
             
-            xCentroid - x-centroid of the star
+            xCentroid : float
+            	*x*-centroid of the star
             
-            yCentroid - y-centroid of the star
+            yCentroid : float
+            	*y*-centroid of the star
             '''
         self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
         self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
     
     def storeFlux(self,star,exposureNumber,rawFlux,rawError):
         '''Store the flux and error data collected by oscaar.phot()
-            INPUTS: star - Key for the star for which the centroid has been measured
+			Parameters
+			----------
+			star : str
+				Key for the star from the ``allStarsDict`` dictionary
+			
+			exposureNumber : int
+				Index of exposure being considered
+			
+            rawFlux : float
+            	flux measured, to be stored
             
-            exposureNumber - Index of exposure being considered
-            
-            rawFlux - flux measured, to be stored
-            
-            rawError - photon noise measured, to be stored
+            rawError : 
+            	photon noise measured, to be stored
             '''
         self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
     def storeFluxes(self,star,exposureNumber,rawFluxes,rawErrors):
-        '''Store the flux and error data collected by oscaar.phot()
-            INPUTS: star - Key for the star for which the centroid has been measured
-            
-            exposureNumber - Index of exposure being considered
-            
-            rawFlux - flux measured, to be stored
-            
-            rawError - photon noise measured, to be stored
-            '''
+		'''Store the flux and error data collected by oscaar.phot()
+			Parameters
+			----------
+			star : str
+				Key for the star from the ``allStarsDict`` dictionary
+			
+			exposureNumber : int
+				Index of exposure being considered
+			
+			rawFluxes : list of floats
+				flux measured, to be stored
+			
+			rawErrors : list of floats
+				photon noise measured, to be stored
+			'''
         for apertureRadiusIndex in range(len(self.apertureRadii)):
             self.allStarsDict[star]['rawFlux'][apertureRadiusIndex][exposureNumber] = rawFluxes[apertureRadiusIndex]
             self.allStarsDict[star]['rawError'][apertureRadiusIndex][exposureNumber] = rawErrors[apertureRadiusIndex]
     
     def getPaths(self):
-        '''Return the paths to the raw images used'''
+        '''Return the paths to the raw images to be used'''
         return self.imagesPaths
     
     def getFluxes(self,star):
-        '''Return the fluxes for one star, where the star parameter is the key for the
-            star of interest.'''
+    	'''
+    		Return list of fluxes for the star with key ``star``
+    		
+			Parameters
+			----------
+			star : str
+				Key for the star from the ``allStarsDict`` dictionary
+			
+			Returns
+			_______
+			fluxes : list
+				List of fluxes for each aperture radius
+		'''
         return self.allStarsDict[star]['rawFlux']
     
     def getErrors(self,star):
