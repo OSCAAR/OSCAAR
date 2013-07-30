@@ -77,7 +77,9 @@ if packageErrors:
 	    print("*Error*: wxPython version is lower than needed: %s < %s" %
 			  (wx.__version__, minimum_wxpython_version))
 	    sys.exit(1)  
-  
+else: 
+	from setuptools import setup
+
 """ Walk through the subdirs and add all non-python scripts to MANIFEST.in """
 def create_manifest():	
 	print 'creating manifest.in'
