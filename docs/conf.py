@@ -34,7 +34,7 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['pygtk', 'gtk', 'gobject', 'argparse','numpy','scipy','matplotlib','wxPython','pyfits','cm','ephem','random','wx']
+MOCK_MODULES = ['pygtk', 'gtk', 'gobject', 'argparse','numpy','scipy','matplotlib','wxPython','pyfits','matplotlib.cm','ephem','numpy.random','wx']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
