@@ -16,6 +16,8 @@ import sys
 import os
 
 
+########################################################################
+## This "mock" setup replaces all of the packages used by OSCAAR with inert placeholders
 class Mock(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -34,11 +36,12 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['numpy','scipy','matplotlib',\
-			'wxPython','pyfits','matplotlib.cm','ephem','numpy.random','wx','matplotlib.ticker',\
-			'matplotlib.figure']
+MOCK_MODULES = ['numpy','scipy','matplotlib','wxPython','pyfits','matplotlib.cm','ephem','numpy.random',\
+			'wx','matplotlib.ticker','matplotlib.figure','matplotlib.backends.backend_wxagg']
+
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
+########################################################################
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
