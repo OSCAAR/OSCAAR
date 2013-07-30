@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>oscaar Package &mdash; OSCAAR 2.0 beta documentation</title>
+    <title>oscaar Package &mdash; OSCAAR beta documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '2.0 beta',
+        URL_ROOT:    './',
+        VERSION:     'beta',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="OSCAAR 2.0 beta documentation" href="index.html" /> 
+    <link rel="top" title="OSCAAR beta documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,7 +32,10 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="index.html">OSCAAR 2.0 beta documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OSCAAR beta documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,51 +48,1689 @@
 <h1>oscaar Package<a class="headerlink" href="#oscaar-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2><tt class="xref py py-mod docutils literal"><span class="pre">oscaar</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-oscaar.__init__"></span></div>
+<div class="section" id="module-oscaar.IO">
+<span id="io-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">IO</span></tt> Module<a class="headerlink" href="#module-oscaar.IO" title="Permalink to this headline">¶</a></h2>
+<p>oscaar v2.0 
+Module for differential photometry
+Developed by Brett Morris, 2011-2013</p>
+<dl class="function">
+<dt id="oscaar.IO.cd">
+<tt class="descclassname">oscaar.IO.</tt><tt class="descname">cd</tt><big>(</big><em>a=None</em><big>)</big><a class="headerlink" href="#oscaar.IO.cd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change to directory a where a is a 
+string inside of single quotes. If a
+is empty, changes to parent directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.IO.cp">
+<tt class="descclassname">oscaar.IO.</tt><tt class="descname">cp</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#oscaar.IO.cp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy file a to location b where a,b are
+strings inside of single quotes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.IO.load">
+<tt class="descclassname">oscaar.IO.</tt><tt class="descname">load</tt><big>(</big><em>inputPath</em><big>)</big><a class="headerlink" href="#oscaar.IO.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load everything from a oscaar.dataBank() object in a python pickle using cPickle.</p>
+<p>INPUTS: data - oscaar.dataBank() object to save</p>
+<blockquote>
+<div>outputPath - Path for the saved numpy-pickle.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.IO.parseRegionsFile">
+<tt class="descclassname">oscaar.IO.</tt><tt class="descname">parseRegionsFile</tt><big>(</big><em>regsPath</em><big>)</big><a class="headerlink" href="#oscaar.IO.parseRegionsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the DS9 regions file (written in .txt format) which contains
+the initial guesses for the stellar centroids, in the following format:</p>
+<blockquote>
+<div>&#8220;circle(&lt;y-center&gt;,&lt;x-center&gt;,&lt;radius&gt;)&#8221;</div></blockquote>
+<p>The reversed x,y order comes from the different directions that FITS files
+are read-in with DS9 and PyFits.</p>
+<p>INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords</p>
+<p>RETURNS: init_x_list - Inital estimates of the x-centroids</p>
+<blockquote>
+<div>init_y_list - Inital estimates of the y-centroids</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.IO.plottingSettings">
+<tt class="descclassname">oscaar.IO.</tt><tt class="descname">plottingSettings</tt><big>(</big><em>trackPlots</em>, <em>photPlots</em>, <em>statusBar=True</em><big>)</big><a class="headerlink" href="#oscaar.IO.plottingSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for handling matplotlib figures across oscaar methods. 
+INPUTS: trackPlots - boolean for turning astrometry plots on and off</p>
+<blockquote>
+<div>photPlots - boolean for turning aperture photometry plots on and off</div></blockquote>
+<dl class="docutils">
+<dt>RETURNS a list containing:</dt>
+<dd><p class="first">fig - the figure object from matplotlib that will be displayed while oscaar is running
+subplotsDimensions - integer value that designates the x and y dimensions of the subplots</p>
+<blockquote>
+<div>within the figure plot</div></blockquote>
+<dl class="docutils">
+<dt>photSubplotsOffset - if photPlots is True and trackPlots is True, then photSubplotsOffset</dt>
+<dd>will ensure that the aperture photometry plots are on the right-most
+subplot, otherwise it will assume that the aperture photometry plots
+are the only/first subplot.</dd>
+</dl>
+<p class="last">This list returned by plottingSettings() should be stored to a variable, and used as an
+argument in the phot() and trackSmooth() methods.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.IO.save">
+<tt class="descclassname">oscaar.IO.</tt><tt class="descname">save</tt><big>(</big><em>data</em>, <em>outputPath</em><big>)</big><a class="headerlink" href="#oscaar.IO.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save everything in oscaar.dataBank object &lt;data&gt; to a python pickle using cPickle.</p>
+<p>INPUTS: data - oscaar.dataBank() object to save</p>
+<blockquote>
+<div>outputPath - Path for the saved numpy-pickle.</div></blockquote>
+</dd></dl>
+
 </div>
-<div class="section" id="io-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">IO</span></tt> Module<a class="headerlink" href="#io-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="databank-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">dataBank</span></tt> Module<a class="headerlink" href="#databank-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.dataBank">
+<span id="databank-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">dataBank</span></tt> Module<a class="headerlink" href="#module-oscaar.dataBank" title="Permalink to this headline">¶</a></h2>
+<p>oscaar v2.0 
+Module for differential photometry
+Developed by Brett Morris, 2011-2013 &amp; minor modifications by Luuk Visser</p>
+<dl class="class">
+<dt id="oscaar.dataBank.dataBank">
+<em class="property">class </em><tt class="descclassname">oscaar.dataBank.</tt><tt class="descname">dataBank</tt><a class="headerlink" href="#oscaar.dataBank.dataBank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for storing information from each star in Python dictionaries.</p>
+<p>Core Developer: Brett Morris</p>
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.calcChiSq">
+<tt class="descname">calcChiSq</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.calcChiSq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.calcChiSq_multirad">
+<tt class="descname">calcChiSq_multirad</tt><big>(</big><em>apertureRadiusIndex</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.calcChiSq_multirad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.calcMeanComparison">
+<tt class="descname">calcMeanComparison</tt><big>(</big><em>ccdGain=1</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.calcMeanComparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take the regression-weighted mean of some of the comparison stars
+to produce one comparison star flux to compare to the target to
+produce a light curve.</p>
+<p>The comparison stars used are those whose chi-squareds calculated by
+self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
+This condition removes outliers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.calcMeanComparison_multirad">
+<tt class="descname">calcMeanComparison_multirad</tt><big>(</big><em>ccdGain=1</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.calcMeanComparison_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take the regression-weighted mean of some of the comparison stars
+to produce one comparison star flux to compare to the target to
+produce a light curve.</p>
+<p>The comparison stars used are those whose chi-squareds calculated by
+self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
+This condition removes outliers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.centroidInitialGuess">
+<tt class="descname">centroidInitialGuess</tt><big>(</big><em>expNumber</em>, <em>star</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.centroidInitialGuess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.computeLightCurve">
+<tt class="descname">computeLightCurve</tt><big>(</big><em>meanComparisonStar</em>, <em>meanComparisonStarError</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.computeLightCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divide the target star flux by the mean comparison star to yield a light curve,
+save the light curve into the dataBank object.</p>
+<p>INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star</p>
+<p>RETURNS: self.lightCurve - The target star divided by the mean comparison 
+star, i.e., the light curve.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.computeLightCurve_multirad">
+<tt class="descname">computeLightCurve_multirad</tt><big>(</big><em>meanComparisonStars</em>, <em>meanComparisonStarErrors</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.computeLightCurve_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divide the target star flux by the mean comparison star to yield a light curve,
+save the light curve into the dataBank object.</p>
+<p>INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star</p>
+<p>RETURNS: self.lightCurve - The target star divided by the mean comparison 
+star, i.e., the light curve.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getAllChiSq">
+<tt class="descname">getAllChiSq</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getAllChiSq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return chi-squared&#8217;s for all stars</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getAllFlags">
+<tt class="descname">getAllFlags</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getAllFlags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return flags for all stars</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getDict">
+<tt class="descname">getDict</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return master dictionary of all star data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getErrors">
+<tt class="descname">getErrors</tt><big>(</big><em>star</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the errors for one star, where the star parameter is the key for the
+star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getErrors_multirad">
+<tt class="descname">getErrors_multirad</tt><big>(</big><em>star</em>, <em>apertureRadiusIndex</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getErrors_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the errors for one star, where the star parameter is the key for the
+star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getFlag">
+<tt class="descname">getFlag</tt><big>(</big><em>star</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getFlag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the flag for the star with key &#8220;star&#8221;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getFluxes">
+<tt class="descname">getFluxes</tt><big>(</big><em>star</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getFluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the fluxes for one star, where the star parameter is the key for the
+star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getFluxes_multirad">
+<tt class="descname">getFluxes_multirad</tt><big>(</big><em>star</em>, <em>apertureRadiusIndex</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getFluxes_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the fluxes for one star, where the star parameter is the key for the
+star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getKeys">
+<tt class="descname">getKeys</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getKeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the keys for all of the stars</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getPaths">
+<tt class="descname">getPaths</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getPaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the paths to the raw images used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getPhotonNoise">
+<tt class="descname">getPhotonNoise</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getPhotonNoise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate photon noise using the lightCurve and the meanComparisonStar</p>
+<p>RETURNS: self.photonNoise - The estimated photon noise limit</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getScaledErrors">
+<tt class="descname">getScaledErrors</tt><big>(</big><em>star</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getScaledErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the scaled fluxes for one star, where the star parameter is the 
+key for the star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getScaledErrors_multirad">
+<tt class="descname">getScaledErrors_multirad</tt><big>(</big><em>star</em>, <em>apertureRadiusIndex</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getScaledErrors_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the scaled fluxes for one star, where the star parameter is the 
+key for the star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getScaledFluxes">
+<tt class="descname">getScaledFluxes</tt><big>(</big><em>star</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getScaledFluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the scaled fluxes for one star, where the star parameter is the 
+key for the star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getScaledFluxes_multirad">
+<tt class="descname">getScaledFluxes_multirad</tt><big>(</big><em>star</em>, <em>apertureRadiusIndex</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getScaledFluxes_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the scaled fluxes for one star, where the star parameter is the 
+key for the star of interest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.getTimes">
+<tt class="descname">getTimes</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.getTimes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all times collected with dataBank.storeTime()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.outOfTransit">
+<tt class="descname">outOfTransit</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.outOfTransit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean array where True are the times in data.getTimes() that are
+before ingress or after egress.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.parseInit">
+<tt class="descname">parseInit</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.parseInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses init.par</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.parseRawRegionsList">
+<tt class="descname">parseRawRegionsList</tt><big>(</big><em>rawRegionsList</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.parseRawRegionsList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split up the &#8220;rawRegionsList&#8221;, which should be in the format:</p>
+<p>&lt;first regions file&gt;,&lt;reference FITS file for the first regs file&gt;;&lt;second&gt; regions file&gt;,
+&lt;reference FITS file for the first regs file&gt;;....</p>
+<p>into a list of regions files and a list of FITS reference files.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.parseRegionsFile">
+<tt class="descname">parseRegionsFile</tt><big>(</big><em>regPath</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.parseRegionsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the DS9 regions file (written in .txt format) which contains
+the initial guesses for the stellar centroids, in the following format:</p>
+<blockquote>
+<div>&#8220;circle(&lt;y-center&gt;,&lt;x-center&gt;,&lt;radius&gt;)&#8221;</div></blockquote>
+<p>The reversed x,y order comes from the different directions that FITS files
+are read-in with DS9 and PyFits.</p>
+<p>INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords</p>
+<p>RETURNS: init_x_list - Inital estimates of the x-centroids</p>
+<blockquote>
+<div>init_y_list - Inital estimates of the y-centroids</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plot">
+<tt class="descname">plot</tt><big>(</big><em>pointsPerBin=10</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotCentroidsTrace">
+<tt class="descname">plotCentroidsTrace</tt><big>(</big><em>pointsPerBin=10</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotCentroidsTrace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotComparisonWeightings">
+<tt class="descname">plotComparisonWeightings</tt><big>(</big><em>apertureRadiusIndex=0</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotComparisonWeightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotLightCurve">
+<tt class="descname">plotLightCurve</tt><big>(</big><em>pointsPerBin=10</em>, <em>apertureRadiusIndex=0</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotLightCurve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotLightCurve_multirad">
+<tt class="descname">plotLightCurve_multirad</tt><big>(</big><em>pointsPerBin=10</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotLightCurve_multirad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotMCMC">
+<tt class="descname">plotMCMC</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotMCMC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotRawFluxes">
+<tt class="descname">plotRawFluxes</tt><big>(</big><em>apertureRadiusIndex=0</em>, <em>pointsPerBin=10</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotRawFluxes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.plotScaledFluxes">
+<tt class="descname">plotScaledFluxes</tt><big>(</big><em>apertureRadiusIndex=0</em>, <em>pointsPerBin=10</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.plotScaledFluxes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.scaleFluxes">
+<tt class="descname">scaleFluxes</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.scaleFluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>When all fluxes have been collected, run this to re-scale the fluxes of each
+comparison star to the flux of the target star. Do the same transformation on the errors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.scaleFluxes_multirad">
+<tt class="descname">scaleFluxes_multirad</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.scaleFluxes_multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>When all fluxes have been collected, run this to re-scale the fluxes of each
+comparison star to the flux of the target star. Do the same transformation on the errors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.setFlag">
+<tt class="descname">setFlag</tt><big>(</big><em>star</em>, <em>setting</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.setFlag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set flag for star with key &lt;star&gt; to &lt;setting&gt; where 
+setting is a Boolean</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.storeCentroid">
+<tt class="descname">storeCentroid</tt><big>(</big><em>star</em>, <em>exposureNumber</em>, <em>xCentroid</em>, <em>yCentroid</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.storeCentroid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the centroid data collected by oscaar.trackSmooth()
+INPUTS: star - Key for the star for which the centroid has been measured</p>
+<p>exposureNumber - Index of exposure being considered</p>
+<p>xCentroid - x-centroid of the star</p>
+<p>yCentroid - y-centroid of the star</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.storeFlux">
+<tt class="descname">storeFlux</tt><big>(</big><em>star</em>, <em>exposureNumber</em>, <em>rawFlux</em>, <em>rawError</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.storeFlux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the flux and error data collected by oscaar.phot()
+INPUTS: star - Key for the star for which the centroid has been measured</p>
+<p>exposureNumber - Index of exposure being considered</p>
+<p>rawFlux - flux measured, to be stored</p>
+<p>rawError - photon noise measured, to be stored</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.storeFluxes">
+<tt class="descname">storeFluxes</tt><big>(</big><em>star</em>, <em>exposureNumber</em>, <em>rawFluxes</em>, <em>rawErrors</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.storeFluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the flux and error data collected by oscaar.phot()
+INPUTS: star - Key for the star for which the centroid has been measured</p>
+<p>exposureNumber - Index of exposure being considered</p>
+<p>rawFlux - flux measured, to be stored</p>
+<p>rawError - photon noise measured, to be stored</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.storeTime">
+<tt class="descname">storeTime</tt><big>(</big><em>expNumber</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.storeTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the time in JD from the FITS header.
+INPUTS: exposureNumber - Index of exposure being considered</p>
+<p>time - Time as read-in from the FITS header</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.dataBank.dataBank.updateMCMC">
+<tt class="descname">updateMCMC</tt><big>(</big><em>bestp</em>, <em>allparams</em>, <em>acceptanceRate</em>, <em>dataBankPath</em><big>)</big><a class="headerlink" href="#oscaar.dataBank.dataBank.updateMCMC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="differentialphotometry-module">
 <h2><tt class="xref py py-mod docutils literal"><span class="pre">differentialPhotometry</span></tt> Module<a class="headerlink" href="#differentialphotometry-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="fitting-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">fitting</span></tt> Module<a class="headerlink" href="#fitting-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.fitting">
+<span id="fitting-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">fitting</span></tt> Module<a class="headerlink" href="#module-oscaar.fitting" title="Permalink to this headline">¶</a></h2>
+<p>Markov Chain Monte Carlo fitting routines for transit light curve
+fitting and uncertainty analysis as laid out by Ford (2005).</p>
+<p>How to use these methods: 
+1) Design a wrapper function around oscaar.transitModel.occultquad()</p>
+<blockquote>
+<div><p>that will take only the free parameters for your fit as arguments.</p>
+<p>For example, if you&#8217;d like to fit the ratio of planetary radius to 
+stellar radius, the ratio of the orbital semimajor axis and the 
+stellar radius, the orbital inclination, and the mid-transit time, 
+we could wrap the oscaar.transitModel.occultquad() function in the 
+following way to make a new function that only takes those four 
+parameters:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>def occult4params(t,params):</dt>
+<dd>p,ap,i,t0 = params
+## The above four parameters are the ones we&#8217;ll fit
+## We&#8217;ll hard code in the fixed parameters:
+return oscaar.occultquad(t,[p,ap,2.2,i,0.23,0.3,0.0,0.0,t0])</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li>Make a guess for the initial beta vector. The beta vector should
+be of the same length as the number of initial parameters. Try
+making a vector with each element equal to 0.05 to start.</li>
+<li>Run optimizeBeta() on the initial beta vector to get an optimized
+beta vector that will produce the desired acceptance rate.</li>
+<li>Run mcmc() with your <cite>beta</cite> from Step 3</li>
+</ol>
+<p>Created by Brett Morris, with inspiration from Evan Sinukoff</p>
+<dl class="function">
+<dt id="oscaar.fitting.fitLinearTrend">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">fitLinearTrend</tt><big>(</big><em>xVector</em>, <em>yVector</em><big>)</big><a class="headerlink" href="#oscaar.fitting.fitLinearTrend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit a line to the set {xVectorCropped,yVectorCropped}, then remove that linear trend
+from the full set {xVector,yVector}</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.get_uncertainties">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">get_uncertainties</tt><big>(</big><em>param</em>, <em>bestFitParameter</em><big>)</big><a class="headerlink" href="#oscaar.fitting.get_uncertainties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.histplot">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">histplot</tt><big>(</big><em>parameter</em>, <em>axis</em>, <em>title</em>, <em>bestFitParameter</em><big>)</big><a class="headerlink" href="#oscaar.fitting.histplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.linearFunc">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">linearFunc</tt><big>(</big><em>xVector</em>, <em>params</em><big>)</big><a class="headerlink" href="#oscaar.fitting.linearFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.mcmc">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">mcmc</tt><big>(</big><em>t</em>, <em>flux</em>, <em>sigma</em>, <em>initParams</em>, <em>func</em>, <em>Nsteps</em>, <em>beta</em>, <em>saveInterval</em>, <em>verbose=False</em>, <em>loadingbar=True</em><big>)</big><a class="headerlink" href="#oscaar.fitting.mcmc" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Markov Chain Monte Carlo routine for fitting. Takes a set of fluxes <cite>flux</cite> 
+measured at times <cite>t</cite> with uncertainties <cite>sigma</cite>. Input fitting function <cite>func</cite> is fed
+initial parameters <cite>initParams</cite> and iterated through the chains
+a total of <cite>Nsteps</cite> times, randomly sampled from normal distributions
+with widths <cite>beta</cite>, and every <cite>saveInterval</cite>-th state in the chain 
+is saved for later analysis.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Inputs :</th><td class="field-body"><blockquote class="first">
+<div><p>t         &#8211; time (vector)
+flux     &#8211; fluxes (vector)
+sigma     &#8211; uncertainties in fluxes (vector)
+initParams    &#8211; initial parameter estimates, <cite>x_0</cite> in Ford 2005 (vector)
+func    &#8211; fitting function (function)
+Nsteps    &#8211; number of iterations (int)
+beta    &#8211; widths of normal distribution to randomly sample for each parameter (vector)
+saveInterval     &#8211; number of steps between &#8220;saves&#8221; (int)</p>
+</div></blockquote>
+<table class="last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">OUTPUTS:</th><td class="field-body"><p class="first">bestp         &#8211; parameters at minimum chi^2  (vector)
+x_0toN      &#8211; trace of each parameter at each save step (matrix)
+acceptance rate     &#8211; the final acceptance rate of the chain (float)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Notes:</th><td class="field-body"><ul class="first last">
+<li><p class="first">Developed by Brett Morris (NASA-GSFC/UMD)</p>
+</li>
+<li><p class="first">Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717</p>
+</li>
+<li><dl class="first docutils">
+<dt>Code implementation partly influenced by Ian Crossfield&#8217;s routines: </dt>
+<dd><p class="first last"><a class="reference external" href="http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html">http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html</a></p>
+</dd>
+</dl>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.mcmc_iterate">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">mcmc_iterate</tt><big>(</big><em>t</em>, <em>flux</em>, <em>sigma</em>, <em>initParams</em>, <em>func</em>, <em>Nsteps</em>, <em>beta</em>, <em>saveInterval</em>, <em>verbose=False</em><big>)</big><a class="headerlink" href="#oscaar.fitting.mcmc_iterate" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>MCMC routine specifically for optimizing the beta parameters with the
+optimizeBeta() function.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Inputs :</th><td class="field-body"><blockquote class="first">
+<div><p>t         &#8211; time (vector)
+flux     &#8211; fluxes (vector)
+sigma     &#8211; uncertainties in fluxes (vector)
+initParams    &#8211; initial parameter estimates, <cite>x_0</cite> in Ford 2005 (vector)
+func    &#8211; fitting function (function)
+Nsteps    &#8211; number of iterations (int)
+beta    &#8211; widths of normal distribution to randomly sample for each parameter (vector)
+saveInterval     &#8211; number of steps between &#8220;saves&#8221; (int)</p>
+</div></blockquote>
+<table class="last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">OUTPUTS:</th><td class="field-body"><p class="first">acceptanceRateArray    &#8211; Array of acceptance rates for each beta_mu</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Notes:</th><td class="field-body"><ul class="first last">
+<li><p class="first">Developed by Brett Morris (NASA-GSFC/UMD)</p>
+</li>
+<li><p class="first">Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717</p>
+</li>
+<li><dl class="first docutils">
+<dt>Code implementation partly influenced by Ian Crossfield&#8217;s routines: </dt>
+<dd><p class="first last"><a class="reference external" href="http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html">http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html</a></p>
+</dd>
+</dl>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.fitting.mcmcfit">
+<em class="property">class </em><tt class="descclassname">oscaar.fitting.</tt><tt class="descname">mcmcfit</tt><big>(</big><em>dataBankPath</em>, <em>initParams</em>, <em>initBeta</em>, <em>Nsteps</em>, <em>saveInterval</em>, <em>idealAcceptanceRate</em>, <em>burnFraction</em><big>)</big><a class="headerlink" href="#oscaar.fitting.mcmcfit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="oscaar.fitting.mcmcfit.plot">
+<tt class="descname">plot</tt><big>(</big><em>num=0</em><big>)</big><a class="headerlink" href="#oscaar.fitting.mcmcfit.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.fitting.mcmcfit.run">
+<tt class="descname">run</tt><big>(</big><em>updatepkl=False</em>, <em>num=0</em><big>)</big><a class="headerlink" href="#oscaar.fitting.mcmcfit.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the MCMC algorithms:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.optimizeBeta">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">optimizeBeta</tt><big>(</big><em>t</em>, <em>flux</em>, <em>sigma</em>, <em>initParams</em>, <em>func</em>, <em>beta</em>, <em>idealAcceptanceRate</em>, <em>plot=True</em><big>)</big><a class="headerlink" href="#oscaar.fitting.optimizeBeta" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>The <cite>beta</cite> input parameters for the MCMC function determine the 
+acceptance rate of the Metropolis-Hastings algorithm. According
+to Ford 2005, the ideal acceptance rate is ~0.25 - ~0.44. This routine
+is designed to take an initial guess for each of the beta parameters
+and tweak them until they produce good acceptance rates for each parameter.
+This is achieved by randomly perturbing each initial parameter with the small
+perturbation by randomly sampling a normal distribution with a width given by
+the initial beta vector <cite>beta</cite>. optimizeBeta() then tries running an MCMC chain
+briefly to find the acceptance rate for that beta parameter. If the acceptance
+rates are two high, for example, then the beta is too low, and optimizeBeta() 
+will increase beta. This process continues until the beta vector produces
+acceptance rates within 10% of the <cite>idealAcceptanceRate</cite>, which according to
+Ford (2005) should be between 0.25-0.44.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Inputs :</th><td class="field-body"><blockquote class="first">
+<div><p>t         &#8211; time (vector)
+flux     &#8211; fluxes (vector)
+sigma     &#8211; uncertainties in fluxes (vector)
+initParams    &#8211; initial parameter estimates, <cite>x_0</cite> in Ford 2005 (vector)
+func    &#8211; fitting function (function)
+beta    &#8211; widths of normal distribution to randomly sample for each parameter (vector)
+idealAcceptanceRate     &#8211;  desired acceptance rate to be produced by the optimized <cite>beta</cite> (float)</p>
+</div></blockquote>
+<table class="last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">OUTPUTS:</th><td class="field-body"><dl class="first docutils">
+<dt>beta &#8211; the beta vector optimized so that running a MCMC chain should produce</dt>
+<dd><p class="first last">acceptance rates near <cite>idealAcceptanceRate</cite> (vector)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Notes:</th><td class="field-body"><ul class="first last simple">
+<li>Developed by Brett Morris (NASA-GSFC/UMD)</li>
+<li>Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717</li>
+<li>Code implementation partly influenced by Evan Sinukoff&#8217;s MCMC_Evan_Master_v3_new22.pro</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.fitting.updatePKL">
+<tt class="descclassname">oscaar.fitting.</tt><tt class="descname">updatePKL</tt><big>(</big><em>bestp</em>, <em>allparams</em>, <em>acceptanceRate</em>, <em>pklPath</em><big>)</big><a class="headerlink" href="#oscaar.fitting.updatePKL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="mathmethods-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">mathMethods</span></tt> Module<a class="headerlink" href="#mathmethods-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.mathMethods">
+<span id="mathmethods-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mathMethods</span></tt> Module<a class="headerlink" href="#module-oscaar.mathMethods" title="Permalink to this headline">¶</a></h2>
+<p>oscaar v2.0 
+Module for differential photometry
+Developed by Brett Morris, 2011-2013</p>
+<dl class="function">
+<dt id="oscaar.mathMethods.chiSquared">
+<tt class="descclassname">oscaar.mathMethods.</tt><tt class="descname">chiSquared</tt><big>(</big><em>vector1</em>, <em>vector2</em><big>)</big><a class="headerlink" href="#oscaar.mathMethods.chiSquared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return chi-squared of two vectors</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.mathMethods.medianBin">
+<tt class="descclassname">oscaar.mathMethods.</tt><tt class="descname">medianBin</tt><big>(</big><em>time</em>, <em>flux</em>, <em>medianWidth</em><big>)</big><a class="headerlink" href="#oscaar.mathMethods.medianBin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.mathMethods.paddedStr">
+<tt class="descclassname">oscaar.mathMethods.</tt><tt class="descname">paddedStr</tt><big>(</big><em>num</em>, <em>pad</em><big>)</big><a class="headerlink" href="#oscaar.mathMethods.paddedStr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number num padded with zero-padding of length pad</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.mathMethods.regressionScale">
+<tt class="descclassname">oscaar.mathMethods.</tt><tt class="descname">regressionScale</tt><big>(</big><em>comparisonFlux</em>, <em>targetFlux</em>, <em>time</em>, <em>ingress</em>, <em>egress</em>, <em>returncoeffs=False</em><big>)</big><a class="headerlink" href="#oscaar.mathMethods.regressionScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use a least-squares regression to stretch and offset a comparison star fluxes
+to scale them to the relative intensity of the target star. Only do this regression
+considering the out-of-transit portions of the light curve.</p>
+<p>INPUTS: comparisonFlux - Flux of a comparison star</p>
+<blockquote>
+<div><p>targetFlux - Flux of the target star</p>
+<p>time - List of times for each flux measurement in JD</p>
+<p>ingress - Time of ingress (JD, assuming time list is in JD)</p>
+<p>egress - Time of egress (JD, assuming time list is in JD)</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>RETURNS: scaledVector - rescaled version of the comparisonFlux vector using the</dt>
+<dd>above described process</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.mathMethods.ut2jd">
+<tt class="descclassname">oscaar.mathMethods.</tt><tt class="descname">ut2jd</tt><big>(</big><em>ut</em><big>)</big><a class="headerlink" href="#oscaar.mathMethods.ut2jd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert times from Universal Time (UT) to Julian Date (JD)</p>
+<p>INPUTS: ut - Time in Universial Time (UT)</p>
+<p>RETURNS: jd - Julian Date (JD)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.mathMethods.ut2jdSplitAtT">
+<tt class="descclassname">oscaar.mathMethods.</tt><tt class="descname">ut2jdSplitAtT</tt><big>(</big><em>ut</em><big>)</big><a class="headerlink" href="#oscaar.mathMethods.ut2jdSplitAtT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the &#8220;T&#8221;</p>
+<p>INPUTS: ut - Time in Universial Time (UT)</p>
+<p>RETURNS: jd - Julian Date (JD)</p>
+</dd></dl>
+
 </div>
-<div class="section" id="mcmc-methods-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">mcmc_methods</span></tt> Module<a class="headerlink" href="#mcmc-methods-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.oscaarGUI">
+<span id="oscaargui-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">oscaarGUI</span></tt> Module<a class="headerlink" href="#module-oscaar.oscaarGUI" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="oscaar.oscaarGUI.AboutFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">AboutFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.AboutFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.AboutFrame.exit">
+<tt class="descname">exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.AboutFrame.exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.AboutFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.AboutFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.AddLCB">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">AddLCB</tt><big>(</big><em>parent</em>, <em>id</em>, <em>parent2=None</em>, <em>name=''</em>, <em>str='Browset (Cntrl-O)'</em>, <em>multFiles=False</em>, <em>rowNum=1</em>, <em>colNum=3</em>, <em>vNum=0</em>, <em>hNum=0</em>, <em>font=&lt;wx._gdi.Font; proxy of &lt;Swig Object of type 'wxFont *' at 0x10582b600&gt; &gt;</em>, <em>updateRadii=False</em>, <em>boxName=''</em>, <em>height=20</em>, <em>saveType=1</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.AddLCB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Panel</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.AddLCB.browseButtonEvent">
+<tt class="descname">browseButtonEvent</tt><big>(</big><em>event</em>, <em>message</em>, <em>textControl</em>, <em>fileDialog</em>, <em>saveDialog</em>, <em>update=False</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.AddLCB.browseButtonEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.EphemerisFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">EphemerisFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.calculate">
+<tt class="descname">calculate</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.calculate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.parameterCheck">
+<tt class="descname">parameterCheck</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.parameterCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.saveFile">
+<tt class="descname">saveFile</tt><big>(</big><em>fileName</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.saveFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.saveOutput">
+<tt class="descname">saveOutput</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.saveOutput" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.EphemerisFrame.update">
+<tt class="descname">update</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.EphemerisFrame.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.ExtraRegions">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">ExtraRegions</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ExtraRegions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ExtraRegions.SetCheck">
+<tt class="descname">SetCheck</tt><big>(</big><em>reg</em>, <em>ref</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ExtraRegions.SetCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ExtraRegions.addSet">
+<tt class="descname">addSet</tt><big>(</big><em>event</em>, <em>stringName</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ExtraRegions.addSet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ExtraRegions.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ExtraRegions.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ExtraRegions.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ExtraRegions.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ExtraRegions.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ExtraRegions.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.FittingFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">FittingFrame</tt><big>(</big><em>parent</em>, <em>id</em>, <em>path=''</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.browseButtonEvent">
+<tt class="descname">browseButtonEvent</tt><big>(</big><em>event</em>, <em>message</em>, <em>textControl</em>, <em>fileDialog</em>, <em>saveDialog</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.browseButtonEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.plotLSFit">
+<tt class="descname">plotLSFit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.plotLSFit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.plotMCMC">
+<tt class="descname">plotMCMC</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.plotMCMC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.FittingFrame.validityCheck">
+<tt class="descname">validityCheck</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.FittingFrame.validityCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.GraphFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">GraphFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<p>The main frame of the application</p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.create_main_panel">
+<tt class="descname">create_main_panel</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.create_main_panel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.create_status_bar">
+<tt class="descname">create_status_bar</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.create_status_bar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.draw_plot">
+<tt class="descname">draw_plot</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.draw_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redraws the plot</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.flash_status_message">
+<tt class="descname">flash_status_message</tt><big>(</big><em>msg</em>, <em>flash_len_ms=1500</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.flash_status_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.init_plot">
+<tt class="descname">init_plot</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.init_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.on_flash_status_off">
+<tt class="descname">on_flash_status_off</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.on_flash_status_off" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.GraphFrame.on_save_plot">
+<tt class="descname">on_save_plot</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.on_save_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="oscaar.oscaarGUI.GraphFrame.title">
+<tt class="descname">title</tt><em class="property"> = 'Light Curve Plot'</em><a class="headerlink" href="#oscaar.oscaarGUI.GraphFrame.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.InvalidParameter">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">InvalidParameter</tt><big>(</big><em>num</em>, <em>parent</em>, <em>id</em>, <em>str=''</em>, <em>max='0'</em>, <em>columns=2</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.InvalidParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.InvalidParameter.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.InvalidParameter.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.InvalidParameter.ds9Error">
+<tt class="descname">ds9Error</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.InvalidParameter.ds9Error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.InvalidParameter.fitError">
+<tt class="descname">fitError</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.InvalidParameter.fitError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.InvalidParameter.onCharOkay">
+<tt class="descname">onCharOkay</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.InvalidParameter.onCharOkay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.InvalidParameter.onOkay">
+<tt class="descname">onOkay</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.InvalidParameter.onOkay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">LeastSquaresFitFrame</tt><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame.plot">
+<tt class="descname">plot</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame.title">
+<tt class="descname">title</tt><em class="property"> = 'Least Squares Fit'</em><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LeastSquaresFitFrame.update">
+<tt class="descname">update</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LeastSquaresFitFrame.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">LoadOldPklFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.browseButtonEvent">
+<tt class="descname">browseButtonEvent</tt><big>(</big><em>event</em>, <em>message</em>, <em>textControl</em>, <em>fileDialog</em>, <em>saveDialog</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.browseButtonEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.epsilonCheck">
+<tt class="descname">epsilonCheck</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.epsilonCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check variables <cite>a</cite> and <cite>b</cite> are within machine precision of each other
+because otherwise we get machine precision difference errors when mixing
+single and double precion NumPy floats and pure Python built-in float types.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.plotCentroidPosition">
+<tt class="descname">plotCentroidPosition</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.plotCentroidPosition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.plotComparisonStarWeightings">
+<tt class="descname">plotComparisonStarWeightings</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.plotComparisonStarWeightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.plotInteractiveLightCurve">
+<tt class="descname">plotInteractiveLightCurve</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.plotInteractiveLightCurve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.plotLightCurve">
+<tt class="descname">plotLightCurve</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.plotLightCurve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.plotRawFlux">
+<tt class="descname">plotRawFlux</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.plotRawFlux" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.plotScaledFluxes">
+<tt class="descname">plotScaledFluxes</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.plotScaledFluxes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.radiusCheck">
+<tt class="descname">radiusCheck</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.radiusCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.radiusIndexUpdate">
+<tt class="descname">radiusIndexUpdate</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.radiusIndexUpdate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.updateRadiiList">
+<tt class="descname">updateRadiiList</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.updateRadiiList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.LoadOldPklFrame.validityCheck">
+<tt class="descname">validityCheck</tt><big>(</big><em>throwException=True</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.LoadOldPklFrame.validityCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.MCMCFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">MCMCFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.epsilonCheck">
+<tt class="descname">epsilonCheck</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.epsilonCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check variables <cite>a</cite> and <cite>b</cite> are within machine precision of each other
+because otherwise we get machine precision difference errors when mixing
+single and double precion NumPy floats and pure Python built-in float types.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.plot">
+<tt class="descname">plot</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.radiusCheck">
+<tt class="descname">radiusCheck</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.radiusCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.radiusUpdate">
+<tt class="descname">radiusUpdate</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.radiusUpdate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="oscaar.oscaarGUI.MCMCFrame.title">
+<tt class="descname">title</tt><em class="property"> = 'MCMC Fit'</em><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MCMCFrame.update">
+<tt class="descname">update</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MCMCFrame.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.MasterFlatFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">MasterFlatFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MasterFlatFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MasterFlatFrame.checkFileInputs">
+<tt class="descname">checkFileInputs</tt><big>(</big><em>array</em>, <em>box</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MasterFlatFrame.checkFileInputs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MasterFlatFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MasterFlatFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MasterFlatFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MasterFlatFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MasterFlatFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MasterFlatFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.MasterFlatFrame.run">
+<tt class="descname">run</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.MasterFlatFrame.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">ObservatoryFrame</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame.checkParams">
+<tt class="descname">checkParams</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame.checkParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame.onDestroy">
+<tt class="descname">onDestroy</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame.onDestroy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame.update">
+<tt class="descname">update</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ObservatoryFrame.updateTime">
+<tt class="descname">updateTime</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ObservatoryFrame.updateTime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.OscaarFrame">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">OscaarFrame</tt><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.checkAperture">
+<tt class="descname">checkAperture</tt><big>(</big><em>stringVal</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.checkAperture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.checkFileInputs">
+<tt class="descname">checkFileInputs</tt><big>(</big><em>array</em>, <em>saveNum</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.checkFileInputs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.checkRB">
+<tt class="descname">checkRB</tt><big>(</big><em>button</em>, <em>text</em>, <em>filename</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.checkRB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.checkRegionsBox">
+<tt class="descname">checkRegionsBox</tt><big>(</big><em>boxValue</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.checkRegionsBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.createFrame">
+<tt class="descname">createFrame</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.createFrame" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.create_menu">
+<tt class="descname">create_menu</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.create_menu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.on_exit">
+<tt class="descname">on_exit</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.on_exit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.openLink">
+<tt class="descname">openLink</tt><big>(</big><em>event</em>, <em>string</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.openLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.parseTime">
+<tt class="descname">parseTime</tt><big>(</big><em>date</em>, <em>time</em>, <em>text</em>, <em>filename</em>, <em>name=''</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.parseTime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.runOscaar">
+<tt class="descname">runOscaar</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.runOscaar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.setDefaults">
+<tt class="descname">setDefaults</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.setDefaults" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.singularExistance">
+<tt class="descname">singularExistance</tt><big>(</big><em>event</em>, <em>value</em>, <em>name</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.singularExistance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OscaarFrame.timeAndDateCheck">
+<tt class="descname">timeAndDateCheck</tt><big>(</big><em>time1</em>, <em>time2</em>, <em>date1</em>, <em>date2</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OscaarFrame.timeAndDateCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.OverWrite">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">OverWrite</tt><big>(</big><em>parent</em>, <em>id</em>, <em>title</em>, <em>path</em>, <em>check</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OverWrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Frame</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OverWrite.doNothing">
+<tt class="descname">doNothing</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OverWrite.doNothing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OverWrite.onMasterFlat">
+<tt class="descname">onMasterFlat</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OverWrite.onMasterFlat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OverWrite.onOkay">
+<tt class="descname">onOkay</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OverWrite.onOkay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.OverWrite.onOutputFile">
+<tt class="descname">onOutputFile</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.OverWrite.onOutputFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.ParameterBox">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">ParameterBox</tt><big>(</big><em>parent</em>, <em>id</em>, <em>list</em>, <em>name=''</em>, <em>rows=1</em>, <em>cols=10</em>, <em>vNum=0</em>, <em>hNum=0</em>, <em>font=&lt;wx._gdi.Font; proxy of &lt;Swig Object of type 'wxFont *' at 0x10582b600&gt; &gt;</em>, <em>other=True</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ParameterBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Panel</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="oscaar.oscaarGUI.ScanParamsBox">
+<em class="property">class </em><tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">ScanParamsBox</tt><big>(</big><em>parent</em>, <em>id</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ScanParamsBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wx._windows.Panel</span></tt></p>
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ScanParamsBox.boxCorrect">
+<tt class="descname">boxCorrect</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ScanParamsBox.boxCorrect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ScanParamsBox.boxDiff">
+<tt class="descname">boxDiff</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ScanParamsBox.boxDiff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ScanParamsBox.setMax">
+<tt class="descname">setMax</tt><big>(</big><em>len</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ScanParamsBox.setMax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="oscaar.oscaarGUI.ScanParamsBox.update">
+<tt class="descname">update</tt><big>(</big><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.ScanParamsBox.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.oscaarGUI.checkParams">
+<tt class="descclassname">oscaar.oscaarGUI.</tt><tt class="descname">checkParams</tt><big>(</big><em>self</em>, <em>list</em><big>)</big><a class="headerlink" href="#oscaar.oscaarGUI.checkParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="oscaargui-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">oscaarGUI</span></tt> Module<a class="headerlink" href="#oscaargui-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.other">
+<span id="other-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">other</span></tt> Module<a class="headerlink" href="#module-oscaar.other" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="oscaar.other.gd2jd">
+<tt class="descclassname">oscaar.other.</tt><tt class="descname">gd2jd</tt><big>(</big><em>*date</em><big>)</big><a class="headerlink" href="#oscaar.other.gd2jd" title="Permalink to this definition">¶</a></dt>
+<dd><p>gd2jd.py converts a UT Gregorian date to Julian date.</p>
+<p>Usage: gd2jd.py (2009, 02, 25, 01, 59, 59)</p>
+<p>To get the current Julian date:
+import time
+gd2jd(time.gmtime())</p>
+<p>Hours, minutesutes and/or seconds can be omitted &#8211; if so, they are
+assumed to be zero.</p>
+<p>Year and month are converted to type INT, but all others can be
+type FLOAT (standard practice would suggest only the final element
+of the date should be float)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.other.jd2gd">
+<tt class="descclassname">oscaar.other.</tt><tt class="descname">jd2gd</tt><big>(</big><em>jd</em>, <em>returnString=False</em><big>)</big><a class="headerlink" href="#oscaar.other.jd2gd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task to convert a list of julian dates to gregorian dates
+description at <a class="reference external" href="http://mathforum.org/library/drmath/view/51907.html">http://mathforum.org/library/drmath/view/51907.html</a>
+Original algorithm in Jean Meeus, &#8220;Astronomical Formulae for
+Calculators&#8221;</p>
+<p>2009-02-15 13:36 IJC: Converted to importable, callable function</p>
+<p>Note from author: This script is buggy and reports Julian dates which are 
+off by a day or two, depending on how far back you go. For example, 11 March 
+1609 converted to JD will be off by two days. 20th and 21st century seem to 
+be fine, though.</p>
+<p>Note from Brett Morris: This conversion routine matches up to the &#8220;Numerical 
+Recipes&#8221; in C version from 2010-2100 CE, so I think we&#8217;ll be ok for oscaar&#8217;s
+purposes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.other.overWriteCheck">
+<tt class="descclassname">oscaar.other.</tt><tt class="descname">overWriteCheck</tt><big>(</big><em>filename</em>, <em>checkfiles</em>, <em>varcheck</em><big>)</big><a class="headerlink" href="#oscaar.other.overWriteCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if a particular file should be overwritten based on whether varcheck is on or off</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.other.paddedStr">
+<tt class="descclassname">oscaar.other.</tt><tt class="descname">paddedStr</tt><big>(</big><em>num</em>, <em>pad</em><big>)</big><a class="headerlink" href="#oscaar.other.paddedStr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number num padded with zero-padding of length pad</p>
+</dd></dl>
+
 </div>
-<div class="section" id="other-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">other</span></tt> Module<a class="headerlink" href="#other-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.photometry">
+<span id="photometry-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">photometry</span></tt> Module<a class="headerlink" href="#module-oscaar.photometry" title="Permalink to this headline">¶</a></h2>
+<p>oscaar v2.0 
+Module for differential photometry
+Developed by Brett Morris, 2011-2013</p>
+<dl class="function">
+<dt id="oscaar.photometry.multirad">
+<tt class="descclassname">oscaar.photometry.</tt><tt class="descname">multirad</tt><big>(</big><em>image</em>, <em>xCentroid</em>, <em>yCentroid</em>, <em>apertureRadii</em>, <em>plottingThings</em>, <em>annulusOuterRadiusFactor=2.8</em>, <em>annulusInnerRadiusFactor=1.4</em>, <em>ccdGain=1</em>, <em>plots=False</em><big>)</big><a class="headerlink" href="#oscaar.photometry.multirad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for aperture photometry.</p>
+<p>INPUTS: image - numpy array image</p>
+<blockquote>
+<div><blockquote>
+<div><dl class="docutils">
+<dt>xCentroid - stellar centroid along the x-axis </dt>
+<dd>(determined by trackSmooth or equivalent)</dd>
+<dt>xCentroid - stellar centroid along the y-axis </dt>
+<dd>(determined by trackSmooth or equivalent)</dd>
+<dt>apertureRadius - radius in pixels from centroid to use </dt>
+<dd>for source aperture</dd>
+<dt>annulusInnerRadiusFactor - measure the background for sky background </dt>
+<dd>subtraction fron an annulus from a factor of 
+annulusInnerRadiusFactor bigger than the apertureRadius to
+one a factor annulusOuterRadiusFactor bigger.</dd>
+<dt>annulusOuterRadiusFactor - measure the background for sky background </dt>
+<dd>subtraction fron an annulus a factor of 
+annulusInnerRadiusFactor bigger than the apertureRadius to
+one a factor annulusOuterRadiusFactor bigger.</dd>
+</dl>
+<p>ccdGain - gain of your detector, used to calculate the photon noise</p>
+<dl class="docutils">
+<dt>plots - If plots=True, display plots showing the aperture radius and </dt>
+<dd>annulus radii overplotted on the image of the star</dd>
+</dl>
+</div></blockquote>
+<p>RETURNS: rawFlux - the background-subtracted flux measured within the aperture</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>rawError - the photon noise (limiting statistical) Poisson uncertainty on the </dt>
+<dd>measurement of rawFlux</dd>
+<dt>ErrorFlag - Boolean corresponding to whether or not any error occured when </dt>
+<dd>running oscaar.phot(). If an error occured, the flag is
+True; otherwise False.</dd>
+</dl>
+</div></blockquote>
+<p>Core developer: Brett Morris</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.photometry.paddedStr">
+<tt class="descclassname">oscaar.photometry.</tt><tt class="descname">paddedStr</tt><big>(</big><em>num</em>, <em>pad</em><big>)</big><a class="headerlink" href="#oscaar.photometry.paddedStr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number num padded with zero-padding of length pad</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.photometry.phot">
+<tt class="descclassname">oscaar.photometry.</tt><tt class="descname">phot</tt><big>(</big><em>image</em>, <em>xCentroid</em>, <em>yCentroid</em>, <em>apertureRadius</em>, <em>plottingThings</em>, <em>annulusOuterRadiusFactor=2.8</em>, <em>annulusInnerRadiusFactor=1.4</em>, <em>ccdGain=1</em>, <em>plots=False</em><big>)</big><a class="headerlink" href="#oscaar.photometry.phot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for aperture photometry.</p>
+<p>INPUTS: image - numpy array image</p>
+<blockquote>
+<div><blockquote>
+<div><dl class="docutils">
+<dt>xCentroid - stellar centroid along the x-axis </dt>
+<dd>(determined by trackSmooth or equivalent)</dd>
+<dt>xCentroid - stellar centroid along the y-axis </dt>
+<dd>(determined by trackSmooth or equivalent)</dd>
+<dt>apertureRadius - radius in pixels from centroid to use </dt>
+<dd>for source aperture</dd>
+<dt>annulusInnerRadiusFactor - measure the background for sky background </dt>
+<dd>subtraction fron an annulus from a factor of 
+annulusInnerRadiusFactor bigger than the apertureRadius to
+one a factor annulusOuterRadiusFactor bigger.</dd>
+<dt>annulusOuterRadiusFactor - measure the background for sky background </dt>
+<dd>subtraction fron an annulus a factor of 
+annulusInnerRadiusFactor bigger than the apertureRadius to
+one a factor annulusOuterRadiusFactor bigger.</dd>
+</dl>
+<p>ccdGain - gain of your detector, used to calculate the photon noise</p>
+<dl class="docutils">
+<dt>plots - If plots=True, display plots showing the aperture radius and </dt>
+<dd>annulus radii overplotted on the image of the star</dd>
+</dl>
+</div></blockquote>
+<p>RETURNS: rawFlux - the background-subtracted flux measured within the aperture</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>rawError - the photon noise (limiting statistical) Poisson uncertainty on the </dt>
+<dd>measurement of rawFlux</dd>
+<dt>ErrorFlag - Boolean corresponding to whether or not any error occured when </dt>
+<dd>running oscaar.phot(). If an error occured, the flag is
+True; otherwise False.</dd>
+</dl>
+</div></blockquote>
+<p>Core developer: Brett Morris</p>
+</div></blockquote>
+</dd></dl>
+
 </div>
-<div class="section" id="photometry-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">photometry</span></tt> Module<a class="headerlink" href="#photometry-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.systematics">
+<span id="systematics-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">systematics</span></tt> Module<a class="headerlink" href="#module-oscaar.systematics" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="oscaar.systematics.meanDarkFrame">
+<tt class="descclassname">oscaar.systematics.</tt><tt class="descname">meanDarkFrame</tt><big>(</big><em>darksPath</em><big>)</big><a class="headerlink" href="#oscaar.systematics.meanDarkFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean dark frame calculated from each dark frame in darksPath</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.systematics.standardFlatMaker">
+<tt class="descclassname">oscaar.systematics.</tt><tt class="descname">standardFlatMaker</tt><big>(</big><em>flatImagesPath</em>, <em>flatDarkImagesPath</em>, <em>masterFlatSavePath</em>, <em>plots=False</em><big>)</big><a class="headerlink" href="#oscaar.systematics.standardFlatMaker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a master flat by taking a mean of a group of flat fields</p>
+<p>INPUTS: flatImagesPath - Path to the flat field exposures</p>
+<blockquote>
+<div><p>flatDarkImagesPath - Path to the flat field darks</p>
+<p>masterFlatSavePath - Where to save the master flat that is created</p>
+<p>plots - Plot the master flat on completion when plots=True</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.systematics.twilightFlatMaker">
+<tt class="descclassname">oscaar.systematics.</tt><tt class="descname">twilightFlatMaker</tt><big>(</big><em>flatImagesPath</em>, <em>flatDarkImagesPath</em>, <em>masterFlatSavePath</em>, <em>plots=False</em><big>)</big><a class="headerlink" href="#oscaar.systematics.twilightFlatMaker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a master flat using a series of images taken at twilight
+by fitting the individual pixel intensities over time using least-squares
+and use the intercept as the normalizing factor in the master flat.</p>
+<p>INPUTS: flatImagesPath - Path to the flat field exposures</p>
+<blockquote>
+<div><p>flatDarkImagesPath - Path to the flat field darks</p>
+<p>masterFlatSavePath - Where to save the master flat that is created</p>
+<p>plots - Plot the master flat on completion when plots=True</p>
+</div></blockquote>
+</dd></dl>
+
 </div>
-<div class="section" id="plotpickle-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">plotPickle</span></tt> Module<a class="headerlink" href="#plotpickle-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.timeConversions">
+<span id="timeconversions-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">timeConversions</span></tt> Module<a class="headerlink" href="#module-oscaar.timeConversions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="oscaar.timeConversions.dateobs2jd">
+<tt class="descclassname">oscaar.timeConversions.</tt><tt class="descname">dateobs2jd</tt><big>(</big><em>ut</em><big>)</big><a class="headerlink" href="#oscaar.timeConversions.dateobs2jd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the &#8220;T&#8221;</p>
+<p>INPUTS: ut - Time in Universial Time (UT)</p>
+<p>RETURNS: jd - Julian Date (JD)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.timeConversions.findKeyword">
+<tt class="descclassname">oscaar.timeConversions.</tt><tt class="descname">findKeyword</tt><big>(</big><em>fitsFile</em><big>)</big><a class="headerlink" href="#oscaar.timeConversions.findKeyword" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enter the path to a fits file, and findKeyword will return the tuple: 
+(useKeyword, allKeys, conversionFunction)</p>
+<dl class="docutils">
+<dt>where </dt>
+<dd><ul class="first last simple">
+<li><cite>useKeyword</cite> is the FITS header keyword that should be used to find
+the time of the exposure,</li>
+<li><cite>allKeys</cite> is the list of all header keywords in the first exposure</li>
+<li><cite>conversionFunction</cite> is a function that will convert the time value stored in 
+the keyword denoted by <cite>useKeyword</cite> to Julian Date</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.timeConversions.jd2jd">
+<tt class="descclassname">oscaar.timeConversions.</tt><tt class="descname">jd2jd</tt><big>(</big><em>jd</em><big>)</big><a class="headerlink" href="#oscaar.timeConversions.jd2jd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.timeConversions.mjd2jd">
+<tt class="descclassname">oscaar.timeConversions.</tt><tt class="descname">mjd2jd</tt><big>(</big><em>mjd</em><big>)</big><a class="headerlink" href="#oscaar.timeConversions.mjd2jd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Definition of Modified Julian Date (MJD): MJD = JD - 2400000.5
+JD = MJD + 2400000.5</p>
+</dd></dl>
+
 </div>
-<div class="section" id="systematics-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">systematics</span></tt> Module<a class="headerlink" href="#systematics-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.transitModel">
+<span id="transitmodel-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transitModel</span></tt> Module<a class="headerlink" href="#module-oscaar.transitModel" title="Permalink to this headline">¶</a></h2>
+<p>transitModel.py defines the function occultquad(), which 
+loads the C library containing the function of the same 
+name so that analytical transit light curves can be 
+produced in python by passing pythonic arguments to the C code.</p>
+<dl class="function">
+<dt id="oscaar.transitModel.ellipe">
+<tt class="descclassname">oscaar.transitModel.</tt><tt class="descname">ellipe</tt><big>(</big><em>k</em><big>)</big><a class="headerlink" href="#oscaar.transitModel.ellipe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transitModel.ellipk">
+<tt class="descclassname">oscaar.transitModel.</tt><tt class="descname">ellipk</tt><big>(</big><em>k</em><big>)</big><a class="headerlink" href="#oscaar.transitModel.ellipk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transitModel.ellippi">
+<tt class="descclassname">oscaar.transitModel.</tt><tt class="descname">ellippi</tt><big>(</big><em>n</em>, <em>k</em><big>)</big><a class="headerlink" href="#oscaar.transitModel.ellippi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transitModel.occultquad">
+<tt class="descclassname">oscaar.transitModel.</tt><tt class="descname">occultquad</tt><big>(</big><em>t</em>, <em>modelParams</em><big>)</big><a class="headerlink" href="#oscaar.transitModel.occultquad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="timeconversions-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">timeConversions</span></tt> Module<a class="headerlink" href="#timeconversions-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.transiter">
+<span id="transiter-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transiter</span></tt> Module<a class="headerlink" href="#module-oscaar.transiter" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="oscaar.transiter.find_nearest">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">find_nearest</tt><big>(</big><em>array</em>, <em>value</em><big>)</big><a class="headerlink" href="#oscaar.transiter.find_nearest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiter.fittransit">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">fittransit</tt><big>(</big><em>NormFlux</em>, <em>Rp</em>, <em>aRstar</em>, <em>inc</em>, <em>dt</em>, <em>Period</em><big>)</big><a class="headerlink" href="#oscaar.transiter.fittransit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiter.heavyside">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">heavyside</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#oscaar.transiter.heavyside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiter.normalizedata">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">normalizedata</tt><big>(</big><em>time</em>, <em>data</em>, <em>lL</em>, <em>lR</em>, <em>rL</em>, <em>rR</em><big>)</big><a class="headerlink" href="#oscaar.transiter.normalizedata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiter.output_params">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">output_params</tt><big>(</big><em>timedays</em>, <em>NormFlux</em>, <em>fit</em>, <em>success</em>, <em>period</em>, <em>ecc</em>, <em>arg_periapsis</em><big>)</big><a class="headerlink" href="#oscaar.transiter.output_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiter.quadbline">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">quadbline</tt><big>(</big><em>x</em>, <em>a</em>, <em>b</em>, <em>c</em><big>)</big><a class="headerlink" href="#oscaar.transiter.quadbline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiter.transiterout">
+<tt class="descclassname">oscaar.transiter.</tt><tt class="descname">transiterout</tt><big>(</big><em>x</em>, <em>Rp</em>, <em>b1</em>, <em>vel</em>, <em>midtrantime</em>, <em>fitting=False</em><big>)</big><a class="headerlink" href="#oscaar.transiter.transiterout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="transitmodel-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">transitModel</span></tt> Module<a class="headerlink" href="#transitmodel-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-oscaar.transiterFit">
+<span id="transiterfit-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transiterFit</span></tt> Module<a class="headerlink" href="#module-oscaar.transiterFit" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="oscaar.transiterFit.calcMidTranTime">
+<tt class="descclassname">oscaar.transiterFit.</tt><tt class="descname">calcMidTranTime</tt><big>(</big><em>times</em>, <em>flux</em><big>)</big><a class="headerlink" href="#oscaar.transiterFit.calcMidTranTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates mid-transit time by extracting the minimum of differently binned datasets</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiterFit.fake_data">
+<tt class="descclassname">oscaar.transiterFit.</tt><tt class="descname">fake_data</tt><big>(</big><em>stddev</em>, <em>RpRs</em>, <em>aRs</em>, <em>per</em>, <em>inc</em>, <em>midtrantime</em>, <em>gamma1</em>, <em>gamma2</em>, <em>ecc</em>, <em>argper</em><big>)</big><a class="headerlink" href="#oscaar.transiterFit.fake_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in orbital and planetary parameters and simulates data using random gaussian fluctations.</p>
+<p>Parameters include,
+stddev - standard deviation of fake data.
+RpRs   - fractional planetary to stellar radius
+aRs    - semi-major axis/stellar radii
+per    - orbital period (days)
+inc    - inclination of orbital plane (degrees)
+midtrantime - mid-transit time (JD)
+gamma1 - linear limb-darkening coeff.
+gamma2 - quadrtic limb-darkening coeff
+argper - argument of pericenter</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiterFit.run_LMfit">
+<tt class="descclassname">oscaar.transiterFit.</tt><tt class="descname">run_LMfit</tt><big>(</big><em>timeObs</em>, <em>NormFlux</em>, <em>flux_error</em>, <em>RpRsGuess</em>, <em>aRsGuess</em>, <em>incGuess</em>, <em>epochGuess</em>, <em>gamma1</em>, <em>gamma2</em>, <em>perGuess</em>, <em>eccGuess</em>, <em>argPerGuess</em>, <em>fitLimbDark=False</em>, <em>plotting=True</em><big>)</big><a class="headerlink" href="#oscaar.transiterFit.run_LMfit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fitting routine using the optimize.leastsq Levenburg-Marquardt least squares minimization.</p>
+<p>Input parameters include the time,flux,and uncertainty data series,</p>
+<dl class="docutils">
+<dt>timeObs: ndarray</dt>
+<dd>time data series</dd>
+<dt>NormFlux: ndarray</dt>
+<dd>flux data series</dd>
+<dt>flux_error: ndarray</dt>
+<dd>uncertainty on flux data series</dd>
+</dl>
+<p>Type of limb-darkening law specified by the keyword argument,</p>
+<dl class="docutils">
+<dt>fitLimbDark: str or boolean</dt>
+<dd>False    - Assumes gamma1,gamma2 = 0, does not fit for limb-darkening coefficents.
+&#8216;linear&#8217; - Uses linear limb-darkening
+&#8216;quadratic&#8217;- Uses quadratic limb-darkening</dd>
+<dt>plotting: boolean</dt>
+<dd>Plots fit output w/ data.</dd>
+</dl>
+<p>Orbital and Stellar Parameters intial guesses,</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiterFit.run_MCfit">
+<tt class="descclassname">oscaar.transiterFit.</tt><tt class="descname">run_MCfit</tt><big>(</big><em>n_iter</em>, <em>timeObs</em>, <em>NormFlux</em>, <em>flux_error</em>, <em>fit</em>, <em>success</em>, <em>perGuess</em>, <em>eccGuess</em>, <em>argPerGuess</em>, <em>gamma1=0.0</em>, <em>gamma2=0.0</em>, <em>plotting=False</em><big>)</big><a class="headerlink" href="#oscaar.transiterFit.run_MCfit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiterFit.shuffle">
+<tt class="descclassname">oscaar.transiterFit.</tt><tt class="descname">shuffle</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#oscaar.transiterFit.shuffle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify a sequence in-place by shuffling its contents.</p>
+<dl class="docutils">
+<dt>x <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd>The array or list to be shuffled.</dd>
+</dl>
+<p>None</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span>
+<span class="go">[1 7 5 2 9 4 3 6 0 8]</span>
+</pre></div>
 </div>
-<div class="section" id="transiter-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">transiter</span></tt> Module<a class="headerlink" href="#transiter-module" title="Permalink to this headline">¶</a></h2>
+<p>This function only shuffles the array along the first index of a
+multi-dimensional array:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span>
+<span class="go">array([[3, 4, 5],</span>
+<span class="go">       [6, 7, 8],</span>
+<span class="go">       [0, 1, 2]])</span>
+</pre></div>
 </div>
-<div class="section" id="transiterfit-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">transiterFit</span></tt> Module<a class="headerlink" href="#transiterfit-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.transiterFit.shuffle_func">
+<tt class="descclassname">oscaar.transiterFit.</tt><tt class="descname">shuffle_func</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#oscaar.transiterFit.shuffle_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
@@ -99,19 +1738,15 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oscaar.astrometry.html">astrometry Package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="oscaar.astrometry.html#id1"><tt class="docutils literal"><span class="pre">astrometry</span></tt> Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="oscaar.astrometry.html#tracksmooth-module"><tt class="docutils literal"><span class="pre">trackSmooth</span></tt> Module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="oscaar.c.html">c Package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="oscaar.c.html#setup-module"><tt class="docutils literal"><span class="pre">setup</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="oscaar.astrometry.html#module-oscaar.astrometry.trackSmooth"><tt class="docutils literal"><span class="pre">trackSmooth</span></tt> Module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="oscaar.extras.html">extras Package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="oscaar.extras.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="oscaar.extras.eph.html">eph Package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#ephgui-module"><tt class="docutils literal"><span class="pre">EphGUI</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#calculateephemerides-module"><tt class="docutils literal"><span class="pre">calculateEphemerides</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#ephemeris-module"><tt class="docutils literal"><span class="pre">ephemeris</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#module-oscaar.extras.eph.EphGUI"><tt class="docutils literal"><span class="pre">EphGUI</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#module-oscaar.extras.eph.calculateEphemerides"><tt class="docutils literal"><span class="pre">calculateEphemerides</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#module-oscaar.extras.eph.ephemeris"><tt class="docutils literal"><span class="pre">ephemeris</span></tt> Module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#runephemerisgenerator-module"><tt class="docutils literal"><span class="pre">runEphemerisGenerator</span></tt> Module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="oscaar.extras.eph.html#subpackages">Subpackages</a><ul class="simple">
 </ul>
@@ -119,8 +1754,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="oscaar.extras.knownSystemParameters.html">knownSystemParameters Package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.knownSystemParameters.html#getlatestparams-module"><tt class="docutils literal"><span class="pre">getLatestParams</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.knownSystemParameters.html#returnsystemparams-module"><tt class="docutils literal"><span class="pre">returnSystemParams</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.knownSystemParameters.html#module-oscaar.extras.knownSystemParameters.getLatestParams"><tt class="docutils literal"><span class="pre">getLatestParams</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="oscaar.extras.knownSystemParameters.html#module-oscaar.extras.knownSystemParameters.returnSystemParams"><tt class="docutils literal"><span class="pre">returnSystemParams</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -142,21 +1777,19 @@
   <ul>
 <li><a class="reference internal" href="#">oscaar Package</a><ul>
 <li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">oscaar</span></tt> Package</a></li>
-<li><a class="reference internal" href="#io-module"><tt class="docutils literal"><span class="pre">IO</span></tt> Module</a></li>
-<li><a class="reference internal" href="#databank-module"><tt class="docutils literal"><span class="pre">dataBank</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.IO"><tt class="docutils literal"><span class="pre">IO</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.dataBank"><tt class="docutils literal"><span class="pre">dataBank</span></tt> Module</a></li>
 <li><a class="reference internal" href="#differentialphotometry-module"><tt class="docutils literal"><span class="pre">differentialPhotometry</span></tt> Module</a></li>
-<li><a class="reference internal" href="#fitting-module"><tt class="docutils literal"><span class="pre">fitting</span></tt> Module</a></li>
-<li><a class="reference internal" href="#mathmethods-module"><tt class="docutils literal"><span class="pre">mathMethods</span></tt> Module</a></li>
-<li><a class="reference internal" href="#mcmc-methods-module"><tt class="docutils literal"><span class="pre">mcmc_methods</span></tt> Module</a></li>
-<li><a class="reference internal" href="#oscaargui-module"><tt class="docutils literal"><span class="pre">oscaarGUI</span></tt> Module</a></li>
-<li><a class="reference internal" href="#other-module"><tt class="docutils literal"><span class="pre">other</span></tt> Module</a></li>
-<li><a class="reference internal" href="#photometry-module"><tt class="docutils literal"><span class="pre">photometry</span></tt> Module</a></li>
-<li><a class="reference internal" href="#plotpickle-module"><tt class="docutils literal"><span class="pre">plotPickle</span></tt> Module</a></li>
-<li><a class="reference internal" href="#systematics-module"><tt class="docutils literal"><span class="pre">systematics</span></tt> Module</a></li>
-<li><a class="reference internal" href="#timeconversions-module"><tt class="docutils literal"><span class="pre">timeConversions</span></tt> Module</a></li>
-<li><a class="reference internal" href="#transitmodel-module"><tt class="docutils literal"><span class="pre">transitModel</span></tt> Module</a></li>
-<li><a class="reference internal" href="#transiter-module"><tt class="docutils literal"><span class="pre">transiter</span></tt> Module</a></li>
-<li><a class="reference internal" href="#transiterfit-module"><tt class="docutils literal"><span class="pre">transiterFit</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.fitting"><tt class="docutils literal"><span class="pre">fitting</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.mathMethods"><tt class="docutils literal"><span class="pre">mathMethods</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.oscaarGUI"><tt class="docutils literal"><span class="pre">oscaarGUI</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.other"><tt class="docutils literal"><span class="pre">other</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.photometry"><tt class="docutils literal"><span class="pre">photometry</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.systematics"><tt class="docutils literal"><span class="pre">systematics</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.timeConversions"><tt class="docutils literal"><span class="pre">timeConversions</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.transitModel"><tt class="docutils literal"><span class="pre">transitModel</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.transiter"><tt class="docutils literal"><span class="pre">transiter</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.transiterFit"><tt class="docutils literal"><span class="pre">transiterFit</span></tt> Module</a></li>
 <li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 </ul>
 </li>
@@ -192,12 +1825,15 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="index.html">OSCAAR 2.0 beta documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OSCAAR beta documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brett M. Morris and the OSCAAR Team.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        &copy; Copyright 2013, Brett M. Morris and The OSCAAR Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
   </body>
 </html>

@@ -49,14 +49,6 @@ oscaar Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`mcmc_methods` Module
---------------------------
-
-.. automodule:: oscaar.mcmc_methods
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`oscaarGUI` Module
 -----------------------
 
@@ -77,14 +69,6 @@ oscaar Package
 ------------------------
 
 .. automodule:: oscaar.photometry
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`plotPickle` Module
-------------------------
-
-.. automodule:: oscaar.plotPickle
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,15 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>astrometry Package &mdash; OSCAAR 2.0 beta documentation</title>
+    <title>astrometry Package &mdash; OSCAAR beta documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '2.0 beta',
+        URL_ROOT:    './',
+        VERSION:     'beta',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="OSCAAR 2.0 beta documentation" href="index.html" /> 
+    <link rel="top" title="OSCAAR beta documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,7 +32,10 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="index.html">OSCAAR 2.0 beta documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OSCAAR beta documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,9 +48,68 @@
 <h1>astrometry Package<a class="headerlink" href="#astrometry-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2><tt class="xref py py-mod docutils literal"><span class="pre">astrometry</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="tracksmooth-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">trackSmooth</span></tt> Module<a class="headerlink" href="#tracksmooth-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-oscaar.astrometry"></span></div>
+<div class="section" id="module-oscaar.astrometry.trackSmooth">
+<span id="tracksmooth-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">trackSmooth</span></tt> Module<a class="headerlink" href="#module-oscaar.astrometry.trackSmooth" title="Permalink to this headline">¶</a></h2>
+<p>oscaar v2.0 
+Module for differential photometry
+Developed by Brett Morris, 2011-2013</p>
+<dl class="function">
+<dt id="oscaar.astrometry.trackSmooth.quadraticFit">
+<tt class="descclassname">oscaar.astrometry.trackSmooth.</tt><tt class="descname">quadraticFit</tt><big>(</big><em>derivative</em>, <em>ext</em><big>)</big><a class="headerlink" href="#oscaar.astrometry.trackSmooth.quadraticFit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find an extremum in the data and use it and the points on either side, fit
+a quadratic function to the three points, and return the x-position of the 
+apex of the best-fit parabola.</p>
+<p>Called by oscaar.trackSmooth()</p>
+<dl class="docutils">
+<dt>INPUTS: derivative - The first derivative of the series of points, usually </dt>
+<dd><blockquote class="first">
+<div>calculated by np.diff()</div></blockquote>
+<p class="last">ext = Extremum to look find: &#8220;max&#8221; or &#8220;min&#8221;</p>
+</dd>
+</dl>
+<p>RETURNS: extremum - the (non-integer) index where the extremum was found</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="oscaar.astrometry.trackSmooth.trackSmooth">
+<tt class="descclassname">oscaar.astrometry.trackSmooth.</tt><tt class="descname">trackSmooth</tt><big>(</big><em>image</em>, <em>est_x</em>, <em>est_y</em>, <em>smoothingConst</em>, <em>plottingThings</em>, <em>preCropped=False</em>, <em>zoom=20.0</em>, <em>plots=False</em><big>)</big><a class="headerlink" href="#oscaar.astrometry.trackSmooth.trackSmooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for tracking stellar centroids.</p>
+<p>INPUTS: image - Numpy array image</p>
+<blockquote>
+<div><blockquote>
+<div><p>est_x - Inital estimate for the x-centroid of the star</p>
+<p>est_y - Inital estimate for the y-centroid of the star</p>
+<dl class="docutils">
+<dt>smoothingConstant - Controls the degree to which the raw stellar intensity</dt>
+<dd>profile will be smoothed by a Gaussian filter 
+(0 = no smoothing)</dd>
+<dt>preCropped - If preCropped=False, image is assumed to be a raw image, if</dt>
+<dd>preCropped=True, image is assumed to be only the portion of the
+image near the star</dd>
+<dt>zoom - How many pixels in each direction away from the estimated centroid </dt>
+<dd>to consider when tracking the centroid. Be sure to choose a large 
+enough zoom value the stellar centroid in the next exposure will fit
+within the zoom</dd>
+<dt>plots - If plots=True, display stellar intensity profile in two axes</dt>
+<dd>and the centroid solution</dd>
+</dl>
+</div></blockquote>
+<p>RETURNS: xCenter - the best-fit x-centroid of the star</p>
+<blockquote>
+<div><p>yCenter - the best-fit y-centroid of the star</p>
+<p>averageRadius - average radius of the SMOOTHED star in pixels</p>
+<dl class="docutils">
+<dt>ErrorFlag - Boolean corresponding to whether or not any error occured when </dt>
+<dd>running oscaar.trackSmooth(). If an error occured, the flag is
+True; otherwise False.</dd>
+</dl>
+</div></blockquote>
+<p>Core developer: Brett Morris
+Modifications by: Luuk Visser, 2-12-2013</p>
+</div></blockquote>
+</dd></dl>
+
 </div>
 </div>
 
@@ -63,7 +123,7 @@
   <ul>
 <li><a class="reference internal" href="#">astrometry Package</a><ul>
 <li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">astrometry</span></tt> Package</a></li>
-<li><a class="reference internal" href="#tracksmooth-module"><tt class="docutils literal"><span class="pre">trackSmooth</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-oscaar.astrometry.trackSmooth"><tt class="docutils literal"><span class="pre">trackSmooth</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -96,12 +156,15 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="index.html">OSCAAR 2.0 beta documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">OSCAAR beta documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Brett M. Morris and the OSCAAR Team.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        &copy; Copyright 2013, Brett M. Morris and The OSCAAR Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
     </div>
   </body>
 </html>
