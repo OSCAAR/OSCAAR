@@ -772,7 +772,7 @@ class ObservatoryFrame(wx.Frame):
                                         size=(75,wx.DefaultSize.GetHeight()))
             self.parent.switchTimes = 1
         else:
-            self.timeList = wx.ComboBox(self.panel, value = self.exposureTime, choices = sorted(self.unionKeys),
+            self.timeList = wx.ComboBox(self.panel, value = self.parent.exposureTime, choices = sorted(self.unionKeys),
                                         size=(75,wx.DefaultSize.GetHeight()))
         self.timeList.Bind(wx.EVT_COMBOBOX, self.updateTime)
 
