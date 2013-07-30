@@ -644,26 +644,6 @@ class dataBank:
                             self.dict[save] = value
 
     def parseRegionsFile(self,regPath):
-#         '''Parse the DS9 regions file (written in .txt format) which contains
-#            the initial guesses for the stellar centroids, in the following format:
-#            "circle(<y-center>,<x-center>,<radius>)"
-#            The reversed x,y order comes from the different directions that FITS files
-#            are read-in with DS9 and PyFits.
-#            
-#            Parameters
-#            ----------
-#            regsPath : 
-#            		Path to the DS9 regions file with stellar centroid coords
-#            
-#            Returns
-#            -------
-#            init_x_list : list
-#            		Inital estimates of the x-centroids
-#            
-#            init_y_list : list
-#            		Inital estimates of the y-centroids
-#            
-#            '''
         regionsData = open(regPath,'r').read().splitlines()
         init_x_list = []
         init_y_list = []
