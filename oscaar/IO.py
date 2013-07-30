@@ -32,7 +32,7 @@ def cp(a, b):
 def parseRegionsFile(regsPath):
     '''Parse the DS9 regions file (written in .txt format) which contains
        the initial guesses for the stellar centroids, in the following format:
-             "circle(<y-center>,<x-center>,<radius>)"
+       "circle(<y-center>,<x-center>,<radius>)"
        The reversed x,y order comes from the different directions that FITS files
        are read-in with DS9 and PyFits.
        
@@ -94,10 +94,15 @@ def load(inputPath):
 def plottingSettings(trackPlots,photPlots,statusBar=True):
     '''
     Function for handling matplotlib figures across oscaar methods. 
-    INPUTS: trackPlots - boolean for turning astrometry plots on and off
-            photPlots - boolean for turning aperture photometry plots on and off
+    Parameters
+    ----------
+    trackPlots : boolean
+    	boolean for turning astrometry plots on and off
+    	photPlots - boolean for turning aperture photometry plots on and off
             
-    RETURNS a list containing:
+    Returns
+    -------
+    [fig,subplotsDimensions,photSubplotsOffset],statusBarFig,statusBarAx : 
             fig - the figure object from matplotlib that will be displayed while oscaar is running
             subplotsDimensions - integer value that designates the x and y dimensions of the subplots
                                  within the figure plot
@@ -108,7 +113,7 @@ def plottingSettings(trackPlots,photPlots,statusBar=True):
             
             This list returned by plottingSettings() should be stored to a variable, and used as an
             argument in the phot() and trackSmooth() methods.
-    '''
+   		'''
     if trackPlots or photPlots: 
         plt.ion()   ## Turn on interactive plotting
         statusBarFig = 0 

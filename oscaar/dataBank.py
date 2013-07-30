@@ -662,7 +662,7 @@ class dataBank:
            
            init_y_list : list
            		Inital estimates of the y-centroids
-           		
+           
            '''
         regionsData = open(regPath,'r').read().splitlines()
         init_x_list = []
