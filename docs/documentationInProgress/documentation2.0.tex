@@ -395,6 +395,27 @@ If you are observing a transiting exoplanet, \oscaar can do its most precise pho
 
 Enter the times in MM/DD/YYYY;  hh:mm format, where the hours are on the 24-hour scale, in Universal Time. Seconds are insignificant.
 
+\pagebreak
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.5}
+\centering
+\caption{\textbf{Running Parameters Cheat Sheet}}
+%\begin{tabular}{l l c}\\
+\begin{tabular}{p{0.8in} |  p{3.2in} r}
+Field & Definition & Example values\\
+\hline\hline
+%\multirow{2}{*}{$R_p/R_*$}  & \multirow{2}{*}{Ratio of planetary} & \multirow{2}{*}{$0.07759 \pm 0.00003 $} \\ \\
+Smoothing Constant & Adjusts how much smoothing is applied in the tracking algorithm & 2.0\\
+Track Plots & Shows you the centroid solutions as they are calculated in real time & [Choose on/off]\\
+Phot. Plots & Toggles real time photometry plots on or off & [Choose on/off]\\
+Track Zoom & a width around the previous centroid within which to search for the centroid in the following frame. &  20 pixels\\
+Aperature Radius & radius measured outward from the stellar centroid within which we will measure the flux from the source & ?\\
+Depth Lower Limit & The calculator will filter out any transit events that have a smaller expected transit depth than this& $0.005$\\
+Ingress and Egress, \code{YYYY/MM/DD} & The start and end date in Universal Time of the transit & 2012/06/21\\
+\hline 
+\end{tabular}
+\end{table}
+
 \subsection{Results}
 After you click \code{Run} and \oscaar has completed its differential photometry calculations, a light curve will pop up, like this one:
 \begin{figure}[H]
