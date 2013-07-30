@@ -1,13 +1,13 @@
 '''
-    Ephemeris calculating tool that uses transit data from exoplanets.org
-    and astrometric calculations by PyEphem to tell you what transits you'll
-    be able to observe from your observatory in the near future.
-    
-    Exoplanets.org citation: Wright et al. 2011
-    http://arxiv.org/pdf/1012.5676v3.pdf
-    
-    Core developer: Brett Morris
-    '''
+Ephemeris calculating tool that uses transit data from exoplanets.org
+and astrometric calculations by PyEphem to tell you what transits you'll
+be able to observe from your observatory in the near future.
+
+Exoplanets.org citation: Wright et al.2011
+http://arxiv.org/pdf/1012.5676v3.pdf
+
+Core developer: Brett Morris
+'''
 import ephem	 ## PyEphem module
 import numpy as np
 #from ephemeris import gd2jd, jd2gd
