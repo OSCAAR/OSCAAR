@@ -650,13 +650,20 @@ class dataBank:
            The reversed x,y order comes from the different directions that FITS files
            are read-in with DS9 and PyFits.
            
-           INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords
+           Parameters
+           ----------
+           regsPath : 
+           		Path to the DS9 regions file with stellar centroid coords
            
-           RETURNS: init_x_list - Inital estimates of the x-centroids
+           Returns
+           -------
+           init_x_list : list
+           		Inital estimates of the x-centroids
            
-                    init_y_list - Inital estimates of the y-centroids
-           
-        	'''
+           init_y_list : list
+           		Inital estimates of the y-centroids
+           		
+           '''
         regionsData = open(regPath,'r').read().splitlines()
         init_x_list = []
         init_y_list = []
