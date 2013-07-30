@@ -1,3 +1,4 @@
+-e git+http://github.com/OSCAAR/OSCAAR.git#egg=OSCAAR
 Numpy>=1.0
 Scipy>=0.0
 pyfits>=3.1
