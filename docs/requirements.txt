@@ -1,0 +1,5 @@
+OSCAAR
+Numpy>=1.0
+Scipy>=0.0
+PyFITS>=3.1
+matplotlib>=1.0
