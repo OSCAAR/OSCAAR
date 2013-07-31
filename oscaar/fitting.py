@@ -1,7 +1,3 @@
-"""
-OSCAAR transit light curve fitting module.
-"""
-
 import os
 import numpy as np
 from matplotlib import pyplot as plt
