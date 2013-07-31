@@ -56,35 +56,50 @@ def linearFunc(xVector,params):
     return xVector*params[0] + params[1]
 
 def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loadingbar=True):
-    '''
-        Markov Chain Monte Carlo routine for fitting. Takes a set of fluxes `flux` 
-        measured at times `t` with uncertainties `sigma`. Input fitting function `func` is fed
-        initial parameters `initParams` and iterated through the chains
-        a total of `Nsteps` times, randomly sampled from normal distributions
-        with widths `beta`, and every `saveInterval`-th state in the chain 
-        is saved for later analysis.
-
-       :INPUTS: 
-            t         -- time (vector)
-            flux     -- fluxes (vector)
-            sigma     -- uncertainties in fluxes (vector)
-            initParams    -- initial parameter estimates, `x_0` in Ford 2005 (vector)
-            func    -- fitting function (function)
-            Nsteps    -- number of iterations (int)
-            beta    -- widths of normal distribution to randomly sample for each parameter (vector)
-            saveInterval     -- number of steps between "saves" (int)
-            
-        :OUTPUTS:
-            bestp         -- parameters at minimum chi^2  (vector)
-            x_0toN      -- trace of each parameter at each save step (matrix)
-            acceptance rate     -- the final acceptance rate of the chain (float)
-        :Notes:
-         * Developed by Brett Morris (NASA-GSFC/UMD)    
-         * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
-         * Code implementation partly influenced by Ian Crossfield's routines: 
-                http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html
+    """
+    Markov Chain Monte Carlo routine for fitting. Takes a set of fluxes `flux` 
+    measured at times `t` with uncertainties `sigma`. Input fitting function `func` is fed
+    initial parameters `initParams` and iterated through the chains
+    a total of `Nsteps` times, randomly sampled from normal distributions
+    with widths `beta`, and every `saveInterval`-th state in the chain 
+    is saved for later analysis.
+	
+	Parameters
+	---------- 
+	    t : list
+	    	times
+	    flux : list
+	    	fluxes
+	    sigma : list
+	    	uncertainties in fluxes
+	    initParams : list
+	    	initial parameter estimates, `x_0` in Ford 2005
+	    func : function
+	    	fitting function
+	    Nsteps : int
+	    	number of iterations
+	    beta : list
+	    	widths of normal distribution to randomly sample for each parameter
+	    saveInterval : int
+	    	number of steps between "saving" the accepted parameter in the chain.
+	    	Must satisfy ``Nsteps % saveInterval ==0``.
+	    
+	Returns
+	-------
+	    bestp : list
+	    	parameters at minimum chi^2
+	    x_0toN  : array
+	    	trace of each parameter at each save step
+	    acceptanceRate: float
+	    	the final acceptance rate of the chain
+	    
+	Notes
+	-----
+	 * Developed by Brett Morris (NASA-GSFC/UMD)    
+	 * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
+	 * Code implementation partly influenced by Ian Crossfield's routines: http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html
     
-    '''
+    """
     
     Nsteps = int(Nsteps)            ## Type cast where necessary
     saveInterval = int(saveInterval)
@@ -163,30 +178,39 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
     return bestp, x_0toN, acceptanceRate
 
 def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False):
-    '''
-        MCMC routine specifically for optimizing the beta parameters with the
-        optimizeBeta() function. 
-        
-       :INPUTS: 
-            t         -- time (vector)
-            flux     -- fluxes (vector)
-            sigma     -- uncertainties in fluxes (vector)
-            initParams    -- initial parameter estimates, `x_0` in Ford 2005 (vector)
-            func    -- fitting function (function)
-            Nsteps    -- number of iterations (int)
-            beta    -- widths of normal distribution to randomly sample for each parameter (vector)
-            saveInterval     -- number of steps between "saves" (int)
-            
-        :OUTPUTS:
-            acceptanceRateArray    -- Array of acceptance rates for each beta_mu
-
-        :Notes:
-         * Developed by Brett Morris (NASA-GSFC/UMD)    
-         * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
-         * Code implementation partly influenced by Ian Crossfield's routines: 
-                http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html
+ 	"""
+	   MCMC routine specifically for optimizing the beta parameters with the 
+	   optimizeBeta() function. 
+ 
+ 	   Parameters
+	   ---------- 
+			t : list
+				time
+			flux : list
+				fluxes
+			sigma : list
+				uncertainties in fluxes
+			initParams : list 
+				initial parameter estimates, `x_0` in Ford 2005
+			func : function 
+				fitting function
+			Nsteps : int
+				number of steps to try in the chains
+			beta : list
+				widths of normal distribution to randomly sample for each parameter
+		
+		Returns
+		-------
+			acceptanceRateArray : list 
+				Acceptance rates for each beta_mu   
+		
+		Notes
+		-----
+		 * Developed by Brett Morris (NASA-GSFC/UMD)	
+		 * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
+		 * Code implementation partly influenced by Ian Crossfield's routines: http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html 
+	"""   
     
-    '''
     bestp = None
     timeout_counter = 0
     while bestp == None:
@@ -291,21 +315,31 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True
         acceptance rates within 10% of the `idealAcceptanceRate`, which according to
         Ford (2005) should be between 0.25-0.44.
     
-       :INPUTS: 
-            t         -- time (vector)
-            flux     -- fluxes (vector)
-            sigma     -- uncertainties in fluxes (vector)
-            initParams    -- initial parameter estimates, `x_0` in Ford 2005 (vector)
-            func    -- fitting function (function)
-            beta    -- widths of normal distribution to randomly sample for each parameter (vector)
-            idealAcceptanceRate     --  desired acceptance rate to be produced by the optimized `beta` (float)
+       Parameters
+       ---------- 
+            t : list
+            	time
+            flux : list
+            	fluxes
+            sigma : list
+            	uncertainties in fluxes
+            initParams : list 
+            	initial parameter estimates, `x_0` in Ford 2005
+            func : function 
+            	fitting function
+            beta : list
+            	widths of normal distribution to randomly sample for each parameter
+            idealAcceptanceRate : float
+            	desired acceptance rate to be produced by the optimized `beta`
             
-            
-        :OUTPUTS:
-            beta -- the beta vector optimized so that running a MCMC chain should produce
-                    acceptance rates near `idealAcceptanceRate` (vector)
+        Returns
+        -------
+            beta : list
+            	the beta vector optimized so that running a MCMC chain should produce
+				acceptance rates near `idealAcceptanceRate` (vector)
 
-        :Notes:
+        Notes
+        -----
          * Developed by Brett Morris (NASA-GSFC/UMD)    
          * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
          * Code implementation partly influenced by Evan Sinukoff's MCMC_Evan_Master_v3_new22.pro
@@ -367,6 +401,25 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True
     return beta
 
 def get_uncertainties(param,bestFitParameter):
+	"""
+	Find the uncertainties from a MCMC parameter chain. 
+	
+	Parameters
+	----------
+	param : list
+		parameter chain from the completed MCMC algorithm
+	
+	bestFitParam : float
+		the best-fit (chi-squared) minimizing value for the
+		parameter chain
+	
+	Returns
+	-------
+	[plus,minus] : list of floats
+		the upper and lower 1-sigma uncertainties on the best fit
+		parameter `bestFitParameter`
+	
+	"""
     lowerHalf = param[param < bestFitParameter]
     upperHalf = param[param > bestFitParameter]
     
@@ -375,6 +428,13 @@ def get_uncertainties(param,bestFitParameter):
     return [plus,minus]
 
 def histplot(parameter,axis,title,bestFitParameter):
+	"""
+	Plot a histogram with 50 bins displaying the parameter chain
+	frequencies for the chain `parameter` with best fit value
+	`bestFitParameter`. Name the figure after the parameter `title`
+	and plot it to the axis `axis`. 
+	
+	"""
     postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
     Nbins = 50              ## Plot histograms with 15 bins
     n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white',histtype='stepfilled')  ## Generate histogram
@@ -384,6 +444,25 @@ def histplot(parameter,axis,title,bestFitParameter):
     axis.set_title(title)
 
 def updatePKL(bestp,allparams,acceptanceRate,pklPath):
+	"""
+	Load an OSCAAR pkl, add the MCMC parameters to the file, save it again. 
+	
+	Parameters
+	----------
+	bestp : list
+		best-fit values for each parameter
+		
+	allparams : array
+		2D array where each saved state of the chains is stored along one dimension,
+		for each fitting parameter (along the other)
+		
+	acceptanceRate : float
+		the final acceptance rate acheived in the chain
+		
+	pklPath : str
+		path to the pkl to overwrite.
+	
+	"""
     data = IO.load(pklPath)
     data.updateMCMC(bestp,allparams,acceptanceRate,pklPath)
     IO.save(data,pklPath)
@@ -394,28 +473,34 @@ class mcmcfit:
         Initialize the `mcmc` object with the initial parameters and data needed
         to prepare the MCMC run. 
         
-        :INPUTS:
-            dataBankPath        --  Path to a saved instance of the dataBank object from `oscaar.save` 
-                                    which we'll use to extract the times, fluxes and uncertainties in 
-                                    the light curve (string).
+        Parameters
+        ----------
+        dataBankPath : string
+        	Path to a saved instance of the dataBank object from 
+        	`oscaar.save` which we'll use to extract the times, 
+        	fluxes and uncertainties in the light curve (string).
+                                
+        initParams : list
+        	Initial parameter estimates, `x_0` in Ford 2005. Should be in 
+        	the following order: RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0
                                     
-            initParams          --  Initial parameter estimates, `x_0` in Ford 2005 (vector). 
-                                    Should be in the following order: 
-                                        RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0
-                                        
-            Nsteps              --  number of steps/links in the MCMC chain (int)
-            
-            initBeta            --  widths of normal distribution to randomly sample for each 
-                                    parameter (vector)
-                                    
-            saveInterval        --  number of steps between "saves", ie, storing the current 
-                                    step for later analysis (int)
-                                    
-            idealAcceptanceRate --  ideal acceptance rate that you would like the chain to 
-                                    have, definied by Ford 2005. Ideally ~0.25-0.44.
-                                    
-            burnFraction        --  fraction of saved steps at the beginning of the chains
-                                    to discard when computing uncertainties. Typically ~0.20
+        Nsteps : int
+        	number of steps/links in the MCMC chain
+        
+        initBeta : list
+        	widths of normal distribution to randomly sample for each parameter
+                                
+        saveInterval : int
+            number of steps between "saves", ie, storing
+            the current step for later analysis
+                                
+        idealAcceptanceRate : float
+        	ideal acceptance rate that you would like the chain to 
+        	have, definied by Ford 2005. Ideally ~0.25-0.44.
+                                
+        burnFraction : float 
+        	fraction of saved steps at the beginning of the chains 
+        	to discard when computing uncertainties. Typically ~0.20
         '''
         ## Load parameters
         self.data = IO.load(dataBankPath)
@@ -429,9 +514,21 @@ class mcmcfit:
         ## Choose the implementation of transit light curve function to use:
         self.func = transitModel.occultquad  
     
-    def run(self,updatepkl=False, num=0):
+    def run(self,updatepkl=False, apertureRadiusIndex=0):
         '''
         Run the MCMC algorithms: 
+        
+        Parameters
+        ----------
+        updatepkl : boolean, optional
+        	update the OSCAAR save pkl file from which the data had
+        	been loaded with the MCMC best fit parameters, parameter
+        	chains, and acceptance rate. 
+        
+        apertureRadiusIndex : integer, optional
+        	Integer index of the aperture radius for which you'd like
+        	to compute the MCMC fit, from the aperture 
+        	radius range list
         '''
 
         def occult4params(t,freeparams,allparams=self.initParams):
@@ -442,12 +539,12 @@ class mcmcfit:
 
         RpOverRs,aOverRs,per,inc,gamma1,gamma2,ecc,longPericenter,t0 = self.initParams
         initParams = [RpOverRs,aOverRs,inc,t0]
-        beta = optimizeBeta(self.data.times,self.data.lightCurves[num],self.data.lightCurveErrors[num],\
+        beta = optimizeBeta(self.data.times,self.data.lightCurves[apertureRadiusIndex],self.data.lightCurveErrors[apertureRadiusIndex],\
                                             initParams,occult4params,self.initBeta,idealAcceptanceRate=self.idealAcceptanceRate)
 
 
-        self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurves[num],\
-                                    self.data.lightCurveErrors[num],initParams,occult4params,self.Nsteps,beta,\
+        self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurves[apertureRadiusIndex],\
+                                    self.data.lightCurveErrors[apertureRadiusIndex],initParams,occult4params,self.Nsteps,beta,\
                                     self.saveInterval,verbose=True,loadingbar=True)
         print self.bestp,self.allparams,self.acceptanceRate
         if updatepkl: updatePKL(self.bestp,self.allparams,self.acceptanceRate,self.dataBankPath)
