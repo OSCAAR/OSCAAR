@@ -258,7 +258,7 @@ class dataBank:
         return self.keys
     
     def scaleFluxes(self):
-         '''
+        '''
         When all fluxes have been collected, run this to re-scale the fluxes of each
         comparison star to the flux of the target star. Do the same transformation on the errors.
         '''

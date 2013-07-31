@@ -2621,8 +2621,10 @@ class MCMCFrame(wx.Frame):
             InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
             return False
         try:
-            self.tempNum = np.where(self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue())))
-            if len(self.tempNum[0]) == 0:
+            #self.tempNum = np.where(self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue())))
+            condition = self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue()))
+            self.tempNum = np.array(self.data.apertureRadii)[condition]
+            if len(self.tempNum) == 0:
                 tempString = self.radiusList.GetValue() + " was not found in " + str(self.data.apertureRadii)
                 InvalidParameter(tempString, self, -1, str = "radiusListError2")
                 return False
@@ -2649,10 +2651,11 @@ class MCMCFrame(wx.Frame):
                 InvalidParameter("",None,-1, str="params")
 
     def epsilonCheck(self,a,b):
-        ''' Check variables `a` and `b` are within machine precision of each other
+        ''' Check when elements of list `a` are within machine precision of float `b`
             because otherwise we get machine precision difference errors when mixing
             single and double precion NumPy floats and pure Python built-in float types.
         '''
+    	a = np.array(a)
         return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusUpdate(self, event):
