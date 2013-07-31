@@ -1,38 +1,7 @@
-'''
-Markov Chain Monte Carlo fitting routines for transit light curve
-fitting and uncertainty analysis as laid out by Ford (2005).
+"""
+OSCAAR transit light curve fitting module.
+"""
 
-How to use these methods: 
-
-* Design a wrapper function around oscaar.transitModel.occultquad() 
-that will take only the free parameters for your fit as arguments.
-   
-For example, if you'd like to fit the ratio of planetary radius to 
-stellar radius, the ratio of the orbital semimajor axis and the 
-stellar radius, the orbital inclination, and the mid-transit time, 
-we could wrap the oscaar.transitModel.occultquad() function in the 
-following way to make a new function that only takes those four 
-parameters:
-  
-```
-def occult4params(t,params):
-     p,ap,i,t0 = params
-     ## The above four parameters are the ones we'll fit
-     ## We'll hard code in the fixed parameters:
-     return oscaar.occultquad(t,[p,ap,2.2,i,0.23,0.3,0.0,0.0,t0])
-```
-
-* Make a guess for the initial beta vector. The beta vector should
-be of the same length as the number of initial parameters. Try
-making a vector with each element equal to 0.05 to start.
-   
-* Run optimizeBeta() on the initial beta vector to get an optimized
-beta vector that will produce the desired acceptance rate.
-   
-* Run mcmc() with your `beta` from Step 3
-
-Created by Brett Morris, with inspiration from Evan Sinukoff
-'''
 import os
 import numpy as np
 from matplotlib import pyplot as plt
