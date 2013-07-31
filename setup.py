@@ -140,6 +140,12 @@ def setup_package():
 		long_description=open(os.path.join(os.path.dirname(\
                       os.path.abspath(__file__)),'README')).read(),
 		download_url='https://github.com/OSCAAR/OSCAAR/archive/master.zip',
+		install_requires=['Numpy>=1.6',
+			'Scipy>=0.1',
+			'pyfits>=3.1',
+			'matplotlib>=1.0',
+			'pyephem>=3.7',
+			'wxpython>=2.8'],
 		classifiers=[
 		  'Development Status :: 4 - Beta',
 		  'Intended Audience :: Science/Research',
@@ -157,8 +163,8 @@ def setup_package():
     'install' """
 def to_do_at_exit():
 	delete_manifest()
-	del_dir('build')
-	del_dir('OSCAAR.egg-info')
+	#del_dir('build')
+	#del_dir('OSCAAR.egg-info')
 	
 	if 'install' in sys.argv: 
 		del_dir('dist')
