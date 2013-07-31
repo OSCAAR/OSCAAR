@@ -1,4 +1,4 @@
--e git+http://github.com/OSCAAR/OSCAAR.git#egg=oscaar
+-e git+https://github.com/OSCAAR/OSCAAR.git@master#egg=oscaar
 Numpy>=1.6
 Scipy>=0.1
 pyfits>=3.1
