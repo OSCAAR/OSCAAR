@@ -2611,7 +2611,7 @@ class MCMCFrame(wx.Frame):
             #mcmcinstance.plot()
             
             ## Spawn a new process to execute the MCMC run separately
-            mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, num=%s); mcmcinstance.plot(num=%s)' % \
+            mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, apertureRadiusIndex=%s); mcmcinstance.plot(num=%s)' % \
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
                          self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.call(['python','-c',mcmcCall])
