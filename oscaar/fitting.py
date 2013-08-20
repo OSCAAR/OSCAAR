@@ -406,7 +406,8 @@ def histplot(parameter,axis,title,bestFitParameter):
 	n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white',histtype='stepfilled')  ## Generate histogram
 	plus,minus = get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
 	axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')	## Plot vertical lines representing uncertainties
-	axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')		
+	axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')
+	axis.set_ylim([0,np.max(n)])		
 	axis.set_title(title)
 
 def updatePKL(bestp,allparams,acceptanceRate,pklPath):
@@ -614,6 +615,7 @@ class mcmcfit:
 			axis.set_ylabel('Frequency')
 			axis.set_xlabel(title) 
 			axis.set_title(title)
+			axis.set_ylim([0,np.max(n)])		
 			def format_coord(x, y):
 				# '''Function to give data value on mouse over plot.'''
 				return format % (x,y)
