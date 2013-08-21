@@ -800,11 +800,19 @@ class dataBank:
         plt.ioff()
         plt.show()
 
-    def updateMCMC(self,bestp,allparams,acceptanceRate,dataBankPath):
+    def updateMCMC(self,bestp,allparams,acceptanceRate,dataBankPath,uncertainties):
         self.MCMC_bestp = bestp
         self.MCMC_allparams = allparams
         self.MCMC_acceptanceRate = acceptanceRate
         self.dataBankPath = dataBankPath
+        self.MCMC_uncertainties = uncertainties
+
+    def uncertaintyString(self):
+        savestring = 'MCMC Best Fit Parameters And One-Sigma Uncertainties\n----------------------------------------------------\n\n'
+        labels = ['Rp/Rs','a/Rs','Inclination','Mid-transit time']
+        for i in range(len(labels)):
+            savestring += '%s:\t%s\t +%s / -%s \n' % (labels[i],self.MCMC_bestp[i],self.MCMC_uncertainties[i][0],self.MCMC_uncertainties[i][1])
+        return savestring
 
     def plotMCMC(self):
         bestp = self.MCMC_bestp

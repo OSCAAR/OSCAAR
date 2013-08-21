@@ -410,7 +410,7 @@ def histplot(parameter,axis,title,bestFitParameter):
 	axis.set_ylim([0,np.max(n)])		
 	axis.set_title(title)
 
-def updatePKL(bestp,allparams,acceptanceRate,pklPath):
+def updatePKL(bestp,allparams,acceptanceRate,pklPath,uncertainties):
 	"""
 	Load an OSCAAR pkl, add the MCMC parameters to the file, save it again. 
 	
@@ -431,7 +431,7 @@ def updatePKL(bestp,allparams,acceptanceRate,pklPath):
 	
 	"""
 	data = IO.load(pklPath)
-	data.updateMCMC(bestp,allparams,acceptanceRate,pklPath)
+	data.updateMCMC(bestp,allparams,acceptanceRate,pklPath,uncertainties)
 	IO.save(data,pklPath)
 	
 class mcmcfit:
@@ -513,8 +513,13 @@ class mcmcfit:
 		self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurves[apertureRadiusIndex],\
 									self.data.lightCurveErrors[apertureRadiusIndex],initParams,occult4params,self.Nsteps,beta,\
 									self.saveInterval,verbose=True,loadingbar=True)
+		self.MCMCuncertainties = []
+		for i in range(len(self.allparams)):
+			self.MCMCuncertainties.append(get_uncertainties(self.allparams[i],self.bestp[i]))
+		
 		print self.bestp,self.allparams,self.acceptanceRate
-		if updatepkl: updatePKL(self.bestp,self.allparams,self.acceptanceRate,self.dataBankPath)
+		print self.MCMCuncertainties
+		if updatepkl: updatePKL(self.bestp,self.allparams,self.acceptanceRate,self.dataBankPath,self.MCMCuncertainties)
 
 	def plot(self, num=0):
 		def occult4params(t,freeparams,allparams=self.initParams):
