@@ -21,3 +21,5 @@ oscaar/init.par
 oscaar/observatory.par
 oscaar/outputs/*.pkl
 oscaar/outputs/*.txt
+build/lib/oscaar/*
+OSCAAR.egg-info/*
