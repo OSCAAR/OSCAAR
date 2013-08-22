@@ -434,7 +434,7 @@ The plot is generated with the Python package \code{matplotlib}, which supports 
 There should now be a file where you placed the ``Output Path''. If you want to look to see the raw data, or the data in various stages of processing, you can click the ``Oscaar'' drop down menu (next to \code{File} and \code{Help} at the top), and select ``Load old outputs''. The small window that pops up allows you to pick the old output file that you generated and then plot its contents in various ways. This can be useful for troubleshooting, if your light curve doesn't look the way you think it should. Light curves can be bad if the raw fluxes of one of the stars was measured improperly, for instance, so clicking the ``Plot Raw Fluxes'' button will produce a plot of the raw fluxes for each star, which may help you to debug. 
 
 
-\section{Light Curve Fitting}
+\section{Light Curve Fitting} \label{sec:fitting}
 Once you've produced your first light curve, the next question to ask is: ``what does it tell us about the planet?'' The shape of the transit light curve is dictated by the physical properties of the planetary system, and by quantifying the shape of the transit light curve we can measure the radius of the planet, the distance from the planet to the star, and more. In a seminal paper in 2002 by \href{http://adsabs.harvard.edu/abs/2002ApJ...580L.171M}{Mandel \& Agol}, a convenient formalism was worked out for calculating analytical transit light curves given a few parameterizations of the physical properties of the system. Those parameters are: \\
 
 $R_p / R_s$, the ratio of the radius of the planet to the radius of the star\\
@@ -452,7 +452,9 @@ $\gamma_1$ and $\gamma_2$, the limb-darkening coefficients, parameterize how the
 There are many ways to fit the analytical transit model to your data that you've produced with \oscaar. Of course, you could always retrieve the raw data from the raw data file saved by \oscaar, described in Section \ref{sec:databankobj}, and do a fit however you like. Alternatively, you can use the fitting module in \oscaar to use Markov Chain Monte Carlo to fit transit light curves.
 
 \subsection{Introduction To Fitting With Markov Chain Monte Carlo (MCMC)}
-MCMC is a bit of a buzz-word in the sciences today, which can obscure how simple it is. Here we'll try to give you the most satisfying watered-down explanation of the procedure of MCMC fitting that we can. In this explanation, we've \textbf{bolded} some key phrases that will turn up in the GUI that you'll use to control the MCMC routines in \oscaar. For a thorough explanation of MCMC from the go-to peer-reviewed paper on the subject, check out \href{http://adsabs.harvard.edu/abs/2005AJ....129.1706F}{Ford (2005)}. In any fitting process, you've got a bunch of fitting parameters that you need to wiggle around to find out which values for those parameters give you the best-fit model to your data. In more traditional least-squares fitting routines, you typically vary each parameter a little bit, check if the fits are getting better or worse, then keep moving in the ``better'' direction for each parameter until a best-fit solution is reached. This process is much like a visit to the eye doctor where the doctor tries a new lens, asks ``better or worse?'', he and you continue this process of changing lenses in the ``better'' direction until you narrow it down to one ``best-fit'' lens for your eye. 
+MCMC is a bit of a buzz-word in the sciences today, which can obscure how simple it is. Here we'll try to give you the most satisfying watered-down explanation of the procedure of MCMC fitting that we can. In this explanation, we've \textbf{bolded} some key phrases that will turn up in the GUI that you'll use to control the MCMC routines in \oscaar. For a thorough explanation of MCMC from the go-to peer-reviewed paper on the subject, check out \href{http://adsabs.harvard.edu/abs/2005AJ....129.1706F}{Ford (2005)}. 
+
+In any fitting process, you've got a bunch of fitting parameters that you need to wiggle around to find out which values for those parameters give you the best-fit model to your data. In more traditional least-squares fitting routines, you typically vary each parameter a little bit, check if the fits are getting better or worse, then keep moving in the ``better'' direction for each parameter until a best-fit solution is reached. This process is much like a visit to the eye doctor where the doctor tries a new lens, asks ``better or worse?'', he and you continue this process of changing lenses in the ``better'' direction until you narrow it down to one ``best-fit'' lens for your eye. 
 
 In MCMC fitting methods, rather than intelligently moving in a particular direction, we let randomness sample the parameter space for us (the randomness is where the ``Monte Carlo'' part of the name comes from). Let's imagine that we're trying to fit a line to some data, with a parameter for the slope and a parameter for the intercept. We'll start with an \textbf{initial guess} for the slope ($m$) and intercept ($b$), let's say our guesses are $m=1$ and $b=0$. MCMC will then get a (pseudo-)random number from a normal distribution centered on $m=1$ for the slope, and a separate normal distribution centered on $b=0$ (one distribution sampled per parameter). It may be greater than or less than the original parameter, and may be very close to one or significantly far away -- let's say our new, random guesses are $m=1.4$ and $b = -0.02$. We then do a $\chi^2$ test to see if the new guess gives a better or worse fit than $m=1$ and $b=0$ did; if the new guess was better, then we now restart the process by randomly sampling numbers from a normal distribution centered on $m=1.4$ and $b = -0.02$. If the new guess was worse, we discard that guess and start with new random samplings centered on the original parameters again. The ``chain'' part of the MCMC routine is this procession of parameters that have been sampled from one step (or ``link'') to the next. We'll use these chains, or series of trial values for each fit parameter, in a bit. 
 
@@ -468,8 +470,46 @@ You may notice that this explanation has thus far neglected to cover how we gene
 
 \subsection{Using \oscaar's MCMC Module}
 
-\textit{First, a note to our open source code readers (skip this paragraph if you just want to learn to use the GUI):} Since MCMC chains run for so many steps, they can take a long time to compute. To minimize that time and maximize the legibility of the code, we've implemented most of the MCMC algorithm in frequently-commented \code{Python}, but we wrote a function that produces Mandel \& Agol (2002) analytical transit light curve models in \code{C}, since that one function is called many millions of times per chain. Since this function is a direct implementation of the formalism laid out in \href{http://adsabs.harvard.edu/abs/2002ApJ...580L.171M}{Mandel \& Agol (2002)}, we don't feel too bad making that bit of code less transparent for our Python fluent users, since they are likely equally fluent in the math described in that paper and writing that function in \code{C} reduces the runtime of any given chain by several orders of magnitude.  
+\textit{First, a note to our open source code readers (skip this paragraph if you just want to learn to use the GUI):} Since MCMC chains run for so many steps, they can take a long time to compute. To minimize that time and maximize the legibility of the code, we've implemented most of the MCMC algorithm in frequently-commented \code{Python}, but we wrote a function that produces Mandel \& Agol (2002) analytical transit light curve models in \code{C}, since that one function is called many millions of times per chain. Since this function is a direct implementation of the formalism laid out in \href{http://adsabs.harvard.edu/abs/2002ApJ...580L.171M}{Mandel \& Agol (2002)}, we don't feel too bad making that bit of code less transparent for our non-\code{C} fluent users, since they are likely equally fluent in the math described in that paper, and writing that function in \code{C} reduces the runtime of any given chain by several orders of magnitude.  
 
+To begin using \oscaar's MCMC module, go to \code{OSCAAR > Fitting Routines}, enter an \oscaar output (\code{.PKL} file) and click \code{MCMC Fit}. There may be other buttons next to that one in the near future if new fitting methods are implemented in \oscaar. You'll then get a new frame containing a slew of options that you can set to begin your MCMC run. Begin by selecting the aperture radius which produced the light curve that you'd like to fit from the \code{Select Aperture Radius} drop-down menu.
+
+Like in any fit, this MCMC fitting routine requires initial guesses for the fitting parameters. This routine allows you to fit for $R_p/R_s$, $a/R_s$, $i$ and $t_0$ (see intro to Section \ref{sec:fitting} for definitions), and you must enter initial estimates for these parameters. If the planetary system that you observed is in the \href{http://www.exoplanets.org/table}{exoplanets.org} database, you can simply enter the name of the planet in the \code{Planet Name} box and click \code{Update Parameters} to fill in peer-reviewed results from a journal article for the four fitting parameters and the orbital period. If the system you're working on has not yet been added to the database, you can add the guesses by hand. Each fitting parameter has a corresponding initial $\beta$ guess, but you should be able to leave these at the defaults. \oscaar will determine the proper $\beta$ values for you after you initialize the run.
+
+You can then set the save interval, fraction of steps to burn from the chain, goal acceptance rate of the run, and total number of accepted iterations. Some example values for these parameters are shown in the table below. Then, you can press the \code{Run and Plot} button to initialize the fitting routine. The first thing that you should see is an animated plot that adds colored dots in successive iterations. We've sort of ``gamified'' the process of attempting to find ideal $\beta$ values by just showing you this plot rather than any numbers. If the colored points are moving closer to the zone in between the dotted red lines on the plot, then the $\beta$s will eventually produce the goal acceptance rate, and you can just wait until they do enter the space between the red dotted lines. When they do, the MCMC run will begin and you'll see a loading bar. If they never do, you should start the run again with different $\beta$s or different initial guesses for the best-fit parameters. The most likely problem for non-converging $\beta$s is that one of the initial guesses was incorrect. 
+
+\pagebreak
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.5}
+\centering
+\caption{\textbf{MCMC Cheat Sheet}}
+%\begin{tabular}{l l c}\\
+\begin{tabular}{p{0.8in} |  p{3.2in} r}
+Field & Definition & Example values\\
+\hline\hline
+%\multirow{2}{*}{$R_p/R_*$}  & \multirow{2}{*}{Ratio of planetary} & \multirow{2}{*}{$0.07759 \pm 0.00003 $} \\ \\
+Planet Name & \href{http://www.exoplanets.org/}{exoplanets.org} name of target planet for loading presets & HAT-P-7 b\\
+\hline
+Rp/Rs & Ratio of the planet to star radius & 0.11\\
+a/Rs & Ratio of semi-major axis to star radius & 14.1\\
+Inclination & Inclination of the planet's orbit in degrees & 89 \\
+t0 & Mid-transit time in Julian Date &  2456427.94255932\\
+\hline
+Period & Orbital period of the planet in days & 2.2057\\
+gamma1 & Limb-darkening coefficient, linear & 0.3\\
+gamma2 & Limb-darkening coefficient, quadratic & 0.2 \\
+Eccentricity & Orbital eccentricity in degrees (usually assume 0) & 0 \\
+Pericenter & Longitude of pericenter in degrees (usually assume 0) & 0\\
+\hline
+Save interval & Save every $n$th step in the chain & 500\\
+Burn Fraction & Fraction of steps to burn from chain for uncertainty calculations & 0.20\\
+Acceptance & Goal acceptance rate & 0.30\\
+Number of steps & Total number of accepted steps to complete & 5000000\\
+\hline 
+\end{tabular}
+\end{table}
+
+\pagebreak
 
 \subsection{Understanding MCMC Results}
 
