@@ -11,13 +11,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-sys.path.insert(0, os.path.abspath('../startcbv'))
-sys.path.insert(0, os.path.abspath('../test_project'))
-
-import settings
-from django.core.management import setup_environ
-setup_environ(settings)
-
 import sys, os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -253,3 +246,10 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+sys.path.insert(0, os.path.abspath('../startcbv'))
+sys.path.insert(0, os.path.abspath('../test_project'))
+
+import settings
+from django.core.management import setup_environ
+setup_environ(settings)
