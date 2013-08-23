@@ -23,3 +23,6 @@ oscaar/outputs/*.pkl
 oscaar/outputs/*.txt
 build/lib/oscaar/*
 OSCAAR.egg-info/*
+docs/_templates
+docs/_static
+docs/_build
