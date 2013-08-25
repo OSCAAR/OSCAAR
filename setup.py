@@ -144,8 +144,7 @@ def setup_package():
 			'Scipy>=0.1',
 			'pyfits>=3.1',
 			'matplotlib>=1.0',
-			'pyephem>=3.7',
-			'wxpython>=2.8'],
+			'pyephem>=3.7'],
 		classifiers=[
 		  'Development Status :: 4 - Beta',
 		  'Intended Audience :: Science/Research',
