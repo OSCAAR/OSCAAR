@@ -26,3 +26,4 @@ OSCAAR.egg-info/*
 docs/_templates
 docs/_static
 docs/_build
+*.par
