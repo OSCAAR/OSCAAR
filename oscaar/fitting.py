@@ -360,6 +360,7 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True
 					axis.plot(iterationCounter,acceptanceRate,marker='o',markersize=10,alpha=0.6,markeredgecolor='none')
 					plt.xlim([0,iterationCounter+1])
 					plt.draw()
+				plt.pause(1)
 	if plot:
 		sleep(1)	## Pause for a second so the user can see that the solution has been reached
 		plt.ioff()
@@ -512,7 +513,7 @@ class mcmcfit:
 
 		self.bestp, self.allparams, self.acceptanceRate = mcmc(self.data.times,self.data.lightCurves[apertureRadiusIndex],\
 									self.data.lightCurveErrors[apertureRadiusIndex],initParams,occult4params,self.Nsteps,beta,\
-									self.saveInterval,verbose=True,loadingbar=True)
+									self.saveInterval,verbose=False,loadingbar=True)
 		self.MCMCuncertainties = []
 		for i in range(len(self.allparams)):
 			self.MCMCuncertainties.append(get_uncertainties(self.allparams[i],self.bestp[i]))
