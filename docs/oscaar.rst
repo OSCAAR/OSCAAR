@@ -4,7 +4,7 @@ oscaar Package
 :mod:`oscaar` Package
 ---------------------
 
-.. automodule:: oscaar.__init__
+.. automodule:: oscaar/__init__
     :members:
     :undoc-members:
     :show-inheritance:
