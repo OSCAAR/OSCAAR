@@ -16,65 +16,67 @@ minimum_scipy_version = "0.10" # lower versions may work (not tested)
 minimum_wxpython_version = "2.0" # lower versions may work (not tested)
 sysplatform = sys.platform
 
-
-""" Currently only Python 2.7.x is supported """
-if sys.version_info[:2] != (2, 7):
-    raise RuntimeError("must use python 2.7.x")
-
-"""  Check if the package dependancies/requirements are fulfilled """
-try:
-    from setuptools import setup
-except:
-    raise RuntimeError("Setuptools not found, setup cannot continue without it")
-    
-try:
-    import numpy as np
-except:
-    raise RuntimeError("Numpy not found")
-if np.__version__ < minimum_numpy_version:
-    print("*Error*: NumPy version is lower than needed: %s < %s" %
-		  (np.__version__, minimum_numpy_version))
-    sys.exit(1)
-
-try:
-    import scipy
-except:
-    raise RuntimeError("Scipy not found")
-if scipy.__version__ < minimum_scipy_version:
-    print("*Error*: Scipy version is lower than needed: %s < %s" %
-		  (scipy.__version__, minimum_scipy_version))
-    sys.exit(1)  
+if not hasattr(sys, 'real_prefix'):
+	""" Currently only Python 2.7.x is supported """
+	if sys.version_info[:2] != (2, 7):
+	    raise RuntimeError("must use python 2.7.x")
 	
-try:
-    import matplotlib
-except:
-    raise RuntimeError("matplotlib not found")
-if matplotlib.__version__ < minimum_matplotlib_version:
-    print("*Error*: matplotlib version is lower than needed: %s < %s" %
-		  (matplotlib.__version__, minimum_matplotlib_version))
-    sys.exit(1)
+	"""  Check if the package dependancies/requirements are fulfilled """
+	try:
+	    from setuptools import setup
+	except:
+	    raise RuntimeError("Setuptools not found, setup cannot continue without it")
+	    
+	try:
+	    import numpy as np
+	except:
+	    raise RuntimeError("Numpy not found")
+	if np.__version__ < minimum_numpy_version:
+	    print("*Error*: NumPy version is lower than needed: %s < %s" %
+			  (np.__version__, minimum_numpy_version))
+	    sys.exit(1)
 	
-try:
-    import pyfits
-except:
-    raise RuntimeError("PyFITS not found")
-if pyfits.__version__ < minimum_pyfits_version:
-    print("*Error*: PyFITS version is lower than needed: %s < %s" %
-		  (pyfits.__version__, minimum_pyfits_version))
-    sys.exit(1)  
-	
-try:
-    if sysplatform == 'darwin' or 'linux2':
-         import wx
-    else:
-         """ (assuming in this case that sysplatform == 'win32' """
-         import wxPython
-except:
-    raise RuntimeError("wxPython not found")
-if wx.__version__ < minimum_wxpython_version:
-    print("*Error*: wxPython version is lower than needed: %s < %s" %
-		  (wx.__version__, minimum_wxpython_version))
-    sys.exit(1)  
+	try:
+	    import scipy
+	except:
+	    raise RuntimeError("Scipy not found")
+	if scipy.__version__ < minimum_scipy_version:
+	    print("*Error*: Scipy version is lower than needed: %s < %s" %
+			  (scipy.__version__, minimum_scipy_version))
+	    sys.exit(1)  
+		
+	try:
+	    import matplotlib
+	except:
+	    raise RuntimeError("matplotlib not found")
+	if matplotlib.__version__ < minimum_matplotlib_version:
+	    print("*Error*: matplotlib version is lower than needed: %s < %s" %
+			  (matplotlib.__version__, minimum_matplotlib_version))
+	    sys.exit(1)
+		
+	try:
+	    import pyfits
+	except:
+	    raise RuntimeError("PyFITS not found")
+	if pyfits.__version__ < minimum_pyfits_version:
+	    print("*Error*: PyFITS version is lower than needed: %s < %s" %
+			  (pyfits.__version__, minimum_pyfits_version))
+	    sys.exit(1)  
+		
+	try:
+	    if sysplatform == 'darwin' or 'linux2':
+	         import wx
+	    else:
+	         """ (assuming in this case that sysplatform == 'win32' """
+	         import wxPython
+	except:
+	    raise RuntimeError("wxPython not found")
+	if wx.__version__ < minimum_wxpython_version:
+	    print("*Error*: wxPython version is lower than needed: %s < %s" %
+			  (wx.__version__, minimum_wxpython_version))
+	    sys.exit(1)  
+else: 
+	from setuptools import setup
 
 """ Walk through the subdirs and add all non-python scripts to MANIFEST.in """
 def create_manifest():	
@@ -120,8 +122,11 @@ def del_dir(dirname):
 		shutil.rmtree(dirname)
 	
 """ The setup configuration for installing OSCAAR """
+
+
 def setup_package():
 	create_manifest()
+	list = ['Numpy>=1.6','Scipy>=0.1','pyfits>=3.1','pyephem>=3.7', 'matplotlib>1.0']
 	setup(
 		name = "OSCAAR",
 		version = "2.0beta",
@@ -140,11 +145,7 @@ def setup_package():
 		long_description=open(os.path.join(os.path.dirname(\
                       os.path.abspath(__file__)),'README')).read(),
 		download_url='https://github.com/OSCAAR/OSCAAR/archive/master.zip',
-		install_requires=['Numpy>=1.6',
-			'Scipy>=0.1',
-			'pyfits>=3.1',
-			'matplotlib>=1.0',
-			'pyephem>=3.7'],
+ 		install_requires=list,
 		classifiers=[
 		  'Development Status :: 4 - Beta',
 		  'Intended Audience :: Science/Research',
