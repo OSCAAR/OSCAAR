@@ -32,7 +32,7 @@ def cp(a, b):
 def parseRegionsFile(regsPath):
     '''Parse the DS9 regions file (written in .txt format) which contains
        the initial guesses for the stellar centroids, in the following format:
-       "circle(<y-center>,<x-center>,<radius>)"
+       circley-center,x-center,radius
        The reversed x,y order comes from the different directions that FITS files
        are read-in with DS9 and PyFits.
        
