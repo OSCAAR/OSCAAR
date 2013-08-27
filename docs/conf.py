@@ -13,32 +13,37 @@
 
 import sys
 import os
+import mock
+ 
+MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'pyfits']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
 
 ########################################################################
 ## This "mock" setup replaces all of the packages used by OSCAAR with inert placeholders
-class Mock(object):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        return Mock()
-
-    @classmethod
-    def __getattr__(cls, name):
-        if name in ('__file__', '__path__'):
-            return '/dev/null'
-        elif name[0] == name[0].upper():
-            mockType = type(name, (), {})
-            mockType.__module__ = __name__
-            return mockType
-        else:
-            return Mock()
-
-MOCK_MODULES = ['numpy','scipy','matplotlib','wxPython','pyfits','matplotlib.cm','ephem','numpy.random',\
-                'wx','matplotlib.ticker','matplotlib.figure','matplotlib.backends.backend_wxagg']
-
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
+# class Mock(object):
+#     def __init__(self, *args, **kwargs):
+#         pass
+# 
+#     def __call__(self, *args, **kwargs):
+#         return Mock()
+# 
+#     @classmethod
+#     def __getattr__(cls, name):
+#         if name in ('__file__', '__path__'):
+#             return '/dev/null'
+#         elif name[0] == name[0].upper():
+#             mockType = type(name, (), {})
+#             mockType.__module__ = __name__
+#             return mockType
+#         else:
+#             return Mock()
+# 
+# MOCK_MODULES = ['numpy','scipy','matplotlib','wxPython','pyfits','matplotlib.cm','ephem','numpy.random',\
+#                 'wx','matplotlib.ticker','matplotlib.figure','matplotlib.backends.backend_wxagg']
+# 
+# for mod_name in MOCK_MODULES:
+#     sys.modules[mod_name] = Mock()
 
 ########################################################################
 
