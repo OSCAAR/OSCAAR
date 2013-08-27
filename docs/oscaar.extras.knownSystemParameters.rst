@@ -4,7 +4,7 @@ knownSystemParameters Package
 :mod:`getLatestParams` Module
 -----------------------------
 
-.. automodule:: oscaar/extras/knownSystemParameters/getLatestParams
+.. automodule:: oscaar.extras.knownSystemParameters.getLatestParams
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ knownSystemParameters Package
 :mod:`returnSystemParams` Module
 --------------------------------
 
-.. automodule:: oscaar/extras/knownSystemParameters/returnSystemParams
+.. automodule:: oscaar.extras.knownSystemParameters.returnSystemParams
     :members:
     :undoc-members:
     :show-inheritance:

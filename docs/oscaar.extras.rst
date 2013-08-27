@@ -6,6 +6,6 @@ Subpackages
 
 .. toctree::
 
-    oscaar/extras/eph
-    oscaar/extras/knownSystemParameters
+    oscaar.extras.eph
+    oscaar.extras.knownSystemParameters
 

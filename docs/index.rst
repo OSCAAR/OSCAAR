@@ -5,18 +5,10 @@
 
 Welcome to OSCAAR's documentation!
 ==================================
-
-Contents:
------------
-
-.. toctree::
-   :maxdepth: 2
-   
-	installation.rst
-	usage.rst
  
-Indices and tables
-==================
+   
+.. toctree::
+    modules
 
 * :ref:`genindex`
 * :ref:`modindex`

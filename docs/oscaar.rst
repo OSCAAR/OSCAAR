@@ -1,10 +1,10 @@
 oscaar Package
 ==============
 
-:mod:`oscaar` Package
----------------------
+:mod:`__init__` Module
+----------------------
 
-.. automodule:: oscaar/__init__
+.. automodule:: oscaar.__init__
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ oscaar Package
 :mod:`IO` Module
 ----------------
 
-.. automodule:: oscaar/IO
+.. automodule:: oscaar.IO
     :members:
     :undoc-members:
     :show-inheritance:
@@ -20,7 +20,7 @@ oscaar Package
 :mod:`dataBank` Module
 ----------------------
 
-.. automodule:: oscaar/dataBank
+.. automodule:: oscaar.dataBank
     :members:
     :undoc-members:
     :show-inheritance:
@@ -28,7 +28,7 @@ oscaar Package
 :mod:`differentialPhotometry` Module
 ------------------------------------
 
-.. automodule:: oscaar/differentialPhotometry
+.. automodule:: oscaar.differentialPhotometry
     :members:
     :undoc-members:
     :show-inheritance:
@@ -36,7 +36,7 @@ oscaar Package
 :mod:`fitting` Module
 ---------------------
 
-.. automodule:: oscaar/fitting
+.. automodule:: oscaar.fitting
     :members:
     :undoc-members:
     :show-inheritance:
@@ -44,7 +44,7 @@ oscaar Package
 :mod:`mathMethods` Module
 -------------------------
 
-.. automodule:: oscaar/mathMethods
+.. automodule:: oscaar.mathMethods
     :members:
     :undoc-members:
     :show-inheritance:
@@ -52,7 +52,7 @@ oscaar Package
 :mod:`oscaarGUI` Module
 -----------------------
 
-.. automodule:: oscaar/oscaarGUI
+.. automodule:: oscaar.oscaarGUI
     :members:
     :undoc-members:
     :show-inheritance:
@@ -60,7 +60,7 @@ oscaar Package
 :mod:`other` Module
 -------------------
 
-.. automodule:: oscaar/other
+.. automodule:: oscaar.other
     :members:
     :undoc-members:
     :show-inheritance:
@@ -68,7 +68,7 @@ oscaar Package
 :mod:`photometry` Module
 ------------------------
 
-.. automodule:: oscaar/photometry
+.. automodule:: oscaar.photometry
     :members:
     :undoc-members:
     :show-inheritance:
@@ -76,7 +76,7 @@ oscaar Package
 :mod:`systematics` Module
 -------------------------
 
-.. automodule:: oscaar/systematics
+.. automodule:: oscaar.systematics
     :members:
     :undoc-members:
     :show-inheritance:
@@ -84,7 +84,7 @@ oscaar Package
 :mod:`timeConversions` Module
 -----------------------------
 
-.. automodule:: oscaar/timeConversions
+.. automodule:: oscaar.timeConversions
     :members:
     :undoc-members:
     :show-inheritance:
@@ -92,7 +92,7 @@ oscaar Package
 :mod:`transitModel` Module
 --------------------------
 
-.. automodule:: oscaar/transitModel
+.. automodule:: oscaar.transitModel
     :members:
     :undoc-members:
     :show-inheritance:
@@ -100,7 +100,7 @@ oscaar Package
 :mod:`transiter` Module
 -----------------------
 
-.. automodule:: oscaar/transiter
+.. automodule:: oscaar.transiter
     :members:
     :undoc-members:
     :show-inheritance:
@@ -108,17 +108,8 @@ oscaar Package
 :mod:`transiterFit` Module
 --------------------------
 
-.. automodule:: oscaar/transiterFit
+.. automodule:: oscaar.transiterFit
     :members:
     :undoc-members:
     :show-inheritance:
-
-Subpackages
------------
-
-.. toctree::
-
-    oscaar/astrometry
-    oscaar/c
-    oscaar/extras
 
