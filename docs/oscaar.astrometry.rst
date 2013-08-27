@@ -4,7 +4,7 @@ astrometry Package
 :mod:`astrometry` Package
 -------------------------
 
-.. automodule:: oscaar.astrometry
+.. automodule:: oscaar/astrometry
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ astrometry Package
 :mod:`trackSmooth` Module
 -------------------------
 
-.. automodule:: oscaar.astrometry.trackSmooth
+.. automodule:: oscaar/astrometry/trackSmooth
     :members:
     :undoc-members:
     :show-inheritance:

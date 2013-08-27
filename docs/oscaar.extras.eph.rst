@@ -4,7 +4,7 @@ eph Package
 :mod:`EphGUI` Module
 --------------------
 
-.. automodule:: oscaar.extras.eph.EphGUI
+.. automodule:: oscaar/extras/eph/EphGUI
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ eph Package
 :mod:`calculateEphemerides` Module
 ----------------------------------
 
-.. automodule:: oscaar.extras.eph.calculateEphemerides
+.. automodule:: oscaar/extras/eph/calculateEphemerides
     :members:
     :undoc-members:
     :show-inheritance:
@@ -20,7 +20,7 @@ eph Package
 :mod:`ephemeris` Module
 -----------------------
 
-.. automodule:: oscaar.extras.eph.ephemeris
+.. automodule:: oscaar/extras/eph/ephemeris
     :members:
     :undoc-members:
     :show-inheritance:
@@ -28,7 +28,7 @@ eph Package
 :mod:`runEphemerisGenerator` Module
 -----------------------------------
 
-.. automodule:: oscaar.extras.eph.runEphemerisGenerator
+.. automodule:: oscaar/extras/eph/runEphemerisGenerator
     :members:
     :undoc-members:
     :show-inheritance:
