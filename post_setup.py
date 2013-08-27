@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import sys
 import time
+import atexit
 time.sleep(1.0)
 
 """ Loading the just installed oscaar package to test if import is working,
@@ -109,6 +110,13 @@ def complile_C():
         subprocess.Popen(['python', 'setup.py','build_ext', \
                                                         '--inplace']).wait()        
         os.chdir(olddir)
+        
+def to_do_at_exit():
+    import subprocess
+    subprocess.check_call(['python', 'registration.py'])
+
+""" Set function to be executed at exit of code (when script is finished) """
+atexit.register(to_do_at_exit)
     
 if __name__ == '__main__':
     complile_C()
