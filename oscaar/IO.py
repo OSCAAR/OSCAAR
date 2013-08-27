@@ -30,19 +30,19 @@ def cp(a, b):
     copy(str(a),str(b))
 
 def parseRegionsFile(regsPath):
-    '''Parse the DS9 regions file (written in .txt format) which contains
-       the initial guesses for the stellar centroids, in the following format:
-       circley-center,x-center,radius
-       The reversed x,y order comes from the different directions that FITS files
-       are read-in with DS9 and PyFits.
-       
-       INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords
-       
-       RETURNS: init_x_list - Inital estimates of the x-centroids
-       
-                init_y_list - Inital estimates of the y-centroids
-       
-    '''
+#     '''Parse the DS9 regions file (written in .txt format) which contains
+#        the initial guesses for the stellar centroids, in the following format
+#        circley-center,x-center,radius
+#        The reversed x,y order comes from the different directions that FITS files
+#        are read-in with DS9 and PyFits.
+#        
+#        INPUTS: regsPath - Path to the DS9 regions file with stellar centroid coords
+#        
+#        RETURNS: init_x_list - Inital estimates of the x-centroids
+#        
+#                 init_y_list - Inital estimates of the y-centroids
+#        
+#     '''
     regionsData = open(regsPath,'r').read().splitlines()
     init_x_list = []
     init_y_list = []
