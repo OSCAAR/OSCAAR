@@ -11,13 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(1, os.path.abspath('../oscaar/'))
+import sys
+import os
 
 ########################################################################
 ## This "mock" setup replaces all of the packages used by OSCAAR with inert placeholders
@@ -40,16 +35,17 @@ class Mock(object):
             return Mock()
 
 MOCK_MODULES = ['numpy','scipy','matplotlib','wxPython','pyfits','matplotlib.cm','ephem','numpy.random',\
-            'wx','matplotlib.ticker','matplotlib.figure','matplotlib.backends.backend_wxagg']
+                'wx','matplotlib.ticker','matplotlib.figure','matplotlib.backends.backend_wxagg']
 
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
+
 ########################################################################
 
-
-
-
-
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+# sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration -----------------------------------------------------
 
