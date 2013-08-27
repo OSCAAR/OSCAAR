@@ -12,16 +12,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-	installation
-	usage
-
-API/Reference Docs
---------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   ref_startcbv
+	installation.rst
+	usage.rst
  
 Indices and tables
 ==================
