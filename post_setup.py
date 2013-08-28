@@ -14,7 +14,7 @@ if not hasattr(sys, 'real_prefix'):
     import oscaar
     sys.path = save_path
     oscaardir = os.path.dirname(os.path.abspath(oscaar.__file__))
-print oscaardir
+    print oscaardir
 """ Function to download the ds9 version for current platform.
     URLs are tested working on 5-29-2013 """            
 def download_ds9():
@@ -119,6 +119,6 @@ def to_do_at_exit():
 atexit.register(to_do_at_exit)
     
 if __name__ == '__main__':
-    complile_C()
     if not hasattr(sys, 'real_prefix'):
+        complile_C()
         download_ds9()
