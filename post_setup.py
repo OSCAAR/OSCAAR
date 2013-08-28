@@ -123,4 +123,5 @@ if __name__ == '__main__':
         complile_C()
         download_ds9()
     else:
+        import subprocess
         subprocess.check_call(['pip', 'install', 'wxPython==src-2.8.12.1'])
