@@ -61,8 +61,8 @@ class dataBank:
             self.convertToJD = lambda x: x
         elif self.timeKeyword == 'DATE-OBS':
             self.convertToJD = mathMethods.ut2jdSplitAtT
-        
-        assert len(self.imagesPaths) > 1, 'Must have at least two data images'
+        if not hasattr(sys, 'real_prefix'):
+            assert len(self.imagesPaths) > 1, 'Must have at least two data images'
         if self.flatPath != '':
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath

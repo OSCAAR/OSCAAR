@@ -16,20 +16,56 @@ from shutil import copy
 import os
 
 def cd(a=None):
-    """Change to directory a where a is a 
-       string inside of single quotes. If a
-       is empty, changes to parent directory"""
+    '''
+    Change to a different directory than the current one.
+    
+    Parameters
+    ----------
+    a : string
+        Location of the directory to change to.
+    
+    Notes
+    -----
+    If `a` is empty, this function will chnage to the parent directory.
+    
+    
+    '''
     if a is None:
         os.chdir(os.pardir)
     else:
         os.chdir(str(a))
 
 def cp(a, b):
-    """Copy file a to location b where a,b are
-       strings inside of single quotes"""
+    '''
+    Copy a file to another location.
+    
+    Parameters
+    ----------
+    a : string
+        Path of the file to be copied.
+    b : string
+        Location where the file will be copied to. 
+    
+    '''
     copy(str(a),str(b))
 
 def parseRegionsFile(regsPath):
+    '''
+    Parse a regions file for a set of data.
+    
+    Parameters
+    ----------
+    regsPath : string
+        Location of the regions file to be parsed.
+    
+    Returns
+    -------
+    init_x_list : array
+        An array containing the x-values of the parsed file.
+    init_y_list : array
+        An array containing the y-values of the parsed file.
+    
+    '''
     regionsData = open(regsPath,'r').read().splitlines()
     init_x_list = []
     init_y_list = []
@@ -44,9 +80,13 @@ def save(data,outputPath):
     '''
     Save everything in oscaar.dataBank object <data> to a python pickle using cPickle.
     
-    INPUTS: data - oscaar.dataBank() object to save
+    Parameters
+    ----------
+    data : string
+        File location of an oscaar.dataBank() object to save.
+    outputPath : string
+        Path to which the numpy-pickle will be saved.
     
-            outputPath - Path for the saved numpy-pickle.
     '''
     if glob(outputPath) > 0 or glob(outputPath+os.sep+'oscaarDataBase.pkl') > 0 or glob(outputPath+'.pkl') > 0: ## Over-write check
         print 'WARNING: could potentially overwrite the most recent oscaarDataBase.pkl'
@@ -69,9 +109,16 @@ def load(inputPath):
     '''
     Load everything from a oscaar.dataBank() object in a python pickle using cPickle.
     
-    INPUTS: data - oscaar.dataBank() object to save
-    
-            outputPath - Path for the saved numpy-pickle.
+    Parameters
+    ----------
+    inputPath : string
+        File location of an oscaar.dataBank() object to save into a pickle.
+
+    Returns
+    -------
+    data : string
+        Path for the saved numpy-pickle.
+
     '''
     inputFile = open(inputPath,'rb')
     data = cPickle.load(inputFile)
@@ -80,29 +127,37 @@ def load(inputPath):
 
 def plottingSettings(trackPlots,photPlots,statusBar=True):
     '''
-    Function for handling matplotlib figures across oscaar methods. 
+    Function for handling matplotlib figures across OSCAAR methods. 
+
     Parameters
     ----------
     trackPlots : boolean
-    	boolean for turning astrometry plots on and off
-    	photPlots - boolean for turning aperture photometry plots on and off
+        Used to turn the astrometry plots on and off.
+    photPlots : boolean 
+        Used to turn the aperture photometry plots on and off.
+    statusBar : boolean
+        Used to turn the status bar on and off.
             
     Returns
     -------
-    [fig,subplotsDimensions,photSubplotsOffset],statusBarFig,statusBarAx : 
-            fig - the figure object from matplotlib that will be displayed while oscaar is running
-            subplotsDimensions - integer value that designates the x and y dimensions of the subplots
-                                 within the figure plot
-            photSubplotsOffset - if photPlots is True and trackPlots is True, then photSubplotsOffset
-                                 will ensure that the aperture photometry plots are on the right-most
-                                 subplot, otherwise it will assume that the aperture photometry plots
-                                 are the only/first subplot.
-            
-            This list returned by plottingSettings() should be stored to a variable, and used as an
-            argument in the phot() and trackSmooth() methods.
-   		'''
+    [fig,subplotsDimensions,photSubplotsOffset] : [figure, int, int]
+        An array with 3 things. The first is the figure object from matplotlib that will be displayed while 
+        OSCAAR is running. The second is the integer value that designates the x and y dimensions of the subplots
+        within the figure plot. The third is the the number correlating to the location of the aperture photometry
+        plots, which depends on the values of trackPlots and photPlots.
+    statusBarFig : figure
+        A figure object from matplotlib showing the status bar for completion.
+    statusBarAx : figure.subplot
+        A subplot from a matplotlib figure object that represents what is drawn.
+    
+    Notes
+    -----          
+    This list returned by plottingSettings() should be stored to a variable, and used as an
+    argument in the phot() and trackSmooth() methods.
+
+   	'''
     if trackPlots or photPlots: 
-        plt.ion()   ## Turn on interactive plotting
+        plt.ion()
         statusBarFig = 0 
         statusBarAx = 0
     if trackPlots and photPlots:
@@ -129,10 +184,6 @@ def plottingSettings(trackPlots,photPlots,statusBar=True):
         statusSubplotOffset = 5
         statusBarAx = None
         fig.canvas.set_window_title('oscaar2.0') 
-    #elif : 
-    #    fig = plt.figure()
-    #    subplotsDimensions = 110
-    #    photSubplotsOffset = 0
     elif not trackPlots and not photPlots:
         statusBarFig = plt.figure(num=None, figsize=(5, 2), facecolor='w',edgecolor='k')
         statusBarFig.canvas.set_window_title('oscaar2.0') 
