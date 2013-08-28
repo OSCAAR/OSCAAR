@@ -1,5 +1,6 @@
 import threading
-import wx
+if not hasattr(sys, 'real_prefix'):
+    import wx
 import os
 import sys
 from glob import glob

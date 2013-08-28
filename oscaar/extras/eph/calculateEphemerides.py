@@ -33,7 +33,8 @@ def calculateEphemerides(parFile):
         '''Return booleans from strings'''
         if value.upper().strip() == 'TRUE': return True
         elif value.upper().strip() == 'FALSE': return False
-
+    if hasattr(sys, 'real_prefix'):
+        show_lt = float(0)
     for line in parFileText:
         parameter = line.split(':')[0]
         if len(line.split(':')) > 1:

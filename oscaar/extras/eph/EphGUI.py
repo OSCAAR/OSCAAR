@@ -1,4 +1,5 @@
-import wx
+if not hasattr(sys, 'real_prefix'):
+    import wx
 import sys
 from glob import glob
 import os
