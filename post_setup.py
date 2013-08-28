@@ -8,13 +8,13 @@ time.sleep(1.0)
 
 """ Loading the just installed oscaar package to test if import is working,
     and get the path of the pacakge to complete the installation. """
-
-save_path = sys.path[:]
-sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
-import oscaar
-sys.path = save_path
-oscaardir = os.path.dirname(os.path.abspath(oscaar.__file__))
-
+if not hasattr(sys, 'real_prefix'):
+    save_path = sys.path[:]
+    sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
+    import oscaar
+    sys.path = save_path
+    oscaardir = os.path.dirname(os.path.abspath(oscaar.__file__))
+print oscaardir
 """ Function to download the ds9 version for current platform.
     URLs are tested working on 5-29-2013 """            
 def download_ds9():
@@ -120,4 +120,5 @@ atexit.register(to_do_at_exit)
     
 if __name__ == '__main__':
     complile_C()
-    download_ds9()
+    if not hasattr(sys, 'real_prefix'):
+        download_ds9()
