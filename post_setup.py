@@ -122,3 +122,5 @@ if __name__ == '__main__':
     if not hasattr(sys, 'real_prefix'):
         complile_C()
         download_ds9()
+    else:
+        subprocess.check_call(['pip', 'install', 'wxPython==src-2.8.12.1'])
