@@ -13,6 +13,7 @@ import re
 import oscaar
 import mathMethods
 import IO
+import sys
 oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
 oscaarpathplus = os.path.join(oscaarpath,'extras')
 
