@@ -112,8 +112,9 @@ def complile_C():
         os.chdir(olddir)
         
 def to_do_at_exit():
-    import subprocess
-    subprocess.check_call(['python', 'registration.py'])
+    if not hasattr(sys, 'real_prefix'):
+        import subprocess
+        subprocess.check_call(['python', 'registration.py'])
 
 """ Set function to be executed at exit of code (when script is finished) """
 atexit.register(to_do_at_exit)
