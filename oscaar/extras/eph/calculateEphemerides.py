@@ -17,6 +17,7 @@ from os import getcwd, sep
 from time import time
 import os.path
 import oscaar
+import sys
 
 def calculateEphemerides(parFile):
     '''

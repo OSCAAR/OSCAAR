@@ -127,8 +127,7 @@ def load(inputPath):
 def plottingSettings(trackPlots,photPlots,statusBar=True):
     '''
     :Description:
-        Function for handling matplotlib figures across OSCAAR methods. 
-    ----
+        Function for handling matplotlib figures across OSCAAR methods.
     
     :Parameters:
         **trackPlots** : boolean

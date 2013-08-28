@@ -1,8 +1,8 @@
 import threading
+import sys
 if not hasattr(sys, 'real_prefix'):
     import wx
 import os
-import sys
 from glob import glob
 from time import strftime
 import datetime
