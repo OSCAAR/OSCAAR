@@ -20,8 +20,6 @@ def cd(a=None):
     :Description:
         Change to a different directory than the current one.
     
-    ----
-    
     :Parameters:
         **a** : string
             Location of the directory to change to.
@@ -38,7 +36,6 @@ def cp(a, b):
     '''
     :Description:
         Copy a file to another location.
-    ----
     
     :Parameters:
         **a** : string
@@ -52,12 +49,10 @@ def parseRegionsFile(regsPath):
     '''
     :Description:
         Parse a regions file for a set of data.
-    ----
-    
+
     :Parameters:
         **regsPath** : string
             Location of the regions file to be parsed.
-    ----
     
     :Returns:
         **init_x_list** : array
@@ -79,8 +74,7 @@ def save(data,outputPath):
     '''
     :Description:
         Save everything in oscaar.dataBank object <data> to a python pickle using cPickle.
-    ----
-    
+
     :Parameters:
         **data** : string
             File location of an oscaar.dataBank() object to save.
@@ -108,12 +102,10 @@ def load(inputPath):
     '''
     :Description:
         Load everything from a oscaar.dataBank() object in a python pickle using cPickle.
-    ----
     
     :Parameters:
         **inputPath** : string
             File location of an oscaar.dataBank() object to save into a pickle.
-    ----
     
     :Returns:
         **data** : string
@@ -136,6 +128,8 @@ def plottingSettings(trackPlots,photPlots,statusBar=True):
             Used to turn the aperture photometry plots on and off.
         **statusBar** : boolean, optional
             Used to turn the status bar on and off.
+    
+    EXPL
     ----
     
     :Returns:

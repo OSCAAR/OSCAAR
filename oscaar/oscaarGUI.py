@@ -21,9 +21,10 @@ from matplotlib import pyplot
 import matplotlib
 from oscaar.extras.knownSystemParameters import returnSystemParams
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_wxagg import \
-    FigureCanvasWxAgg as FigCanvas, \
-    NavigationToolbar2WxAgg as NavigationToolbar
+if not hasattr(sys, 'real_prefix'):
+    from matplotlib.backends.backend_wxagg import \
+        FigureCanvasWxAgg as FigCanvas, \
+        NavigationToolbar2WxAgg as NavigationToolbar
 import numpy as np
 import pylab
 import pyfits

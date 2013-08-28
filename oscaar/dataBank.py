@@ -68,9 +68,10 @@ class dataBank:
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
         else:
-            print 'Using an isotropic ("placebo") master-flat (array of ones)'
-            dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
-            self.masterFlat = np.ones([dim1,dim2])
+            if not hasattr(sys, 'real_prefix'):
+                print 'Using an isotropic ("placebo") master-flat (array of ones)'
+                dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
+                self.masterFlat = np.ones([dim1,dim2])
         self.allStarsDict = {}
         
         self.regionsFileList, self.regionsFITSrefsList = self.parseRawRegionsList(self.rawRegionsList)
