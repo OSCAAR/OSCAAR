@@ -3,5 +3,4 @@ Scipy>=0.1
 pyfits>=3.1
 matplotlib>=1.0
 pyephem>=3.7
-wxpython>=2.8
 numpydoc
