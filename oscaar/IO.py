@@ -18,7 +18,7 @@ import os
 def cd(a=None):
 
     '''
-    **Description**: Change to a different directory than the current one.
+    **Description :** Change to a different directory than the current one.
     
     Parameters
     ----------
@@ -38,7 +38,7 @@ def cd(a=None):
 def cp(a, b):
 
     '''
-    **Description**: Copy a file to another location.
+    **Description :** Copy a file to another location.
     
     Parameters
     ----------
@@ -53,7 +53,7 @@ def cp(a, b):
 def parseRegionsFile(regsPath):
 
     '''
-    **Description**: Parse a regions file for a set of data.
+    **Description :** Parse a regions file for a set of data.
 
     Parameters
     ----------
@@ -81,7 +81,7 @@ def parseRegionsFile(regsPath):
 def save(data,outputPath):
 
     '''
-    **Description**: Save everything in oscaar.dataBank object <data> to a python pickle using cPickle.
+    **Description :** Save everything in oscaar.dataBank object <data> to a python pickle using cPickle.
 
     Parameters
     ----------
@@ -111,7 +111,7 @@ def save(data,outputPath):
 def load(inputPath):
 
     '''
-    **Description**: Load everything from a oscaar.dataBank() object in a python pickle using cPickle.
+    **Description :** Load everything from a oscaar.dataBank() object in a python pickle using cPickle.
      
     Parameters
     ----------
@@ -132,7 +132,7 @@ def load(inputPath):
 def plottingSettings(trackPlots,photPlots,statusBar=True):
 
     '''
-    **Description**: Function for handling matplotlib figures across OSCAAR methods.
+    **Description :** Function for handling matplotlib figures across OSCAAR methods.
     
     Parameters
     ----------
