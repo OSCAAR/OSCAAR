@@ -138,6 +138,28 @@ def chiSquared(vector1,vector2):
     return np.sum(np.power(vector1-vector2,2))
 
 def medianBin(time,flux,medianWidth):
+    '''
+    Produce median binning of a flux vector
+    
+    Parameters
+    ----------
+        time : list or numpy.ndarray
+            List of times in time series
+        
+        flux : list or numpy.ndarray
+            List of fluxes, one for each time in `time` vector
+    
+        medianWidth : int
+            Width of each bin in units of data points
+    
+    Returns
+    -------
+        [binnedTime, binnedFlux, binnedStd] : [list, list, list] or [numpy.ndarray, numpy.ndarray, numpy.ndarray]
+            The times, fluxes and uncertainties on each binned point, where `binnedTime` is the time for each 
+            bin, `binnedFlux` is the median flux in each bin, and `binnedStd` is the standard deviation of the points within each bin
+    '''
+    
+    
     numberBins = len(time)/medianWidth
     binnedTime = np.arange(numberBins,dtype=float)
     binnedFlux = np.arange(numberBins,dtype=float)

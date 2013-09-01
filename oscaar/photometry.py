@@ -21,44 +21,51 @@ def paddedStr(num,pad):
     return str((lenpad*'0')+str(num))
   
 def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=2.8, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False):
-    '''Method for aperture photometry. 
+    '''
+    Method for aperture photometry. 
     
-       INPUTS: image - numpy array image
-       
-               xCentroid - stellar centroid along the x-axis 
-                           (determined by trackSmooth or equivalent)
-                           
-               xCentroid - stellar centroid along the y-axis 
-                           (determined by trackSmooth or equivalent)
-                           
-               apertureRadius - radius in pixels from centroid to use 
-                                for source aperture
-                                
-               annulusInnerRadiusFactor - measure the background for sky background 
-                                     subtraction fron an annulus from a factor of 
-                                     annulusInnerRadiusFactor bigger than the apertureRadius to
-                                     one a factor annulusOuterRadiusFactor bigger.
+    Parameters
+    ----------
+    image : numpy.ndarray
+        FITS image opened with PyFITS
+    
+    xCentroid : float
+        Stellar centroid along the x-axis (determined by trackSmooth or equivalent)
+                
+    yCentroid : float
+        Stellar centroid along the y-axis (determined by trackSmooth or equivalent)
+                
+    apertureRadius : float
+        Radius in pixels from centroid to use for source aperture
+                     
+    annulusInnerRadiusFactor : float
+        Measure the background for sky background subtraction fron an annulus from a factor of 
+        `annulusInnerRadiusFactor` bigger than the `apertureRadius` to one a factor `annulusOuterRadiusFactor` bigger.
+    
+    annulusOuterRadiusFactor : float
+        Measure the background for sky background subtraction fron an annulus a factor of 
+        `annulusInnerRadiusFactor` bigger than the `apertureRadius` to one a factor `annulusOuterRadiusFactor` bigger.
+                          
+    ccdGain : float
+        Gain of your detector, used to calculate the photon noise
+    
+    plots : bool
+            If `plots`=True, display plots showing the aperture radius and 
+            annulus radii overplotted on the image of the star
+                   
+    Returns
+    -------
+    rawFlux : float
+        The background-subtracted flux measured within the aperture
+    
+    rawError : float
+        The photon noise (limiting statistical) Poisson uncertainty on the measurement of `rawFlux`
+    
+    errorFlag : bool
+        Boolean corresponding to whether or not any error occured when running oscaar.phot(). If an error occured, the flag is
+        True; otherwise False.
                
-               annulusOuterRadiusFactor - measure the background for sky background 
-                                     subtraction fron an annulus a factor of 
-                                     annulusInnerRadiusFactor bigger than the apertureRadius to
-                                     one a factor annulusOuterRadiusFactor bigger.
-                                     
-               ccdGain - gain of your detector, used to calculate the photon noise
-               
-               plots - If plots=True, display plots showing the aperture radius and 
-                       annulus radii overplotted on the image of the star
-                       
-        RETURNS: rawFlux - the background-subtracted flux measured within the aperture
-        
-                 rawError - the photon noise (limiting statistical) Poisson uncertainty on the 
-                            measurement of rawFlux
-
-                 ErrorFlag - Boolean corresponding to whether or not any error occured when 
-                             running oscaar.phot(). If an error occured, the flag is
-                             True; otherwise False.
-                            
-        Core developer: Brett Morris
+     Core developer: Brett Morris (NASA-GSFC)
     '''
     if plots:
         [fig,subplotsDimensions,photSubplotsOffset] = plottingThings
@@ -111,44 +118,51 @@ def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOut
     return [rawFlux, rawError, False]
      
 def multirad(image, xCentroid, yCentroid, apertureRadii, plottingThings, annulusOuterRadiusFactor=2.8, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False):
-    '''Method for aperture photometry. 
+    '''
+    Method for aperture photometry. 
     
-       INPUTS: image - numpy array image
-       
-               xCentroid - stellar centroid along the x-axis 
-                           (determined by trackSmooth or equivalent)
-                           
-               xCentroid - stellar centroid along the y-axis 
-                           (determined by trackSmooth or equivalent)
-                           
-               apertureRadius - radius in pixels from centroid to use 
-                                for source aperture
-                                
-               annulusInnerRadiusFactor - measure the background for sky background 
-                                     subtraction fron an annulus from a factor of 
-                                     annulusInnerRadiusFactor bigger than the apertureRadius to
-                                     one a factor annulusOuterRadiusFactor bigger.
+    Parameters
+    ----------
+    image : numpy.ndarray
+        FITS image opened with PyFITS
+    
+    xCentroid : float
+        Stellar centroid along the x-axis (determined by trackSmooth or equivalent)
+                
+    yCentroid : float
+        Stellar centroid along the y-axis (determined by trackSmooth or equivalent)
+                
+    apertureRadii : list
+        List of aperture radii (floats) to feed to phot().
+                     
+    annulusInnerRadiusFactor : float
+        Measure the background for sky background subtraction fron an annulus from a factor of 
+        `annulusInnerRadiusFactor` bigger than the `apertureRadius` to one a factor `annulusOuterRadiusFactor` bigger.
+    
+    annulusOuterRadiusFactor : float
+        Measure the background for sky background subtraction fron an annulus a factor of 
+        `annulusInnerRadiusFactor` bigger than the `apertureRadius` to one a factor `annulusOuterRadiusFactor` bigger.
+                          
+    ccdGain : float
+        Gain of your detector, used to calculate the photon noise
+    
+    plots : bool
+            If `plots`=True, display plots showing the aperture radius and 
+            annulus radii overplotted on the image of the star
+                   
+    Returns
+    -------
+    rawFlux : float
+        The background-subtracted flux measured within the aperture
+    
+    rawError : float
+        The photon noise (limiting statistical) Poisson uncertainty on the measurement of `rawFlux`
+    
+    errorFlag : bool
+        Boolean corresponding to whether or not any error occured when running oscaar.phot(). If an error occured, the flag is
+        True; otherwise False.
                
-               annulusOuterRadiusFactor - measure the background for sky background 
-                                     subtraction fron an annulus a factor of 
-                                     annulusInnerRadiusFactor bigger than the apertureRadius to
-                                     one a factor annulusOuterRadiusFactor bigger.
-                                     
-               ccdGain - gain of your detector, used to calculate the photon noise
-               
-               plots - If plots=True, display plots showing the aperture radius and 
-                       annulus radii overplotted on the image of the star
-                       
-        RETURNS: rawFlux - the background-subtracted flux measured within the aperture
-        
-                 rawError - the photon noise (limiting statistical) Poisson uncertainty on the 
-                            measurement of rawFlux
-
-                 ErrorFlag - Boolean corresponding to whether or not any error occured when 
-                             running oscaar.phot(). If an error occured, the flag is
-                             True; otherwise False.
-                            
-        Core developer: Brett Morris
+     Core developer: Brett Morris (NASA-GSFC)
     '''
 
     #[apertureRadiusMin, apertureRadiusMax, apertureRadiusStep] = apertureRadiusSettings
@@ -158,7 +172,7 @@ def multirad(image, xCentroid, yCentroid, apertureRadii, plottingThings, annulus
     errors = []
     photFlags = []
     for apertureRadius in apertureRadii:
-        flux, error, photFlag = phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=2.8, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False)
+        flux, error, photFlag = phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=annulusOuterRadiusFactor, annulusInnerRadiusFactor=annulusInnerRadiusFactor, ccdGain=ccdGain, plots=False)
         fluxes.append(flux)
         errors.append(error)
         photFlags.append(photFlag)

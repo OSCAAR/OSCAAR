@@ -32,32 +32,32 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
 	
 	Parameters
 	---------- 
-		t : list
-			times
-		flux : list
-			fluxes
-		sigma : list
-			uncertainties in fluxes
-		initParams : list
-			initial parameter estimates, `x_0` in Ford 2005
-		func : function
-			fitting function
-		Nsteps : int
-			number of iterations
-		beta : list
-			widths of normal distribution to randomly sample for each parameter
-		saveInterval : int
-			number of steps between "saving" the accepted parameter in the chain.
-			Must satisfy ``Nsteps % saveInterval ==0``.
-		
+	t : list
+		times
+	flux : list
+		fluxes
+	sigma : list
+		uncertainties in fluxes
+	initParams : list
+		initial parameter estimates, `x_0` in Ford 2005
+	func : function
+		fitting function
+	Nsteps : int
+		number of iterations
+	beta : list
+		widths of normal distribution to randomly sample for each parameter
+	saveInterval : int
+		number of steps between "saving" the accepted parameter in the chain.
+		Must satisfy ``Nsteps % saveInterval ==0``.
+	
 	Returns
 	-------
-		bestp : list
-			parameters at minimum chi^2
-		x_0toN  : array
-			trace of each parameter at each save step
-		acceptanceRate: float
-			the final acceptance rate of the chain
+	bestp : list
+		parameters at minimum chi^2
+	x_0toN  : array
+		trace of each parameter at each save step
+	acceptanceRate: float
+		the final acceptance rate of the chain
 		
 	Notes
 	-----
@@ -150,25 +150,25 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
  
  	   Parameters
 	   ---------- 
-			t : list
-				time
-			flux : list
-				fluxes
-			sigma : list
-				uncertainties in fluxes
-			initParams : list 
-				initial parameter estimates, `x_0` in Ford 2005
-			func : function 
-				fitting function
-			Nsteps : int
-				number of steps to try in the chains
-			beta : list
-				widths of normal distribution to randomly sample for each parameter
-		
+		t : list
+			time
+		flux : list
+			fluxes
+		sigma : list
+			uncertainties in fluxes
+		initParams : list 
+			initial parameter estimates, `x_0` in Ford 2005
+		func : function 
+			fitting function
+		Nsteps : int
+			number of steps to try in the chains
+		beta : list
+			widths of normal distribution to randomly sample for each parameter
+	
 		Returns
 		-------
-			acceptanceRateArray : list 
-				Acceptance rates for each beta_mu   
+		acceptanceRateArray : list 
+			Acceptance rates for each beta_mu   
 		
 		Notes
 		-----
@@ -283,26 +283,26 @@ def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True
 	
 	   Parameters
 	   ---------- 
-			t : list
-				time
-			flux : list
-				fluxes
-			sigma : list
-				uncertainties in fluxes
-			initParams : list 
-				initial parameter estimates, `x_0` in Ford 2005
-			func : function 
-				fitting function
-			beta : list
-				widths of normal distribution to randomly sample for each parameter
-			idealAcceptanceRate : float
-				desired acceptance rate to be produced by the optimized `beta`
-			
+		t : list
+			time
+		flux : list
+			fluxes
+		sigma : list
+			uncertainties in fluxes
+		initParams : list 
+			initial parameter estimates, `x_0` in Ford 2005
+		func : function 
+			fitting function
+		beta : list
+			widths of normal distribution to randomly sample for each parameter
+		idealAcceptanceRate : float
+			desired acceptance rate to be produced by the optimized `beta`
+		
 		Returns
 		-------
-			beta : list
-				the beta vector optimized so that running a MCMC chain should produce
-				acceptance rates near `idealAcceptanceRate` (vector)
+		beta : list
+			the beta vector optimized so that running a MCMC chain should produce
+			acceptance rates near `idealAcceptanceRate` (vector)
 
 		Notes
 		-----
