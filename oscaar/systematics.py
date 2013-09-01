@@ -4,7 +4,19 @@ from matplotlib import pyplot as plt
 from glob import glob
 
 def meanDarkFrame(darksPath):
-    '''Return the mean dark frame calculated from each dark frame in darksPath'''
+    '''
+    Returns the mean dark frame calculated from each dark frame in `darksPath`
+    
+    Parameters
+    ----------
+    darksPath : list of strings
+        Paths to the dark frames
+        
+    Returns
+    -------
+        The mean of the dark frames in `darksPath`
+    
+    '''
     #darksPath = glob(darksPath)
     [dim1, dim2] = np.shape(pyfits.open(darksPath[0])[0].data)
     ## Create N-dimensional array for N dark frames, where the first 
@@ -18,13 +30,19 @@ def meanDarkFrame(darksPath):
 def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
     '''Make a master flat by taking a mean of a group of flat fields
     
-    INPUTS: flatImagesPath - Path to the flat field exposures
+    Parameters
+    ----------
+    flatImagesPath : string
+        Path to the flat field exposures
+
+    flatDarkImagesPath : string
+        Path to the flat field darks
     
-            flatDarkImagesPath - Path to the flat field darks
-            
-            masterFlatSavePath - Where to save the master flat that is created
-            
-            plots - Plot the master flat on completion when plots=True
+    masterFlatSavePath : string
+        Where to save the master flat that is created
+    
+    plots : bool
+        Plot the master flat on completion when plots=True
     '''
     ## Create zero array with the dimensions of the first image for the flat field
     [dim1, dim2] = np.shape(pyfits.open(flatImagesPath[0])[0].data)
@@ -70,13 +88,18 @@ def twilightFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
     by fitting the individual pixel intensities over time using least-squares
     and use the intercept as the normalizing factor in the master flat.
     
-    INPUTS: flatImagesPath - Path to the flat field exposures
+    INPUTS: 
+    flatImagesPath : string
+        Path to the flat field exposures
+
+    flatDarkImagesPath : string
+        Path to the flat field darks
     
-            flatDarkImagesPath - Path to the flat field darks
-            
-            masterFlatSavePath - Where to save the master flat that is created
-            
-            plots - Plot the master flat on completion when plots=True
+    masterFlatSavePath : string
+        Where to save the master flat that is created
+    
+    plots : bool
+        Plot the master flat on completion when plots=True
     '''
     ## Create zero array with the dimensions of the first image for the flat field
     [dim1, dim2] = np.shape(pyfits.getdata(flatImagesPath[0]))

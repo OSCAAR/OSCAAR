@@ -16,18 +16,25 @@ from shutil import copy
 import os
 
 def quadraticFit(derivative,ext):
-    '''Find an extremum in the data and use it and the points on either side, fit
-       a quadratic function to the three points, and return the x-position of the 
-       apex of the best-fit parabola. 
-       
-       Called by oscaar.trackSmooth()
-       
-       INPUTS: derivative - The first derivative of the series of points, usually 
-                            calculated by np.diff()
-                            
-               ext = Extremum to look find: "max" or "min"
-        
-       RETURNS: extremum - the (non-integer) index where the extremum was found
+    '''
+    Find an extremum in the data and use it and the points on either side, fit
+    a quadratic function to the three points, and return the x-position of the 
+    apex of the best-fit parabola. 
+    
+    Called by oscaar.trackSmooth()
+    
+    Parameters
+    ----------
+    derivative : numpy.ndarray
+       The first derivative of the series of points, usually calculated by np.diff()
+                    
+    ext : string 
+        Extremum to look find. May be either "max" or "min"
+    
+    Returns
+    -------
+    extremum : float
+        The (non-integer) index where the extremum was found
        
     '''
     rangeOfFit = 1
@@ -50,43 +57,52 @@ def quadraticFit(derivative,ext):
     return extremum
 
 def trackSmooth(image, est_x, est_y, smoothingConst, plottingThings, preCropped=False, zoom=20.0,plots=False):
-    '''Method for tracking stellar centroids. 
+    '''
+    Method for tracking stellar centroids. 
     
-       INPUTS: image - Numpy array image
-       
-               est_x - Inital estimate for the x-centroid of the star
-
-               est_y - Inital estimate for the y-centroid of the star
-
-               smoothingConstant - Controls the degree to which the raw stellar intensity
-                                   profile will be smoothed by a Gaussian filter 
-                                   (0 = no smoothing)
-
-               preCropped - If preCropped=False, image is assumed to be a raw image, if
-                            preCropped=True, image is assumed to be only the portion of the
-                            image near the star
-
-               zoom - How many pixels in each direction away from the estimated centroid 
-                      to consider when tracking the centroid. Be sure to choose a large 
-                      enough zoom value the stellar centroid in the next exposure will fit
-                      within the zoom
-
-               plots - If plots=True, display stellar intensity profile in two axes
-                       and the centroid solution
-                                   
-        RETURNS: xCenter - the best-fit x-centroid of the star
+    Parameters
+    ---------- 
+        image : numpy.ndarray
+            FITS image read in by PyFITS
+    
+        est_x : float
+            Inital estimate for the x-centroid of the star
         
-                 yCenter - the best-fit y-centroid of the star
-                 
-                 averageRadius - average radius of the SMOOTHED star in pixels
-                 
-                 ErrorFlag - Boolean corresponding to whether or not any error occured when 
-                             running oscaar.trackSmooth(). If an error occured, the flag is
-                             True; otherwise False.
-                            
-        Core developer: Brett Morris
-        Modifications by: Luuk Visser, 2-12-2013
-        '''
+        est_y : float
+            Inital estimate for the y-centroid of the star
+        
+        smoothingConstant : float
+            Controls the degree to which the raw stellar intensity profile will be smoothed by a Gaussian filter (0 = no smoothing)
+        
+        preCropped : bool
+            If preCropped=False, image is assumed to be a raw image, if preCropped=True, image is assumed to be only the 
+            portion of the image near the star
+        
+        zoom : int or float
+            How many pixels in each direction away from the estimated centroid to consider when tracking the centroid. Be 
+            sure to choose a large enough zoom value the stellar centroid in the next exposure will fit within the zoom
+        
+        plots : bool
+            If plots=True, display stellar intensity profile in two axes and the centroid solution
+                                
+     Returns
+     ------- 
+         xCenter : float
+             The best-fit x-centroid of the star
+    
+         yCenter : float
+             The best-fit y-centroid of the star
+         
+         averageRadius : float
+             Average radius of the SMOOTHED star in pixels
+         
+         errorFlag : bool
+             Boolean corresponding to whether or not any error occured when running oscaar.trackSmooth(). If an 
+             error occured, the flag is True; otherwise False.
+                         
+     Core developer: Brett Morris
+     Modifications by: Luuk Visser, 2-12-2013
+    '''
     '''If you have an interpolated grid as input, small inputs for smoothingConst
         it won't have any effect. Thus it has to be increased by the
         zoom factor you used to sub-pixel interpolate. 
