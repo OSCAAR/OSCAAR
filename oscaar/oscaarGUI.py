@@ -14,7 +14,7 @@ import zipfile
 from mathMethods import medianBin
 import random
 import oscaar
-import transiterFit
+#import transiterFit
 import systematics
 import IO
 from matplotlib import pyplot

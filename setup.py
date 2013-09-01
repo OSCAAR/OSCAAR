@@ -130,9 +130,9 @@ def setup_package():
 	setup(
 		name = "OSCAAR",
 		version = "2.0beta",
-		author = "Core Developer: Brett Morris. Contributors: "+\
-                      "Daniel Galdi, Nolan Matthews, Sam Gross, Luuk Visser",
-		author_email = "oscaarUMD@gmail.com",
+		author = "Core Developer: Brett M. Morris. Contributors: "+\
+                      "Daniel Galdi, Dharmatej Mikkilineni, Luuk Visser",
+		author_email = "oscaarteam@gmail.com",
 		description = ("oscaar is an open source project aimed at "+\
                       "helping you begin to study transiting extrasolar "+\
                       "planets with differential photometry."),
@@ -151,8 +151,8 @@ def setup_package():
 		  'Intended Audience :: Science/Research',
 		  'License :: OSI Approved :: MIT License',
 		  'Operating System :: OS Independent',
-		  'Programming Language :: C',
 		  'Programming Language :: Python :: 2.7',
+		  'Programming Language :: C',
 		  'Topic :: Scientific/Engineering :: Astronomy',
 		  'Topic :: Scientific/Engineering :: Physics'
 	  ],

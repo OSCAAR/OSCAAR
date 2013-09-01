@@ -11,10 +11,10 @@ def paddedStr(num,pad):
     
     Parameters
     ----------
-        num : float
-            number to pad
-        pad : int
-            number of zeros to pad in front of `num` 
+    num : float
+        number to pad
+    pad : int
+        number of zeros to pad in front of `num` 
             
     Returns
     -------
@@ -31,13 +31,13 @@ def ut2jd(ut):
     
     Parameters
     ----------
-        ut : string
-            Time in Universial Time (UT)
+    ut : string
+        Time in Universial Time (UT)
     
     Returns
     -------
-        jd : float
-            Julian Date (JD)
+    jd : float
+        Julian Date (JD)
     '''
     [date, Time] = ut.split(';')
     Time = Time.strip()
@@ -66,13 +66,13 @@ def ut2jdSplitAtT(ut):
     
     Parameters
     ----------
-        ut : string
-            Time in Universial Time (UT)
+    ut : string
+        Time in Universial Time (UT)
     
     Returns
     -------
-        jd : float
-            Julian Date (JD)
+    jd : float
+        Julian Date (JD)
     '''
     [date, Time] = ut.split('T')
     Time = Time.strip()
@@ -103,25 +103,25 @@ def regressionScale(comparisonFlux,targetFlux,time,ingress,egress,returncoeffs=F
 
     Parameters
     ----------
-        comparisonFlux : numpy.ndarray
-            Flux of a comparison star
+    comparisonFlux : numpy.ndarray
+        Flux of a comparison star
 
-        targetFlux : numpy.ndarray
-            Flux of the target star
-        
-        time : numpy.ndarray
-            List of times for each flux measurement in JD
-        
-        ingress : float
-            Time of ingress (JD, assuming time list is in JD)
-        
-        egress : float
-            Time of egress (JD, assuming time list is in JD)
+    targetFlux : numpy.ndarray
+        Flux of the target star
+    
+    time : numpy.ndarray
+        List of times for each flux measurement in JD
+    
+    ingress : float
+        Time of ingress (JD, assuming time list is in JD)
+    
+    egress : float
+        Time of egress (JD, assuming time list is in JD)
             
     Returns
     -------
-        scaledVector : numpy.ndarray
-            Rescaled version of the comparisonFlux vector using the above described process
+    scaledVector : numpy.ndarray
+        Rescaled version of the comparisonFlux vector using the above described process
     '''
     outOfTransit = (time < ingress) + (time > egress)
     regressMatrix = np.vstack([comparisonFlux[outOfTransit]]).T
@@ -143,20 +143,20 @@ def medianBin(time,flux,medianWidth):
     
     Parameters
     ----------
-        time : list or numpy.ndarray
-            List of times in time series
-        
-        flux : list or numpy.ndarray
-            List of fluxes, one for each time in `time` vector
+    time : list or numpy.ndarray
+        List of times in time series
     
-        medianWidth : int
-            Width of each bin in units of data points
+    flux : list or numpy.ndarray
+        List of fluxes, one for each time in `time` vector
+
+    medianWidth : int
+        Width of each bin in units of data points
     
     Returns
     -------
-        [binnedTime, binnedFlux, binnedStd] : [list, list, list] or [numpy.ndarray, numpy.ndarray, numpy.ndarray]
-            The times, fluxes and uncertainties on each binned point, where `binnedTime` is the time for each 
-            bin, `binnedFlux` is the median flux in each bin, and `binnedStd` is the standard deviation of the points within each bin
+    [binnedTime, binnedFlux, binnedStd] : [list, list, list] or [numpy.ndarray, numpy.ndarray, numpy.ndarray]
+        The times, fluxes and uncertainties on each binned point, where `binnedTime` is the time for each 
+        bin, `binnedFlux` is the median flux in each bin, and `binnedStd` is the standard deviation of the points within each bin
     '''
     
     

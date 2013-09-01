@@ -113,9 +113,9 @@ def complile_C():
         
 def to_do_at_exit():
     if not hasattr(sys, 'real_prefix'):
-        import subprocess
-        subprocess.check_call(['python', 'registration.py'])
-
+        #import subprocess
+        #subprocess.check_call(['python', 'registration.py'])
+        from oscaar import registration
 """ Set function to be executed at exit of code (when script is finished) """
 atexit.register(to_do_at_exit)
     

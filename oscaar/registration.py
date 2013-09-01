@@ -10,7 +10,7 @@ class RegistrationFrame(wx.Frame):
         wx.Frame.__init__(self,None,-1, self.title)
         self.panel = wx.Panel(self)
         
-        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'oscaar','images','registration2_2.png'), wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','registration2_2.png'), wx.BITMAP_TYPE_ANY)
         self.bmp = wx.BitmapFromImage(self.logo)
         self.button = wx.BitmapButton(self.panel, -1, self.bmp, size=(self.bmp.GetWidth(),self.bmp.GetHeight()))
         self.button.Bind(wx.EVT_BUTTON, self.openLink)
@@ -20,7 +20,7 @@ class RegistrationFrame(wx.Frame):
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
          
-        iconloc = os.path.join(os.path.dirname(__file__),'oscaar','images','logo4noText.ico')
+        iconloc = os.path.join(os.path.dirname(__file__),'images','logo4noText.ico')
         icon1 = wx.Icon(iconloc, wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon1)       
          
