@@ -7,7 +7,20 @@ from scipy import ndimage, optimize
 from re import split
 
 def paddedStr(num,pad):
-    '''Return the number num padded with zero-padding of length pad'''
+    '''Return the number num padded with zero-padding of length pad
+    
+    Parameters
+    ----------
+        num : float
+            number to pad
+        pad : int
+            number of zeros to pad in front of `num` 
+            
+    Returns
+    -------
+        The padded number.
+    
+    '''
     strlen = len(str(num))
     lenpad = pad-strlen
     return str((lenpad*'0')+str(num))
@@ -16,9 +29,15 @@ def ut2jd(ut):
     '''
     Convert times from Universal Time (UT) to Julian Date (JD)
     
-    INPUTS: ut - Time in Universial Time (UT)
+    Parameters
+    ----------
+        ut : string
+            Time in Universial Time (UT)
     
-    RETURNS: jd - Julian Date (JD)
+    Returns
+    -------
+        jd : float
+            Julian Date (JD)
     '''
     [date, Time] = ut.split(';')
     Time = Time.strip()
@@ -45,9 +64,15 @@ def ut2jdSplitAtT(ut):
     '''
     Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the "T"
     
-    INPUTS: ut - Time in Universial Time (UT)
+    Parameters
+    ----------
+        ut : string
+            Time in Universial Time (UT)
     
-    RETURNS: jd - Julian Date (JD)
+    Returns
+    -------
+        jd : float
+            Julian Date (JD)
     '''
     [date, Time] = ut.split('T')
     Time = Time.strip()
@@ -76,18 +101,27 @@ def regressionScale(comparisonFlux,targetFlux,time,ingress,egress,returncoeffs=F
     to scale them to the relative intensity of the target star. Only do this regression
     considering the out-of-transit portions of the light curve.
 
-    INPUTS: comparisonFlux - Flux of a comparison star
+    Parameters
+    ----------
+        comparisonFlux : numpy.ndarray
+            Flux of a comparison star
 
-            targetFlux - Flux of the target star
+        targetFlux : numpy.ndarray
+            Flux of the target star
+        
+        time : numpy.ndarray
+            List of times for each flux measurement in JD
+        
+        ingress : float
+            Time of ingress (JD, assuming time list is in JD)
+        
+        egress : float
+            Time of egress (JD, assuming time list is in JD)
             
-            time - List of times for each flux measurement in JD
-            
-            ingress - Time of ingress (JD, assuming time list is in JD)
-            
-            egress - Time of egress (JD, assuming time list is in JD)
-            
-    RETURNS: scaledVector - rescaled version of the comparisonFlux vector using the
-                            above described process
+    Returns
+    -------
+        scaledVector : numpy.ndarray
+            Rescaled version of the comparisonFlux vector using the above described process
     '''
     outOfTransit = (time < ingress) + (time > egress)
     regressMatrix = np.vstack([comparisonFlux[outOfTransit]]).T
@@ -100,7 +134,7 @@ def regressionScale(comparisonFlux,targetFlux,time,ingress,egress,returncoeffs=F
         return scaledVector
 
 def chiSquared(vector1,vector2):
-    '''Return chi-squared of two vectors'''
+    '''Return :math:`$\chi^2$` (chi-squared) of two vectors'''
     return np.sum(np.power(vector1-vector2,2))
 
 def medianBin(time,flux,medianWidth):
