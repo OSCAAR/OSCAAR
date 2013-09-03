@@ -1,10 +1,8 @@
-import threading
 import sys
 if not hasattr(sys, 'real_prefix'):
     import wx
 import os
 from glob import glob
-from time import strftime
 import datetime
 import webbrowser
 import subprocess
@@ -12,21 +10,17 @@ import shutil
 import zipfile
 
 from mathMethods import medianBin
-import random
 import oscaar
 #import transiterFit
 import systematics
 import IO
 from matplotlib import pyplot
-import matplotlib
 from oscaar.extras.knownSystemParameters import returnSystemParams
-from matplotlib.figure import Figure
 if not hasattr(sys, 'real_prefix'):
     from matplotlib.backends.backend_wxagg import \
         FigureCanvasWxAgg as FigCanvas, \
         NavigationToolbar2WxAgg as NavigationToolbar
 import numpy as np
-import pylab
 import pyfits
 import timeConversions
 

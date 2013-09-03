@@ -45,7 +45,8 @@ def occultquad(t,modelParams):
     F : numpy.ndarray
     	Relative fluxes at each time of the time vector `t`
 
-    .. [1] Mandel & Agol. "Analytic Light Curves for Planetary Transit Searches". 
+    .. [1] Mandel & Agol. "Analytic Light Curvesfrom glob import glob
+ for Planetary Transit Searches". 
            The Astrophysical Journal, Volume 580, Issue 2, pp. L171-L175. 2002.
     """
     [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams

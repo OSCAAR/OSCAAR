@@ -1,7 +1,6 @@
 import numpy as np
 import pyfits
 from matplotlib import pyplot as plt
-from glob import glob
 
 def meanDarkFrame(darksPath):
     '''

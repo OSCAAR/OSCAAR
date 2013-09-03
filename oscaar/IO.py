@@ -1,14 +1,7 @@
 '''OSCAAR v2.0 
    Module for differential photometry
    Developed by Brett Morris, 2011-2013'''
-import numpy as np
-from numpy import linalg as LA
-import pyfits
 from matplotlib import pyplot as plt
-import matplotlib.cm as cm
-from scipy import ndimage, optimize
-from time import sleep
-import shutil
 from glob import glob
 from re import split
 import cPickle

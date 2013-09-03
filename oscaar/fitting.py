@@ -1,11 +1,8 @@
-import os
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy import optimize
-import oscaar
 import IO
 import transitModel
-from matplotlib.ticker import FormatStrFormatter
 from time import sleep
 def fitLinearTrend(xVector,yVector):
 	'''Fit a line to the set {xVectorCropped,yVectorCropped}, then remove that linear trend

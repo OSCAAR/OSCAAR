@@ -3,8 +3,7 @@
    Developed by Brett Morris, 2011-2013'''
 import numpy as np
 from numpy import linalg as LA
-from scipy import ndimage, optimize
-from re import split
+
 
 def paddedStr(num,pad):
     '''Return the number num padded with zero-padding of length pad

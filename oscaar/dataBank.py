@@ -12,7 +12,6 @@ import os
 import re
 import oscaar
 import mathMethods
-import IO
 import sys
 oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
 oscaarpathplus = os.path.join(oscaarpath,'extras')
@@ -326,16 +325,6 @@ class dataBank:
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledError'][apertureRadiusIndex])
     
-    def getScaledFluxes(self,star):
-        '''Return the scaled fluxes for one star, where the star parameter is the 
-            key for the star of interest.'''
-        return np.array(self.allStarsDict[star]['scaledFlux'])
-    
-    def getScaledErrors(self,star):
-        '''Return the scaled fluxes for one star, where the star parameter is the 
-            key for the star of interest.'''
-        return np.array(self.allStarsDict[star]['scaledError'])
-    
     def calcChiSq(self):
         for star in self.allStarsDict:
             self.allStarsDict[star]['chisq'] = mathMethods.chiSquared(self.getFluxes(self.targetKey),self.getFluxes(star))
@@ -386,10 +375,12 @@ class dataBank:
             print "Target scaled flux:",self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex)
             target = self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)[self.outOfTransit()]
             compStars = np.zeros([targetFullLength,numCompStars])
-            compStarsOOT = np.zeros([len(target),numCompStars])
+            compStarsOOT = np.zeros([llStarsDict:
+            axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
+        
+        axis.axvline(yminen(target),numCompStars])
             compErrors = np.copy(compStars)
             columnCounter = 0
-            acceptedCompStarKeys = []
             compStarKeys = []
             for star in self.allStarsDict:
                 if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq).any():
@@ -454,7 +445,6 @@ class dataBank:
         compStarsOOT = np.zeros([len(target),numCompStars])
         compErrors = np.copy(compStars)
         columnCounter = 0
-        acceptedCompStarKeys = []
         compStarKeys = []
         for star in self.allStarsDict:
             if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq):
@@ -481,67 +471,6 @@ class dataBank:
         self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
         return self.meanComparisonStar, self.meanComparisonStarError  
 
-    def calcMeanComparison_multirad(self,ccdGain=1):
-        '''
-            Take the regression-weighted mean of some of the comparison stars
-            to produce one comparison star flux to compare to the target to
-            produce a light curve.
-            
-            The comparison stars used are those whose chi-squareds calculated by
-            self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
-            This condition removes outliers.
-            '''
-        self.meanComparisonStars = []
-        self.meanComparisonStarErrors = []
-        self.comparisonStarWeights = []
-        
-        for apertureRadiusIndex in range(len(self.apertureRadii)):
-            ## Check whether chi-squared has been calculated already. If not, compute it.
-            chisq = []
-            for star in self.allStarsDict: chisq.append(self.allStarsDict[star]['chisq'])
-            chisq = np.array(chisq)
-            #if all(chisq == 0): self.calcChiSq_multirad(apertureRadiusIndex)
-            if (chisq==0).all(): self.calcChiSq_multirad(apertureRadiusIndex)
-            ## Begin regression technique
-            numCompStars =  len(self.allStarsDict) - 1
-            targetFullLength = len(self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex))    
-            print "Aperture rad:", apertureRadiusIndex
-            print "Target raw flux:",self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)
-            print "Target scaled flux:",self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex)
-            target = self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)[self.outOfTransit()]
-            compStars = np.zeros([targetFullLength,numCompStars])
-            compStarsOOT = np.zeros([len(target),numCompStars])
-            compErrors = np.copy(compStars)
-            columnCounter = 0
-            acceptedCompStarKeys = []
-            compStarKeys = []
-            for star in self.allStarsDict:
-                if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq).any():
-                    compStars[:,columnCounter] = self.getScaledFluxes_multirad(star,apertureRadiusIndex).astype(np.float64)
-                    compStarsOOT[:,columnCounter] = self.getScaledFluxes_multirad(star,apertureRadiusIndex)[self.outOfTransit()].astype(np.float64)
-                    compErrors[:,columnCounter] = self.getScaledErrors_multirad(star,apertureRadiusIndex).astype(np.float64)
-                    compStarKeys.append(int(star))
-                    columnCounter += 1
-                elif star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) > 2*self.stdChisq):
-                    print 'Star '+str(star)+' excluded from regression'
-                    compStarKeys.append(int(star))
-                    columnCounter += 1
-            initP = np.zeros([numCompStars])+ 1./numCompStars
-            def errfunc(p,target): 
-                if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target ## Find only positive coefficients
-            #return np.dot(p,compStarsOOT.T) - target
-            
-            bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
-            print '\nBest fit regression coefficients:',bestFitP
-            print 'Default weight:',1./numCompStars
-            
-            self.comparisonStarWeights_i = np.vstack([compStarKeys,bestFitP])
-            self.meanComparisonStar = np.dot(bestFitP,compStars.T)
-            self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
-            self.meanComparisonStars.append(self.meanComparisonStar)
-            self.meanComparisonStarErrors.append(self.meanComparisonStarError)
-            self.comparisonStarWeights.append(self.comparisonStarWeights_i)      
-        return self.meanComparisonStars, self.meanComparisonStarErrors
 
     def computeLightCurve(self,meanComparisonStar,meanComparisonStarError):
         '''
@@ -791,7 +720,6 @@ class dataBank:
         width = 0.5
         indices = weights[0,:]
         coefficients = weights[1,:]
-        ind = np.arange(len(indices))
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
         ax = fig.add_subplot(111)
@@ -824,7 +752,6 @@ class dataBank:
     def plotMCMC(self):
         bestp = self.MCMC_bestp
         allparams = self.MCMC_allparams
-        acceptanceRate = self.MCMC_acceptanceRate
         x = self.times
         y = self.lightCurve
         sigma_y = self.lightCurveError
