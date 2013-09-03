@@ -375,12 +375,10 @@ class dataBank:
             print "Target scaled flux:",self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex)
             target = self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)[self.outOfTransit()]
             compStars = np.zeros([targetFullLength,numCompStars])
-            compStarsOOT = np.zeros([llStarsDict:
-            axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
-        
-        axis.axvline(yminen(target),numCompStars])
+            compStarsOOT = np.zeros([len(target),numCompStars])
             compErrors = np.copy(compStars)
             columnCounter = 0
+            acceptedCompStarKeys = []
             compStarKeys = []
             for star in self.allStarsDict:
                 if star != self.targetKey and (np.abs(self.meanChisq - self.allStarsDict[star]['chisq']) < 2*self.stdChisq).any():
@@ -409,7 +407,6 @@ class dataBank:
             self.meanComparisonStarErrors.append(self.meanComparisonStarError)
             self.comparisonStarWeights.append(self.comparisonStarWeights_i)      
         return self.meanComparisonStars, self.meanComparisonStarErrors
-
    
     def getAllChiSq(self):
         '''Return chi-squared's for all stars'''
