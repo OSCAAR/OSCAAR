@@ -88,7 +88,8 @@ def twilightFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
     by fitting the individual pixel intensities over time using least-squares
     and use the intercept as the normalizing factor in the master flat.
     
-    INPUTS: 
+    Parameters
+	---------- 
     flatImagesPath : string
         Path to the flat field exposures
 

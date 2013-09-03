@@ -20,6 +20,35 @@ transitModelDir = os.path.dirname(os.path.abspath(__file__))
 #def occultquad(t,p,ap,i,t0,gamma1=0.23,gamma2=0.45,P=1.58,e=0.0,longPericenter=0.0):
 
 def occultquad(t,modelParams):
+	"""
+	Calculates the analytical transit light curve for a planet occulting a star, according to the formalism
+	of Mandel & Agol (2002) [1]_.
+
+	Parameters
+	----------
+	t : list or numpy.ndarray
+		List of the times sampled in Julian Date
+
+	modelParams : list
+		List of the planetary system parameters, in the following order: 
+		- :math:`$R_p/R_s$`: Ratio of the radius of the planet to the radius of the star
+		- :math:`$a/R_s$`: Ratio of the semi-major axis to the radius of the star
+		- :math:`$P$`: Orbital period
+		- :math:`$\gamma_1$`: Limb-darkening coefficient, linear
+		- :math:`$\gamma_2$`: Limb-darkening coefficient, quadratic
+		- :math:`$e$`: Eccentricity
+		- `longPericenter`: Longitude of pericenter
+		- :math:`$t_0$`: Mid-transit time (JD)
+
+	Returns
+	-------
+	F : numpy.ndarray
+		Relative fluxes at each time of the time vector `t`
+
+	.. [1] Mandel & Agol. "Analytic Light Curves for Planetary Transit Searches". 
+	       The Astrophysical Journal, Volume 580, Issue 2, pp. L171-L175. 2002.
+
+	"""
     [p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
     #[p,ap,P,i,gamma1,gamma2,e,longPericenter,t0] = modelParams
 
@@ -59,6 +88,9 @@ def occultquad(t,modelParams):
     return F
 
 def ellipk(k):
+	"""
+	Computes polynomial approximation for the complete elliptic integral of the first kind (Hasting's approximation):
+	"""
     ###################################################################################################
     ## Ctypes definitions from C-libraries
     lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library
@@ -77,6 +109,9 @@ def ellipk(k):
     return Kfunction(k)
 
 def ellipe(k):
+	"""
+ 	Computes polynomial approximation for the complete elliptic integral of the second kind (Hasting's approximation)
+	"""
     ###################################################################################################
     ## Ctypes definitions from C-libraries
     lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library
@@ -95,6 +130,9 @@ def ellipe(k):
     return Efunction(k)
 
 def ellippi(n,k):
+	"""
+	Computes the complete elliptical integral of the third kind using the algorithm of Bulirsch (1965)
+	"""
     ###################################################################################################
     ## Ctypes definitions from C-libraries
     lib = np.ctypeslib.load_library(os.path.join(oscaarModuleDir,'c','analyticalTransitModel.so'),'.') 	## Loads .so library

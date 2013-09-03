@@ -138,49 +138,52 @@ class dataBank:
         return est_x, est_y
     
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
-        '''Store the centroid data collected by oscaar.trackSmooth()
-            Parameters
-            ----------
-            star : str
-                Key for the star for which the centroid has been measured
-            
-            exposureNumber : int
-                Index of exposure being considered
-            
-            xCentroid : float
-                *x*-centroid of the star
-            
-            yCentroid : float
-                *y*-centroid of the star
+        '''
+		Store the centroid data collected by oscaar.trackSmooth()
+		Parameters
+		----------
+		star : string
+			Key for the star for which the centroid has been measured
+
+		exposureNumber : int
+			Index of exposure being considered
+
+		xCentroid : float
+			*x*-centroid of the star
+
+		yCentroid : float
+			*y*-centroid of the star
             '''
         self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
         self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
     
     def storeFlux(self,star,exposureNumber,rawFlux,rawError):
-        '''Store the flux and error data collected by oscaar.phot()
-            Parameters
-            ----------
-            star : str
-                Key for the star from the ``allStarsDict`` dictionary
-            
-            exposureNumber : int
-                Index of exposure being considered
-            
-            rawFlux : float
-                flux measured, to be stored
-            
-            rawError : 
-                photon noise measured, to be stored
-            '''
+        '''
+		Store the flux and error data collected by oscaar.phot()
+        Parameters
+        ----------
+        star : str
+            Key for the star from the ``allStarsDict`` dictionary
+        
+        exposureNumber : int
+            Index of exposure being considered
+        
+        rawFlux : float
+            flux measured, to be stored
+        
+        rawError : 
+            photon noise measured, to be stored
+        '''
         self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
     def storeFluxes(self,star,exposureNumber,rawFluxes,rawErrors):
         '''
         Store the flux and error data collected by oscaar.phot()
+
         Parameters
         ----------
         star : str
-            Key for the star from the ``allStarsDict`` dictionary
+            Key for the star from the `allStarsDict` dictionary
         
         exposureNumber : int
             Index of exposure being considered
@@ -209,7 +212,7 @@ class dataBank:
             Key for the star from the ``allStarsDict`` dictionary
         
         Returns
-        _______
+		-------
         fluxes : list
             List of fluxes for each aperture radius
         '''
@@ -223,9 +226,11 @@ class dataBank:
     def storeTime(self,expNumber):
         '''
         Store the time in JD from the FITS header.
-        INPUTS: exposureNumber - Index of exposure being considered
-        
-        time - Time as read-in from the FITS header
+        Parameters
+		----------
+		exposureNumber : string
+			Index of exposure being considered
+
         '''
         #try:
         timeStamp = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
@@ -239,7 +244,7 @@ class dataBank:
         return self.times
     
     def getFlag(self,star):
-        '''Return the flag for the star with key "star" '''
+        '''Return the flag for the star with key `star` '''
         return self.allStarsDict[star]['flag']
     
     def getAllFlags(self):

@@ -10,9 +10,15 @@ def dateobs2jd(ut):
     '''
     Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the "T"
     
-    INPUTS: ut - Time in Universial Time (UT)
+    Parameters 
+	----------
+	ut : string
+		Time in Universial Time (UT), in the format: "<YYYY:MM:DD>T<HH:MM:SS>"
     
-    RETURNS: jd - Julian Date (JD)
+    Returns
+	-------
+	jd : float
+		Julian Date (JD)
     '''
     [date, Time] = ut.split('T')
     Time = Time.strip()
@@ -38,8 +44,15 @@ def dateobs2jd(ut):
 
 def mjd2jd(mjd):
     '''
-    Definition of Modified Julian Date (MJD): MJD = JD - 2400000.5
-    JD = MJD + 2400000.5
+    Converts Modified Julian Date to Julian Date. Definition of Modified Julian Date (MJD): MJD = JD - 2400000.5
+    Parameters
+	----------
+	mjd : float
+		The Modified Julian Date
+
+	Returns
+	-------
+	mjd + 2400000.5 = jd, the corresponding ordinary Julian Date
     '''
     return mjd + float(2400000.5)
 
@@ -49,15 +62,20 @@ def mjd2jd(mjd):
     
 def findKeyword(fitsFile): 
     '''
-    Enter the path to a fits file, and findKeyword will return the tuple: 
-    (useKeyword, allKeys, conversionFunction)
-    
-    where 
-      - `useKeyword` is the FITS header keyword that should be used to find
-        the time of the exposure, 
-      - `allKeys` is the list of all header keywords in the first exposure
-      - `conversionFunction` is a function that will convert the time value stored in 
-        the keyword denoted by `useKeyword` to Julian Date
+	Parameters
+	----------
+	fitsfile : string
+		Path to a FITS file
+
+	Returns
+	-------
+    (useKeyword, allKeys, conversionFunction) : tuple
+		where 
+		- `useKeyword` is the FITS header keyword that should be used to find
+		the time of the exposure, 
+		- `allKeys` is the list of all header keywords in the first exposure
+		- `conversionFunction` is a function that will convert the time value stored in 
+		the keyword denoted by `useKeyword` to Julian Date
     '''
     
     
@@ -81,13 +99,3 @@ def findKeyword(fitsFile):
     if useKeyword == None: print "No known keywords found"
     return useKeyword, allKeys, knownkeys, conversionFunction
 
-#for file in fitsfiles: 
-#    #print findKeyword(file)
-#    bestKeyword, allKeys, convert2jd = findKeyword(file)
-#    assert bestKeyword != None, 'None of FITS header keywords in your first exposure are known keywords.'+\
-#                            'Contact the OSCAAR team if you think it should be!'
-#    fileheader = pyfits.getheader(file)
-#    rawTimeOfExposure = fileheader[bestKeyword]
-#    jd = convert2jd(rawTimeOfExposure)
-#    print 'All keys:',allKeys,'\nBest keyword:',bestKeyword,'->',jd,'\n'
-#    

@@ -62,14 +62,17 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
 	Notes
 	-----
 	 * Developed by Brett Morris (NASA-GSFC/UMD)	
-	 * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
+	 * Based on the theory codified by Ford 2005 [1]_
 	 * Code implementation partly influenced by Ian Crossfield's routines: http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html
 	
+
+	.. [1] Eric Ford. "Quantifying the Uncertainty in the Orbits of Extrasolar Planets." 
+		   The Astronomical Journal, Volume 129, Issue 3, pp. 1706-1717. 2005.
 	"""
 	
 	Nsteps = int(Nsteps)			## Type cast where necessary
 	saveInterval = int(saveInterval)
-	assert Nsteps % saveInterval == 0, ("Must choose integer number of `saveInterval`s in `Nsteps`. "+\
+	assert Nsteps %Quantifying the Uncertainty in the Orbits of Extrasolar Planets saveInterval == 0, ("Must choose integer number of `saveInterval`s in `Nsteps`. "+\
 				 "Currently: Nsteps %% saveInterval = %.2f (should be zero)" % (Nsteps % saveInterval))
 	acceptedStates = 0
 	nout = Nsteps/saveInterval
@@ -173,8 +176,11 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
 		Notes
 		-----
 		 * Developed by Brett Morris (NASA-GSFC/UMD)	
-		 * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
+		 * Based on the theory codified by Ford (2005) [1]
 		 * Code implementation partly influenced by Ian Crossfield's routines: http://www.mpia-hd.mpg.de/homes/ianc/python/transit.html 
+
+		.. [1] Eric Ford. "Quantifying the Uncertainty in the Orbits of Extrasolar Planets." 
+			   The Astronomical Journal, Volume 129, Issue 3, pp. 1706-1717. 2005.
 	"""   
 	
 	bestp = None
@@ -267,48 +273,52 @@ def mcmc_iterate(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=F
 
 def optimizeBeta(t,flux,sigma,initParams,func,beta,idealAcceptanceRate,plot=True):
 	'''
-		The `beta` input parameters for the MCMC function determine the 
-		acceptance rate of the Metropolis-Hastings algorithm. According
-		to Ford 2005, the ideal acceptance rate is ~0.25 - ~0.44. This routine
-		is designed to take an initial guess for each of the beta parameters
-		and tweak them until they produce good acceptance rates for each parameter.
-		This is achieved by randomly perturbing each initial parameter with the small
-		perturbation by randomly sampling a normal distribution with a width given by
-		the initial beta vector `beta`. optimizeBeta() then tries running an MCMC chain
-		briefly to find the acceptance rate for that beta parameter. If the acceptance
-		rates are two high, for example, then the beta is too low, and optimizeBeta() 
-		will increase beta. This process continues until the beta vector produces
-		acceptance rates within 10% of the `idealAcceptanceRate`, which according to
-		Ford (2005) should be between 0.25-0.44.
-	
-	   Parameters
-	   ---------- 
-		t : list
-			time
-		flux : list
-			fluxes
-		sigma : list
-			uncertainties in fluxes
-		initParams : list 
-			initial parameter estimates, `x_0` in Ford 2005
-		func : function 
-			fitting function
-		beta : list
-			widths of normal distribution to randomly sample for each parameter
-		idealAcceptanceRate : float
-			desired acceptance rate to be produced by the optimized `beta`
-		
-		Returns
-		-------
-		beta : list
-			the beta vector optimized so that running a MCMC chain should produce
-			acceptance rates near `idealAcceptanceRate` (vector)
+	The `beta` input parameters for the MCMC function determine the 
+	acceptance rate of the Metropolis-Hastings algorithm. According
+	to Ford 2005, the ideal acceptance rate is ~0.25 - ~0.44. This routine
+	is designed to take an initial guess for each of the beta parameters
+	and tweak them until they produce good acceptance rates for each parameter.
+	This is achieved by randomly perturbing each initial parameter with the small
+	perturbation by randomly sampling a normal distribution with a width given by
+	the initial beta vector `beta`. optimizeBeta() then tries running an MCMC chain
+	briefly to find the acceptance rate for that beta parameter. If the acceptance
+	rates are two high, for example, then the beta is too low, and optimizeBeta() 
+	will increase beta. This process continues until the beta vector produces
+	acceptance rates within 10% of the `idealAcceptanceRate`, which according to
+	Ford (2005) should be between 0.25-0.44.
 
-		Notes
-		-----
-		 * Developed by Brett Morris (NASA-GSFC/UMD)	
-		 * Based on the theory codified by Ford 2005 in The Astronomical Journal, 129:1706-1717
-		 * Code implementation partly influenced by Evan Sinukoff's MCMC_Evan_Master_v3_new22.pro
+	Parameters
+	---------- 
+	t : list
+		time
+	flux : list
+		fluxes
+	sigma : list
+		uncertainties in fluxes
+	initParams : list 
+		initial parameter estimates, `x_0` in Ford 2005
+	func : function 
+		fitting function
+	beta : list
+		widths of normal distribution to randomly sample for each parameter
+	idealAcceptanceRate : float
+		desired acceptance rate to be produced by the optimized `beta`
+	
+	Returns
+	-------
+	beta : list
+		the beta vector optimized so that running a MCMC chain should produce
+		acceptance rates near `idealAcceptanceRate` (vector)
+
+	Notes
+	-----
+	 * Developed by Brett Morris (NASA-GSFC/UMD)	
+	 * Based on the theory codified by Ford (2005) [1]_
+	 * Code implementation partly influenced by Evan Sinukoff's MCMC_Evan_Master_v3_new22.pro
+
+
+	.. [1] Eric Ford. "Quantifying the Uncertainty in the Orbits of Extrasolar Planets." 
+		   The Astronomical Journal, Volume 129, Issue 3, pp. 1706-1717. 2005.
 	'''
 	
 	Nsteps = len(initParams)*100.0	  ## do N iterations per parameter
@@ -488,12 +498,12 @@ class mcmcfit:
 		
 		Parameters
 		----------
-		updatepkl : boolean, optional
+		updatepkl : bool, optional
 			update the OSCAAR save pkl file from which the data had
 			been loaded with the MCMC best fit parameters, parameter
 			chains, and acceptance rate. 
 		
-		apertureRadiusIndex : integer, optional
+		apertureRadiusIndex : int, optional
 			Integer index of the aperture radius for which you'd like
 			to compute the MCMC fit, from the aperture 
 			radius range list
