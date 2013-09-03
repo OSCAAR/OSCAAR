@@ -146,6 +146,8 @@ def setup_package():
                       os.path.abspath(__file__)),'README')).read(),
 		download_url='https://github.com/OSCAAR/OSCAAR/archive/master.zip',
  		install_requires=list,
+ 		dependency_links = ['https://downloads.sourceforge.net/project/matplotlib/matplotlib/' +\
+ 							'matplotlib-1.2.1/matplotlib-1.2.1.tar.gz'],
 		classifiers=[
 		  'Development Status :: 4 - Beta',
 		  'Intended Audience :: Science/Research',

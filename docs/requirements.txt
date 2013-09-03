@@ -1,6 +1,5 @@
 Numpy>=1.6
 numpydoc
-libfreetype6-dev 
 Scipy>=0.1
 pyfits>=3.1
 pyephem>=3.7
