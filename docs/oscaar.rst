@@ -97,19 +97,4 @@ oscaar Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`transiter` Module
------------------------
-
-.. automodule:: oscaar.transiter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`transiterFit` Module
---------------------------
-
-.. automodule:: oscaar.transiterFit
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
