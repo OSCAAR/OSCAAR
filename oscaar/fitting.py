@@ -72,7 +72,7 @@ def mcmc(t,flux,sigma,initParams,func,Nsteps,beta,saveInterval,verbose=False,loa
 	
 	Nsteps = int(Nsteps)			## Type cast where necessary
 	saveInterval = int(saveInterval)
-	assert Nsteps %Quantifying the Uncertainty in the Orbits of Extrasolar Planets saveInterval == 0, ("Must choose integer number of `saveInterval`s in `Nsteps`. "+\
+	assert Nsteps % saveInterval == 0, ("Must choose integer number of `saveInterval`s in `Nsteps`. "+\
 				 "Currently: Nsteps %% saveInterval = %.2f (should be zero)" % (Nsteps % saveInterval))
 	acceptedStates = 0
 	nout = Nsteps/saveInterval
