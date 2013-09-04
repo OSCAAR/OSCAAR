@@ -2624,7 +2624,7 @@ class MCMCFrame(wx.Frame):
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
                          self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.call(['python','-c',mcmcCall])
-            if not self.saveLoc.endswith(".txt"):
+            if not self.saveLoc.lower().endswith(".txt"):
                 self.saveLoc += ".txt"
             outfile = open(self.saveLoc,'w')
             outfile.write(self.data.uncertaintyString())
