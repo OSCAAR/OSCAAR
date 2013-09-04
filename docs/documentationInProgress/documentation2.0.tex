@@ -36,7 +36,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  Current documentation to do list:
 %  - write up subsection on multiple regions files in the GUI section
-%  - draw more "cheat sheet" tables of acceptable values
 %  - write up subsection on registering with OSCAAR in the intro section
 %  - neaten up the ephemeris cheat sheet table
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -285,7 +284,7 @@ The ``Output Path'' field asks you to pick a path to the file that OSCAAR will p
 
 \subsection{Locating Your Stars with DS9} \label{sec:locatingStars}
 
-The next task you'll have to do to prepare OSCAAR for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as control stars are appropriate choices, OSCAAR has the user enter each of the stars into OSCAAR with the help of \href{http://hea-www.harvard.edu/RD/ds9/site/Home.html}{SAOImage DS9}. 
+The next task you'll have to do to prepare OSCAAR for analysis is to tell it what stars you care about in your images. If you have a set of images, there could be tens or hundreds of stars in each image, some of them close to the edges, some of them with binary companions; some of them ideal control stars, some of them not. In order to ensure that the stars being picked as comparison stars are appropriate choices, OSCAAR has the user enter each of the stars into OSCAAR with the help of \href{http://hea-www.harvard.edu/RD/ds9/site/Home.html}{SAOImage DS9}. 
 
 To begin, click the \code{Open DS9} button at the bottom of the GUI (see Figure \ref{fig:gui}) to start DS9 and open the first image from the series of images you will process. Set the scale and zoom so that you can see most of the image and most of the stars in it. With the mouse set to \code{Pointer} (\code{Edit} \textgreater  \code{Pointer}), click on the target star (the exoplanet host star or variable star). A green circle will appear over the star. Double clicking inside the circle will yield a dialogue box which contains the pixel coordinates of the circle's center and radius, see Figure \ref{fig:ds9}. 
 \begin{figure}[H]
@@ -298,6 +297,22 @@ To begin, click the \code{Open DS9} button at the bottom of the GUI (see Figure 
 The first star that you select will be treated as the target star, and any subsequent choices will be comparison stars. Repeat this process for as many comparison stars as you like (try to use as few as possible for speed). Avoid picking stars near any obvious defects on the detector, any stars less than 150 pixels from the edge of the image, or stars with a neighboring star close nearby. 
 
 When you're done choosing control stars, go to \code{Regions} \textgreater  \code{Save Regions...} and save a regions file in a directory where you will be able to find it later. This file will contain the pixel coordinates of the stars at the beginning of the observation, which tells OSCAAR which stars to track. You may want to check that the test star is in fact the first star in the regions file. Open the regions file in a text editor and check that the first line resembling ``\code{circle(100,600,10)}'' has the proper (x,y) pixel coordinates and radius (in this example, the position is (100,600) with a radius of 10). If the first circle coordinate line does not point to the target star, find the circle coordinate that does, move that line to the top of the list, and save the file. Select this regions file (with the ``.reg'' extension) from the \code{Browse} button of the \gui for the ``Path to Regions File'' field.
+
+\subsubsection{Discontinuous Tracking}
+The OSCAAR tracking algorithm is great for tracking stars as they drift over small distances throughout the night, but on occasion something will happen to cause abrupt, large deviations from the typical small drifts in stellar centroid positions. This can happen if the power to your mount is cut off, if someone bumps into your telescope, etc. Perhaps the most common cause of sudden discontinuous tracking is when a telescope is imperfectly polar aligned and the target star drifts to the edge of your detector before the transit event is over, and the observer needs to briefly stop collecting exposures to recenter the target star. If you ever need to restart collecting exposures and the centroids of the stars are not within a few pixels of their last positions, you will need to tell OSCAAR where the stars reside after the tracking discontinuity. 
+
+Let's say you took 300 exposures successfully with continuous tracking before the target was within 100 pixels of the edge of your detector, and you then paused the exposures, recentered the target, and continued taking exposures again on the 301st frame. The transit event ended at exposure 450, and you didn't have to recenter the target again. You need to create a second regions file in DS9 for the 301st exposure that marks the centroids of the stars in their newly recentered positions. Open DS9, open the 301st exposure, go to \code{Regions} \textgreater  \code{Load Regions...} and load the regions file for the first exposure in the run. The regions (circles) that appear will be aligned with the centroid positions for the first exposure, so we can go to \code{Regions} \textgreater  \code{Select All} and move these regions over the stars' new centroid positions. Now select \code{Regions} \textgreater  \code{Save Regions...}, and save a second regions file with these new centroids. 
+
+In the \gui, enter the first regions file as normal in the \code{Path to Regions File} field. Then select from the drop down menu \code{Oscaar} \textgreater \code{Extra Regions File Sets}, and which will open the frame in Figure \ref{fig:extraRegions}. From there, you can select secondary regions files and the exposures where they apply. In our example, you would select the second regions file in the \code{Path to Regions File} field and the 301st exposure in the \code{Path to Reference Image} field. Then click \code{Add Set 1} and you're good to go! If you had multiple tracking discontinuities in your observations, you can add more regions files to this frame in this manner.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.3]{imgs/extraRegions.png}
+\caption{OSCAAR allows you to manually reset the positions of your stars in the middle of a set of observations in case of major tracking discontinuities.}
+\label{fig:extraRegions}
+\end{center}	
+\end{figure}
+
 
 \subsection{Making a Master Flat}
 Now that you have properly set the path to the darks and the data images, you must now make your master flat. First click the ``Master Flat Maker'' button at the bottom of the OSCAAR window, and a dialog box should pop up that looks like Figure \ref{fig:flats}.
