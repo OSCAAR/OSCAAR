@@ -316,16 +316,20 @@ class dataBank:
         return np.array(self.allStarsDict[star]['scaledError'])
 
     def getScaledFluxes_multirad(self,star,apertureRadiusIndex):
-        '''Return the scaled fluxes for one star, where the star parameter is the 
+        '''Return the scaled fluxes for star and one aperture, where the star parameter is the 
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex])
     
     def getScaledErrors_multirad(self,star,apertureRadiusIndex):
-        '''Return the scaled fluxes for one star, where the star parameter is the 
+        '''Return the scaled errors for star and one aperture, where the star parameter is the 
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledError'][apertureRadiusIndex])
     
     def calcChiSq(self):
+        """
+        Calculate the :math:`$\chi^2$` for the fluxes of each comparison star and the fluxes of the target star. This
+        metric can be used to suggest which comparison stars have similar overall trends to the target star. 
+        """
         for star in self.allStarsDict:
             self.allStarsDict[star]['chisq'] = mathMethods.chiSquared(self.getFluxes(self.targetKey),self.getFluxes(star))
         chisq = []
@@ -336,6 +340,10 @@ class dataBank:
         self.stdChisq = np.std(chisq)
 
     def calcChiSq_multirad(self,apertureRadiusIndex):
+        """
+        Calculate the :math:`$\chi^2$` for the fluxes of each comparison star and the fluxes of the target star. This
+        metric can be used to suggest which comparison stars have similar overall trends to the target star. 
+        """
         for star in self.allStarsDict:
             print self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getFluxes_multirad(star,apertureRadiusIndex)
             self.allStarsDict[star]['chisq'][apertureRadiusIndex] = mathMethods.chiSquared(self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getFluxes_multirad(star,apertureRadiusIndex))
@@ -347,15 +355,16 @@ class dataBank:
         self.stdChisq = np.std(chisq)
 
     def calcMeanComparison_multirad(self,ccdGain=1):
-        '''
-            Take the regression-weighted mean of some of the comparison stars
-            to produce one comparison star flux to compare to the target to
-            produce a light curve.
-            
-            The comparison stars used are those whose chi-squareds calculated by
-            self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
-            This condition removes outliers.
-            '''
+        """
+        Take the regression-weighted mean of some of the comparison stars
+        to produce one comparison star flux to compare to the target to
+        produce a light curve.
+        
+        The comparison stars used are those whose :math:`$\chi^2$`s calculated by
+        `calcChiSq()` are less than :math:`$2\sigma$` away from the other :math:`$\chi^2$`s.
+        This condition removes outlier comparison stars, which can be caused by intrinsic
+        variability, tracking inaccuracies, or other effects. 
+        """
         self.meanComparisonStars = []
         self.meanComparisonStarErrors = []
         self.comparisonStarWeights = []
@@ -409,24 +418,33 @@ class dataBank:
         return self.meanComparisonStars, self.meanComparisonStarErrors
    
     def getAllChiSq(self):
-        '''Return chi-squared's for all stars'''
+        """
+        Return :math:`$\chi^2$`s for all stars
+        """
         return self.chisq
     
     def outOfTransit(self):
-        '''Boolean array where True are the times in data.getTimes() that are
-            before ingress or after egress.'''
+        """
+        Boolean array where `True` are the times in `getTimes()` that are
+        before ingress or after egress.
+        
+        Returns
+        -------
+            List of bools
+        
+        """
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
     
     def calcMeanComparison(self,ccdGain=1):
-        '''
-            Take the regression-weighted mean of some of the comparison stars
-            to produce one comparison star flux to compare to the target to
-            produce a light curve.
-            
-            The comparison stars used are those whose chi-squareds calculated by
-            self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
-            This condition removes outliers.
-            '''
+        """
+        Take the regression-weighted mean of some of the comparison stars
+        to produce one comparison star flux to compare to the target to
+        produce a light curve.
+        
+        The comparison stars used are those whose chi-squareds calculated by
+        self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
+        This condition removes outliers.
+        """
         
         ## Check whether chi-squared has been calculated already. If not, compute it.
         chisq = []
@@ -471,28 +489,38 @@ class dataBank:
 
     def computeLightCurve(self,meanComparisonStar,meanComparisonStarError):
         '''
-            Divide the target star flux by the mean comparison star to yield a light curve,
-            save the light curve into the dataBank object.
-            
-            INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star
-            
-            RETURNS: self.lightCurve - The target star divided by the mean comparison 
-            star, i.e., the light curve.
-            '''
+        Divide the target star flux by the mean comparison star to yield a light curve,
+        save the light curve into the dataBank object.
+        
+        INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star
+        
+        RETURNS: self.lightCurve - The target star divided by the mean comparison 
+        star, i.e., the light curve.
+        '''
         self.lightCurve = self.getFluxes(self.targetKey)/meanComparisonStar
         self.lightCurveError = np.sqrt(self.lightCurve**2 * ( (self.getErrors(self.targetKey)/self.getFluxes(self.targetKey))**2 + (meanComparisonStarError/meanComparisonStar)**2 ))
         return self.lightCurve, self.lightCurveError
     
     def computeLightCurve_multirad(self,meanComparisonStars,meanComparisonStarErrors):
         '''
-            Divide the target star flux by the mean comparison star to yield a light curve,
-            save the light curve into the dataBank object.
+        Divide the target star flux by the mean comparison star to yield a light curve,
+        save the light curve into the `dataBank` object.
+        
+        Parameters
+        ----------
+        meanComparisonStar : list
+            The fluxes of the (one) mean comparison star
+        
+        Returns
+        -------
+        self.lightCurves: 
+            The fluxes of the target star divided by the fluxes of the mean comparison 
+            star, i.e., the light curve
             
-            INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star
+        self.lightCurveErrors:
+            The propagated errors on each relative flux in `self.lightCurves`
             
-            RETURNS: self.lightCurve - The target star divided by the mean comparison 
-            star, i.e., the light curve.
-            '''
+        '''
         self.lightCurves = []
         self.lightCurveErrors = []
         for apertureRadiusIndex in range(len(self.apertureRadii)):
@@ -504,17 +532,19 @@ class dataBank:
 
     def getPhotonNoise(self):
         '''
-            Calculate photon noise using the lightCurve and the meanComparisonStar
-            
-            RETURNS: self.photonNoise - The estimated photon noise limit
-            '''
+        Calculate photon noise using the lightCurve and the meanComparisonStar
+        
+        RETURNS: self.photonNoise - The estimated photon noise limit
+        '''
         self.photonNoise = self.lightCurve*self.meanComparisonStarError
         return self.photonNoise
     
     def parseInit(self):
-        '''
-            Parses init.par
-            '''        
+        """
+        Parses `init.par`, a plain text file that contains all of the running parameters
+        that control the `differentialPhotometry.py` script. `init.par` is written by 
+        the OSCAAR GUI or can be edited directly by the user. 
+        """       
         init = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'init.par'), 'r').read().splitlines()
         for line in init:
             if len(line.split()) > 1:
@@ -577,6 +607,24 @@ class dataBank:
                             self.dict[save] = value
 
     def parseRegionsFile(self,regPath):
+        """
+        Parses the regions files (.REG) created by DS9. These files are written in plain text, where
+        each circuluar region's centroid and radius are logged in the form "circle(`x-centroid`,`y-centroid`,`radius`)". 
+        This method uses regular expressions to parse out the centroids.
+        
+        Parameters
+        ----------
+        regPath : string
+            Path to the regions file to read
+            
+        Returns
+        -------
+        init_x_list : list
+            Initial estimates for the x-centroids
+        
+        init_y_list : list
+            Initial estimates for the y-centroids
+        """
         regionsData = open(regPath,'r').read().splitlines()
         init_x_list = []
         init_y_list = []
@@ -588,13 +636,14 @@ class dataBank:
         return init_x_list,init_y_list
 
     def parseRawRegionsList(self,rawRegionsList):
-        '''Split up the "rawRegionsList", which should be in the format: 
-        
-           <first regions file>,<reference FITS file for the first regs file>;<second> regions file>,
-           <reference FITS file for the first regs file>;....
-           
-           into a list of regions files and a list of FITS reference files.
-        '''
+        """
+        Split up the `rawRegionsList`, which should be in the format: 
+    
+        <first regions file>,<reference FITS file for the first regs file>;<second> regions file>,
+        <reference FITS file for the first regs file>;....
+
+        into a list of regions files and a list of FITS reference files.
+        """
         regionsFiles = []
         refFITSFiles = []
         
@@ -608,6 +657,15 @@ class dataBank:
         
     
     def plot(self,pointsPerBin=10):
+        """
+        Produce a plot of the light curve, show it. Over-plot 10-point median binning
+        of the light curve.
+        
+        Parameters
+        ----------
+        pointsPerBin : int, optional (default=10)
+            Integer number of points to accumulate per bin.
+        """
         plt.close()
         times = self.getTimes()
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
@@ -632,6 +690,20 @@ class dataBank:
         plt.show()
     
     def plotLightCurve(self,pointsPerBin=10,apertureRadiusIndex=0):
+        """
+        Produce a plot of the light curve, show it. Over-plot 10-point median binning
+        of the light curve.
+        
+        Parameters
+        ----------
+        pointsPerBin : int, optional (default=10)
+            Integer number of points to accumulate per bin.
+            
+        apertureRadiusIndex : int, optional (default=0)
+            Index of the aperture radius list corresponding to the aperture radius
+            from which to produce the plot. 
+            
+        """
         binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurves[apertureRadiusIndex],pointsPerBin)
         
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
@@ -652,6 +724,20 @@ class dataBank:
         plt.show()
     
     def plotRawFluxes(self,apertureRadiusIndex=0,pointsPerBin=10):
+        """
+        Plot all raw flux time series for a particular aperture radius, 
+        for each comparison star. 
+        
+        Parameters
+        ----------
+        pointsPerBin : int, optional (default=10)
+            Integer number of points to accumulate per bin.
+            
+        apertureRadiusIndex : int, optional (default=0)
+            Index of the aperture radius list corresponding to the aperture radius
+            from which to produce the plot. 
+            
+        """
         plt.ion()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
@@ -673,6 +759,20 @@ class dataBank:
     
     
     def plotScaledFluxes(self,apertureRadiusIndex=0,pointsPerBin=10):
+        """
+        Plot all scaled flux time series for a particular aperture radius, 
+        for each comparison star. 
+        
+        Parameters
+        ----------
+        pointsPerBin : int, optional (default=10)
+            Integer number of points to accumulate per bin.
+            
+        apertureRadiusIndex : int, optional (default=0)
+            Index of the aperture radius list corresponding to the aperture radius
+            from which to produce the plot. 
+            
+        """
         plt.ion()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
@@ -693,6 +793,22 @@ class dataBank:
         plt.show()
 
     def plotCentroidsTrace(self,pointsPerBin=10):
+        """
+        Plot all centroid positions for a particular aperture radius, 
+        for each comparison star. The plot will be in (`x`,`y`) coordinates
+        to visualize the physical image drift (this is not a plot as a function
+        of time).
+        
+        Parameters
+        ----------
+        pointsPerBin : int, optional (default=10)
+            Integer number of points to accumulate per bin.
+            
+        apertureRadiusIndex : int, optional (default=0)
+            Index of the aperture radius list corresponding to the aperture radius
+            from which to produce the plot. 
+            
+        """
         
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
@@ -711,6 +827,18 @@ class dataBank:
         plt.show()
     
     def plotComparisonWeightings(self, apertureRadiusIndex=0):
+        """
+        Plot histograms visualizing the relative weightings of the comparison
+        stars used to produce the "mean comparison star", from which the 
+        light curve is calculated. 
+                
+        Parameters
+        ----------
+        apertureRadiusIndex : int, optional (default=0)
+            Index of the aperture radius list corresponding to the aperture radius
+            from which to produce the plot. 
+            
+        """
         plt.ion()
         weights = self.comparisonStarWeights[apertureRadiusIndex]
         weights = np.sort(weights,axis=1)
@@ -733,6 +861,31 @@ class dataBank:
         plt.show()
 
     def updateMCMC(self,bestp,allparams,acceptanceRate,dataBankPath,uncertainties):
+        """
+        Assigns variables within the dataBank object for the results of an MCMC run. 
+        
+        Parameters
+        ----------
+        bestp : list
+            Best-fit parameters from the MCMC run. The list elements correspond to [<ratio of planetary radius
+            to stellar radius>,<ratio of semi-major axis to stellar radius>,<inclination>,<mid-transit time>].
+            
+        allparams : 2D matrix
+            This matrix represents the many "states", "trails" or "links in the chain" that are accepted and saved
+            throughout the Metropolis-Hastings process in the MCMC scripts. From allparams we can calculate the 
+            uncertainties on each best-fit parameter.
+            
+        acceptanceRate : float
+            The final acceptance rate achieved by the chain; the ratio of the number of accepted states and the
+            number of states attempted
+            
+        dataBankPath : string
+            Path to the dataBank object pickle (aka "OSCAAR pkl") to update
+        
+        uncertainties : list of lists
+            :math:`$\pm 1\sigma$` uncertainties on each of the best-fit parameters in `bestp`
+        
+        """
         self.MCMC_bestp = bestp
         self.MCMC_allparams = allparams
         self.MCMC_acceptanceRate = acceptanceRate
@@ -740,6 +893,13 @@ class dataBank:
         self.MCMC_uncertainties = uncertainties
 
     def uncertaintyString(self):
+        """
+        Returns
+        -------
+        savestring : string
+            A string formatted for human-readable results from the MCMC process, with 
+            the best-fit parameters and the :math:`$\pm 1\sigma$` uncertainties
+        """
         savestring = 'MCMC Best Fit Parameters And One-Sigma Uncertainties\n----------------------------------------------------\n\n'
         labels = ['Rp/Rs','a/Rs','Inclination','Mid-transit time']
         for i in range(len(labels)):
