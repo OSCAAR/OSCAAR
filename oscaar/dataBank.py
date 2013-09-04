@@ -29,15 +29,6 @@ class dataBank:
         create dictionaries in which to store all of the data collected for each star, and for each 
         aperture radius. Allocate the memory for these arrays wherever possible. Parse the init.par 
         file to grab the paths and initial parameters for the run.
-        
-        Parameters
-        ----------
-            None
-            
-        Returns
-        -------
-            Instance of the ``dataBank`` object.
-        
         """
 
         self.dict = {}
@@ -138,7 +129,8 @@ class dataBank:
     
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
         '''
-		Store the centroid data collected by oscaar.trackSmooth()
+		Store the centroid data collected by `trackSmooth`
+        
 		Parameters
 		----------
 		star : string
@@ -152,16 +144,17 @@ class dataBank:
 
 		yCentroid : float
 			*y*-centroid of the star
-            '''
+        '''
         self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
         self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
     
     def storeFlux(self,star,exposureNumber,rawFlux,rawError):
         '''
-		Store the flux and error data collected by oscaar.phot()
+		Store the flux and error data collected by `phot`
+        
         Parameters
         ----------
-        star : str
+        star : string
             Key for the star from the ``allStarsDict`` dictionary
         
         exposureNumber : int
@@ -170,8 +163,8 @@ class dataBank:
         rawFlux : float
             flux measured, to be stored
         
-        rawError : 
-            photon noise measured, to be stored
+        rawError : float
+            flux uncertainty measured, to be stored
         '''
         self.allStarsDict[star]['rawFlux'][exposureNumber] = rawFlux
         self.allStarsDict[star]['rawError'][exposureNumber] = rawError
@@ -660,7 +653,7 @@ class dataBank:
         """
         Produce a plot of the light curve, show it. Over-plot 10-point median binning
         of the light curve.
-        
+
         Parameters
         ----------
         pointsPerBin : int, optional (default=10)

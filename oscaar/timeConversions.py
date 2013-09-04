@@ -8,11 +8,11 @@ def jd2jd(jd):
     return jd
 
 def dateobs2jd(ut):
-    '''
-    Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the "T"
+    """
+    Convert times from Universal Time (UT) to Julian Date (JD), splitting the date and time at the "T". 
     
     Parameters 
-	----------
+    ----------
 	ut : string
 		Time in Universial Time (UT), in the format: "<YYYY:MM:DD>T<HH:MM:SS>"
     
@@ -20,7 +20,7 @@ def dateobs2jd(ut):
 	-------
 	jd : float
 		Julian Date (JD)
-    '''
+    """
     [date, Time] = ut.split('T')
     Time = Time.strip()
     [year, month, day] = date.split('-')
@@ -44,17 +44,19 @@ def dateobs2jd(ut):
 
 
 def mjd2jd(mjd):
-    '''
+    """
     Converts Modified Julian Date to Julian Date. Definition of Modified Julian Date (MJD): MJD = JD - 2400000.5
-    Parameters
-	----------
-	mjd : float
-		The Modified Julian Date
 
-	Returns
-	-------
-	mjd + 2400000.5 = jd, the corresponding ordinary Julian Date
-    '''
+    Parameters
+    ----------
+    mjd : float
+        The Modified Julian Date
+
+    Returns
+    -------
+    jd : float
+        :math:`$mjd + 2400000.5 = jd$`, the corresponding ordinary Julian Date
+    """
     return mjd + float(2400000.5)
 
 ###########################################################################
