@@ -26,9 +26,17 @@ import timeConversions
 
 APP_EXIT = 1
 
-class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
+class OscaarFrame(wx.Frame):
+    
+    '''
+    This class is the main frame of the OSCAAR GUI.    
+    '''
     
     def __init__(self):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
         
         self.aboutOpen = False
         self.loadOldPklOpen = False
@@ -135,8 +143,15 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.Show()
         
     def create_menu(self):
-    
-        # These commands create the menu bars that are at the top of the GUI.
+        
+        '''
+        This method creates the menu bars that are at the top of the main GUI.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an OscaarFrame instance.
+        '''
     
         menubar = wx.MenuBar()
         
@@ -171,6 +186,22 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.SetMenuBar(menubar)       
 
     def runOscaar(self, event):
+        
+        '''
+        This method will activate when the run button on the main GUI is pressed. It executes
+        the differentialPhotometry.py script.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        Notes
+        -----
+        There is nothing to return for this method. Upon completion a window will open with the light curve
+        that was produced from the data and input parameters.
+        '''
+        
         self.values = {}
 #         notes = open(os.path.join(os.path.dirname(__file__),'outputs','notes.txt'), 'w')
 #         notes.write('\n\n\n------------------------------------------'+\
@@ -289,6 +320,35 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
     
     def timeAndDateCheck(self, time1, time2, date1, date2):
         
+        '''
+        This method checks that the times and dates entered in the main GUI are in the correct format.
+        
+        Parameters
+        ----------
+        time1 : string
+            The ingress time of the transit that was observed.
+        
+        time2 : string
+            The egress time of the transit that was observed.
+            
+        date1 : string
+            The date for the ingress of the transit.
+        
+        date2 : string
+            The date for the egress of the transit.
+        
+        Returns
+        -------
+        literal : bool
+            Returns true if the parameters are all in the correct format, otherwise it returns false.
+        
+        Notes
+        -----
+        The correct format for the times is HH:MM:SS, while for the dates it is YYYY/MM/DD. This method
+        will also check that real dates have been entered, as well as that the ingress time always
+        is before the egress time.
+        '''
+        
         years = []
         months = []
         days = []
@@ -375,6 +435,29 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         return True
     
     def checkAperture(self, stringVal):
+        
+        '''
+        This method parses the string from the aperture radius text box to make sure that the values
+        are in the correct format and valid.
+        
+        Parameters
+        ----------
+        stringVal : string
+            The input of the aperture radius text box in the main GUI.
+        
+        Returns
+        -------
+        literal : bool
+            True if the values are valid and false otherwise.
+        
+        Notes
+        -----
+        This method will check the radius step interval is not larger than the max and min radii, as well
+        as that the max radius is always larger than the min radius. Only when using 3 values in this text control
+        box, the GUI will interpret it as (min radius, max radius, step interval), otherwise it only computes
+        the specific values entered. 
+        '''
+        
         splitString = stringVal.split(",")
         if len(splitString) == 1:
             try:
@@ -435,6 +518,16 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             return True
     
     def setDefaults(self):
+        
+        '''
+        This method will set the default values for the text boxes in the main GUI with those
+        listed in the init.par file.
+        
+        Notes
+        -----
+        This is a recursive string parser that searches for the provided keywords.
+        '''
+        
         if self.programmersEdit == True:
             init = open("init.par","r").read().splitlines()
         else:
@@ -500,6 +593,30 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                                     self.radioBox.userParams[save].SetValue(stringTemp.rpartition(separator)[0])
 
     def checkFileInputs(self,array,saveNum):
+        
+        '''
+        This checks that the files from a text control box are valid .fit/.fits files. Then it refreshes
+        the text control box with a string of the valid files.
+        
+        Parameters
+        ----------
+        array : string
+            The list of files from a text control box in the main GUI.
+        
+        saveNum : int
+            When it refreshes the text control box, the method needs to know which box to do it for. The box numbers from
+            the main GUI are in order 1-5 (this is only for the input file text boxes).
+        
+        Returns
+        -------
+        errorString : string
+            A string of all of the invalid files that were entered in the input file text box.
+            
+        Notes
+        -----
+        If errorString returns '' (empty), this means that all of the entered files were valid.
+        '''
+        
         errorString = ""
         setValueString = ""
         array2 = []
@@ -548,6 +665,28 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
             return errorString
         
     def checkRegionsBox(self, boxValue):
+        
+        '''
+        This method specifically checks that the regions file input box in the main GUI has files that are in 
+        the correct format.
+        
+        Parameters
+        ----------
+        boxValue : string
+            The value of the regions file box.
+            
+        Returns
+        -------
+        literal : bool
+            True if all of the files are valid, false otherwise.
+        
+        Notes
+        -----
+        The correct format for files in the regions file box is (somefile.reg,referencefile.fits;). The semicolon will
+        separate different sets of regions and reference files. Only if there is one regions file is it acceptable to
+        not include a reference file, otherwise you must.
+        '''
+        
         setValueString = ""
         tempString = ""
         if boxValue == "":
@@ -649,6 +788,28 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         return True
     
     def singularExistance(self, event, value, name):
+        
+        '''
+        This method checks to make sure that there is only one frame of each class open at once, as to not
+        have two fitting frames open and such.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        value : bool
+            Indicates whether or not there is already an instance of the class open.
+        
+        name : string
+            The keyword defining the name of the class for which a frame is about to be opened.
+        
+        Notes
+        -----
+        There is nothing returned for this method. On a successful completion, a new frame will appear. If
+        `value` is True however, then the method does nothing because there is already an instance of the frame
+        open, so it will not duplicate it.       
+        '''
 
         if value == False:
             if name == "about":
@@ -700,6 +861,32 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                     
     def parseTime(self, date, time, text, filename, name=""):
         
+        '''
+        This method prints the dates and times of the transit into the init.par file in the correct format.
+        
+        Parameters
+        ----------
+        date : string
+            A string of the date in the format YYYY/MM/DD.
+        
+        time : string
+            A string of the time in the format HH:MM:SS.
+        
+        text : string
+            The name of what should be entered in the init.par file before the actual values (ingress or egress).
+        
+        filename : file
+            The open file that the value will be appended to.
+        
+        name : string
+            The name of the text box that will be refreshed.
+        
+        Notes
+        -----
+        When it is done printing into init.par, the method refreshes the values of the text control boxes for ingress
+        and egress so there are no spaces and such in between.
+        '''
+        
         dateArr = str(date).split('/')
         result = dateArr[0].strip() + '-' + dateArr[1].strip() + '-' + dateArr[2].strip() + ' ; '
         timeArr = str(time).split(":")
@@ -709,14 +896,14 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
         self.radioBox.userParams[name].SetValue(dateArr[0].strip() + '/' + dateArr[1].strip() + '/' + dateArr[2].strip())
         self.radioBox.userParams[name+"1"].SetValue(timeArr[0].strip() + ":" + timeArr[1].strip() + ':' +
                                                     timeArr[2].strip())
-    
-    def checkRB(self, button, text, filename):
-        if button.GetValue() == True:
-            filename.write(text + 'on\n')
-        else:
-            filename.write(text + 'off\n')
 
     def createFrame(self):
+        
+        '''
+        This method allows the fitting frame to be opened after the completion of the differentialPhotometry.py script
+        so that users may work on their light curves.
+        '''
+        
         if self.loadFittingOpen == False:
             if not self.outputFile.lower().endswith(".pkl"):
                 FittingFrame(self, -1, self.outputFile + ".pkl")
@@ -726,14 +913,45 @@ class OscaarFrame(wx.Frame): ##Defined a class extending wx.Frame for the GUI
                 self.loadFittingOpen = True
 
     def openLink(self, event, string):
+        
+        '''
+        This opens a new tab in the default web browser with the specified link.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        string : string
+            The web url that will be opened.
+        '''
+        
         webbrowser.open_new_tab(string)
     
     def on_exit(self, event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
 
 class ObservatoryFrame(wx.Frame):
+    
+    '''
+    This is a frame for updating extra parameters that would define an observatory's configuration.
+    '''
 
     def __init__(self, parent, id):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
 
         if sys.platform == "win32":
             self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -795,9 +1013,29 @@ class ObservatoryFrame(wx.Frame):
         self.Show()      
     
     def updateTime(self,event):
+        
+        '''
+        This updates the exposure time keyword variable for parsing the .fit(s) files in the parent OscaarFrame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.exposureTime = self.timeList.GetValue()
     
     def update(self, event):
+        
+        '''
+        This updates the exposure time keyword for parsing .fit(s) files as well as the ccd gain in the init.par file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         if self.checkParams() == True:
             self.parent.ccdGain = self.params.userParams["ccd"].GetValue()
             self.parent.exposureTime = self.timeList.GetValue()         
@@ -812,6 +1050,17 @@ class ObservatoryFrame(wx.Frame):
             observ.write("Exposure Time Keyword: " + self.timeList.GetValue() + "\n")
 
     def checkParams(self):
+        
+        '''
+        This is check to make sure that the ccd gain and exposure time keyword are valid, 
+        before updating the init.par file.
+        
+        Returns
+        -------
+        literal : bool
+            True if both ccd gain and exposure time keyword are valid, false otherwise.
+        '''
+        
         try:
             tempCCD = float(self.params.userParams["ccd"].GetValue())
             self.params.userParams["ccd"].SetValue(str(tempCCD))
@@ -832,7 +1081,16 @@ class ObservatoryFrame(wx.Frame):
         return True
 
     def create_menu(self):
-          
+        
+        '''
+        This method creates the menu bars that are at the top of the observatory frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         menubar = wx.MenuBar()
         menu_file = wx.Menu()
         m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
@@ -842,14 +1100,44 @@ class ObservatoryFrame(wx.Frame):
         self.SetMenuBar(menubar)
     
     def on_exit(self,event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
 
     def onDestroy(self,event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.loadObservatoryFrame = False
 
 class ExtraRegions(wx.Frame):
+    
+    '''
+    This frame allows a user to append multiple regions files and their respective reference files as sets to the 
+    regions file text box in the parent OscaarFrame.
+    '''
 
     def __init__(self, parent, id):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
 
         if sys.platform == "win32":
             self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -923,7 +1211,26 @@ class ExtraRegions(wx.Frame):
         self.Center()
         self.Show()
     
-    def addSet(self,event, stringName):
+    def addSet(self, event, stringName):
+        
+        '''
+        This is the method that adds a regions files and reference file set to the regions file
+        box in the parent frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        stringName : string
+            A string to differentiate the different sets which a user could be trying to add.
+        
+        Notes
+        -----
+        There is no return, but upon successful completion a set in the form (somefile.reg,referencefile.fits;)
+        will be added to the regions file box in the parent frame.
+        '''
+        
         if stringName == "Add Set 1":
             useSet = self.set1
         elif stringName == "Add Set 2":
@@ -967,6 +1274,25 @@ class ExtraRegions(wx.Frame):
                 InvalidParameter("", self, -1, str="regionsUpdate")
     
     def SetCheck(self, reg, ref):
+        
+        '''
+        This method checks whether or not the regions file and reference file given are valid files
+        for their respective roles.
+        
+        Parameters
+        ----------
+        reg : string
+            A value from a regions file text box that needs to be checked.
+        
+        ref : string
+            A value from a reference file text box that needs to be checked.
+        
+        Returns
+        -------
+        literal : bool
+            True if both files are valid, false otherwise.
+        '''
+        
         if reg == "":
             InvalidParameter(reg, self, -1, str="regionsError1")
             return False
@@ -1005,7 +1331,16 @@ class ExtraRegions(wx.Frame):
         return True        
 
     def create_menu(self):
-          
+        
+        '''
+        This method creates the menu bars that are at the top of the extra regions frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         menubar = wx.MenuBar()
         menu_file = wx.Menu()
         m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
@@ -1015,13 +1350,43 @@ class ExtraRegions(wx.Frame):
         self.SetMenuBar(menubar)
     
     def on_exit(self,event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
 
     def onDestroy(self,event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.extraRegionsOpen = False
 
 class MasterFlatFrame(wx.Frame):
+    
+    '''
+    This frame allows the user to create a master flat using their own images.
+    '''
+    
     def __init__(self, parent, id):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
         
         wx.Frame.__init__(self, parent, id, "Master Flat Maker")
         self.panel = wx.Panel(self)
@@ -1064,6 +1429,19 @@ class MasterFlatFrame(wx.Frame):
 
     def run(self,event):
         
+        '''
+        This runs either the standardFlatMaker or twilightFLatMaker method from the systematics.py to create a master flat.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+            
+        Notes
+        -----
+        There is no return, on successful completion a window will open up with what the master flat looks like.
+        '''
+        
         path = self.path3.boxList[1].GetValue().strip()
         self.flatImages = self.checkFileInputs(self.path1.boxList[1].GetValue(), self.path1.boxList[1])
         self.darkFlatImages = self.checkFileInputs(self.path2.boxList[1].GetValue(), self.path2.boxList[1])
@@ -1099,7 +1477,30 @@ class MasterFlatFrame(wx.Frame):
                 else:
                     systematics.twilightFlatMaker(self.flatImages, self.darkFlatImages, self.path3.boxList[1].GetValue(),
                                               self.plotCheck)
+
     def checkFileInputs(self,array,box):
+        
+        '''
+        This method checks to make sure that the files entered in a text box in the master flat frame are valid.
+        
+        Parameters
+        ----------
+        array : string
+            A list of all of the files that need to be checked.
+        
+        box : wx.TextCtrl
+            The box that gets refreshed with a string of the valid files.
+            
+        Returns
+        -------
+        errorString : string
+            A list of all the files that were invalid.
+            
+        Notes
+        -----
+        If `errorString` returns '' (empty), that means that all the files were valid.
+        '''
+        
         errorString = ""
         setValueString = ""
         array2 = []
@@ -1145,7 +1546,16 @@ class MasterFlatFrame(wx.Frame):
             return errorString
 
     def create_menu(self):
-          
+        
+        '''
+        This method creates the menu bars that are at the top of the master flat frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         menubar = wx.MenuBar()
         menu_file = wx.Menu()
         m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
@@ -1155,14 +1565,43 @@ class MasterFlatFrame(wx.Frame):
         self.SetMenuBar(menubar)
     
     def on_exit(self,event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+
         self.Destroy()
 
     def onDestroy(self,event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.loadMasterFlat = False
 
 class AboutFrame(wx.Frame):
+    
+    '''
+    This is a frame about OSCAAR and its contributors.
+    '''
 
     def __init__(self, parent, id):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
         
         wx.Frame.__init__(self, parent, id, "About OSCAAR")
         self.panel = wx.Panel(self)
@@ -1215,16 +1654,46 @@ class AboutFrame(wx.Frame):
         self.Center()
         self.Show()
 
-    def onDestroy(self,event):
-        self.parent.aboutOpen = False
-
-    def exit(self,event):
+    def exit(self, event):
+        
+        '''
+        This method defines the action quit for the button `close`. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
+
+    def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.parent.aboutOpen = False
 
 
 class OverWrite(wx.Frame): 
+    
+    '''
+    This class creates a frame that prompts a user action for whether or not a file can be overwritten. Based
+    on the user's response, different methods are activated.
+    '''
      
     def __init__(self, parent, id, title, path, check):
+
+        '''
+        This method defines the initialization of this class.
+        '''
         
         wx.Frame.__init__(self, parent, id, title)
         self.panel = wx.Panel(self)
@@ -1257,6 +1726,16 @@ class OverWrite(wx.Frame):
         self.Show()
         
     def onMasterFlat(self,event):
+        
+        '''
+        When the user selects `yes` in this frame with the parent frame being the master flat 
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
         self.parent.overWrite = False  
         os.remove(self.path)
@@ -1266,7 +1745,19 @@ class OverWrite(wx.Frame):
         else:
             systematics.twilightFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
                                      self.parent.path3.boxList[1].GetValue(), self.parent.plotCheck)
+
     def onOutputFile(self,event):
+        
+        '''
+        This method is for whether or not to override the existing .pkl file that was specified in the output path
+        text box in the parent frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
         self.parent.overWrite = False
         diffPhotCall = "from oscaar import differentialPhotometry"
@@ -1275,10 +1766,30 @@ class OverWrite(wx.Frame):
             wx.CallAfter(self.parent.createFrame)
 
     def onOkay(self, event):
+        
+        '''
+        When the user presses the `yes` button 
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.overWrite = False    
         self.Destroy()
         
     def doNothing(self,event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.overWrite = False
         pass
 
@@ -1958,6 +2469,7 @@ class LoadOldPklFrame(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
+        self.CreateStatusBar()
         self.vbox.Fit(self)
         self.Center()
         self.Show()
