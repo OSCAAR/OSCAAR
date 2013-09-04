@@ -2263,7 +2263,7 @@ class FittingFrame(wx.Frame):
         self.parent = parent
         
         self.box = AddLCB(self.panel,-1,name="Path to Output File: ", str="Browse")
-        self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", str="Browse")
+        self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", str="Browse", saveType=wx.FD_SAVE)
         self.vbox2= wx.BoxSizer(wx.VERTICAL)
         self.vbox2.Add(self.box, border=5, flag=wx.ALL)
         self.vbox2.Add(self.box2, border=5, flag=wx.ALL)
