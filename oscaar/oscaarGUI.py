@@ -1707,7 +1707,7 @@ class OverWrite(wx.Frame):
             self.Bind(wx.EVT_BUTTON, self.onMasterFlat, self.yesButton)
         elif check == "Output File":
             self.Bind(wx.EVT_BUTTON, self.onOutputFile, self.yesButton)
-        self.Bind(wx.EVT_BUTTON, self.onOkay, self.noButton)
+        self.Bind(wx.EVT_BUTTON, self.onNO, self.noButton)
         
         self.sizer0 = wx.FlexGridSizer(rows=2, cols=1) 
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
@@ -1765,10 +1765,13 @@ class OverWrite(wx.Frame):
         if self.parent.radioBox.userParams["flatType"].GetValue() == True:
             wx.CallAfter(self.parent.createFrame)
 
-    def onOkay(self, event):
+    def onNO(self, event):
         
         '''
-        When the user presses the `yes` button 
+        When a user presses the `no` button, this method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame. It then
+        will close the frame.
+        
         Parameters
         ----------
         event : wx.EVT_*
@@ -3135,7 +3138,8 @@ class MCMCFrame(wx.Frame):
             mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, apertureRadiusIndex=%s); mcmcinstance.plot(num=%s)' % \
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
                          self.apertureRadiusIndex,self.apertureRadiusIndex)
-            subprocess.call(['python','-c',mcmcCall])
+            subprocess.check_call(['python','-c',mcmcCall])
+            self.data = IO.load(self.pT)
             if not self.saveLoc.lower().endswith(".txt"):
                 self.saveLoc += ".txt"
             outfile = open(self.saveLoc,'w')
