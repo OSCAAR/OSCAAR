@@ -1751,9 +1751,11 @@ class FittingFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         
-        self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
-        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.box, border=5, flag=wx.ALL)
+        self.box = AddLCB(self.panel,-1,name="Path to Output File: ", str="Browse")
+        self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", str="Browse")
+        self.vbox2= wx.BoxSizer(wx.VERTICAL)
+        self.vbox2.Add(self.box, border=5, flag=wx.ALL)
+        self.vbox2.Add(self.box2, border=5, flag=wx.ALL)
         self.box.boxList[1].SetValue(self.path)
         
         #self.plotLSFitButton = wx.Button(self.panel,label="Least Squares Fit", size =(130,25))
@@ -1770,15 +1772,17 @@ class FittingFrame(wx.Frame):
         self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         
         self.pklPathTxt = self.box.boxList[1]
+        self.saveLocation = self.box2.boxList[1]
         self.create_menu()
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.vbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
+        self.CreateStatusBar()
         self.vbox.Fit(self)
         self.Center()
         self.Show()
@@ -1790,9 +1794,12 @@ class FittingFrame(wx.Frame):
         self.menubar = wx.MenuBar()
     
         menu_file = wx.Menu()
-        m_browse = menu_file.Append(-1,"Browse\tCtrl-O","Browse")
-        self.Bind(wx.EVT_MENU,lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,
+        m_browse = menu_file.Append(-1,"Browse","Browse for .pkl file.")
+        self.Bind(wx.EVT_MENU, lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,
                                                                    False,wx.FD_OPEN),m_browse)
+        m_browse2 = menu_file.Append(-1, "Browse2", "Browse a save location for the results.")
+        self.Bind(wx.EVT_MENU, lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.saveLocation,
+                                                                   False,wx.FD_OPEN),m_browse2)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -1829,16 +1836,21 @@ class FittingFrame(wx.Frame):
     
     def plotMCMC(self,event):
         if self.validityCheck():
-            try:
-                self.pathText = self.pklPathTxt.GetValue()
-                self.data = IO.load(self.pathText)
-                temp = self.data.apertureRadii
-                if self.loadMCMC == False:
-                    MCMCFrame(self, -1)
-                    self.loadMCMC = True
-            except AttributeError:
-                InvalidParameter("", self, -1, str="oldPKL") 
-     
+            tempSaveLoc = self.saveLocation.GetValue()
+            if not os.path.isdir(tempSaveLoc.rpartition(str(os.sep))[0]) or \
+            not len(tempSaveLoc) > (len(tempSaveLoc[:tempSaveLoc.rfind(os.sep)]) + 1):
+                InvalidParameter(tempSaveLoc, None, -1, str="output", max="output file")
+            else:
+                try:
+                    self.pathText = self.pklPathTxt.GetValue()
+                    self.data = IO.load(self.pathText)
+                    temp = self.data.apertureRadii
+                    if self.loadMCMC == False:
+                        MCMCFrame(self, -1)
+                        self.loadMCMC = True
+                except AttributeError:
+                    InvalidParameter("", self, -1, str="oldPKL") 
+
     def validityCheck(self):
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
@@ -2461,6 +2473,7 @@ class MCMCFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.pT = self.parent.pathText
+        self.saveLoc = self.parent.saveLocation.GetValue()
         self.data = self.parent.data
         
         self.LCB = AddLCB(self.panel,-1,name="planet")
@@ -2611,6 +2624,11 @@ class MCMCFrame(wx.Frame):
                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
                          self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.call(['python','-c',mcmcCall])
+            if not self.saveLoc.endswith(".txt"):
+                self.saveLoc += ".txt"
+            outfile = open(self.saveLoc,'w')
+            outfile.write(self.data.uncertaintyString())
+            outfile.close()
 
     def radiusCheck(self):
         if self.radiusList.GetValue() == "":
@@ -3075,6 +3093,9 @@ class InvalidParameter(wx.Frame):
             self.string = "This keyword is in the header file of the first data image, but is not something we " + \
                           "have a conversion method for.\nPlease email us the keyword you are trying to use and we " + \
                           "will include it into our list of possible keywords."
+        elif str == "saveLocation":
+            self.string = "Either you entered a directory, or the specified path cannot be made to save the results " + \
+                          "of MCMC in a text file."
         self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
         self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
         
