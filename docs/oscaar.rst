@@ -1,6 +1,6 @@
 oscaar Package
 ==============
-
+  
 :mod:`__init__` Module
 ----------------------
 
@@ -96,5 +96,12 @@ oscaar Package
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. toctree::
+   :maxdepth: 4
+   
+   oscaar.astrometry
+   oscaar.c
+   oscaar.extras
 
 
