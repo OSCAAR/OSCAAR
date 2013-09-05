@@ -132,6 +132,7 @@ def calculateEphemerides(parFile):
     def list2datestrCSV(inList):
         '''Converse function to datestr2list'''
         inList = map(str,inList)
+        print inList
         return inList[0]+'/'+inList[1]+'/'+inList[2]+','+inList[3].zfill(2)+':'+inList[4].zfill(2)+':'+inList[5].zfill(2)
 
 
@@ -186,7 +187,8 @@ def calculateEphemerides(parFile):
         return trunc(float(exoplanetDB[planet]['SEP']),3)
 
     def radius(planet):
-        return trunc(float(exoplanetDB[planet]['R']),2) ## Convert from solar radii to Jupiter radii
+        if exoplanetDB[planet]['R'] == '': return '---'
+        else: return trunc(float(exoplanetDB[planet]['R']),2) ## Convert from solar radii to Jupiter radii
 
     def midTransit(Tc, P, start, end):
         '''Calculate mid-transits between Julian Dates start and end, using a 2500 
