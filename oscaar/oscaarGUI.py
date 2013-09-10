@@ -878,7 +878,7 @@ class OscaarFrame(wx.Frame):
         filename : file
             The open file that the value will be appended to.
         
-        name : string
+        name : string, optional
             The name of the text box that will be refreshed.
         
         Notes
@@ -2563,9 +2563,18 @@ class FittingFrame(wx.Frame):
         self.parent.loadFittingOpen = False
 
 class LoadOldPklFrame(wx.Frame):
+    
+    '''
+    This frame loads an old .pkl file so that you can make different plots with the
+    saved data.
+    '''
 
     def __init__(self, parent, id):
-
+        
+        '''
+        This method defines the initialization of this class.
+        '''
+        
         self.title = "Load An Old .pkl File"
         wx.Frame.__init__(self, parent, id, self.title)
         
@@ -2654,8 +2663,15 @@ class LoadOldPklFrame(wx.Frame):
         self.Show()
 
     def create_menu(self):
-    
-        # These commands create a drop down menu with the browse command, and exit command.
+         
+        '''
+        This method creates the menu bars that are at the top of the load old pkl frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
     
         self.menubar = wx.MenuBar()
     
@@ -2671,6 +2687,28 @@ class LoadOldPklFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+        
+        '''
+        This method defines the `browse` function for selecting a file on any OS.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        message : string
+            The message that tells the user what to choose.
+            
+        textControl : wx.TextCtrl
+            The box in the frame that will be refreshed with the files that are chosen by the user.
+            
+        fileDialog : bool
+            If true, the style is wx.FD_MULTIPLE, otherwise it is the same as the `saveDialog`.
+            
+        saveDialog : wx.FD_*
+            The style of the box that will appear. The * represents a wild card value for different types.
+        '''
+        
         if not fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: 
@@ -2703,6 +2741,21 @@ class LoadOldPklFrame(wx.Frame):
         dlg.Destroy()
 
     def plotLightCurve(self, event):
+        
+        '''
+        This method will plot the light curve of the data that has been saved in an
+        old .pkl file for the specific aperture radius that is selected.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        Notes
+        -----
+        On successful completion a plot will open up in a new window.
+        '''
+        
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
@@ -2715,6 +2768,21 @@ class LoadOldPklFrame(wx.Frame):
 
 
     def plotRawFlux(self, event):
+        
+        '''
+        This method will plot the raw fluxes of the data that has been saved in an
+        old .pkl file for the specific aperture radius that is selected.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion a plot will open up in a new window.
+        '''
+        
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
@@ -2726,6 +2794,21 @@ class LoadOldPklFrame(wx.Frame):
             subprocess.Popen(['python','-c',commandstring])
 
     def plotScaledFluxes(self, event):
+        
+        '''
+        This method will plot the scaled fluxes of the data that has been saved in an
+        old .pkl file for the specific aperture radius that is selected.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion a plot will open up in a new window.
+        '''
+
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
@@ -2737,6 +2820,21 @@ class LoadOldPklFrame(wx.Frame):
             subprocess.Popen(['python','-c',commandstring])
     
     def plotCentroidPosition(self, event):
+        
+        '''
+        This method will plot the centroid positions of the data that has been saved in an
+        old .pkl file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion a plot will open up in a new window.
+        '''
+        
         if self.validityCheck():
             print 'Loading file: '+self.pklPathTxt.GetValue() 
 
@@ -2746,6 +2844,21 @@ class LoadOldPklFrame(wx.Frame):
             subprocess.Popen(['python','-c',commandstring])
 
     def plotComparisonStarWeightings(self, event):
+        
+        '''
+        This method will plot the comparison star weightings of the data that has been saved in an
+        old .pkl file for the specific aperture radius that is selected.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion a plot will open up in a new window.
+        '''
+        
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
@@ -2758,6 +2871,21 @@ class LoadOldPklFrame(wx.Frame):
             subprocess.Popen(['python','-c',commandstring])
     
     def plotInteractiveLightCurve(self, event):
+        
+        '''
+        This method will plot the interactive light curve of the data that has been saved in an
+        old .pkl file for the specific aperture radius that is selected.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion a plot will open up in a new window.
+        '''
+        
         if self.validityCheck() and self.radiusCheck():
             if self.tempNum[0][0] != self.apertureRadiusIndex:
                 self.apertureRadiusIndex = self.tempNum[0][0]
@@ -2766,6 +2894,22 @@ class LoadOldPklFrame(wx.Frame):
                 self.loadGraphFrame = True
             
     def validityCheck(self, throwException=True):
+        '''
+        This method checks to make sure that the entered .pkl file is valid and can
+        be used.
+        
+        Parameters
+        ----------
+        throwException : bool, optional
+            If true there will be a pop up frame that will explain the reason for why
+            the selected file cannot be used if it is invalid. If false, no error message
+            will pop up when an invalid file is selected.
+        
+        Returns
+        -------
+        literal : bool
+            False if the selected file is invalid, true otherwise.
+        '''
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
             if pathName.lower().endswith(".pkl"):
@@ -2784,6 +2928,19 @@ class LoadOldPklFrame(wx.Frame):
         return True
 
     def radiusCheck(self):
+        
+        '''
+        This method checks to make sure that if the user enters an aperture radius that they
+        would like to plot, that it is a valid number in the list of saved aperture radii for
+        the selected file.
+        
+        Returns
+        -------
+        literal : bool
+            False if the aperture radius selected is not a number or not in the approved list,
+            true otherwise.
+        '''
+        
         if len(self.apertureRadii) == 0:
             InvalidParameter(str(self.apertureRadii), self, -1, str = "radiusListError")
             return False
@@ -2802,6 +2959,21 @@ class LoadOldPklFrame(wx.Frame):
         return True
     
     def updateRadiiList(self, event):
+        
+        '''
+        This method will manually update the drop down menu for the available aperture radii that can
+        be chosen from the .pkl file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion, a list of available radii should be shown in the drop down menu of the frame.
+        '''
+                
         if self.validityCheck():
             try:
                 self.radiusList.Clear()
@@ -2816,46 +2988,103 @@ class LoadOldPklFrame(wx.Frame):
                 InvalidParameter("", self, -1, str="oldPKL") 
 
     def epsilonCheck(self,a,b):
-        ''' Check variables `a` and `b` are within machine precision of each other
-            because otherwise we get machine precision difference errors when mixing
-            single and double precion NumPy floats and pure Python built-in float types.
+        
+        ''' 
+        This method checks that two numbers are within machine precision of each other
+        because otherwise we get machine precision difference errors when mixing
+        single and double precision NumPy floats and pure Python built-in float types.
+        
+        Parameters
+        ----------
+        a : array
+            An array of float type numbers to check through.
+        
+        b : float
+            The number that is being checked for in the array.
+        
+        Returns
+        -------
+        literal : array
+            This is an array of booleans.
+            
+        Notes
+        -----
+        There a boolean literals of true in the return array if any number in `a` is within machine precision
+        of `b`.
+        
+        Examples
+        --------
+        Inputs: `a` = [0, 1.0, 2.0, 3.0, 4.0], `b` = 3.0
+        Return: [False, False, False, True, False]
         '''
+        
         return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusIndexUpdate(self, event):
-        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]
-        #map(float,self.apertureRadii) == float(self.radiusList.GetValue()))[0][0]
         
+        '''
+        This method updates the current index in the list of available radii that this frame will use to plot different
+        things. It does this by calling self.epsiloCheck to get an array of booleans. Afterwords, it selects the location
+        of the boolean 'True' and marks that as the new index.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.        
+        '''
+        
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+        
+    def on_exit(self, event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.Destroy()
+    
     def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.loadOldPklOpen = False
     
-    def on_exit(self, event):
-        self.Destroy()
 
 class GraphFrame(wx.Frame):
     
-    """ The main frame of the application
-    """
+    '''
+    This is the class for the interactive light curve plot frame. It allows a user to continuously
+    plot a light curve with a new bin size as well as change the names of the axes and title.
+    '''
     
-    title = 'Light Curve Plot'
+    title = 'Interactive Light Curve Plot'
 
     def __init__(self, parent, id):
-    
-        # This initializes the wx.frame with the title.
+        
+        '''
+        This method defines the initialization of this class.
+        '''
         
         wx.Frame.__init__(self, parent, id, self.title, style = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | 
                                                                                             wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
-        #wx.Frame(None, style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
-        
-        # This gets the location of the pkl file by using a global variable that is defined in the LoadOldPklFrame class.
-        
         self.pT = parent.pklPathTxt.GetValue()
         self.parent = parent
         self.apertureRadiusIndex = self.parent.apertureRadiusIndex
-        # The rest of these commands just create the window.
-        
         self.create_menu()
-        self.create_status_bar()
+        self.statusbar = self.CreateStatusBar()
         self.create_main_panel()
         
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
@@ -2863,9 +3092,16 @@ class GraphFrame(wx.Frame):
         self.Show()
 
     def create_menu(self):
-    
-        # These commands create a drop down menu with the save command, and exit command.
-    
+        
+        '''
+        This method creates the menu bars that are at the top of the graph frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
@@ -2879,6 +3115,11 @@ class GraphFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def create_main_panel(self):
+        
+        '''
+        This method creates a wxPython panel that will update everytime a new instance of the 
+        light curve plot is generated.
+        '''
 
         self.panel = wx.Panel(self)
         self.init_plot()
@@ -2898,19 +3139,14 @@ class GraphFrame(wx.Frame):
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
 
-    def create_status_bar(self):
-        self.statusbar = self.CreateStatusBar()
-
     def init_plot(self):
-
-        # Initializes the first plot with a bin size of 10.
         
-        # We make an instance of the dataBank class with all the paramters of the pkl file loaded.
+        '''
+        This is the initial plot that is displayed. It uses a bin size of 10 for the light curve.
+        '''
+        
         self.data = IO.load(self.pT)
         self.pointsPerBin = 10
-        
-        # Now we can use the plotLightCurve method from the dataBank.py class with minor modifications
-        # to plot it.
 
         binnedTime, binnedFlux, binnedStd = medianBin(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
                                                       self.pointsPerBin)
@@ -2919,9 +3155,15 @@ class GraphFrame(wx.Frame):
         self.axes = self.fig.add_subplot(111)
         self.axes.set_axis_bgcolor('white')
         self.axes.set_title('Light Curve', size=12)
+        
         def format_coord(x, y):
-            # '''Function to give data value on mouse over plot.'''
+            
+            '''
+            Function to give data value on mouse over plot.
+            '''
+            
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+        
         self.axes.format_coord = format_coord 
         self.axes.errorbar(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
                            yerr=self.data.lightCurveErrors[self.apertureRadiusIndex],fmt='k.',ecolor='gray')
@@ -2933,9 +3175,21 @@ class GraphFrame(wx.Frame):
         self.axes.set_ylabel('Relative Flux')
 
     def draw_plot(self,event):
-
-        """ Redraws the plot
-        """
+        
+        '''
+        This method will redraw the plot every time the user presses the plot button in the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion with at least one parameter changed, the new plot will show up in the panel of
+        the frame.
+        '''
+        
         self.box.update()
         self.box.setMax(len(self.data.times))
         
@@ -2960,9 +3214,15 @@ class GraphFrame(wx.Frame):
             self.axes = self.fig.add_subplot(111)
             self.axes.set_axis_bgcolor('white')
             self.axes.set_title('Light Curve', size=12)
+            
             def format_coord(x, y):
-                 # '''Function to give data value on mouse over plot.'''
+                
+                '''
+                Function to give data value on mouse over plot.
+                '''
+                
                 return 'JD=%1.5f, Flux=%1.4f' % (x, y)
+
             self.axes.format_coord = format_coord 
             self.axes.errorbar(self.data.times,self.data.lightCurves[self.apertureRadiusIndex],
                                yerr=self.data.lightCurveErrors[self.apertureRadiusIndex],fmt='k.',ecolor='gray')
@@ -2976,8 +3236,15 @@ class GraphFrame(wx.Frame):
             self.canvas = FigCanvas(self.panel, -1, self.fig)
 
     def on_save_plot(self, event):
-    
-        # Saves the plot to a location of your choosing.
+        
+        '''
+        This method will save the plot you create as a .png file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
 
         file_choices = "PNG (*.png)|*.png"
         
@@ -2993,11 +3260,21 @@ class GraphFrame(wx.Frame):
             path = dlg.GetPath()
             self.canvas.print_figure(path, dpi=self.dpi)
             self.flash_status_message("Saved to %s" % path)
-
-    def on_exit(self, event):
-        self.Destroy()
     
     def flash_status_message(self, msg, flash_len_ms=1500):
+        
+        '''
+        This method will show a message for a brief moment on the status bar at the bottom of the frame.
+        
+        Parameters
+        ----------
+        msg : string
+            The message that will appear.
+            
+        flash_len_ms : int, optional
+            The amount of time the message should appear for in milliseconds.
+        '''
+        
         self.statusbar.SetStatusText(msg)
         self.timeroff = wx.Timer(self)
         self.Bind(
@@ -3007,13 +3284,54 @@ class GraphFrame(wx.Frame):
         self.timeroff.Start(flash_len_ms, oneShot=True)
     
     def on_flash_status_off(self, event):
+        
+        '''
+        This clears the status bar of the frame after a message has been displayed.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.statusbar.SetStatusText('')
     
+    def on_exit(self, event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.Destroy()
+    
     def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+
         self.parent.loadGraphFrame = False
+
+
 
 class LeastSquaresFitFrame(wx.Frame):
     
+    '''
+    This class is not in use right now.
+    '''
+    
+    """
     title = "Least Squares Fit"
     
     def __init__(self):
@@ -3152,13 +3470,23 @@ class LeastSquaresFitFrame(wx.Frame):
     def onDestroy(self, event):
         global loadLSFit
         loadLSFit = False
+    """
 
 class MCMCFrame(wx.Frame):
+    
+    '''
+    This frame allows the user to edit a number of different parameters to run the
+    Markov Chain Monte Carlo routine for fitting.
+    '''
     
     title = "MCMC Fit"
     
     def __init__(self, parent, id):
 
+        '''
+        This method defines the initialization of this class.
+        '''
+        
         wx.Frame.__init__(self, parent, id, self.title)
         
         self.panel = wx.Panel(self)
@@ -3268,9 +3596,16 @@ class MCMCFrame(wx.Frame):
         self.Show()
     
     def create_menu(self):
-    
-        # These commands create a drop down menu with the exit command.
-    
+        
+        '''
+        This method creates the menu bars that are at the top of the MCMC frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
@@ -3281,15 +3616,30 @@ class MCMCFrame(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     def plot(self,event):
-       list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
-            (self.box3.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
-            (self.box3.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
-            (self.box3.userParams['gamma1'].GetValue(),"gamma1"),(self.box3.userParams['gamma2'].GetValue(),"gamma2"),
-            (self.box3.userParams['pericenter'].GetValue(),"pericenter"),(self.box4.userParams['saveiteration'].GetValue(),
-            "saveiteration"), (self.box4.userParams['acceptance'].GetValue(),"acceptance"),
-            (self.box4.userParams['burnfrac'].GetValue(),"burnfrac"), (self.box4.userParams['number'].GetValue(),"number")]
-       
-       if checkParams(self,list) == True and self.radiusCheck() == True:
+        
+        '''
+        After checking that all of the user editable parameters in the frame are valid and loaded
+        as a list of variables, this method actually exexcutes the MCMC fitting routine by calling it from
+        the fitting.py file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.     
+        '''
+        
+        list = [(self.box.userParams['Rp/Rs'].GetValue(),"Rp/Rs"),(self.box.userParams['a/Rs'].GetValue(),"a/Rs"),
+                (self.box3.userParams['per'].GetValue(),"per"), (self.box.userParams['inc'].GetValue(),"inc"),
+                (self.box3.userParams['ecc'].GetValue(),"ecc"), (self.box.userParams['t0'].GetValue(),"t0"),
+                (self.box3.userParams['gamma1'].GetValue(),"gamma1"),(self.box3.userParams['gamma2'].GetValue(),"gamma2"),
+                (self.box3.userParams['pericenter'].GetValue(),"pericenter"),
+                (self.box4.userParams['saveiteration'].GetValue(),"saveiteration"), 
+                (self.box4.userParams['acceptance'].GetValue(),"acceptance"),
+                (self.box4.userParams['burnfrac'].GetValue(),"burnfrac"), 
+                (self.box4.userParams['number'].GetValue(),"number")]
+        
+        if checkParams(self,list) == True and self.radiusCheck() == True:
+            
             initParams = [float(self.box.userParams['Rp/Rs'].GetValue()),float(self.box.userParams['a/Rs'].GetValue()),
                           float(self.box3.userParams['per'].GetValue()), float(self.box.userParams['inc'].GetValue()),
                           float(self.box3.userParams['gamma1'].GetValue()),float(self.box3.userParams['gamma2'].GetValue()),
@@ -3298,23 +3648,17 @@ class MCMCFrame(wx.Frame):
             apertureRadius = 4.5
             nSteps = float(self.box4.userParams['number'].GetValue())
             initBeta = (np.zeros([4]) + 0.012).tolist()        
-            ## << The .tolist() method type casts the Numpy ndarray into a python list
-    #         initBeta = [int(self.box2.userParams['b-Rp/Rs'].GetValue()), int(self.box2.userParams['b-a/Rs'].GetValue()),
-    #                     int(self.box2.userParams['b-inc'].GetValue()), int(self.box2.userParams['b-t0'].GetValue())]
-            
             idealAcceptanceRate = float(self.box4.userParams['acceptance'].GetValue())
             interval = float(self.box4.userParams['saveiteration'].GetValue())
             burnFraction = float(self.box4.userParams['burnfrac'].GetValue())
-            #mcmcinstance = oscaar.fitting.mcmcfit(self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,
-            #burnFraction)
-            #mcmcinstance.run(updatepkl=True)
-            #mcmcinstance.plot()
             
-            ## Spawn a new process to execute the MCMC run separately
+            # Spawn a new process to execute the MCMC run separately.
             mcmcCall = 'import oscaar.fitting; mcmcinstance = oscaar.fitting.mcmcfit("%s",%s,%s,%s,%s,%s,%s); mcmcinstance.run(updatepkl=True, apertureRadiusIndex=%s); mcmcinstance.plot(num=%s)' % \
-                        (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
-                         self.apertureRadiusIndex,self.apertureRadiusIndex)
+                         (self.pT,initParams,initBeta,nSteps,interval,idealAcceptanceRate,burnFraction,
+                          self.apertureRadiusIndex,self.apertureRadiusIndex)
             subprocess.check_call(['python','-c',mcmcCall])
+            
+            # Load the data again and save it in a text file.
             self.data = IO.load(self.pT)
             if not self.saveLoc.lower().endswith(".txt"):
                 self.saveLoc += ".txt"
@@ -3323,11 +3667,21 @@ class MCMCFrame(wx.Frame):
             outfile.close()
 
     def radiusCheck(self):
+        
+        '''
+        This method checks to make sure that the aperture radius entered is valid and in the list
+        available for the selected .pkl file.
+        
+        Returns
+        -------
+        literal : bool
+            True if the radius is valid, false otherwise.
+        '''
+        
         if self.radiusList.GetValue() == "":
             InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
             return False
         try:
-            #self.tempNum = np.where(self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue())))
             condition = self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue()))
             self.tempNum = np.array(self.data.apertureRadii)[condition]
             if len(self.tempNum) == 0:
@@ -3340,6 +3694,17 @@ class MCMCFrame(wx.Frame):
         return True
 
     def update(self,event):
+        
+        '''
+        This method will update the appropriate parameters for the frame, if a user selects
+        an appropriate planet name from the exoplanet.org database.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.     
+        '''
+                
         if self.LCB.boxList[1].GetValue() == '':
             InvalidParameter(self.LCB.boxList[1].GetValue(), None,-1, str="planet")
         else:
@@ -3357,72 +3722,189 @@ class MCMCFrame(wx.Frame):
                 InvalidParameter("",None,-1, str="params")
 
     def epsilonCheck(self,a,b):
-        ''' Check when elements of list `a` are within machine precision of float `b`
-            because otherwise we get machine precision difference errors when mixing
-            single and double precion NumPy floats and pure Python built-in float types.
+        
+        ''' 
+        This method checks that two numbers are within machine precision of each other
+        because otherwise we get machine precision difference errors when mixing
+        single and double precision NumPy floats and pure Python built-in float types.
+        
+        Parameters
+        ----------
+        a : array
+            An array of float type numbers to check through.
+        
+        b : float
+            The number that is being checked for in the array.
+        
+        Returns
+        -------
+        literal : array
+            This is an array of booleans.
+            
+        Notes
+        -----
+        There a boolean literals of true in the return array if any number in `a` is within machine precision
+        of `b`.
+        
+        Examples
+        --------
+        Inputs: `a` = [0, 1.0, 2.0, 3.0, 4.0], `b` = 3.0
+        Return: [False, False, False, True, False]
         '''
+        
     	a = np.array(a)
         return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusUpdate(self, event):
-        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.data.apertureRadii,
-                                                              float(self.radiusList.GetValue())))[0][0]
         
+        '''
+        This method updates the current index in the list of available radii that this frame will use to plot MCMC.
+        It does this by calling self.epsiloCheck to get an array of booleans. Afterwords, it selects the location
+        of the boolean 'True' and marks that as the new index.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.        
+        '''
+        
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.data.apertureRadii, 
+                                                              float(self.radiusList.GetValue())))[0][0]
+                
     def on_exit(self, event):
+         
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
     
     def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.loadMCMC = False
 
 class ParameterBox(wx.Panel):
-
-        def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT, other=True):               
-            wx.Panel.__init__(self,parent,id)
-            box1 = wx.StaticBox(self, -1, name)
-            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
-            self.userParams = {}
-            sizer0 = wx.FlexGridSizer(rows=rows, cols=cols, vgap=vNum, hgap=hNum)
-            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+    
+    '''
+    This is a general method that is used throughout the GUI to create an interactive box
+    with multiple text controls for user input.
+    '''
+    
+    def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT, other=True):
+        
+        '''
+        This initializes a box with different specifications depending on what the user requires.
+        
+        Parameters
+        ----------
+        parent : window
+            The parent window that this box will be associated with.
+        
+        id : int
+            The identity of the object.
+        
+        list : array
+            An array of tuples for the different text controls desired. The tuple must be four strings.
+        
+        name : string, optional
+            The name of the box for the current set of parameters. It is displayed in the upper left hand corner.
+        
+        rows : int, optional
+            The number of rows for the box.
             
-            for (widget, labeltxt, ToolTip, value) in list:
-                label = wx.StaticText(self, -1, labeltxt, style=wx.ALIGN_CENTER)
-                sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                label.SetFont(font)
-                
-                if widget == "observatoryName" or widget == "fileName":
-                    self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220,wx.DefaultSize.GetHeight()))
-                elif widget != 'trackPlot' and widget != 'photPlot' and widget != 'flatType':
-                    self.userParams[widget] = wx.TextCtrl(self, -1, value = value)
- 
-                if widget == 'trackPlot' or widget == 'photPlot' or widget == 'flatType':
-                    if widget == 'flatType':
-                        label1 = ToolTip
-                        label2 = value
-                    else:
-                        label1 = "On"
-                        label2 = "Off"
-                    self.userParams[widget] = wx.RadioButton(self, label = label1, style = wx.RB_GROUP)
-                    sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                    if other == False:
-                        self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
-                        self.userParams[widget+"1"].SetValue(True)
-                    else:
-                        self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
-                        self.userParams[widget].SetValue(True)
-                        
-                    sizer0.Add(self.userParams[widget+"1"], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+        cols : int, optional
+            The number of columns for the box.
+        
+        vNum : int, optional
+            The vertical displacement between each text control.
+        
+        hNum : int, optional
+            The horizontal displacement between each text control.
+        
+        font : wx.font(), optional
+            The type of style you would like the text to be displayed as.
+        
+        other : bool, optional
+            If and only if the widget label for a set in `list` is the keyword 'flatType' this method will create 
+            radiobuttons instead of text boxes. When these radio buttons are created, by default the first radio 
+            button is always selected. If the default should be that the second radio button needs to be selected, 
+            simply set this variable to false.
+        
+        Notes
+        -----
+        The list that is given as a parameter must be an array of tuples. The format for these tuples is 
+        (string, string, string, string). The first string will be the keyword ('widget') to select that specific 
+        text box to work with in the code. The second string is the name of the parameter that will appear in the GUI.  
+        The third string will be the tooltip that is seen if the user hovers over the box. The fourth string is 
+        the default value for that parameter.
+        
+        If however the widget is 'flatType', 'photPlot', or 'trackPlot', radiobuttons will be created instead. 
+        If the radio button should be with the labels 'on' and 'off', just make a tuple like 
+        ('trackPlot',ParameterName,'',''). If the names of the labels need to be different, then use it like this: 
+        ('flatType',ParameterName,"True","False").
+        '''
+           
+        wx.Panel.__init__(self,parent,id)
+        box1 = wx.StaticBox(self, -1, name)
+        sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+        self.userParams = {}
+        sizer0 = wx.FlexGridSizer(rows=rows, cols=cols, vgap=vNum, hgap=hNum)
+        sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        
+        for (widget, labeltxt, ToolTip, value) in list:
+            label = wx.StaticText(self, -1, labeltxt, style=wx.ALIGN_CENTER)
+            sizer0.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+            label.SetFont(font)
+            
+            if widget == "observatoryName" or widget == "fileName":
+                self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220,wx.DefaultSize.GetHeight()))
+            elif widget != 'trackPlot' and widget != 'photPlot' and widget != 'flatType':
+                self.userParams[widget] = wx.TextCtrl(self, -1, value = value)
+    
+            if widget == 'trackPlot' or widget == 'photPlot' or widget == 'flatType':
+                if widget == 'flatType':
+                    label1 = ToolTip
+                    label2 = value
                 else:
-                    self.userParams[widget].SetToolTipString(ToolTip)
-                    sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                 
-                if widget == "ingress" or widget == "egress":
-                    value = "00:00:00"
-                    self.userParams[widget+"1"] = wx.TextCtrl(self, -1, value = value)
-                    self.userParams[widget+"1"].SetToolTipString(ToolTip)
-                    sizer0.Add(self.userParams[widget+"1"], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                 
-            self.SetSizer(sizer)
-            sizer.Fit(self)
+                    label1 = "On"
+                    label2 = "Off"
+                self.userParams[widget] = wx.RadioButton(self, label = label1, style = wx.RB_GROUP)
+                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+                if other == False:
+                    self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
+                    self.userParams[widget+"1"].SetValue(True)
+                else:
+                    self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
+                    self.userParams[widget].SetValue(True)
+                    
+                sizer0.Add(self.userParams[widget+"1"], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+            else:
+                self.userParams[widget].SetToolTipString(ToolTip)
+                sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+             
+            if widget == "ingress" or widget == "egress":
+                value = "00:00:00"
+                self.userParams[widget+"1"] = wx.TextCtrl(self, -1, value = value)
+                self.userParams[widget+"1"].SetToolTipString(ToolTip)
+                sizer0.Add(self.userParams[widget+"1"], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+             
+        self.SetSizer(sizer)
+        sizer.Fit(self)
 
 class AddLCB(wx.Panel):
             
