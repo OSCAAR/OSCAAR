@@ -3,11 +3,6 @@ from re import split
 import cPickle
 from shutil import copy
 import os
-def paddedStr(num,pad):
-    '''Return the number num padded with zero-padding of length pad'''
-    strlen = len(str(num))
-    lenpad = pad-strlen
-    return str((lenpad*'0')+str(num))
 
 
 def overWriteCheck(filename, checkfiles, varcheck):

@@ -9,27 +9,6 @@ import numpy as np
 from numpy import linalg as LA
 
 
-def paddedStr(num, pad):
-    """
-    Return the number num padded with zero-padding of length pad
-
-    Parameters
-    ----------
-    num : float
-        number to pad
-    pad : int
-        number of zeros to pad in front of `num`
-
-    Returns
-    -------
-        The padded number.
-    """
-
-    strlen = len(str(num))
-    lenpad = pad-strlen
-    return str((lenpad*'0')+str(num))
-
-
 def ut2jd(ut):
     """
     Convert times from Universal Time (UT) to Julian Date (JD)
