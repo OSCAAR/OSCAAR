@@ -1728,7 +1728,8 @@ class OverWrite(wx.Frame):
     def onMasterFlat(self,event):
         
         '''
-        When the user selects `yes` in this frame with the parent frame being the master flat 
+        When the user selects `yes` in this frame with the parent frame being the master flat frame, then
+        a new master flat will be created, overwriting the currently selected one.
         
         Parameters
         ----------
@@ -1750,7 +1751,7 @@ class OverWrite(wx.Frame):
         
         '''
         This method is for whether or not to override the existing .pkl file that was specified in the output path
-        text box in the parent frame.
+        text box in the parent OSCAAR frame.
         
         Parameters
         ----------
@@ -1798,9 +1799,18 @@ class OverWrite(wx.Frame):
 
 
 class EphemerisFrame(wx.Frame):
+    
+    '''
+    This frame will allow users to calculate the positions of different planets in the sky
+    for a given time frame at a specified observatory.
+    '''
 
     def __init__(self, parent, id):
 
+        '''
+        This method defines the initialization of this class.
+        '''
+        
         wx.Frame.__init__(self, parent, id, "Ephemerides")
         
         self.panel = wx.Panel(self)
@@ -1927,6 +1937,22 @@ class EphemerisFrame(wx.Frame):
     
     def calculate(self, event):
         
+        '''
+        After checking to see if all of the parameters entered are valid, this method actually runs
+        the calculateEphemerides method from the eph.py file to get the transit times and such for
+        different planets.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        Notes
+        -----
+        On successful completion a new window will open in the default browser for your machine with the
+        ephemeris chart open.
+        '''
+        
         if self.parameterCheck() == True:
             
             if self.parent.singularOccurance == 0 and self.showLT.userParams["flatType"].GetValue():
@@ -1950,6 +1976,16 @@ class EphemerisFrame(wx.Frame):
                     webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
 
     def parameterCheck(self):
+        
+        '''
+        This is a local method for this class that checks to make sure all of the 
+        parameters that can be manipulated by the user are valid.
+        
+        Returns
+        -------
+        literal : bool
+            False if any of the parameters are invalid, true otherwise.
+        '''
 
         self.name = self.leftBox.userParams["observatoryName"].GetValue().strip()
         self.fileName = self.leftBox.userParams["fileName"].GetValue().strip()
@@ -2110,6 +2146,17 @@ class EphemerisFrame(wx.Frame):
     
     def update(self, event):
 
+        '''
+        This method is bound to the drop down list of observatories that can be selected in the 
+        frame. Once an observatory is chosen, this method updates all relevant text fields with the
+        appropriate parameters.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         if self.obsList.GetValue() == "Enter New Observatory":
             self.leftBox.userParams["observatoryName"].SetValue("Enter the name of the Observatory")
             self.leftBox.userParams["fileName"].SetValue("Enter the name of the file")
@@ -2166,6 +2213,17 @@ class EphemerisFrame(wx.Frame):
 
     def saveFile(self, fileName):
         
+        '''
+        This method saves all the current parameters in the window for a selected
+        observatory to a text file. This allows the user to quickly select the observatory
+        with pre-loaded parameters after an initial setup.
+        
+        Parameters
+        ----------
+        fileName : string
+            The name of the file that will be saved with all of the user inputs.
+        '''
+        
         startDate = [x.strip() for x in self.leftBox.userParams["obsStart"].GetValue().split("/")]
         endDate = [x.strip() for x in self.leftBox.userParams["obsEnd"].GetValue().split("/")]
         dates = {}
@@ -2217,9 +2275,16 @@ class EphemerisFrame(wx.Frame):
         newObs.close()
 
     def create_menu(self):
-    
-        # These commands create the menu bars that are at the top of the GUI.
-    
+        
+        '''
+        This method creates the menu bars that are at the top of the ephemeris frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
@@ -2232,6 +2297,16 @@ class EphemerisFrame(wx.Frame):
         self.SetMenuBar(menubar)
 
     def saveOutput(self, event):
+        
+        '''
+        This method will save the output of the ephemeris calculations as a zip file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         dlg = wx.FileDialog(self, message = "Save your output...", style = wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             outputPath = dlg.GetPath()
@@ -2245,17 +2320,46 @@ class EphemerisFrame(wx.Frame):
                 shutil.rmtree(outputPath)
                 outputArchive.close()
         dlg.Destroy()
-
-    def onDestroy(self, event):
-        self.parent.loadEphFrame = False
     
     def on_exit(self,event):
-        self.parent.loadEphFrame = False
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
+        
+    def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.parent.loadEphFrame = False
 
 class FittingFrame(wx.Frame):
+    
+    '''
+    After you have created your own light curve, there are different fitting methods that 
+    you can do. Currently the only fitting method in place is MCMC.
+    '''
 
     def __init__(self, parent, id, path = ''):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
         
         self.path = path
         self.title = "Fitting Methods"
@@ -2302,9 +2406,16 @@ class FittingFrame(wx.Frame):
         self.Show()
 
     def create_menu(self):
-    
-        # These commands create a drop down menu with the browse command, and exit command.
-    
+        
+        '''
+        This method creates the menu bars that are at the top of the ephemeris frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         self.menubar = wx.MenuBar()
     
         menu_file = wx.Menu()
@@ -2321,7 +2432,29 @@ class FittingFrame(wx.Frame):
         self.menubar.Append(menu_file, "&File")
         self.SetMenuBar(self.menubar)
 
-    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):                    
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+        
+        '''
+        This method defines the `browse` function for selecting a file on any OS.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        message : string
+            The message that tells the user what to choose.
+            
+        textControl : wx.TextCtrl
+            The box in the frame that will be refreshed with the files that are chosen by the user.
+            
+        fileDialog : bool
+            If true, the style is wx.FD_MULTIPLE, otherwise it is the same as the `saveDialog`.
+            
+        saveDialog : wx.FD_*
+            The style of the box that will appear. The * represents a wild card value for different types.
+        '''
+                           
         if not fileDialog:
             dlg = wx.FileDialog(self, message = message, style = saveDialog)
         else: 
@@ -2340,6 +2473,11 @@ class FittingFrame(wx.Frame):
         dlg.Destroy()
 
     def plotLSFit(self,event):
+        
+        '''
+        This method is for a least squares fitting method that is not in use right now.
+        '''
+        
         if self.validityCheck():
             global pathText
             global loadLSFit
@@ -2349,6 +2487,17 @@ class FittingFrame(wx.Frame):
                 loadLSFit = True
     
     def plotMCMC(self,event):
+        
+        '''
+        This method checks that the file chosen to be loaded is valid, and that there is a valid save
+        file selected for the output of the MCMC calculations.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         if self.validityCheck():
             tempSaveLoc = self.saveLocation.GetValue()
             if not os.path.isdir(tempSaveLoc.rpartition(str(os.sep))[0]) or \
@@ -2366,6 +2515,12 @@ class FittingFrame(wx.Frame):
                     InvalidParameter("", self, -1, str="oldPKL") 
 
     def validityCheck(self):
+        
+        '''
+        This is a fitting frame specific method that checks whether or not the given .pkl file
+        is valid.
+        '''
+        
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
             if pathName.lower().endswith(".pkl"):
@@ -2380,11 +2535,32 @@ class FittingFrame(wx.Frame):
             return False
         return True
     
-    def onDestroy(self, event):
-        self.parent.loadFittingOpen = False
-    
     def on_exit(self, event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
+    
+    def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.parent.loadFittingOpen = False
 
 class LoadOldPklFrame(wx.Frame):
 
