@@ -5,12 +5,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 
-def paddedStr(num,pad):
-    '''Return the number num padded with zero-padding of length pad'''
-    strlen = len(str(num))
-    lenpad = pad-strlen
-    return str((lenpad*'0')+str(num))
-  
 def phot(image, xCentroid, yCentroid, apertureRadius, plottingThings, annulusOuterRadiusFactor=2.8, annulusInnerRadiusFactor=1.40, ccdGain=1, plots=False):
     '''
     Method for aperture photometry. 
