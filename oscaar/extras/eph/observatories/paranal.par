@@ -1,12 +1,11 @@
 name: Paranal Observatory, Chile
-latitude: -24:37:38
-longitude: -70:24:15
+latitude: -24.0:37.0:38.0
+longitude: -70.0:24.0:15.0
 elevation: 2635.0
 temperature: 8.5
 min_horizon: 10:00:00
-start_date: (2013,7,9,0,0,0)
-end_date: (2013,7,16,0,0,0)
-band: v
+start_date: (2013,9,10,0,0,0)
+end_date: (2013,9,17,0,0,0)
 mag_limit: 15.0
 depth_limit: 0.000
 calc_transits: True
@@ -14,5 +13,5 @@ calc_eclipses: True
 html_out: True
 text_out: True
 twilight: -6
-time_zone: -4
-daylight_savings: False
+show_lt: 0
+band: V

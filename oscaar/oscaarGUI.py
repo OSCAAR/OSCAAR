@@ -85,9 +85,9 @@ class OscaarFrame(wx.Frame):
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
                 ('egress',"Egress, UT (YYYY/MM/DD)",
                  "Enter a date in the correct format here.","YYYY/MM/DD"),
-                ('trackPlot',"Tracking Plots: ","none",''),
-                ('photPlot',"Photometry Plots: ","none",''),
-                ('flatType',"Fit After Photometry ","On","Off")]
+                ('rbTrackPlot',"Tracking Plots: ","On", "Off"),
+                ('rbPhotPlot',"Photometry Plots: ","On", "Off"),
+                ('rbFitAfterPhot',"Fit After Photometry ","On","Off")]
 
         self.radioBox = ParameterBox(self.panel, -1, list, rows=5, cols=3, vNum=10, hNum=10, font=self.fontType)
         
@@ -270,9 +270,9 @@ class OscaarFrame(wx.Frame):
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
                 init.write("Path to Dark Frames: " + self.paths.boxList[1].GetValue() + "\n")
-                init.write("Path to data images: " + self.paths.boxList[3].GetValue() + "\n")
+                init.write("Path to Data Images: " + self.paths.boxList[3].GetValue() + "\n")
                 init.write("Path to Master-Flat Frame: " + self.paths.boxList[2].GetValue() + "\n")
-                init.write("Path to regions file: " + self.paths.boxList[4].GetValue() + "\n")
+                init.write("Path to Regions File: " + self.paths.boxList[4].GetValue() + "\n")
                 if not self.paths.boxList[5].GetValue().lower().endswith(".pkl"):
                     init.write("Output Path: " + self.paths.boxList[5].GetValue() + ".pkl\n")
                 else:
@@ -282,11 +282,11 @@ class OscaarFrame(wx.Frame):
                                self.radioBox.userParams["ingress1"].GetValue(), 'Ingress: ',  init, name="ingress")
                 self.parseTime(self.radioBox.userParams["egress"].GetValue(),
                                self.radioBox.userParams["egress1"].GetValue(), 'Egress: ',  init, name="egress")
-                if self.radioBox.userParams['trackPlot'].GetValue():
+                if self.radioBox.userParams['rbTrackPlot'].GetValue():
                     init.write("Plot Tracking: " + "on"+ "\n")
                 else:
                     init.write("Plot Tracking: " + "off"+ "\n")
-                if self.radioBox.userParams['photPlot'].GetValue():
+                if self.radioBox.userParams['rbPhotPlot'].GetValue():
                     init.write("Plot Photometry: " + "on"+ "\n")
                 else:
                     init.write("Plot Photometry: " + "off"+ "\n")
@@ -305,7 +305,7 @@ class OscaarFrame(wx.Frame):
                     else:
                         diffPhotCall = "from oscaar import differentialPhotometry"
                         subprocess.check_call(['python','-c',diffPhotCall])
-                        if self.radioBox.userParams["flatType"].GetValue() == True:
+                        if self.radioBox.userParams["rbFitAfterPhot"].GetValue() == True:
                             wx.CallAfter(self.createFrame)
 
                 else:
@@ -542,8 +542,8 @@ class OscaarFrame(wx.Frame):
                         ("Path to regions file", 4),
                         ("Ingress", "ingress"),("Egress", "egress"),
                         ("Radius", "radius"),("Tracking Zoom", "zoom"),
-                        ("Plot Tracking", "trackPlot"),
-                        ("Plot Photometry", "photPlot"),("Smoothing Constant", "smoothing"),
+                        ("Plot Tracking", "rbTrackPlot"),
+                        ("Plot Photometry", "rbPhotPlot"),("Smoothing Constant", "smoothing"),
                         ("Output Path",5),("Path to Dark Frames", 1),("Path to data images", 3),
                         ("CCD Gain",""),("Exposure Time Keyword","")]
                 
@@ -1400,9 +1400,9 @@ class MasterFlatFrame(wx.Frame):
         self.path2 = AddLCB(self.panel, -1, name="Path to Dark Flat Images: ", str="Browse", multFiles=True, saveType=None)
         self.path3 = AddLCB(self.panel, -1, name="Path to Save Master Flat: ", str="Browse", saveType=wx.FD_SAVE)
         
-        list = [('trackPlot',"","none",'')]
+        list = [('rbTrackPlot',"","On","Off")]
         self.plotBox = ParameterBox(self.panel,-1,list, name = "Plots")
-        list = [('flatType',"","Standard","Twilight")]
+        list = [('rbFlatType',"","Standard","Twilight")]
         self.flatBox = ParameterBox(self.panel,-1,list, name = "Flat Type")
         self.runButton = wx.Button(self.panel, -1, label = "Run")
         self.Bind(wx.EVT_BUTTON, self.run, self.runButton)
@@ -1465,13 +1465,13 @@ class MasterFlatFrame(wx.Frame):
                 path += '.fits'
             pathCorrected = path.replace('/', os.sep)
             outfolder = pathCorrected[:pathCorrected.rfind(os.sep)] + os.sep + '*'
-            self.plotCheck = self.plotBox.userParams['trackPlot'].GetValue()
+            self.plotCheck = self.plotBox.userParams['rbTrackPlot'].GetValue()
             if pathCorrected in glob(outfolder):
                 if self.overWrite == False:
                     OverWrite(self, -1, "Overwrite Master Flat", pathCorrected, "MasterFlat")
                     self.overWrite = True
             else:
-                if self.flatBox.userParams['flatType'].GetValue() == True:
+                if self.flatBox.userParams['rbFlatType'].GetValue() == True:
                     systematics.standardFlatMaker(self.flatImages, self.darkFlatImages, self.path3.boxList[1].GetValue(),
                                               self.plotCheck)
                 else:
@@ -1740,7 +1740,7 @@ class OverWrite(wx.Frame):
         self.Destroy()
         self.parent.overWrite = False  
         os.remove(self.path)
-        if self.parent.flatBox.userParams['flatType'].GetValue() == True:
+        if self.parent.flatBox.userParams['rbFlatType'].GetValue() == True:
             systematics.standardFlatMaker(self.parent.flatImages, self.parent.darkFlatImages, 
                                      self.parent.path3.boxList[1].GetValue(), self.parent.plotCheck)
         else:
@@ -1763,7 +1763,7 @@ class OverWrite(wx.Frame):
         self.parent.overWrite = False
         diffPhotCall = "from oscaar import differentialPhotometry"
         subprocess.check_call(['python','-c',diffPhotCall])
-        if self.parent.radioBox.userParams["flatType"].GetValue() == True:
+        if self.parent.radioBox.userParams["rbFitAfterPhot"].GetValue() == True:
             wx.CallAfter(self.parent.createFrame)
 
     def onNO(self, event):
@@ -1881,30 +1881,30 @@ class EphemerisFrame(wx.Frame):
         self.dropBox2.Add(self.twilightLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
         self.dropBox2.Add(self.twilightList, 0, flag = wx.ALIGN_CENTER)       
         
-        list = [('flatType',"","V","K")]
+        list = [('rbBand',"","V","K")]
         self.band = ParameterBox(self.panel,-1,list, name = "Band Type")
-        list = [('flatType',"","On","Off")]
-        self.showLT = ParameterBox(self.panel,-1,list, name = "Show Local Times", other = False)
+        list = [('rbShowLT',"","On","Off")]
+        self.showLT = ParameterBox(self.panel,-1,list, name = "Show Local Times", secondButton = True)
         
         self.botRadioBox = wx.BoxSizer(wx.HORIZONTAL)
         self.botRadioBox.Add(self.showLT, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
         self.botRadioBox.Add(self.band, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 15)
        
-        list = [('flatType',"","True","False")]
-        self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", other = False)
-        list = [('flatType',"","True", "False")]
+        list = [('rbCalcEclipse',"","True","False")]
+        self.calcEclipseBox = ParameterBox(self.panel,-1,list, name = "Calculate Eclipses", secondButton = True)
+        list = [('rbHtmlOut',"","True", "False")]
         self.htmlBox = ParameterBox(self.panel,-1,list, name = "HTML Out")
-        list = [('flatType',"","True","False")]
+        list = [('rbTextOut',"","True","False")]
         self.textBox = ParameterBox(self.panel,-1,list, name = "Text Out")
-        list = [('flatType',"","True","False")]
+        list = [('rbCalcTransits',"","True","False")]
         self.calcTransitsBox = ParameterBox(self.panel,-1,list, name = "Calculate Transits")
         
 
         self.radioBox = wx.BoxSizer(wx.VERTICAL)
+        self.radioBox.Add(self.calcTransitsBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.radioBox.Add(self.calcEclipseBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.radioBox.Add(self.htmlBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         self.radioBox.Add(self.textBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        self.radioBox.Add(self.calcTransitsBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
         
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.leftBox, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 5)
@@ -1955,7 +1955,7 @@ class EphemerisFrame(wx.Frame):
         
         if self.parameterCheck() == True:
             
-            if self.parent.singularOccurance == 0 and self.showLT.userParams["flatType"].GetValue():
+            if self.parent.singularOccurance == 0 and self.showLT.userParams["rbShowLT"].GetValue():
                 self.parent.singularOccurance = 1
                 InvalidParameter("", self, -1, str = "warnError")
             else:
@@ -1972,7 +1972,7 @@ class EphemerisFrame(wx.Frame):
                 import oscaar.extras.eph.calculateEphemerides as eph
                 eph.calculateEphemerides(path)
         
-                if self.htmlBox.userParams["flatType"].GetValue() == True: 
+                if self.htmlBox.userParams["rbHtmlOut"].GetValue() == True: 
                     webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
 
     def parameterCheck(self):
@@ -2180,8 +2180,8 @@ class EphemerisFrame(wx.Frame):
                     value = str(inline[1].strip())
                     list = [("name","observatoryName"),("min_horizon","lowerElevation"),("mag_limit","upperLimit"),
                             ("depth_limit","lowerLimit"),("latitude",""),("longitude",""),("elevation",""),
-                            ("temperature",""),("twilight",""),("calc_transits",6),("calc_eclipses",0),
-                            ("html_out",2),("text_out",4), ("show_lt","flatType"), ("band","flatType")]
+                            ("temperature",""),("twilight",""),("calc_transits",0),("calc_eclipses",2),
+                            ("html_out",4),("text_out",6), ("show_lt","rbShowLT"), ("band","rbBand")]
                 
                     for string,saveName in list:
                         if string == name:
@@ -2255,18 +2255,18 @@ class EphemerisFrame(wx.Frame):
         newObs.write("end_date: " + dates["date2"] + "\n")
         newObs.write("mag_limit: " + self.upperLimit + "\n")
         newObs.write("depth_limit: " + self.lowerLimit + "\n")
-        newObs.write("calc_eclipses: " + str(self.calcEclipseBox.userParams["flatType"].GetValue()) + "\n")
-        newObs.write("html_out: " + str(self.htmlBox.userParams["flatType"].GetValue()) + "\n")
-        newObs.write("text_out: " + str(self.textBox.userParams["flatType"].GetValue()) + "\n")
-        newObs.write("calc_transits: " + str(self.calcTransitsBox.userParams["flatType"].GetValue()) + "\n")
+        newObs.write("calc_transits: " + str(self.calcTransitsBox.userParams["rbCalcTransits"].GetValue()) + "\n")
+        newObs.write("calc_eclipses: " + str(self.calcEclipseBox.userParams["rbCalcEclipse"].GetValue()) + "\n")
+        newObs.write("html_out: " + str(self.htmlBox.userParams["rbHtmlOut"].GetValue()) + "\n")
+        newObs.write("text_out: " + str(self.textBox.userParams["rbTextOut"].GetValue()) + "\n")
         newObs.write("twilight: " + self.twilightChoices[self.twilight] + "\n")
-        tempLT = str(self.showLT.userParams["flatType"].GetValue())
+        tempLT = str(self.showLT.userParams["rbShowLT"].GetValue())
         if tempLT == "True":
             tempLT = "1"
         else:
             tempLT = "0"
         newObs.write("show_lt: " + tempLT + "\n")
-        tempString = str(self.band.userParams["flatType"].GetValue())
+        tempString = str(self.band.userParams["rbBand"].GetValue())
         if tempString == "True":
             bandString = "V"
         else:
@@ -3805,7 +3805,7 @@ class ParameterBox(wx.Panel):
     with multiple text controls for user input.
     '''
     
-    def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT, other=True):
+    def __init__(self, parent, id,list,name="",rows=1,cols=10,vNum=0,hNum=0,font=wx.NORMAL_FONT, secondButton=False):
         
         '''
         This initializes a box with different specifications depending on what the user requires.
@@ -3839,24 +3839,22 @@ class ParameterBox(wx.Panel):
         font : wx.font(), optional
             The type of style you would like the text to be displayed as.
         
-        other : bool, optional
-            If and only if the widget label for a set in `list` is the keyword 'flatType' this method will create 
-            radiobuttons instead of text boxes. When these radio buttons are created, by default the first radio 
-            button is always selected. If the default should be that the second radio button needs to be selected, 
-            simply set this variable to false.
-        
+        secondButton : bool, optional
+            If a radio button is created by this class, the first value of the radio button will be selected
+            since the default value is false. IF this variable is true however, the second value of the radio
+            button is selected.
+
         Notes
         -----
         The list that is given as a parameter must be an array of tuples. The format for these tuples is 
-        (string, string, string, string). The first string will be the keyword ('widget') to select that specific 
+        (string, string, string, string). The first string will be the keyword (widget) to select that specific 
         text box to work with in the code. The second string is the name of the parameter that will appear in the GUI.  
         The third string will be the tooltip that is seen if the user hovers over the box. The fourth string is 
         the default value for that parameter.
         
-        If however the widget is 'flatType', 'photPlot', or 'trackPlot', radiobuttons will be created instead. 
-        If the radio button should be with the labels 'on' and 'off', just make a tuple like 
-        ('trackPlot',ParameterName,'',''). If the names of the labels need to be different, then use it like this: 
-        ('flatType',ParameterName,"True","False").
+        If however, the widget name begins with 'rb', a radio button will be created. In this scenario, the second
+        string will be the name of the parameter, with the 3rd and 4th strings being the values of the two radio
+        buttons that will be created.
         '''
            
         wx.Panel.__init__(self,parent,id)
@@ -3873,19 +3871,15 @@ class ParameterBox(wx.Panel):
             
             if widget == "observatoryName" or widget == "fileName":
                 self.userParams[widget] = wx.TextCtrl(self, -1, value = value, size = (220,wx.DefaultSize.GetHeight()))
-            elif widget != 'trackPlot' and widget != 'photPlot' and widget != 'flatType':
+            elif not widget.find('rb') == 0:
                 self.userParams[widget] = wx.TextCtrl(self, -1, value = value)
-    
-            if widget == 'trackPlot' or widget == 'photPlot' or widget == 'flatType':
-                if widget == 'flatType':
-                    label1 = ToolTip
-                    label2 = value
-                else:
-                    label1 = "On"
-                    label2 = "Off"
+
+            if widget.find('rb') == 0:
+                label1 = ToolTip
+                label2 = value
                 self.userParams[widget] = wx.RadioButton(self, label = label1, style = wx.RB_GROUP)
                 sizer0.Add(self.userParams[widget], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                if other == False:
+                if secondButton == True:
                     self.userParams[widget+"1"] = wx.RadioButton(self, label = label2)
                     self.userParams[widget+"1"].SetValue(True)
                 else:

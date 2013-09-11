@@ -1,12 +1,11 @@
 name: Perseus Observatory (Athens, Greece)
-latitude: 38:17:58.9
-longitude: 23:44:34.8
+latitude: 38.0:17.0:58.9
+longitude: 23.0:44.0:34.8
 elevation: 85.0
 temperature: 10.0
 min_horizon: 20:00:00
-start_date: (2013,6,1,0,0,0)
-end_date: (2013,6,8,0,0,0)
-band: v
+start_date: (2013,9,10,0,0,0)
+end_date: (2013,9,17,0,0,0)
 mag_limit: 12.0
 depth_limit: 0.008
 calc_transits: True
@@ -14,5 +13,5 @@ calc_eclipses: False
 html_out: True
 text_out: True
 twilight: -6
-time_zone: +2
-daylight_savings: False
+show_lt: 0
+band: V

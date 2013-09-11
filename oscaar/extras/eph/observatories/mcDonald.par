@@ -1,12 +1,11 @@
 name: McDonald Observatory, Texas
-latitude: 30:40:17
-longitude: -104:01:21
+latitude: 30.0:40.0:17.0
+longitude: -104.0:1.0:21.0
 elevation: 2070.0
 temperature: 10.0
 min_horizon: 15:00:00
-start_date: (2013,5,10,00,00,00)
-end_date: (2013,5,20,00,00,00)
-band: v
+start_date: (2013,9,10,0,0,0)
+end_date: (2013,9,17,0,0,0)
 mag_limit: 15.0
 depth_limit: 0.000
 calc_transits: True
@@ -14,5 +13,5 @@ calc_eclipses: True
 html_out: True
 text_out: True
 twilight: -6
-time_zone: -6
-daylight_savings: False
+show_lt: 0
+band: V
