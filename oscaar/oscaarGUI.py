@@ -38,6 +38,7 @@ class OscaarFrame(wx.Frame):
         self.loadMasterFlat = False
         self.overWrite = False
         self.ds9Open = False
+        self.messageFrame = False
         self.loadFitError = False
         self.loadEphFrame = False
         self.singularOccurance = 0
@@ -200,8 +201,8 @@ class OscaarFrame(wx.Frame):
         self.values["radius"] = self.leftBox.userParams["radius"].GetValue()
         self.radiusError = "radius"
         
-        if invalidDarkFrames != "": 
-            InvalidParameter(invalidDarkFrames, None, -1, str="fits", secondValue="the path to Dark Frames")
+        if invalidDarkFrames != "":
+            InvalidParameter(invalidDarkFrames, self, -1, stringVal="fits", secondValue="the path to Dark Frames")
         elif os.path.isfile(masterFlat) != True or (masterFlat.lower().endswith(".fit") != True and \
              masterFlat.lower().endswith(".fits") != True) :
             tempString = masterFlat
@@ -212,16 +213,16 @@ class OscaarFrame(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            InvalidParameter(tempString, None, -1, str="master", secondValue="path to the Master Flat")
+            InvalidParameter(tempString, self, -1, stringVal="master", secondValue="path to the Master Flat")
         elif invalidDataImages != "":
-            InvalidParameter(invalidDataImages, None, -1, str="fits", secondValue="the path to Data Images")
+            InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
         elif self.checkRegionsBox(regionsFile) == False:  
             pass
         elif not os.path.isdir(self.outputFile.rpartition(str(os.sep))[0]) or \
              not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
-            InvalidParameter(self.outputFile, None, -1, str="output", secondValue="output file")
+            InvalidParameter(self.outputFile, self, -1, stringVal="output", secondValue="output file")
         elif self.checkAperture(self.values["radius"]) != True:
-            InvalidParameter(self.leftBox.userParams["radius"].GetValue(), self, -1, str = self.radiusError)
+            InvalidParameter(self.leftBox.userParams["radius"].GetValue(), self, -1, stringVal=self.radiusError)
         elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].GetValue(),
                                    self.radioBox.userParams['egress1'].GetValue(),
                                    self.radioBox.userParams['ingress'].GetValue(),
@@ -279,13 +280,13 @@ class OscaarFrame(wx.Frame):
 
                 else:
                     if self.loadFitError == False:
-                        InvalidParameter("", self, -1, str="fitOpen")
+                        InvalidParameter("", self, -1, stringVal="fitOpen")
                         self.loadFitError = True
             except ValueError:
                 string2 = string
                 if string2 == "smoothing":
                     string2 = "smoothing constant"
-                InvalidParameter(self.leftBox.userParams[string].GetValue(),None,-1, str="leftbox", secondValue=string2)
+                InvalidParameter(self.leftBox.userParams[string].GetValue(),self,-1, stringVal="leftbox", secondValue=string2)
     
     def timeAndDateCheck(self, time1, time2, date1, date2):
         
@@ -328,7 +329,7 @@ class OscaarFrame(wx.Frame):
         for timeArray, value in [(time1.split(":"), time1),
                                  (time2.split(":"), time2)]:
             if len(timeArray) != 3:
-                InvalidParameter(value, self, -1, str="dateTime", secondValue="time")
+                InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                 return False
             else:
                 try:
@@ -340,21 +341,21 @@ class OscaarFrame(wx.Frame):
                     seconds.append(second)
     
                     if len(timeArray[0].strip()) > 2 or len(timeArray[1].strip()) > 2 or len(timeArray[2].strip()) > 2:
-                        InvalidParameter(value, None, -1, str = "dateTime", secondValue="time")
+                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                         return False
                     
                     if hour > 23 or hour < 0 or minute > 59 or minute < 0 or second > 59 or second < 0:
-                        InvalidParameter(value, None, -1, str = "dateTime", secondValue="time")
+                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                         return False
                     
                 except ValueError:
-                    InvalidParameter(value, self, -1, str = "dateTime", secondValue="time")
+                    InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                     return False
                 
         for dateArray,value in [(date1.split("/"),date1),
                                 (date2.split("/"),date2)]:
             if len(dateArray) != 3:
-                InvalidParameter(value, self, -1, str="dateTime", secondValue="date")
+                InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                 return False
             else:
                 try:
@@ -366,40 +367,40 @@ class OscaarFrame(wx.Frame):
                     days.append(day)
                     
                     if len(dateArray[0].strip()) != 4 or len(dateArray[1].strip()) > 2 or len(dateArray[2].strip()) > 2:
-                        InvalidParameter(value, self, -1, str="dateTime", secondValue="date")
+                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                         return False
                     minYear = datetime.date.today().year - 100
                     maxYear = datetime.date.today().year + 100
                     if year < minYear or year > maxYear or month > 12 or month < 0 or day > 31 or day < 0 or \
                        month == 0 or year == 0 or day == 0:
-                        InvalidParameter(value, self, -1, str="dateTime", secondValue="date")
+                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                         return False
                 except ValueError:
-                    InvalidParameter(value, self, -1, str="dateTime", secondValue="date")
+                    InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                     return False
 
         if years[0] > years[1]:
-            InvalidParameter(date1, self, -1, str = "logicalDate")
+            InvalidParameter(date1, self, -1, stringVal="logicalDate")
             return False
         elif years[0] == years[1]:
             if months[0] > months[1]:
-                InvalidParameter(date1, self, -1, str = "logicalDate")
+                InvalidParameter(date1, self, -1, stringVal="logicalDate")
                 return False
             elif months[0] == months[1]:
                 if days[0] > days[1]:
-                    InvalidParameter(date1, self, -1, str = "logicalDate")
+                    InvalidParameter(date1, self, -1, stringVal="logicalDate")
                     return False
                 elif days[0] == days[1]:
                     if hours[0] > hours[1]:
-                        InvalidParameter(time1, self, -1, str = "logicalTime")
+                        InvalidParameter(time1, self, -1, stringVal="logicalTime")
                         return False
                     elif hours[0] == hours[1]:
                         if minutes[0] > minutes[1]:
-                            InvalidParameter(time1, self, -1, str = "logicalTime")
+                            InvalidParameter(time1, self, -1, stringVal="logicalTime")
                             return False
                         elif minutes[0] == minutes[1]:
                             if seconds[0] >= seconds [1]:
-                                InvalidParameter(time1, self, -1, str = "logicalTime")
+                                InvalidParameter(time1, self, -1, stringVal="logicalTime")
                                 return False
         return True
     
@@ -659,7 +660,7 @@ class OscaarFrame(wx.Frame):
         setValueString = ""
         tempString = ""
         if boxValue == "":
-            InvalidParameter(boxValue, self, -1, str="emptyReg")
+            InvalidParameter(boxValue, self, -1, stringVal="emptyReg")
             return False
         splitSets = boxValue.split(";")
         checkSet = self.paths.boxList[3].GetValue().strip().split(",")
@@ -670,7 +671,7 @@ class OscaarFrame(wx.Frame):
                 if splitSets[0].split(",")[0].strip().lower().endswith(".reg") != True or \
                    len(glob(splitSets[0].split(",")[0])) != 1:
                     InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0]
-                                     + "\nReference: " + splitSets[0].split(",")[1], self, -1, str="invalidReg")
+                                     + "\nReference: " + splitSets[0].split(",")[1], self, -1, stringVal="invalidReg")
                     return False
                 setValueString = splitSets[0].split(",")[0].strip() + "," + \
                                  self.paths.boxList[3].GetValue().split(",")[0].strip() + ";"
@@ -683,14 +684,14 @@ class OscaarFrame(wx.Frame):
                             tempString = "tempRef"
                             tempRef = eachSet.split(",")[1].strip()
                             if len(glob(tempReg)) != 1 or tempReg.lower().endswith(".reg") == False:
-                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidReg")
+                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidReg")
                                 return False
                             elif len(glob(tempRef)) != 1 or (tempRef.lower().endswith(".fits") == False and 
                                                              tempRef.lower().endswith(".fit") == False):
-                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRef")
+                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRef")
                                 return False
                             elif all(tempRef != temp for temp in checkSet):
-                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRefExist")
+                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRefExist")
                                 return False
                             setValueString += tempReg + "," + tempRef + ";"
                 except IndexError:
@@ -699,13 +700,13 @@ class OscaarFrame(wx.Frame):
                     elif tempString == "tempRef":
                         tempRef = ""
                     if len(eachSet.split(",")) == 1:
-                        InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="outofbounds")
+                        InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="outofbounds")
                         return False
         except IndexError:
             if splitSets[0].split(",")[0].strip().lower().endswith(".reg") != True or \
                    len(glob(splitSets[0].split(",")[0])) != 1:
                 InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0] 
-                                 + "\nReference: " + splitSets[0].split(",")[1], self, -1, str="invalidReg")
+                                 + "\nReference: " + splitSets[0].split(",")[1], self, -1, stringVal="invalidReg")
                 return False
             setValueString = splitSets[0].split(",")[0].strip() + "," + \
                              self.paths.boxList[3].GetValue().split(",")[0].strip()
@@ -719,14 +720,14 @@ class OscaarFrame(wx.Frame):
                         tempString = "tempRef"
                         tempRef = eachSet.split(",")[1].strip()
                         if len(glob(tempReg)) != 1 or tempReg.lower().endswith(".reg") == False:
-                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidReg")
+                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidReg")
                             return False
                         elif len(glob(tempRef)) != 1 or (tempRef.lower().endswith(".fits") == False and 
                                                          tempRef.lower().endswith(".fit") == False):
-                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRef")
+                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRef")
                             return False
                         elif all(tempRef != temp for temp in checkSet):
-                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="invalidRefExist")
+                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRefExist")
                             return False
                         setValueString += tempReg + "," + tempRef + ";"
             except IndexError:
@@ -735,7 +736,7 @@ class OscaarFrame(wx.Frame):
                 elif tempString == "tempRef":
                     tempRef = ""
                 if len(eachSet.split(",")) == 1:
-                    InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, str="outofbounds")
+                    InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="outofbounds")
                     return False
         refArray = []
         regArray = []
@@ -756,13 +757,13 @@ class OscaarFrame(wx.Frame):
                             tempReg = key
                     tempString = "\nRegions: " + reg + "\nReference: " + ref + "\nBecause ---" + "\nRegions: " + \
                     tempReg + "\nIs already associated with the reference file."
-                    InvalidParameter(tempString, self, -1, str="referenceImageDup")
+                    InvalidParameter(tempString, self, -1, stringVal="referenceImageDup")
                     return False
                 elif regTemp == True and refTemp == False:
                     tempRef = tempDict.get(reg)
                     tempString = "\nRegions: " + reg + "\nReference: " + ref + "\nBecause ---" + "\nRegions: " + \
                     reg + "\nIs already associated with:\nReference: " + tempRef
-                    InvalidParameter(tempString, self, -1, str="regionsDup")
+                    InvalidParameter(tempString, self, -1, stringVal="regionsDup")
                     return False
         
         setValueString = ""
@@ -821,18 +822,18 @@ class OscaarFrame(wx.Frame):
                     subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
                                                    'extras','ds9',sys.platform,'ds9')])
                 except errorType:
-                    InvalidParameter("", self, -1, str="ds9")
+                    InvalidParameter("", self, -1, stringVal="ds9")
             elif name == "extra":
                 invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
                 if invalidDataImages != "":
-                    InvalidParameter(invalidDataImages, self, -1, str="fits", secondValue="the path to Data Images")
+                    InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
                 elif self.checkRegionsBox(self.paths.boxList[4].GetValue()) == True:
                     ExtraRegions(self,-1)
                     self.extraRegionsOpen = True
             elif name == "observatory":
                 invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
                 if invalidDataImages != "":
-                    InvalidParameter(invalidDataImages, self, -1, str="fits", secondValue="the path to Data Images")
+                    InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
                 else:
                     ObservatoryFrame(self, -1)
                     self.loadObservatoryFrame = True
@@ -940,7 +941,7 @@ class ObservatoryFrame(wx.Frame):
         wx.Frame.__init__(self, parent, objectID, "Change Observatory Parameters")
         self.panel = wx.Panel(self)
         self.parent = parent
-        
+        self.messageFrame = False
         self.titlebox = wx.StaticText(self.panel, -1, "Observatory Parameters")
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
@@ -1048,17 +1049,17 @@ class ObservatoryFrame(wx.Frame):
             self.params.userParams["ccd"].SetValue(str(tempCCD))
             timeKey = self.timeList.GetValue().strip()
             if timeKey == "":
-                InvalidParameter(timeKey, self, -1, str="emptyKeyword")
+                InvalidParameter(timeKey, self, -1, stringVal="emptyKeyword")
                 return False
             elif not timeKey in self.allKeys:
-                InvalidParameter(timeKey, self, -1, str="invalidKeyword")
+                InvalidParameter(timeKey, self, -1, stringVal="invalidKeyword")
                 return False
             elif (not timeKey in self.unionKeys) and (timeKey in self.allKeys):
-                InvalidParameter(timeKey, self, -1, str="emailKeyword")
+                InvalidParameter(timeKey, self, -1, stringVal="emailKeyword")
                 return False
             self.timeList.SetValue(timeKey)
         except ValueError:
-            InvalidParameter(self.params.userParams["ccd"].GetValue(),None,-1, str="leftbox", secondValue="ccd")
+            InvalidParameter(self.params.userParams["ccd"].GetValue(),self,-1, stringVal="leftbox", secondValue="ccd")
             return False
         return True
 
@@ -1129,6 +1130,7 @@ class ExtraRegions(wx.Frame):
         wx.Frame.__init__(self, parent, objectID, "Extra Regions Files")
         self.panel = wx.Panel(self)
         self.parent = parent
+        self.messageFrame = False
         
         self.titlebox = wx.StaticText(self.panel, -1, "Extra Regions Files")
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -1251,21 +1253,21 @@ class ExtraRegions(wx.Frame):
                         break
 
             if uniqueSet == False:
-                InvalidParameter("", self, -1, str="setExists")
+                InvalidParameter("", self, -1, stringVal="setExists")
             elif uniqueReg == False:
                 tempString = "\nRegions: " + regions + "\nReference: " + reference + "\nBecause ---" + "\nRegions: " + \
                              tempReg + "\nIs already associated with:\nReference: " + tempRef
-                InvalidParameter(tempString, self, -1, str="regionsDup")
+                InvalidParameter(tempString, self, -1, stringVal="regionsDup")
             elif uniqueRef == False:
                 tempString = "\nRegions: " + regions + "\nReference: " + reference + "\nBecause ---" + "\nRegions: " + \
                              tempReg + "\nIs already associated with this reference file."
-                InvalidParameter(tempString, self, -1, str="referenceImageDup")
+                InvalidParameter(tempString, self, -1, stringVal="referenceImageDup")
             elif all(reference != temp for temp in dataImages):
-                InvalidParameter("\nRegions: "+ regions + "\nReference: " + reference, self, -1, str="invalidRefExist")
+                InvalidParameter("\nRegions: "+ regions + "\nReference: " + reference, self, -1, stringVal="invalidRefExist")
             else:
                 regionsBox += setString + ";"
                 self.parent.paths.boxList[4].SetValue(regionsBox)
-                InvalidParameter("", self, -1, str="regionsUpdate")
+                InvalidParameter("", self, -1, stringVal="regionsUpdate")
     
     def SetCheck(self, reg, ref):
         
@@ -1288,10 +1290,10 @@ class ExtraRegions(wx.Frame):
         '''
         
         if reg == "":
-            InvalidParameter(reg, self, -1, str="regionsError1")
+            InvalidParameter(reg, self, -1, stringVal="regionsError1")
             return False
         elif ref == "":
-            InvalidParameter(ref, self, -1, str="regionsError1")
+            InvalidParameter(ref, self, -1, stringVal="regionsError1")
             return False
 
         if len(glob(reg)) != 1:
@@ -1303,7 +1305,7 @@ class ExtraRegions(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            InvalidParameter(tempString, self, -1, str="regionsError2")
+            InvalidParameter(tempString, self, -1, stringVal="regionsError2")
             return False
         elif len(glob(ref)) != 1:
             tempString = ref
@@ -1314,13 +1316,13 @@ class ExtraRegions(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            InvalidParameter(tempString, self, -1, str="regionsError2")
+            InvalidParameter(tempString, self, -1, stringVal="regionsError2")
             return False
         elif reg.lower().endswith(".reg") == False:
-            InvalidParameter(reg, self, -1, str="regionsError3")
+            InvalidParameter(reg, self, -1, stringVal="regionsError3")
             return False
         elif ref.lower().endswith(".fits") == False and ref.lower().endswith(".fit") == False:
-            InvalidParameter(ref, self, -1, str="regionsError4")
+            InvalidParameter(ref, self, -1, stringVal="regionsError4")
             return False
         return True        
 
@@ -1386,6 +1388,8 @@ class MasterFlatFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.overWrite = False
+        self.messageFrame = False
+        
         self.titlebox = wx.StaticText(self.panel, -1, 'OSCAAR: Master Flat Maker')
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
@@ -1440,14 +1444,14 @@ class MasterFlatFrame(wx.Frame):
         self.flatImages = self.checkFileInputs(self.path1.boxList[1].GetValue(), self.path1.boxList[1])
         self.darkFlatImages = self.checkFileInputs(self.path2.boxList[1].GetValue(), self.path2.boxList[1])
         if self.flatImages != "":
-            InvalidParameter(self.flatImages, None, -1, str="flat1")
+            InvalidParameter(self.flatImages, self, -1, stringVal="flat1")
         elif self.darkFlatImages != "":
-            InvalidParameter(self.darkFlatImages, None, -1, str="flat2")
+            InvalidParameter(self.darkFlatImages, self, -1, stringVal="flat2")
         elif not path:
-            InvalidParameter(str(path), None, -1, str="flat3")
+            InvalidParameter(str(path), self, -1, stringVal="flat3")
         elif not os.path.isdir(path[path.rfind(os.sep)]) or \
              not len(path) > (len(path[:path.rfind(os.sep)]) + 1):
-            InvalidParameter(path, None, -1, str="flat3")
+            InvalidParameter(path, self, -1, stringVal="flat3")
         else:
             self.flatImages = []
             self.darkFlatImages = []
@@ -1809,6 +1813,7 @@ class EphemerisFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         self.parent = parent
+        self.messageFrame = False
         
         self.titlebox = wx.StaticText(self.panel, -1, 'Ephemeris Calculator')
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -1954,7 +1959,7 @@ class EphemerisFrame(wx.Frame):
                 
                 if self.parent.singularOccurance == 0 and self.showLT.userParams["rbShowLT"].GetValue():
                     self.parent.singularOccurance = 1
-                    InvalidParameter("", self, -1, str = "warnError")
+                    InvalidParameter("", self, -1, stringVal="warnError")
                 else:
                     outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
                                                   'extras','eph','ephOutputs','eventReport.html'))
@@ -1971,7 +1976,7 @@ class EphemerisFrame(wx.Frame):
                     if self.htmlBox.userParams["rbHtmlOut"].GetValue() == True:
                         webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         except ImportError:
-            InvalidParameter("", None, -1, str="importError")
+            InvalidParameter("", self, -1, stringVal="importError")
 
     def parameterCheck(self):
         
@@ -1999,10 +2004,10 @@ class EphemerisFrame(wx.Frame):
         self.twilight = self.twilightList.GetValue().strip()
 
         if self.name == "" or self.name == "Enter the name of the Observatory":
-            InvalidParameter(self.name, self, -1, str = "obsName")
+            InvalidParameter(self.name, self, -1, stringVal="obsName")
             return False
         elif self.fileName == "" or self.fileName == "Enter the name of the file":
-            InvalidParameter(self.fileName, self, -1, str ="obsFile")
+            InvalidParameter(self.fileName, self, -1, stringVal="obsFile")
             return False
         years = []
         months = []
@@ -2010,7 +2015,7 @@ class EphemerisFrame(wx.Frame):
         for dateArray,value in [(self.startingDate.split("/"),self.startingDate),
                                 (self.endingDate.split("/"),self.endingDate)]:
             if len(dateArray) != 3:
-                InvalidParameter(value, self, -1, str="obsDate")
+                InvalidParameter(value, self, -1, stringVal="obsDate")
                 return False
             else:
                 try:
@@ -2022,34 +2027,34 @@ class EphemerisFrame(wx.Frame):
                     days.append(day)
                     
                     if len(dateArray[0].strip()) != 4 or len(dateArray[1].strip()) > 2 or len(dateArray[2].strip()) > 2:
-                        InvalidParameter(value, self, -1, str="obsDate")
+                        InvalidParameter(value, self, -1, stringVal="obsDate")
                         return False
                     minYear = datetime.date.today().year - 100
                     maxYear = datetime.date.today().year + 100
                     if year < minYear or year > maxYear or month > 12 or month < 0 or day > 31 or day < 0 or \
                        month == 0 or year == 0 or day == 0:
-                        InvalidParameter(value, self, -1, str="dateRange")
+                        InvalidParameter(value, self, -1, stringVal="dateRange")
                         return False
                 except ValueError:
-                    InvalidParameter(value, self, -1, str="obsDate")
+                    InvalidParameter(value, self, -1, stringVal="obsDate")
                     return False
 
         if years[0] > years[1]:
-            InvalidParameter(self.startingDate, self, -1, str = "logicalDate")
+            InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
             return False
         elif years[0] == years[1]:
             if months[0] > months[1]:
-                InvalidParameter(self.startingDate, self, -1, str = "logicalDate")
+                InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
                 return False
             elif months[0] == months[1]:
                 if days[0] >= days[1]:
-                    InvalidParameter(self.startingDate, self, -1, str = "logicalDate")
+                    InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
                     return False
         
         for coordArray, value, coordType in [(self.latitude.split(":"),self.latitude, "lat"), 
                                   (self.longitude.split(":"),self.longitude, "long")]:
             if(len(coordArray) != 3):
-                InvalidParameter(value, self, -1, str = "coordTime")
+                InvalidParameter(value, self, -1, stringVal="coordTime")
                 return False
             else:
                 try:
@@ -2059,23 +2064,23 @@ class EphemerisFrame(wx.Frame):
                     if coordType == "lat":
                         self.latitude = str(deg) + ":" + str(minutes) + ":" + str(sec)
                         if abs(deg) > 90.0 or minutes >= 60 or minutes < 0.0 or sec >= 60 or sec < 0.0:
-                            InvalidParameter(value, self, -1, str = "coordRange")
+                            InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                     elif coordType == "long":
                         self.longitude = str(deg) + ":" + str(minutes) + ":" + str(sec)
                         if abs(deg) > 180.0 or minutes >= 60 or minutes < 0.0 or sec >= 60 or sec < 0.0:
-                            InvalidParameter(value, self, -1, str = "coordRange")
+                            InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                     if abs(deg) == 90 and coordType == "lat":
                         if minutes != 0 or sec != 0:
-                            InvalidParameter(value, self, -1, str = "coordRange")
+                            InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                     elif abs(deg) == 180 and coordType == "long":
                         if minutes != 0 or sec != 0:
-                            InvalidParameter(value, self, -1, str = "coordRange")
+                            InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                 except ValueError:
-                    InvalidParameter(value, self, -1, str = "coordTime")
+                    InvalidParameter(value, self, -1, stringVal="coordTime")
                     return False
         try:
             tempString = "elevation"
@@ -2093,7 +2098,7 @@ class EphemerisFrame(wx.Frame):
             stripElevation = self.lowerElevation.split(":")
 
             if len(stripElevation) != 3:
-                InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+                InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
                 return False
 
             temp6 = int(stripElevation[0])
@@ -2101,45 +2106,45 @@ class EphemerisFrame(wx.Frame):
             temp8 = int(stripElevation[2])
             
             if temp6 < 0.0 or temp6 > 90 or temp7 >= 60 or temp7 < 0.0 or temp8 >= 60 or temp8 < 0.0:
-                InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+                InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
                 return False
             elif temp6 == 90:
                 if temp7 != 0 or temp8 != 0:
-                    InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+                    InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
                     return False
               
             self.lowerElevation = stripElevation[0].strip() + ":" + stripElevation[1].strip() + ":" +\
                                   stripElevation[2].strip()
             
             if temp1 < 0:
-                InvalidParameter(self.elevation, self, -1, str = "tempElevNum", secondValue="elevation")
+                InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue="elevation")
                 return False
             
             elif temp2 < 0:
-                InvalidParameter(self.temperature, self, -1, str = "tempElevNum", secondValue="temperature")
+                InvalidParameter(self.temperature, self, -1, stringVal="tempElevNum", secondValue="temperature")
                 return False
             
             elif temp4 < 0:
-                InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", secondValue="depth lower limit")
+                InvalidParameter(self.lowerLimit, self, -1, stringVal="tempElevNum", secondValue="depth lower limit")
                 return False
 
         except ValueError:
             if tempString == "temperature":
-                InvalidParameter(self.temperature, self, -1, str = "tempElevNum", secondValue=tempString)
+                InvalidParameter(self.temperature, self, -1, stringVal="tempElevNum", secondValue=tempString)
             elif tempString == "apparent magnitude upper limit":
-                InvalidParameter(self.upperLimit, self, -1, str = "tempElevNum", secondValue=tempString)
+                InvalidParameter(self.upperLimit, self, -1, stringVal="tempElevNum", secondValue=tempString)
             elif tempString == "depth lower limit":
-                InvalidParameter(self.lowerLimit, self, -1, str = "tempElevNum", secondValue=tempString)
+                InvalidParameter(self.lowerLimit, self, -1, stringVal="tempElevNum", secondValue=tempString)
             elif tempString == "lower elevation limit":
-                InvalidParameter(self.lowerElevation, self, -1, str = "lowerElevation")
+                InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
             else:
-                InvalidParameter(self.elevation, self, -1, str = "tempElevNum", secondValue=tempString)
+                InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue=tempString)
             return False
         
         if all(self.twilight != temp for temp in ["Civil Twilight (-6"u"\u00b0"")",
                                          "Nautical Twilight (-12"u"\u00b0"")",
                                          "Astronomical Twilight (-18"u"\u00b0"")"]):
-            InvalidParameter(self.twilight, self, -1, str = "twilight")
+            InvalidParameter(self.twilight, self, -1, stringVal="twilight")
             return False
                 
         return True
@@ -2368,6 +2373,7 @@ class FittingFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         self.parent = parent
+        self.messageFrame = False
         
         self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
         self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", saveType=wx.FD_SAVE)
@@ -2496,7 +2502,7 @@ class FittingFrame(wx.Frame):
             tempSaveLoc = self.saveLocation.GetValue()
             if not os.path.isdir(tempSaveLoc.rpartition(str(os.sep))[0]) or \
             not len(tempSaveLoc) > (len(tempSaveLoc[:tempSaveLoc.rfind(os.sep)]) + 1):
-                InvalidParameter(tempSaveLoc, None, -1, str="output", secondValue="output file")
+                InvalidParameter(tempSaveLoc, self, -1, stringVal="output", secondValue="results output file")
             else:
                 try:
                     self.pathText = self.pklPathTxt.GetValue()
@@ -2505,7 +2511,7 @@ class FittingFrame(wx.Frame):
                         MCMCFrame(self, -1)
                         self.loadMCMC = True
                 except AttributeError:
-                    InvalidParameter("", self, -1, str="oldPKL") 
+                    InvalidParameter("", self, -1, stringVal="oldPKL") 
 
     def validityCheck(self):
         
@@ -2518,13 +2524,13 @@ class FittingFrame(wx.Frame):
         if pathName != "":
             if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
-                    InvalidParameter(pathName, self, -1, str="path")
+                    InvalidParameter(pathName, self, -1, stringVal="path")
                     return False
             else:
-                InvalidParameter(pathName, self, -1, str="path")
+                InvalidParameter(pathName, self, -1, stringVal="path")
                 return False 
         else:
-            InvalidParameter(pathName, self, -1, str="path")
+            InvalidParameter(pathName, self, -1, stringVal="path")
             return False
         return True
     
@@ -2574,6 +2580,7 @@ class LoadOldPklFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.loadGraphFrame = False
+        self.messageFrame = False
         self.data = ""
         
         self.box = AddLCB(self.panel,-1, parent2 = self, buttonLabel="Browse\t (Ctrl-O)",
@@ -2729,7 +2736,7 @@ class LoadOldPklFrame(wx.Frame):
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
             except AttributeError:
-                InvalidParameter("", self, -1, str="oldPKL") 
+                InvalidParameter("", self, -1, stringVal="oldPKL") 
         
         dlg.Destroy()
 
@@ -2908,15 +2915,15 @@ class LoadOldPklFrame(wx.Frame):
             if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
                     if throwException:
-                        InvalidParameter(pathName, self, -1, str="path")
+                        InvalidParameter(pathName, self, -1, stringVal="path")
                     return False
             else:
                 if throwException:
-                    InvalidParameter(pathName, self, -1, str="path")
+                    InvalidParameter(pathName, self, -1, stringVal="path")
                 return False 
         else:
             if throwException:
-                InvalidParameter(pathName, self, -1, str="path")
+                InvalidParameter(pathName, self, -1, stringVal="path")
             return False
         return True
 
@@ -2935,19 +2942,19 @@ class LoadOldPklFrame(wx.Frame):
         '''
         
         if len(self.apertureRadii) == 0:
-            InvalidParameter(str(self.apertureRadii), self, -1, str = "radiusListError")
+            InvalidParameter(str(self.apertureRadii), self, -1, stringVal="radiusListError")
             return False
         elif self.radiusList.GetValue() == "":
-            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         try:
             self.tempNum = np.where(self.epsilonCheck(self.apertureRadii,float(self.radiusList.GetValue())))
             if len(self.tempNum[0]) == 0:
                 tempString = self.radiusList.GetValue() + " was not found in " + str(self.apertureRadii)
-                InvalidParameter(tempString, self, -1, str = "radiusListError2")
+                InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
                 return False
         except ValueError:
-            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         return True
     
@@ -2978,7 +2985,7 @@ class LoadOldPklFrame(wx.Frame):
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
             except AttributeError:
-                InvalidParameter("", self, -1, str="oldPKL") 
+                InvalidParameter("", self, -1, stringVal="oldPKL") 
 
     def epsilonCheck(self,a,b):
         
@@ -3121,13 +3128,13 @@ class GraphFrame(wx.Frame):
 
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox.Add(self.box, border=5, flag=wx.ALL)
-        self.okButton = wx.Button(self.panel,label = 'Plot')
-        self.Bind(wx.EVT_BUTTON,self.draw_plot, self.okButton)
+        self.plotButton = wx.Button(self.panel,label = 'Plot')
+        self.Bind(wx.EVT_BUTTON,self.draw_plot, self.plotButton)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox.Add(self.canvas, 1, flag=wx.LEFT | wx.TOP | wx.GROW)  
         self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
-        self.vbox.Add(self.okButton,0,flag=wx.ALIGN_CENTER|wx.TOP)
+        self.vbox.Add(self.plotButton,0,flag=wx.ALIGN_CENTER|wx.TOP)
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
@@ -3429,20 +3436,20 @@ class LeastSquaresFitFrame(wx.Frame):
 
     def update(self,event):
         if self.box1.boxList[1].GetValue() == '':
-            InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, str="planet")
+            InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, stringVal="planet")
         else:
             self.planet = self.box1.boxList[1].GetValue()
             [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
             if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
-                InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, str="planet")
+                InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, stringVal="planet")
             else:
                 self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
                 self.box.userParams['a/Rs'].SetValue(str(AOverRs))
                 self.box.userParams['per'].SetValue(str(per))
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box.userParams['ecc'].SetValue(str(ecc))
-                InvalidParameter("",None,-1, str="params")
+                InvalidParameter("",None,-1, stringVal="params")
 
     def create_menu(self):
     
@@ -3484,6 +3491,7 @@ class MCMCFrame(wx.Frame):
         
         self.panel = wx.Panel(self)
         self.parent = parent
+        self.messageFrame = False
         self.pT = self.parent.pathText
         self.saveLoc = self.parent.saveLocation.GetValue()
         self.data = self.parent.data
@@ -3659,17 +3667,17 @@ class MCMCFrame(wx.Frame):
         '''
         
         if self.radiusList.GetValue() == "":
-            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         try:
             condition = self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue()))
             self.tempNum = np.array(self.data.apertureRadii)[condition]
             if len(self.tempNum) == 0:
                 tempString = self.radiusList.GetValue() + " was not found in " + str(self.data.apertureRadii)
-                InvalidParameter(tempString, self, -1, str = "radiusListError2")
+                InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
                 return False
         except ValueError:
-            InvalidParameter(self.radiusList.GetValue(), self, -1, str = "radiusError")
+            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         return True
 
@@ -3686,20 +3694,20 @@ class MCMCFrame(wx.Frame):
         '''
                 
         if self.LCB.boxList[1].GetValue() == '':
-            InvalidParameter(self.LCB.boxList[1].GetValue(), None,-1, str="planet")
+            InvalidParameter(self.LCB.boxList[1].GetValue(), self,-1, stringVal="planet")
         else:
             self.planet = self.LCB.boxList[1].GetValue()
             [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
             if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
-                InvalidParameter(self.LCB.boxList[1].GetValue(), None,-1, str="planet")
+                InvalidParameter(self.LCB.boxList[1].GetValue(), self,-1, stringVal="planet")
             else:
                 self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
                 self.box.userParams['a/Rs'].SetValue(str(AOverRs))
                 self.box3.userParams['per'].SetValue(str(per))
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box3.userParams['ecc'].SetValue(str(ecc))
-                InvalidParameter("",None,-1, str="params")
+                InvalidParameter("",self,-1, stringVal="params")
 
     def epsilonCheck(self,a,b):
         
@@ -3951,6 +3959,7 @@ class AddLCB(wx.Panel):
         box1.SetFont(font)
         sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
         self.parent = parent2
+        self.messageFrame = False
         self.boxList = {}
         self.buttonList = {}
         sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
@@ -4065,18 +4074,25 @@ class AddLCB(wx.Panel):
                         self.parent.radiusList.Append(string)
                     self.parent.radiusList.SetValue(radiiString[0])
             except AttributeError:
-                InvalidParameter("", self, -1, str="oldPKL") 
+                InvalidParameter("", self, -1, stringVal="oldPKL") 
             
         dlg.Destroy()
 
 class ScanParamsBox(wx.Panel):
     
+    '''
+    This is the box that is used in the GraphFrame class for an interactive light curve plot.
+    '''
+    
     def __init__(self,parent,objectID):
-
-        # Create a box with all the parameters that the users can manipulate.
+        
+        '''
+        This is the initialization of the box. It has four controls: bin size, title, x-axis label,
+        and y-axis label.
+        '''
         
         wx.Panel.__init__(self,parent,objectID)
-        
+        self.messageFrame = False
         box1 = wx.StaticBox(self, -1, "Descriptive information")
         sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
         self.userinfo = {}
@@ -4118,23 +4134,41 @@ class ScanParamsBox(wx.Panel):
         self.max = 100
     
     def boxCorrect(self):
+        
+        '''
+        This method checks to make sure that the user input for bin size is a number
+        as well as greater than the miniumum bin size of 5. The maximum bin size depends
+        on the light curve that was loaded. 
+        '''
+        
         if self.userinfo['bin'].GetValue() == '':
-            InvalidParameter(self.userinfo['bin'].GetValue(), None, -1, secondValue=str(self.max))
+            InvalidParameter(self.userinfo['bin'].GetValue(), self, -1, secondValue=str(self.max))
             return False
         else:
             try:
                 self.var = int(self.userinfo['bin'].GetValue())
             except ValueError:
-                InvalidParameter(self.userinfo['bin'].GetValue(), None, -1, secondValue=str(self.max))
+                InvalidParameter(self.userinfo['bin'].GetValue(), self, -1, secondValue=str(self.max))
                 return False
              
             if int(self.userinfo['bin'].GetValue()) <= 4 or int(self.userinfo['bin'].GetValue()) > self.max:
-                InvalidParameter(self.userinfo['bin'].GetValue(), None,-1, secondValue=str(self.max))
+                InvalidParameter(self.userinfo['bin'].GetValue(), self,-1, secondValue=str(self.max))
                 return False
             else:
                 return True
 
     def boxDiff(self):
+        
+        '''
+        This method will determine if a new plot needs to be made or not.
+        
+        Returns
+        -------
+        literal : bool
+            If true, one of the four parameters for this box was changed, and a new plot needs to be made. If
+            no change has been made then it returns false.
+        '''
+        
         if not self.oldNum == self.newNum:
             self.oldNum = self.newNum
             return True
@@ -4149,19 +4183,72 @@ class ScanParamsBox(wx.Panel):
             return True
         else:
             return False
-    
-    def setMax(self, length):
-        self.max = length
-    
+        
     def update(self):
+        
+        '''
+        Before checking if a parameter has been changed using the above boxDiff() method, this method
+        updates the current values of each control to be checked against the old values.
+        '''
+        
         self.newNum = self.userinfo['bin'].GetValue()
         self.newX = self.userinfo['xlabel'].GetValue()
         self.newY = self.userinfo['ylabel'].GetValue()
         self.newtitle = self.userinfo['title'].GetValue()
+    
+    def setMax(self, length):
+        
+        '''
+        Sets the maximum bin size for the plot.
+        
+        Parameters
+        ----------
+        length : int
+            Number for the max bin size.
+        '''
+        
+        self.max = length
 
 class InvalidParameter(wx.Frame):
+    
+    '''
+    This class is universally used throughout the code to relay any pop-up messages
+    to the user.
+    '''
 
-    def __init__(self, num, parent, objectID, str='', secondValue='0', columns=2):
+    def __init__(self, message, parent, objectID, stringVal='', secondValue='0', columns=2):
+        
+        '''
+        This is the initialization of the popup message. It varies greatly depending on what
+        the user needs to see.
+        
+        Parameters
+        ----------
+        message : string
+            Usually the invalid value that was entered by the user somewhere. Left blank if
+            instead of an error, a message just needs to be seen by the user.
+        
+        parent : window
+            The parent class that this frame will open up from and is associated with.
+        
+        objectID : int
+            The identity number of the object.
+        
+        stringVal : string, optional
+            This is the string that is used to determine what type of message will appear in the frame
+            that pops up.
+        
+        secondValue : string, optional
+            If a second value needs to be displayed besides `message`, this is where it is entered.
+            
+        columns : int, optional
+            The number of columns that this frame will have.
+            
+        Notes
+        -----
+        There is no return, but on successful completion of initialization a window will pop up
+        with a message for the user.
+        '''
 
         if sys.platform == "win32":
             wx.Frame.__init__(self, parent, objectID, 'Invalid Parameter', size = (500,110))
@@ -4171,220 +4258,237 @@ class InvalidParameter(wx.Frame):
             self.Bind(wx.EVT_CHAR_HOOK, self.onCharOkay)   
         
         self.parent = parent
-        if str == "params":
-            self.SetTitle("Updated Parameters")
-            self.Bind(wx.EVT_CHAR_HOOK, self.onOkay)
-        elif str == "ds9":
-            self.SetTitle("DS9 Error")
-        elif str == "fitOpen":
-            self.SetTitle("Fitting Frame Open Error")
-        elif str == "warnError":
-            self.SetTitle("Warning about local times!")
-        elif str == "regionsUpdate":
-            self.SetTitle("Regions File Set Added!")
-        elif str == "setExists":
-            self.SetTitle("Set Exists!")
-
-        self.panel = wx.Panel(self)
-        self.string = "invalid"
-        
-        if secondValue != '0':
-            self.string = "The bin size must be between 5 and "+ secondValue +"."
-        if str == "Rp/Rs":
-            self.string = "The value for Rp over Rs must be between 0 and 1."
-        elif str == "a/Rs":
-            self.string = "The value for A over Rs must be greater than 1."
-        elif str == "inc":
-            self.string = "The value for the inclincation must be between 0 and 90."
-        elif str == "t0":
-            self.string = "The value for the mid-transit time, t0, must be greater than 0."
-        elif str == "gamma1":
-            self.string = "The value entered for gamma1 must be a number."
-        elif str == "gamma2":
-            self.string = "The value entered for gamma2 must be a number."
-        elif str == "gamma":
-            self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
-        elif str == "per":
-            self.string = "The value for the period must be greater than 0."
-        elif str == "ecc":
-            self.string = "The value for the eccentricity must be between 0 and 1."
-        elif str == "pericenter":
-            self.string = "The value for the pericenter must be greater than or equal to 0."
-        elif str == "planet":
-            self.string = "The name of the planet does not exist in the database."
-        elif str == "limbdark":
-            self.string = "The parameter for Limb-Darkening must be either 'False', 'linear', or 'quadratic'."
-        elif str == "saveiteration":
-            self.string = "The iterative step to be saved must be greater than or equal to 5."
-        elif str == "acceptance":
-            self.string = "The acceptance rate must be greater than 0."
-        elif str == "burnfrac":
-            self.string = "The burn number must be greater than 0 and less than or equal to 1."
-        elif str == "number":
-            self.string = "The number of total steps must be greater than or equal to 10."
-        elif str == "mod":
-            self.string = "The iterative step to be saved cannot be greater than the total number of steps."
-        elif str == "flat1":
-            self.string = "The path(s) to flat images must be fixed."
-        elif str == "flat2":
-            self.string = "The path(s) to dark flat images must be fixed."
-        elif str == "flat3":
-            self.string = "The path to save the master flat must be fixed."
-        elif str == "fits":
-            self.string = "One or more of the files in " + secondValue + " need to be fixed."
-        elif str == "master":
-            self.string = "Either more than one file has been entered, or the file entered needs to be fixed in the " + \
-                          secondValue + "."
-        elif str == "output":
-            self.string = "Either you entered a directory, or the specified path cannot be made for the " + secondValue + "."
-        elif str == "leftbox":
-            self.string = "Please enter a number for the " + secondValue + "."
-        elif str == "dateTime":
-            self.string = "Please check the format and values entered for the ingress or egress " + secondValue + ".\n"
-            if secondValue == "date":
-                self.string += "The year must be within 100 years of today, the month must be between 1 and 12\nand" +\
-                               " the day must be between 1 and 31."
-            elif secondValue == "time":
-                self.string += "The hour must be between 0 and 23, while both the minutes and seconds must be between"+\
-                              " 0 and 59.\nThe format is hh:mm:ss."
-        elif str == "obsName" or str == "obsFile":
-            self.string = "The observatory name or file name must be fixed."
-        elif str == "logicalDate":
-            self.string = "The starting date must come before the ending date."
-        elif str == "logicalTime":
-            self.string = "The starting time must come before the ending time when the dates are equal."
-        elif str == "obsDate":
-            self.string = "The starting date and ending date both need to be in the format YYYY/MM/DD with integers."
-        elif str == "dateRange":
-            self.string = "The year must be within 100 years of today, the month must be between 1 and 12,\nand the"+\
-                          " day must be between 1 and 31."
-        elif str == "coordRange":
-            self.string = "The latitude must be between 90 and -90 degrees, while the longitude must be \nbetween "+\
-                          "0 and 180 degrees. Both must have min and sec in between 0 and 59."
-        elif str == "coordTime":
-            self.string = "The longitude and latitude must be in the format Deg:Min:Sec with numbers."
-        elif str == "tempElevNum":
-            if secondValue == "apparent magnitude upper limit":
-                self.string = "The " + secondValue + " must be a number."
-            else:
-                self.string = "The " + secondValue + " must be a number greater than or equal to 0."
-        elif str == "twilight":
-            self.string = "The twilight must be -6, -12, or -18. Please select one from the drop down menu."
-        elif str == "lowerElevation":
-            self.string = "The lower elevation limist needs to be in the format Deg:Min:Sec, "+\
-                          "with min and sec\nbetween 0 and 59. The degrees must be between 0 and 90."
-        elif str == "radiusNum":
-            self.string = "The aperture radii values must be numbers."
-        elif str == "radiusEqual":
-            self.string = "The min and max aperture radii cannot be equal."
-        elif str == "radiusStep":
-            self.string = "The aperture radii step size cannot be smaller than the difference between the maximum\n" + \
-                          "radius and the minimum radius. The format for this is \"min, max, stepsize\"."
-        elif str == "radiusLogic":
-            self.string = "The minimum aperture radius must be smaller than the maximum. None of the 3 parameters\n" + \
-                          "can be equal to 0."
-        elif str == "radiusLogic2":
-            self.string = "None of the aperture radii can be equal to 0."
-        elif str == "radiusError":
-            self.string = "The radius you entered was empty or not a number. Please enter a valid number."
-        elif str == "radiusListError":
-            self.string = "The plotting methods rely on the aperture radii list from the .pkl file. You\n" + \
-                          "must update the radii list to continue."
-        elif str == "radiusListError2":
-            self.string = "The radius you entered was not in the aperture radii list for this .pkl file.\n" + \
-                          "Please pick a radius from the approved radii in the drop down menu."
-        elif str == "utZone":
-            self.string = "The time zone must be between -12 and 12. Please choose one from the drop down menu."
-        elif str == "regionsError1":
-            self.string = "Either the regions file or reference file for this set is empty. You cannot add an " + \
-                          "extra\nregions file without a referenced data image."
-        elif str == "regionsError2":
-            self.string = "You have entered a filename that does not exist or more than one file. There can " + \
-                          "only be one regions file\nand one reference file entered at a time for a set."
-        elif str == "regionsError3":
-            self.string = "The regions file must be a valid .reg file."
-        elif str == "regionsError4":
-            self.string = "The reference file must be a valid .fits or .fit file."
-        elif str == "emptyReg":
-            self.string = "You must enter a regions file. If you wish you can enter additional sets of regions " + \
-                          "files\nafter at least one has been entered."
-        elif str == "invalidReg":
-            self.string = "This regions file was not found, or is not a vaild .reg file."
-        elif str == "invalidRef":
-            self.string = "This reference file was not found, or is not a valid .fits or .fit file."
-        elif str == "invalidRefExist":
-            self.string = "This reference file was not found in the list of data images. Please add it to the list of" + \
-                          "data images and try again."
-        elif str == "outofbounds":
-            self.string = "You must enter extra regions files as sets with a reference file. The format is " + \
-                          "\"regionsFiles,referenceFile;\"."
-        elif str == "referenceImageDup":
-            self.string = "The reference image you have listed in this set is already assigned to another regions file."
-        elif str == "emptyKeyword":
-            self.string = "The exposure time keyword cannot be empty. Please use a valid phrase, or choose from the drop" + \
-                          "down menu."
-        elif str == "invalidKeyword":
-            self.string = "The keyword you entered was not found in the header of the first data image."
-        elif str == "emailKeyword":
-            self.string = "This keyword is in the header file of the first data image, but is not something we " + \
-                          "have a conversion method for.\nPlease email us the keyword you are trying to use and we " + \
-                          "will include it into our list of possible keywords."
-        elif str == "saveLocation":
-            self.string = "Either you entered a directory, or the specified path cannot be made to save the results " + \
-                          "of MCMC in a text file."
-        elif str == "regionsDup":
-            self.string = "The regions file that you have entered is already assigned to another reference image."
-        
-        self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
-        self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
-        
-        if str == "path":
-            self.text = wx.StaticText(self.panel, -1, "The following is an invalid output path: " + num)
-        elif str == "params":
-            self.text = wx.StaticText(self.panel, -1, "The appropriate parameters have been updated.")
-        elif str == "ds9":
-            self.Bind(wx.EVT_WINDOW_DESTROY, self.ds9Error)
-            self.text = wx.StaticText(self.panel, -1, 
-                                       "It seems that ds9 may not have installed correctly, please try again.")
-        elif str == "importError":
-            self.text = wx.StaticText(self.panel, -1, "Failed to import ephem, please try again.")
-        elif str == "fitOpen":
-            self.Bind(wx.EVT_WINDOW_DESTROY, self.fitError)
-            self.text = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
-        elif str == "warnError":
-            self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.calculate)
-            self.text = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
-                                      "PyEphem's ephem.localtime(\"input\") method. Make sure\nthat this method " + \
-                                      "produces the correct local time for yourself. If you don't know how to check " + \
-                                      "this, please refer\nto the documentation from the help menu in the main frame. " + \
-                                      "This message is shown once per GUI session,\nand will run the calculations " + \
-                                      "for the current parameters as soon as you close this window.")
-        elif str == "oldPKL":
-            self.text = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating" + \
-                                      " a new .pkl file from the main frame and try again.\nIf this .pkl file is" + \
-                                      " important and cannot be recreated, talk to our developers for information on" + \
-                                      " how to extract \nthe data from the file.")
-        elif str == "regionsUpdate":
-            self.text = wx.StaticText(self.panel, -1, "This set has been added to the list of regions sets in the main GUI.")
-        elif str == "setExists":
-            self.text = wx.StaticText(self.panel, -1, "The set you are trying to add is already there! " + \
-                                      "Please add a different set.")
+        if self.parent.messageFrame == True:
+            pass
         else:
-            self.text = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + num)
-        
-        self.sizer0 = wx.FlexGridSizer(rows=2, cols=columns) 
-        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.text,0,wx.ALIGN_CENTER|wx.ALL,5)
-
-        self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-
-        self.panel.SetSizer(self.hbox)
-        self.hbox.Fit(self)
-        self.Center()
-        self.Show()
+            self.parent.messageFrame = True
+            if stringVal == "params":
+                self.SetTitle("Updated Parameters")
+                self.Bind(wx.EVT_CHAR_HOOK, self.onOkay)
+            elif stringVal == "ds9":
+                self.SetTitle("DS9 Error")
+            elif stringVal == "fitOpen":
+                self.SetTitle("Fitting Frame Open Error")
+            elif stringVal == "warnError":
+                self.SetTitle("Warning about local times!")
+            elif stringVal == "regionsUpdate":
+                self.SetTitle("Regions File Set Added!")
+            elif stringVal == "setExists":
+                self.SetTitle("Set Exists!")
+    
+            self.panel = wx.Panel(self)
+            self.string = "invalid"
+            
+            if secondValue != '0':
+                self.string = "The bin size must be between 5 and "+ secondValue +"."
+            if stringVal == "Rp/Rs":
+                self.string = "The value for Rp over Rs must be between 0 and 1."
+            elif stringVal == "a/Rs":
+                self.string = "The value for A over Rs must be greater than 1."
+            elif stringVal == "inc":
+                self.string = "The value for the inclincation must be between 0 and 90."
+            elif stringVal == "t0":
+                self.string = "The value for the mid-transit time, t0, must be greater than 0."
+            elif stringVal == "gamma1":
+                self.string = "The value entered for gamma1 must be a number."
+            elif stringVal == "gamma2":
+                self.string = "The value entered for gamma2 must be a number."
+            elif stringVal == "gamma":
+                self.string = "The value for Gamma1 + Gamma2 must be less than or equal to 1."
+            elif stringVal == "per":
+                self.string = "The value for the period must be greater than 0."
+            elif stringVal == "ecc":
+                self.string = "The value for the eccentricity must be between 0 and 1."
+            elif stringVal == "pericenter":
+                self.string = "The value for the pericenter must be greater than or equal to 0."
+            elif stringVal == "planet":
+                self.string = "The name of the planet does not exist in the database."
+            elif stringVal == "limbdark":
+                self.string = "The parameter for Limb-Darkening must be either 'False', 'linear', or 'quadratic'."
+            elif stringVal == "saveiteration":
+                self.string = "The iterative step to be saved must be greater than or equal to 5."
+            elif stringVal == "acceptance":
+                self.string = "The acceptance rate must be greater than 0."
+            elif stringVal == "burnfrac":
+                self.string = "The burn number must be greater than 0 and less than or equal to 1."
+            elif stringVal == "number":
+                self.string = "The number of total steps must be greater than or equal to 10."
+            elif stringVal == "mod":
+                self.string = "The iterative step to be saved cannot be greater than the total number of steps."
+            elif stringVal == "flat1":
+                self.string = "The path(s) to flat images must be fixed."
+            elif stringVal == "flat2":
+                self.string = "The path(s) to dark flat images must be fixed."
+            elif stringVal == "flat3":
+                self.string = "The path to save the master flat must be fixed."
+            elif stringVal == "fits":
+                self.string = "One or more of the files in " + secondValue + " need to be fixed."
+            elif stringVal == "master":
+                self.string = "Either more than one file has been entered, or the file entered needs to be fixed in the " + \
+                              secondValue + "."
+            elif stringVal == "output":
+                self.string = "Either you entered a directory, or the specified path cannot be made for the " + secondValue + \
+                              "."
+            elif stringVal == "leftbox":
+                self.string = "Please enter a number for the " + secondValue + "."
+            elif stringVal == "dateTime":
+                self.string = "Please check the format and values entered for the ingress or egress " + secondValue + ".\n"
+                if secondValue == "date":
+                    self.string += "The year must be within 100 years of today, the month must be between 1 and 12\nand" +\
+                                   " the day must be between 1 and 31."
+                elif secondValue == "time":
+                    self.string += "The hour must be between 0 and 23, while both the minutes and seconds must be between"+\
+                                  " 0 and 59.\nThe format is hh:mm:ss."
+            elif stringVal == "obsName" or stringVal == "obsFile":
+                self.string = "The observatory name or file name must be fixed."
+            elif stringVal == "logicalDate":
+                self.string = "The starting date must come before the ending date."
+            elif stringVal == "logicalTime":
+                self.string = "The starting time must come before the ending time when the dates are equal."
+            elif stringVal == "obsDate":
+                self.string = "The starting date and ending date both need to be in the format YYYY/MM/DD with integers."
+            elif stringVal == "dateRange":
+                self.string = "The year must be within 100 years of today, the month must be between 1 and 12,\nand the"+\
+                              " day must be between 1 and 31."
+            elif stringVal == "coordRange":
+                self.string = "The latitude must be between 90 and -90 degrees, while the longitude must be \nbetween "+\
+                              "0 and 180 degrees. Both must have min and sec in between 0 and 59."
+            elif stringVal == "coordTime":
+                self.string = "The longitude and latitude must be in the format Deg:Min:Sec with numbers."
+            elif stringVal == "tempElevNum":
+                if secondValue == "apparent magnitude upper limit":
+                    self.string = "The " + secondValue + " must be a number."
+                else:
+                    self.string = "The " + secondValue + " must be a number greater than or equal to 0."
+            elif stringVal == "twilight":
+                self.string = "The twilight must be -6, -12, or -18. Please select one from the drop down menu."
+            elif stringVal == "lowerElevation":
+                self.string = "The lower elevation limist needs to be in the format Deg:Min:Sec, "+\
+                              "with min and sec\nbetween 0 and 59. The degrees must be between 0 and 90."
+            elif stringVal == "radiusNum":
+                self.string = "The aperture radii values must be numbers."
+            elif stringVal == "radiusEqual":
+                self.string = "The min and max aperture radii cannot be equal."
+            elif stringVal == "radiusStep":
+                self.string = "The aperture radii step size cannot be smaller than the difference between the maximum\n" + \
+                              "radius and the minimum radius. The format for this is \"min, max, stepsize\"."
+            elif stringVal == "radiusLogic":
+                self.string = "The minimum aperture radius must be smaller than the maximum. None of the 3 parameters\n" + \
+                              "can be equal to 0."
+            elif stringVal == "radiusLogic2":
+                self.string = "None of the aperture radii can be equal to 0."
+            elif stringVal == "radiusError":
+                self.string = "The radius you entered was empty or not a number. Please enter a valid number."
+            elif stringVal == "radiusListError":
+                self.string = "The plotting methods rely on the aperture radii list from the .pkl file. You\n" + \
+                              "must update the radii list to continue."
+            elif stringVal == "radiusListError2":
+                self.string = "The radius you entered was not in the aperture radii list for this .pkl file.\n" + \
+                              "Please pick a radius from the approved radii in the drop down menu."
+            elif stringVal == "utZone":
+                self.string = "The time zone must be between -12 and 12. Please choose one from the drop down menu."
+            elif stringVal == "regionsError1":
+                self.string = "Either the regions file or reference file for this set is empty. You cannot add an " + \
+                              "extra\nregions file without a referenced data image."
+            elif stringVal == "regionsError2":
+                self.string = "You have entered a filename that does not exist or more than one file. There can " + \
+                              "only be one regions file\nand one reference file entered at a time for a set."
+            elif stringVal == "regionsError3":
+                self.string = "The regions file must be a valid .reg file."
+            elif stringVal == "regionsError4":
+                self.string = "The reference file must be a valid .fits or .fit file."
+            elif stringVal == "emptyReg":
+                self.string = "You must enter a regions file. If you wish you can enter additional sets of regions " + \
+                              "files\nafter at least one has been entered."
+            elif stringVal == "invalidReg":
+                self.string = "This regions file was not found, or is not a vaild .reg file."
+            elif stringVal == "invalidRef":
+                self.string = "This reference file was not found, or is not a valid .fits or .fit file."
+            elif stringVal == "invalidRefExist":
+                self.string = "This reference file was not found in the list of data images. Please add it to the list of" + \
+                              "data images and try again."
+            elif stringVal == "outofbounds":
+                self.string = "You must enter extra regions files as sets with a reference file. The format is " + \
+                              "\"regionsFiles,referenceFile;\"."
+            elif stringVal == "referenceImageDup":
+                self.string = "The reference image you have listed in this set is already assigned to another regions file."
+            elif stringVal == "emptyKeyword":
+                self.string = "The exposure time keyword cannot be empty. Please use a valid phrase, or choose from " + \
+                              "the drop down menu."
+            elif stringVal == "invalidKeyword":
+                self.string = "The keyword you entered was not found in the header of the first data image."
+            elif stringVal == "emailKeyword":
+                self.string = "This keyword is in the header file of the first data image, but is not something we " + \
+                              "have a conversion method for.\nPlease email us the keyword you are trying to use and we " + \
+                              "will include it into our list of possible keywords."
+            elif stringVal == "saveLocation":
+                self.string = "Either you entered a directory, or the specified path cannot be made to save the results " + \
+                              "of MCMC in a text file."
+            elif stringVal == "regionsDup":
+                self.string = "The regions file that you have entered is already assigned to another reference image."
+            
+            self.okButton = wx.Button(self.panel,label = "Okay", pos = (125,30))
+            self.Bind(wx.EVT_BUTTON, self.onOkay, self.okButton)
+            
+            if stringVal == "path":
+                self.text = wx.StaticText(self.panel, -1, "The following is an invalid output path: " + message)
+            elif stringVal == "params":
+                self.text = wx.StaticText(self.panel, -1, "The appropriate parameters have been updated.")
+            elif stringVal == "ds9":
+                self.Bind(wx.EVT_WINDOW_DESTROY, self.ds9Error)
+                self.text = wx.StaticText(self.panel, -1, 
+                                           "It seems that ds9 may not have installed correctly, please try again.")
+            elif stringVal == "importError":
+                self.text = wx.StaticText(self.panel, -1, "Failed to import ephem, please try again.")
+            elif stringVal == "fitOpen":
+                self.Bind(wx.EVT_WINDOW_DESTROY, self.fitError)
+                self.text = wx.StaticText(self.panel, -1, "Please close the fitting frame window and try again.")
+            elif stringVal == "warnError":
+                self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.calculate)
+                self.text = wx.StaticText(self.panel, -1, "Please be careful. The local times are calculated using " + \
+                                          "PyEphem's ephem.localtime(\"input\") method. Make sure\nthat this method " + \
+                                          "produces the correct local time for yourself. If you don't know how to check " + \
+                                          "this, please refer\nto the documentation from the help menu in the main frame. " + \
+                                          "This message is shown once per GUI session,\nand will run the calculations " + \
+                                          "for the current parameters as soon as you close this window.")
+            elif stringVal == "oldPKL":
+                self.text = wx.StaticText(self.panel, -1, "This seems to be an outdated .pkl file, sorry. Try creating" + \
+                                          " a new .pkl file from the main frame and try again.\nIf this .pkl file is" + \
+                                          " important and cannot be recreated, talk to our developers for information on" + \
+                                          " how to extract \nthe data from the file.")
+            elif stringVal == "regionsUpdate":
+                self.text = wx.StaticText(self.panel, -1, "This set has been added to the list of regions sets "+ \
+                                          "in the main GUI.")
+            elif stringVal == "setExists":
+                self.text = wx.StaticText(self.panel, -1, "The set you are trying to add is already there! " + \
+                                          "Please add a different set.")
+            else:
+                self.text = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + message)
+            
+            self.sizer0 = wx.FlexGridSizer(rows=2, cols=columns) 
+            self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+            self.hbox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+            self.sizer0.Add(self.text,0,wx.ALIGN_CENTER|wx.ALL,5)
+            self.sizer0.Add(self.okButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+            
+            self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+            self.panel.SetSizer(self.hbox)
+            self.hbox.Fit(self)
+            self.Center()
+            self.Show()
 
     def ds9Error(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.ds9Open = False
 
     def fitError(self, event):
@@ -4392,25 +4496,86 @@ class InvalidParameter(wx.Frame):
 
     def create_menu(self):
         
+        '''
+        This method creates the menu bars that are at the top of the InvalidParameter frame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+        
         self.menubar = wx.MenuBar()
         
         menu_file = wx.Menu()
-        m_exit = menu_file.Append(-1, "Exit\tCntrl-X", "Exit")
+        m_exit = menu_file.Append(-1, "Exit", "Exit")
         self.Bind(wx.EVT_MENU, self.onOkay, m_exit)
         
         self.menubar.Append(menu_file, "&File")
         self.SetMenuBar(self.menubar)
     
     def onCharOkay(self,event):
+        
+        '''
+        This method allows for users on a Mac to close the InvalidParameter frame by just pressing the
+        enter key when it pops up.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.keycode = event.GetKeyCode()
         if self.keycode == wx.WXK_RETURN:
             self.Destroy()
     
     def onOkay(self, event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame. In this class it also
+        defines what happens when the user clicks the ok button.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.Destroy()
-            
+    
+    def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.parent.messageFrame = False
+
 
 def checkParams(self, tupleList):
+    
+    '''
+    This method checks to make sure that all of the parameters and values that are in
+    `tupleList` are valid for the MCMC and LeastSquaresFit classes.
+    
+    Parameters
+    ----------
+    tupleList : array
+        The input is an array of tuples in the form: (int,string).
+    
+    Returns
+    -------
+    literal : bool
+        True if all of the parameters required to run MCMC or LeastSquaresFit are valid,
+        false otherwise.
+    '''
     
     self.tempGamma1 = -1
     self.tempGamma2 = -1
@@ -4419,48 +4584,48 @@ def checkParams(self, tupleList):
     
     for (number,string) in tupleList:
         if number == '':
-            InvalidParameter(number, None,-1, str=string)
+            InvalidParameter(number, self,-1, stringVal=string)
             return False
         else:
             try:
                 if string !="limbdark":
                     self.tmp = float(number)
             except ValueError:
-                InvalidParameter(number, None,-1, str=string)
+                InvalidParameter(number, self,-1, stringVal=string)
                 return False
             if string == "Rp/Rs":
                 if float(number)>1 or float(number)<0:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "a/Rs":
                 if float(number) <= 1:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "per":
                 if float(number) < 0:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "inc":
                 if float(number) < 0 or float(number) > 90:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "t0":
                 if float(number) < 0:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "ecc":
                 if float(number) < 0 or float(number) > 1:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "pericenter":
                 if float(number) < 0:
-                    InvalidParameter(number, None,-1, str=string)
+                    InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "limbdark":
                 if (number != "False"):
                     if (number != "linear"):
                         if(number != "quadratic"):
-                            InvalidParameter(number,None,-1,str=string)
+                            InvalidParameter(number,self,-1,stringVal=string)
                             return False
             if string == 'gamma1':
                 self.tempGamma1 = number
@@ -4469,37 +4634,40 @@ def checkParams(self, tupleList):
             if string == "saveiteration":
                 self.tempSaveIteration = float(number)
                 if float(number) < 5:
-                    InvalidParameter(number,None,-1,str=string)
+                    InvalidParameter(number,self,-1,stringVal=string)
                     return False
             if string == "number":
                 self.tempNumber = float(number)
                 if float(number) < 10:
-                    InvalidParameter(number,None,-1,str=string)
+                    InvalidParameter(number,self,-1,stringVal=string)
                     return False
             if string == "acceptance":
                 if float(number) <= 0:
-                    InvalidParameter(number,None,-1,str=string)
+                    InvalidParameter(number,self,-1,stringVal=string)
                     return False
             if string == "burnfrac":
                 if float(number) > 1 or float(number) <= 0:
-                    InvalidParameter(number,None,-1,str=string)
+                    InvalidParameter(number,self,-1,stringVal=string)
                     return False
     
     if(self.tempNumber != -1) and (self.tempSaveIteration != -1):
         if (self.tempNumber % self.tempSaveIteration) != 0:
             tempString = str(self.tempSaveIteration)+" < "+str(self.tempNumber)
-            InvalidParameter(tempString,None,-1,str="mod")
+            InvalidParameter(tempString,self,-1,stringVal="mod")
             return False
     
     self.totalGamma = float(self.tempGamma1) + float(self.tempGamma2)
     self.totalString = str(self.totalGamma)
     if self.totalGamma > 1:
-        InvalidParameter(self.totalString, None,-1, str="gamma")
+        InvalidParameter(self.totalString, self,-1, stringVal="gamma")
         return False
 
     return True
 
+###################
+#This Runs The GUI#
+###################
+
 app = wx.App(False)
-#### Runs the GUI ####
 OscaarFrame()
 app.MainLoop()
