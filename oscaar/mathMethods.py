@@ -16,7 +16,7 @@ def ut2jd(ut):
     Parameters
     ----------
     ut : string
-        Time in Universial Time (UT)
+        Time in Universal Time (UT)
 
     Returns
     -------
@@ -27,14 +27,14 @@ def ut2jd(ut):
     [date, Time] = ut.split(';')
     Time = Time.strip()
     [year, month, day] = date.split('-')
-    [hour, min, sec] = Time.split(':')
+    [hour, minute, sec] = Time.split(':')
     year = int(year)
     month = int(month)
     day = int(day)
     hour = int(hour)
-    min = int(min)
+    minute = int(minute)
     sec = float(sec)
-    #years = (int(year) + 4716)*365.25
+    
     if month == 1 or month == 2:
         month += 12
         year -= 1
@@ -45,7 +45,7 @@ def ut2jd(ut):
     e = np.floor(365.25*(year+4716))
     f = np.floor(30.6001*(month+1))
     years = c+d+e+f-1524.5
-    fracOfDay = (hour/24.) + (min/(24*60.)) + (sec/(24*60*60.))
+    fracOfDay = (hour/24.) + (minute/(24*60.)) + (sec/(24*60*60.))
     jd = years + fracOfDay
     return jd
 
@@ -58,7 +58,7 @@ def ut2jdSplitAtT(ut):
     Parameters
     ----------
     ut : string
-        Time in Universial Time (UT)
+        Time in Universal Time (UT)
 
     Returns
     -------
@@ -69,14 +69,14 @@ def ut2jdSplitAtT(ut):
     [date, Time] = ut.split('T')
     Time = Time.strip()
     [year, month, day] = date.split('-')
-    [hour, min, sec] = Time.split(':')
+    [hour, minute, sec] = Time.split(':')
     year = int(year)
     month = int(month)
     day = int(day)
     hour = int(hour)
-    min = int(min)
+    minute = int(minute)
     sec = float(sec)
-    #years = (int(year) + 4716)*365.25
+    
     if month == 1 or month == 2:
         month += 12
         year -= 1
@@ -87,7 +87,7 @@ def ut2jdSplitAtT(ut):
     e = np.floor(365.25*(year+4716))
     f = np.floor(30.6001*(month+1))
     years = c+d+e+f-1524.5
-    fracOfDay = (hour/24.) + (min/(24*60.)) + (sec/(24*60*60.))
+    fracOfDay = (hour/24.) + (minute/(24*60.)) + (sec/(24*60*60.))
     jd = years + fracOfDay
     return jd
 
