@@ -68,7 +68,7 @@ class OscaarFrame(wx.Frame):
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
         
-        self.paths = AddLCB(self.panel, -1, name="mainGUI", str="Browse", rowNum=5, vNum=15, hNum=5, font=self.fontType)
+        self.paths = AddLCB(self.panel, -1, name="mainGUI", rowNum=5, vNum=15, hNum=5, font=self.fontType)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
         self.topBox.Add(self.paths, border = 5, flag = wx.ALL)
 
@@ -1152,15 +1152,15 @@ class ExtraRegions(wx.Frame):
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
         self.set1 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
-                            hNum=5, str="Browse", boxName ="Set 1", font=self.fontType)
+                            hNum=5, boxName ="Set 1", font=self.fontType)
         self.set2 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
-                             hNum=5, str="Browse", boxName="Set 2", font=self.fontType)
+                             hNum=5, boxName="Set 2", font=self.fontType)
         self.set3 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
-                             hNum=5, str="Browse", boxName="Set 3", font=self.fontType)
+                             hNum=5, boxName="Set 3", font=self.fontType)
         self.set4 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
-                            hNum=5, str="Browse", boxName="Set 4", font=self.fontType)
+                            hNum=5, boxName="Set 4", font=self.fontType)
         self.set5 = AddLCB(self.panel, -1, name="Path to Regions File: ,Path to Reference Image: ", rowNum=2, vNum=5,
-                            hNum=5, str="Browse", boxName="Set 5", font=self.fontType)
+                            hNum=5, boxName="Set 5", font=self.fontType)
         self.addSet1= wx.Button(self.panel, -1, label = "Add Set 1")
         self.Bind(wx.EVT_BUTTON, lambda evt, lambdaStr=self.addSet1.Label: self.addSet(evt,lambdaStr), self.addSet1)
         self.addSet2= wx.Button(self.panel, -1, label = "Add Set 2")
@@ -1396,9 +1396,9 @@ class MasterFlatFrame(wx.Frame):
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
         
-        self.path1 = AddLCB(self.panel, -1, name="Path to Flat Images: ", str="Browse", multFiles=True, saveType=None)
-        self.path2 = AddLCB(self.panel, -1, name="Path to Dark Flat Images: ", str="Browse", multFiles=True, saveType=None)
-        self.path3 = AddLCB(self.panel, -1, name="Path to Save Master Flat: ", str="Browse", saveType=wx.FD_SAVE)
+        self.path1 = AddLCB(self.panel, -1, name="Path to Flat Images: ", multFiles=True, saveType=None)
+        self.path2 = AddLCB(self.panel, -1, name="Path to Dark Flat Images: ", multFiles=True, saveType=None)
+        self.path3 = AddLCB(self.panel, -1, name="Path to Save Master Flat: ", saveType=wx.FD_SAVE)
         
         list = [('rbTrackPlot',"","On","Off")]
         self.plotBox = ParameterBox(self.panel,-1,list, name = "Plots")
@@ -2369,8 +2369,8 @@ class FittingFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         
-        self.box = AddLCB(self.panel,-1,name="Path to Output File: ", str="Browse")
-        self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", str="Browse", saveType=wx.FD_SAVE)
+        self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
+        self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", saveType=wx.FD_SAVE)
         self.vbox2= wx.BoxSizer(wx.VERTICAL)
         self.vbox2.Add(self.box, border=5, flag=wx.ALL)
         self.vbox2.Add(self.box2, border=5, flag=wx.ALL)
@@ -2583,8 +2583,9 @@ class LoadOldPklFrame(wx.Frame):
         self.loadGraphFrame = False
         self.data = ""
         
-        self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File: ", updateRadii = True)    
-         
+        self.box = AddLCB(self.panel,-1, parent2 = self, buttonLabel="Browse\t (Ctrl-O)",
+                          name="Path to Output File: ", updateRadii = True)    
+        
         self.apertureRadii = []
         self.apertureRadiusIndex = 0
         self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
@@ -3752,7 +3753,7 @@ class MCMCFrame(wx.Frame):
         Return: [False, False, False, True, False]
         '''
         
-    	a = np.array(a)
+        a = np.array(a)
         return np.abs(a-b) < np.finfo(np.float32).eps
 
     def radiusUpdate(self, event):
@@ -3816,7 +3817,7 @@ class ParameterBox(wx.Panel):
             The parent window that this box will be associated with.
         
         id : int
-            The identity of the object.
+            The identity number of the object.
         
         list : array
             An array of tuples for the different text controls desired. The tuple must be four strings.
@@ -3901,107 +3902,192 @@ class ParameterBox(wx.Panel):
         sizer.Fit(self)
 
 class AddLCB(wx.Panel):
-            
-        def __init__(self, parent, id, parent2=None, name='', str ="Browse\t (Cntrl-O)", multFiles=False, rowNum=1, colNum=3,
-                     vNum=0, hNum=0, font=wx.NORMAL_FONT, updateRadii=False, boxName="", height=20, saveType=wx.FD_OPEN):
-            
-            wx.Panel.__init__(self,parent,id)
-            box1 = wx.StaticBox(self, -1, boxName)
-            box1.SetFont(font)
-            sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
-            self.parent = parent2
-            self.boxList = {}
-            self.buttonList = {}
-            sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
-            sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-            iterationNumber = 0
-            extraName = ""
-            if name == "mainGUI":
-                extraName = "mainGUI"
-                name = "Path to Dark Frames: ,Path to Master Flat: ,Path to Data Images: ,Path to Regions File: ," + \
-                        "Output Path: "
-            for eachName in name.split(","):
-                if sys.platform != "win32":
-                    if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: ":
-                        height = 35
-                    else:
-                        height = 25
-                if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: " or eachName == "Path to "+\
-                               "Regions File: ":
-                    if extraName == "mainGUI":
-                        multFiles = True
-                        saveType = None
-                elif eachName == "Path to Master Flat: ":
-                    multFiles = False
-                    saveType = wx.FD_OPEN
-                elif eachName == "Output Path: ":
-                    multFiles = False
-                    saveType = wx.FD_SAVE
-                iterationNumber += 1
-                if eachName == 'planet':
-                    self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
-                    self.label.SetFont(font)
-                    self.boxList[iterationNumber] = wx.TextCtrl(self, -1, value='GJ 1214 b', style=wx.TE_RICH)
-                    self.boxList[iterationNumber].SetToolTipString("Enter the name of a planet from the" +\
-                                                              "exoplanet.org database here.")
-                else:
-                    self.label = wx.StaticText(self, -1, eachName, style=wx.ALIGN_CENTER)
-                    self.label.SetFont(font)
-                    self.boxList[iterationNumber] = wx.TextCtrl(self, -1, size=(500,height), style=wx.TE_RICH)
 
-                sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
-                sizer0.Add(self.boxList[iterationNumber], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
-                
-                if eachName == 'planet':
-                    self.updateButton = wx.Button(self, -1, "Update Parameters")
-                    sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
-                else:
-                    if sys.platform != 'win32':
-                        if str == "Browse\t (Cntrl-O)":
-                            str = "Browse\t("+u'\u2318'"-O)"
-                        self.buttonList[iterationNumber] = wx.Button(self, -1, str)
-                    else:
-                        self.buttonList[iterationNumber] = wx.Button(self, -1, str)
-                    self.buttonList[iterationNumber].Bind(wx.EVT_BUTTON, lambda event, lambdaIter = iterationNumber,
-                                                          lambdaMult = multFiles, lambdaSave = saveType:
-                    self.browseButtonEvent(event, "Choose Path(s) to File(s)",self.boxList[lambdaIter], lambdaMult,
-                                           lambdaSave, update=updateRadii))
-                    sizer0.Add(self.buttonList[iterationNumber],0,wx.ALIGN_CENTRE|wx.ALL,0)         
-            self.SetSizer(sizer)
-            sizer.Fit(self)
+    '''
+    This creates the set of a label, control box, and button. Usually used to let a user
+    browse and select a file.
+    '''
 
-        def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog, update=False):
-            if not fileDialog:
-                dlg = wx.FileDialog(self, message = message, style = saveDialog)
-            else: 
-                dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
-            if dlg.ShowModal() == wx.ID_OK:
-                if saveDialog == wx.SAVE:
-                    filenames = [dlg.GetPath()]
-                else:
-                    filenames = dlg.GetPaths()
-                textControl.Clear()
-                for i in range(0,len(filenames)):
-                    if i != len(filenames)-1:
-                        textControl.WriteText(filenames[i] + ',')
-                    else:
-                        textControl.WriteText(filenames[i])
+    def __init__(self, parent, id, parent2=None, name='', buttonLabel="Browse", multFiles=False, rowNum=1, colNum=3,
+                 vNum=0, hNum=0, font=wx.NORMAL_FONT, updateRadii=False, boxName="", height=20, saveType=wx.FD_OPEN):
+        
+        '''
+        This initializes the box for the LCB set.
+        
+        Parameters
+        ----------
+        parent : window
+            The parent panel that this box will be associated with.
+        
+        id : int
+            The identity number of the object.
             
-            if update == True:
-                try:
-                    if self.parent.validityCheck(throwException = False):
-                        self.parent.radiusList.Clear()
-                        self.parent.data = IO.load(self.parent.box.boxList[1].GetValue())
-                        self.parent.apertureRadii = np.empty_like(self.parent.data.apertureRadii)
-                        self.parent.apertureRadii[:] = self.parent.data.apertureRadii
-                        radiiString = [str(x) for x in self.parent.data.apertureRadii]
-                        for string in radiiString:
-                            self.parent.radiusList.Append(string)
-                        self.parent.radiusList.SetValue(radiiString[0])
-                except AttributeError:
-                    InvalidParameter("", self, -1, str="oldPKL") 
-                
-            dlg.Destroy()
+        parent2 : window, optional
+            Usually the parent is the panel that the LCB gets created in. If however, there is a need
+            to use the actual parent frame, a second window is allowed to be linked.
+        
+        name : string, optional
+            The name of the label for the static box. If the name is 'mainGUI' or 'planet' a different set gets
+            created.
+        
+        buttonLabel : string, optional
+            The name of the button that is created.
+        
+        multFiles : bool, optional
+            If true, when browsing for files the user can select multiple ones. If false, only one file is
+            allowed to be selected.
+        
+        rowNum : int, optional
+            The number of rows for the box.
+            
+        colNum : int, optional
+            The number of columns for the box.
+        
+        vNum : int, optional
+            The vertical displacement between each text control.
+        
+        hNum : int, optional
+            The horizontal displacement between each text control.
+        
+        font : wx.font(), optional
+            The type of style you would like the text to be displayed as.
+            
+        updateRadii : bool, optional
+            If true, this method will update the available aperture radii list for the drop down menu in the 
+            parent frame.
+        
+        boxName : string, optional
+            The name of the box for the current LCB set. It is displayed in the upper left hand corner. 
+        
+        height : int, optional
+            The height of the control box.
+        
+        saveType : wx.FD_*, optional
+            The style of the box that will appear. The * represents a wild card value for different types.
+        '''
+        
+        wx.Panel.__init__(self,parent,id)
+        box1 = wx.StaticBox(self, -1, boxName)
+        box1.SetFont(font)
+        sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
+        self.parent = parent2
+        self.boxList = {}
+        self.buttonList = {}
+        sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
+        sizer.Add(sizer0, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        iterationNumber = 0
+        extraName = ""
+        if name == "mainGUI":
+            extraName = "mainGUI"
+            name = "Path to Dark Frames: ,Path to Master Flat: ,Path to Data Images: ,Path to Regions File: ," + \
+                    "Output Path: "
+        for eachName in name.split(","):
+            if sys.platform != "win32":
+                if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: ":
+                    height = 35
+                else:
+                    height = 25
+            if eachName == "Path to Dark Frames: " or eachName == "Path to Data Images: " or eachName == "Path to "+\
+                           "Regions File: ":
+                if extraName == "mainGUI":
+                    multFiles = True
+                    saveType = None
+            elif eachName == "Path to Master Flat: ":
+                multFiles = False
+                saveType = wx.FD_OPEN
+            elif eachName == "Output Path: ":
+                multFiles = False
+                saveType = wx.FD_SAVE
+            iterationNumber += 1
+            if eachName == 'planet':
+                self.label = wx.StaticText(self, -1, "Planet Name", style=wx.ALIGN_CENTER)
+                self.label.SetFont(font)
+                self.boxList[iterationNumber] = wx.TextCtrl(self, -1, value='GJ 1214 b', style=wx.TE_RICH)
+                self.boxList[iterationNumber].SetToolTipString("Enter the name of a planet from the" +\
+                                                          "exoplanet.org database here.")
+            else:
+                self.label = wx.StaticText(self, -1, eachName, style=wx.ALIGN_CENTER)
+                self.label.SetFont(font)
+                self.boxList[iterationNumber] = wx.TextCtrl(self, -1, size=(500,height), style=wx.TE_RICH)
+
+            sizer0.Add(self.label, 0, wx.ALIGN_CENTRE|wx.ALL, 3)
+            sizer0.Add(self.boxList[iterationNumber], 0, wx.ALIGN_CENTRE|wx.ALL, 0)
+            
+            if eachName == 'planet':
+                self.updateButton = wx.Button(self, -1, "Update Parameters")
+                sizer0.Add(self.updateButton,0,wx.ALIGN_CENTER|wx.ALL,0)
+            else:
+                if sys.platform != 'win32':
+                    if buttonLabel == "Browse\t (Cntrl-O)":
+                        buttonLabel = "Browse\t("+u'\u2318'"-O)"
+                    self.buttonList[iterationNumber] = wx.Button(self, -1, buttonLabel)
+                else:
+                    self.buttonList[iterationNumber] = wx.Button(self, -1, buttonLabel)
+                self.buttonList[iterationNumber].Bind(wx.EVT_BUTTON, lambda event, lambdaIter = iterationNumber,
+                                                      lambdaMult = multFiles, lambdaSave = saveType:
+                self.browseButtonEvent(event, "Choose Path(s) to File(s)",self.boxList[lambdaIter], lambdaMult,
+                                       lambdaSave, update=updateRadii))
+                sizer0.Add(self.buttonList[iterationNumber],0,wx.ALIGN_CENTRE|wx.ALL,0)         
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog, update=False):
+        
+        '''
+        This method defines the `browse` function for selecting a file on any OS.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        message : string
+            The message that tells the user what to choose.
+            
+        textControl : wx.TextCtrl
+            The box in the frame that will be refreshed with the files that are chosen by the user.
+            
+        fileDialog : bool
+            If true, the style is wx.FD_MULTIPLE, otherwise it is the same as the `saveDialog`.
+            
+        saveDialog : wx.FD_*
+            The style of the box that will appear. The * represents a wild card value for different types.
+        
+        update : bool, optional
+            This will update the aperture radii list for a selected file in the parent frame if true.
+        '''
+        
+        if not fileDialog:
+            dlg = wx.FileDialog(self, message = message, style = saveDialog)
+        else: 
+            dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            if saveDialog == wx.SAVE:
+                filenames = [dlg.GetPath()]
+            else:
+                filenames = dlg.GetPaths()
+            textControl.Clear()
+            for i in range(0,len(filenames)):
+                if i != len(filenames)-1:
+                    textControl.WriteText(filenames[i] + ',')
+                else:
+                    textControl.WriteText(filenames[i])
+        
+        if update == True:
+            try:
+                if self.parent.validityCheck(throwException = False):
+                    self.parent.radiusList.Clear()
+                    self.parent.data = IO.load(self.parent.box.boxList[1].GetValue())
+                    self.parent.apertureRadii = np.empty_like(self.parent.data.apertureRadii)
+                    self.parent.apertureRadii[:] = self.parent.data.apertureRadii
+                    radiiString = [str(x) for x in self.parent.data.apertureRadii]
+                    for string in radiiString:
+                        self.parent.radiusList.Append(string)
+                    self.parent.radiusList.SetValue(radiiString[0])
+            except AttributeError:
+                InvalidParameter("", self, -1, str="oldPKL") 
+            
+        dlg.Destroy()
 
 class ScanParamsBox(wx.Panel):
     
