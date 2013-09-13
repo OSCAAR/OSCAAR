@@ -565,7 +565,7 @@ class dataBank:
                                 self.dict[save] = True
                             else:
                                 self.dict[save] = False
-                        elif name == "Path to Dark Frames" or name == "Path to data images":
+                        elif name == "Path to Dark Frames" or name == "Path to Data Images":
                             value = inline[1].strip()
                             if len(glob(value)) > 0:
                                 self.dict[save] = np.sort(glob(value))

@@ -510,12 +510,12 @@ class OscaarFrame(wx.Frame):
                 name = inline[0].strip()
                 value = str(inline[1].strip())
                 tempList = [("Path to Master-Flat Frame", 2),
-                            ("Path to regions file", 4),
+                            ("Path to Regions File", 4),
                             ("Ingress", "ingress"),("Egress", "egress"),
                             ("Radius", "radius"),("Tracking Zoom", "zoom"),
                             ("Plot Tracking", "rbTrackPlot"),
                             ("Plot Photometry", "rbPhotPlot"),("Smoothing Constant", "smoothing"),
-                            ("Output Path",5),("Path to Dark Frames", 1),("Path to data images", 3),
+                            ("Output Path",5),("Path to Dark Frames", 1),("Path to Data Images", 3),
                             ("CCD Gain",""),("Exposure Time Keyword","")]
                 
                 for string,save in tempList:
@@ -532,14 +532,14 @@ class OscaarFrame(wx.Frame):
                             if value == "off":
                                 save += "1"
                             self.radioBox.userParams[save].SetValue(True)
-                        elif name == "Path to Dark Frames" or name == "Path to data images":
+                        elif name == "Path to Dark Frames" or name == "Path to Data Images":
                             tempArray = value.split(",")
                             tempArray[:] = [x.strip() for x in tempArray]
                             finalString = ""
                             for eachString in tempArray:
                                 finalString += eachString + ","
                             self.paths.boxList[save].SetValue(finalString.rpartition(",")[0])
-                        elif name == "Path to Master-Flat Frame" or name == "Path to regions file" or\
+                        elif name == "Path to Master-Flat Frame" or name == "Path to Regions File" or\
                              name == "Output Path":
                             self.paths.boxList[save].SetValue(value)
                         elif name == "CCD Gain":
