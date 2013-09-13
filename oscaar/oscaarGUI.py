@@ -26,7 +26,7 @@ class OscaarFrame(wx.Frame):
     This class is the main frame of the OSCAAR GUI.    
     '''
     
-    def __init__(self):
+    def __init__(self, parent, objectID):
         
         '''
         This method defines the initialization of this class.
@@ -39,6 +39,7 @@ class OscaarFrame(wx.Frame):
         self.overWrite = False
         self.ds9Open = False
         self.messageFrame = False
+        self.IP = wx.Frame
         self.loadFitError = False
         self.loadEphFrame = False
         self.singularOccurance = 0
@@ -202,7 +203,7 @@ class OscaarFrame(wx.Frame):
         self.radiusError = "radius"
         
         if invalidDarkFrames != "":
-            InvalidParameter(invalidDarkFrames, self, -1, stringVal="fits", secondValue="the path to Dark Frames")
+            self.IP = InvalidParameter(invalidDarkFrames, self, -1, stringVal="fits", secondValue="the path to Dark Frames")
         elif os.path.isfile(masterFlat) != True or (masterFlat.lower().endswith(".fit") != True and \
              masterFlat.lower().endswith(".fits") != True) :
             tempString = masterFlat
@@ -213,16 +214,16 @@ class OscaarFrame(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            InvalidParameter(tempString, self, -1, stringVal="master", secondValue="path to the Master Flat")
+            self.IP = InvalidParameter(tempString, self, -1, stringVal="master", secondValue="path to the Master Flat")
         elif invalidDataImages != "":
-            InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
+            self.IP = InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
         elif self.checkRegionsBox(regionsFile) == False:  
             pass
         elif not os.path.isdir(self.outputFile.rpartition(str(os.sep))[0]) or \
              not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
-            InvalidParameter(self.outputFile, self, -1, stringVal="output", secondValue="output file")
+            self.IP = InvalidParameter(self.outputFile, self, -1, stringVal="output", secondValue="output file")
         elif self.checkAperture(self.values["radius"]) != True:
-            InvalidParameter(self.leftBox.userParams["radius"].GetValue(), self, -1, stringVal=self.radiusError)
+            self.IP = InvalidParameter(self.leftBox.userParams["radius"].GetValue(), self, -1, stringVal=self.radiusError)
         elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].GetValue(),
                                    self.radioBox.userParams['egress1'].GetValue(),
                                    self.radioBox.userParams['ingress'].GetValue(),
@@ -280,13 +281,13 @@ class OscaarFrame(wx.Frame):
 
                 else:
                     if self.loadFitError == False:
-                        InvalidParameter("", self, -1, stringVal="fitOpen")
+                        self.IP = InvalidParameter("", self, -1, stringVal="fitOpen")
                         self.loadFitError = True
             except ValueError:
                 string2 = string
                 if string2 == "smoothing":
                     string2 = "smoothing constant"
-                InvalidParameter(self.leftBox.userParams[string].GetValue(),self,-1, stringVal="leftbox", secondValue=string2)
+                self.IP = InvalidParameter(self.leftBox.userParams[string].GetValue(),self,-1, stringVal="leftbox", secondValue=string2)
     
     def timeAndDateCheck(self, time1, time2, date1, date2):
         
@@ -329,7 +330,7 @@ class OscaarFrame(wx.Frame):
         for timeArray, value in [(time1.split(":"), time1),
                                  (time2.split(":"), time2)]:
             if len(timeArray) != 3:
-                InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
+                self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                 return False
             else:
                 try:
@@ -341,21 +342,21 @@ class OscaarFrame(wx.Frame):
                     seconds.append(second)
     
                     if len(timeArray[0].strip()) > 2 or len(timeArray[1].strip()) > 2 or len(timeArray[2].strip()) > 2:
-                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
+                        self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                         return False
                     
                     if hour > 23 or hour < 0 or minute > 59 or minute < 0 or second > 59 or second < 0:
-                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
+                        self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                         return False
                     
                 except ValueError:
-                    InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
+                    self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="time")
                     return False
                 
         for dateArray,value in [(date1.split("/"),date1),
                                 (date2.split("/"),date2)]:
             if len(dateArray) != 3:
-                InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
+                self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                 return False
             else:
                 try:
@@ -367,40 +368,40 @@ class OscaarFrame(wx.Frame):
                     days.append(day)
                     
                     if len(dateArray[0].strip()) != 4 or len(dateArray[1].strip()) > 2 or len(dateArray[2].strip()) > 2:
-                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
+                        self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                         return False
                     minYear = datetime.date.today().year - 100
                     maxYear = datetime.date.today().year + 100
                     if year < minYear or year > maxYear or month > 12 or month < 0 or day > 31 or day < 0 or \
                        month == 0 or year == 0 or day == 0:
-                        InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
+                        self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                         return False
                 except ValueError:
-                    InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
+                    self.IP = InvalidParameter(value, self, -1, stringVal="dateTime", secondValue="date")
                     return False
 
         if years[0] > years[1]:
-            InvalidParameter(date1, self, -1, stringVal="logicalDate")
+            self.IP = InvalidParameter(date1, self, -1, stringVal="logicalDate")
             return False
         elif years[0] == years[1]:
             if months[0] > months[1]:
-                InvalidParameter(date1, self, -1, stringVal="logicalDate")
+                self.IP = InvalidParameter(date1, self, -1, stringVal="logicalDate")
                 return False
             elif months[0] == months[1]:
                 if days[0] > days[1]:
-                    InvalidParameter(date1, self, -1, stringVal="logicalDate")
+                    self.IP = InvalidParameter(date1, self, -1, stringVal="logicalDate")
                     return False
                 elif days[0] == days[1]:
                     if hours[0] > hours[1]:
-                        InvalidParameter(time1, self, -1, stringVal="logicalTime")
+                        self.IP = InvalidParameter(time1, self, -1, stringVal="logicalTime")
                         return False
                     elif hours[0] == hours[1]:
                         if minutes[0] > minutes[1]:
-                            InvalidParameter(time1, self, -1, stringVal="logicalTime")
+                            self.IP = InvalidParameter(time1, self, -1, stringVal="logicalTime")
                             return False
                         elif minutes[0] == minutes[1]:
                             if seconds[0] >= seconds [1]:
-                                InvalidParameter(time1, self, -1, stringVal="logicalTime")
+                                self.IP = InvalidParameter(time1, self, -1, stringVal="logicalTime")
                                 return False
         return True
     
@@ -660,17 +661,18 @@ class OscaarFrame(wx.Frame):
         setValueString = ""
         tempString = ""
         if boxValue == "":
-            InvalidParameter(boxValue, self, -1, stringVal="emptyReg")
+            self.IP = InvalidParameter(boxValue, self, -1, stringVal="emptyReg")
             return False
         splitSets = boxValue.split(";")
         checkSet = self.paths.boxList[3].GetValue().strip().split(",")
         try:
-            if len(splitSets[0].split(",")) == 1 and len(splitSets[1]) == 0 and len(splitSets) == 2:
+            if len(splitSets[0].split(",")) == 1 and len(splitSets[1]) == 0 and len(splitSets) == 2 and \
+               splitSets[0].split(",")[0].strip().lower().endswith(".reg"):
                 setValueString = splitSets[0].strip() + "," + self.paths.boxList[3].GetValue().split(",")[0].strip() + ";"
             elif splitSets[0].split(",")[1].strip() == "" and len(splitSets[1]) == 0 and len(splitSets) == 2:
                 if splitSets[0].split(",")[0].strip().lower().endswith(".reg") != True or \
                    len(glob(splitSets[0].split(",")[0])) != 1:
-                    InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0]
+                    self.IP = InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0]
                                      + "\nReference: " + splitSets[0].split(",")[1], self, -1, stringVal="invalidReg")
                     return False
                 setValueString = splitSets[0].split(",")[0].strip() + "," + \
@@ -684,14 +686,14 @@ class OscaarFrame(wx.Frame):
                             tempString = "tempRef"
                             tempRef = eachSet.split(",")[1].strip()
                             if len(glob(tempReg)) != 1 or tempReg.lower().endswith(".reg") == False:
-                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidReg")
+                                self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidReg")
                                 return False
                             elif len(glob(tempRef)) != 1 or (tempRef.lower().endswith(".fits") == False and 
                                                              tempRef.lower().endswith(".fit") == False):
-                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRef")
+                                self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRef")
                                 return False
                             elif all(tempRef != temp for temp in checkSet):
-                                InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRefExist")
+                                self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRefExist")
                                 return False
                             setValueString += tempReg + "," + tempRef + ";"
                 except IndexError:
@@ -700,13 +702,17 @@ class OscaarFrame(wx.Frame):
                     elif tempString == "tempRef":
                         tempRef = ""
                     if len(eachSet.split(",")) == 1:
-                        InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="outofbounds")
+                        self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="outofbounds")
                         return False
         except IndexError:
             if splitSets[0].split(",")[0].strip().lower().endswith(".reg") != True or \
                    len(glob(splitSets[0].split(",")[0])) != 1:
-                InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0] 
-                                 + "\nReference: " + splitSets[0].split(",")[1], self, -1, stringVal="invalidReg")
+                if len(splitSets[0].split(",")) == 1:
+                    temp = ""
+                else:
+                    temp = splitSets[0].split(",")[1]
+                self.IP = InvalidParameter("\nRegions: "+ splitSets[0].split(",")[0] 
+                                 + "\nReference: " + temp, self, -1, stringVal="invalidReg")
                 return False
             setValueString = splitSets[0].split(",")[0].strip() + "," + \
                              self.paths.boxList[3].GetValue().split(",")[0].strip()
@@ -720,14 +726,14 @@ class OscaarFrame(wx.Frame):
                         tempString = "tempRef"
                         tempRef = eachSet.split(",")[1].strip()
                         if len(glob(tempReg)) != 1 or tempReg.lower().endswith(".reg") == False:
-                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidReg")
+                            self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidReg")
                             return False
                         elif len(glob(tempRef)) != 1 or (tempRef.lower().endswith(".fits") == False and 
                                                          tempRef.lower().endswith(".fit") == False):
-                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRef")
+                            self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRef")
                             return False
                         elif all(tempRef != temp for temp in checkSet):
-                            InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRefExist")
+                            self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="invalidRefExist")
                             return False
                         setValueString += tempReg + "," + tempRef + ";"
             except IndexError:
@@ -736,7 +742,7 @@ class OscaarFrame(wx.Frame):
                 elif tempString == "tempRef":
                     tempRef = ""
                 if len(eachSet.split(",")) == 1:
-                    InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="outofbounds")
+                    self.IP = InvalidParameter("\nRegions: "+tempReg + "\nReference: " + tempRef, self, -1, stringVal="outofbounds")
                     return False
         refArray = []
         regArray = []
@@ -757,13 +763,13 @@ class OscaarFrame(wx.Frame):
                             tempReg = key
                     tempString = "\nRegions: " + reg + "\nReference: " + ref + "\nBecause ---" + "\nRegions: " + \
                     tempReg + "\nIs already associated with the reference file."
-                    InvalidParameter(tempString, self, -1, stringVal="referenceImageDup")
+                    self.IP = InvalidParameter(tempString, self, -1, stringVal="referenceImageDup")
                     return False
                 elif regTemp == True and refTemp == False:
                     tempRef = tempDict.get(reg)
                     tempString = "\nRegions: " + reg + "\nReference: " + ref + "\nBecause ---" + "\nRegions: " + \
                     reg + "\nIs already associated with:\nReference: " + tempRef
-                    InvalidParameter(tempString, self, -1, stringVal="regionsDup")
+                    self.IP = InvalidParameter(tempString, self, -1, stringVal="regionsDup")
                     return False
         
         setValueString = ""
@@ -822,18 +828,18 @@ class OscaarFrame(wx.Frame):
                     subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
                                                    'extras','ds9',sys.platform,'ds9')])
                 except errorType:
-                    InvalidParameter("", self, -1, stringVal="ds9")
+                    self.IP = InvalidParameter("", self, -1, stringVal="ds9")
             elif name == "extra":
                 invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
                 if invalidDataImages != "":
-                    InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
+                    self.IP = InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
                 elif self.checkRegionsBox(self.paths.boxList[4].GetValue()) == True:
                     ExtraRegions(self,-1)
                     self.extraRegionsOpen = True
             elif name == "observatory":
                 invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
                 if invalidDataImages != "":
-                    InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
+                    self.IP = InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
                 else:
                     ObservatoryFrame(self, -1)
                     self.loadObservatoryFrame = True
@@ -942,6 +948,7 @@ class ObservatoryFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.messageFrame = False
+        self.IP = wx.Frame
         self.titlebox = wx.StaticText(self.panel, -1, "Observatory Parameters")
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
@@ -1049,17 +1056,17 @@ class ObservatoryFrame(wx.Frame):
             self.params.userParams["ccd"].SetValue(str(tempCCD))
             timeKey = self.timeList.GetValue().strip()
             if timeKey == "":
-                InvalidParameter(timeKey, self, -1, stringVal="emptyKeyword")
+                self.IP = InvalidParameter(timeKey, self, -1, stringVal="emptyKeyword")
                 return False
             elif not timeKey in self.allKeys:
-                InvalidParameter(timeKey, self, -1, stringVal="invalidKeyword")
+                self.IP = InvalidParameter(timeKey, self, -1, stringVal="invalidKeyword")
                 return False
             elif (not timeKey in self.unionKeys) and (timeKey in self.allKeys):
-                InvalidParameter(timeKey, self, -1, stringVal="emailKeyword")
+                self.IP = InvalidParameter(timeKey, self, -1, stringVal="emailKeyword")
                 return False
             self.timeList.SetValue(timeKey)
         except ValueError:
-            InvalidParameter(self.params.userParams["ccd"].GetValue(),self,-1, stringVal="leftbox", secondValue="ccd")
+            self.IP = InvalidParameter(self.params.userParams["ccd"].GetValue(),self,-1, stringVal="leftbox", secondValue="ccd")
             return False
         return True
 
@@ -1131,7 +1138,7 @@ class ExtraRegions(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.messageFrame = False
-        
+        self.IP = wx.Frame
         self.titlebox = wx.StaticText(self.panel, -1, "Extra Regions Files")
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
         self.titlebox.SetFont(self.titleFont)
@@ -1253,21 +1260,21 @@ class ExtraRegions(wx.Frame):
                         break
 
             if uniqueSet == False:
-                InvalidParameter("", self, -1, stringVal="setExists")
+                self.IP = InvalidParameter("", self, -1, stringVal="setExists")
             elif uniqueReg == False:
                 tempString = "\nRegions: " + regions + "\nReference: " + reference + "\nBecause ---" + "\nRegions: " + \
                              tempReg + "\nIs already associated with:\nReference: " + tempRef
-                InvalidParameter(tempString, self, -1, stringVal="regionsDup")
+                self.IP = InvalidParameter(tempString, self, -1, stringVal="regionsDup")
             elif uniqueRef == False:
                 tempString = "\nRegions: " + regions + "\nReference: " + reference + "\nBecause ---" + "\nRegions: " + \
                              tempReg + "\nIs already associated with this reference file."
-                InvalidParameter(tempString, self, -1, stringVal="referenceImageDup")
+                self.IP = InvalidParameter(tempString, self, -1, stringVal="referenceImageDup")
             elif all(reference != temp for temp in dataImages):
-                InvalidParameter("\nRegions: "+ regions + "\nReference: " + reference, self, -1, stringVal="invalidRefExist")
+                self.IP = InvalidParameter("\nRegions: "+ regions + "\nReference: " + reference, self, -1, stringVal="invalidRefExist")
             else:
                 regionsBox += setString + ";"
                 self.parent.paths.boxList[4].SetValue(regionsBox)
-                InvalidParameter("", self, -1, stringVal="regionsUpdate")
+                self.IP = InvalidParameter("", self, -1, stringVal="regionsUpdate")
     
     def SetCheck(self, reg, ref):
         
@@ -1290,10 +1297,10 @@ class ExtraRegions(wx.Frame):
         '''
         
         if reg == "":
-            InvalidParameter(reg, self, -1, stringVal="regionsError1")
+            self.IP = InvalidParameter(reg, self, -1, stringVal="regionsError1")
             return False
         elif ref == "":
-            InvalidParameter(ref, self, -1, stringVal="regionsError1")
+            self.IP = InvalidParameter(ref, self, -1, stringVal="regionsError1")
             return False
 
         if len(glob(reg)) != 1:
@@ -1305,7 +1312,7 @@ class ExtraRegions(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            InvalidParameter(tempString, self, -1, stringVal="regionsError2")
+            self.IP = InvalidParameter(tempString, self, -1, stringVal="regionsError2")
             return False
         elif len(glob(ref)) != 1:
             tempString = ref
@@ -1316,13 +1323,13 @@ class ExtraRegions(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            InvalidParameter(tempString, self, -1, stringVal="regionsError2")
+            self.IP = InvalidParameter(tempString, self, -1, stringVal="regionsError2")
             return False
         elif reg.lower().endswith(".reg") == False:
-            InvalidParameter(reg, self, -1, stringVal="regionsError3")
+            self.IP = InvalidParameter(reg, self, -1, stringVal="regionsError3")
             return False
         elif ref.lower().endswith(".fits") == False and ref.lower().endswith(".fit") == False:
-            InvalidParameter(ref, self, -1, stringVal="regionsError4")
+            self.IP = InvalidParameter(ref, self, -1, stringVal="regionsError4")
             return False
         return True        
 
@@ -1389,6 +1396,7 @@ class MasterFlatFrame(wx.Frame):
         self.parent = parent
         self.overWrite = False
         self.messageFrame = False
+        self.IP = wx.Frame
         
         self.titlebox = wx.StaticText(self.panel, -1, 'OSCAAR: Master Flat Maker')
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -1444,14 +1452,14 @@ class MasterFlatFrame(wx.Frame):
         self.flatImages = self.checkFileInputs(self.path1.boxList[1].GetValue(), self.path1.boxList[1])
         self.darkFlatImages = self.checkFileInputs(self.path2.boxList[1].GetValue(), self.path2.boxList[1])
         if self.flatImages != "":
-            InvalidParameter(self.flatImages, self, -1, stringVal="flat1")
+            self.IP = InvalidParameter(self.flatImages, self, -1, stringVal="flat1")
         elif self.darkFlatImages != "":
-            InvalidParameter(self.darkFlatImages, self, -1, stringVal="flat2")
+            self.IP = InvalidParameter(self.darkFlatImages, self, -1, stringVal="flat2")
         elif not path:
-            InvalidParameter(str(path), self, -1, stringVal="flat3")
+            self.IP = InvalidParameter(str(path), self, -1, stringVal="flat3")
         elif not os.path.isdir(path[path.rfind(os.sep)]) or \
              not len(path) > (len(path[:path.rfind(os.sep)]) + 1):
-            InvalidParameter(path, self, -1, stringVal="flat3")
+            self.IP = InvalidParameter(path, self, -1, stringVal="flat3")
         else:
             self.flatImages = []
             self.darkFlatImages = []
@@ -1814,6 +1822,7 @@ class EphemerisFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.messageFrame = False
+        self.IP = wx.Frame
         
         self.titlebox = wx.StaticText(self.panel, -1, 'Ephemeris Calculator')
         self.titleFont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -1959,7 +1968,7 @@ class EphemerisFrame(wx.Frame):
                 
                 if self.parent.singularOccurance == 0 and self.showLT.userParams["rbShowLT"].GetValue():
                     self.parent.singularOccurance = 1
-                    InvalidParameter("", self, -1, stringVal="warnError")
+                    self.IP = InvalidParameter("", self, -1, stringVal="warnError")
                 else:
                     outputPath = str(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
                                                   'extras','eph','ephOutputs','eventReport.html'))
@@ -1976,7 +1985,7 @@ class EphemerisFrame(wx.Frame):
                     if self.htmlBox.userParams["rbHtmlOut"].GetValue() == True:
                         webbrowser.open_new_tab("file:"+2*os.sep+outputPath)
         except ImportError:
-            InvalidParameter("", self, -1, stringVal="importError")
+            self.IP = InvalidParameter("", self, -1, stringVal="importError")
 
     def parameterCheck(self):
         
@@ -2004,10 +2013,10 @@ class EphemerisFrame(wx.Frame):
         self.twilight = self.twilightList.GetValue().strip()
 
         if self.name == "" or self.name == "Enter the name of the Observatory":
-            InvalidParameter(self.name, self, -1, stringVal="obsName")
+            self.IP = InvalidParameter(self.name, self, -1, stringVal="obsName")
             return False
         elif self.fileName == "" or self.fileName == "Enter the name of the file":
-            InvalidParameter(self.fileName, self, -1, stringVal="obsFile")
+            self.IP = InvalidParameter(self.fileName, self, -1, stringVal="obsFile")
             return False
         years = []
         months = []
@@ -2015,7 +2024,7 @@ class EphemerisFrame(wx.Frame):
         for dateArray,value in [(self.startingDate.split("/"),self.startingDate),
                                 (self.endingDate.split("/"),self.endingDate)]:
             if len(dateArray) != 3:
-                InvalidParameter(value, self, -1, stringVal="obsDate")
+                self.IP = InvalidParameter(value, self, -1, stringVal="obsDate")
                 return False
             else:
                 try:
@@ -2027,34 +2036,34 @@ class EphemerisFrame(wx.Frame):
                     days.append(day)
                     
                     if len(dateArray[0].strip()) != 4 or len(dateArray[1].strip()) > 2 or len(dateArray[2].strip()) > 2:
-                        InvalidParameter(value, self, -1, stringVal="obsDate")
+                        self.IP = InvalidParameter(value, self, -1, stringVal="obsDate")
                         return False
                     minYear = datetime.date.today().year - 100
                     maxYear = datetime.date.today().year + 100
                     if year < minYear or year > maxYear or month > 12 or month < 0 or day > 31 or day < 0 or \
                        month == 0 or year == 0 or day == 0:
-                        InvalidParameter(value, self, -1, stringVal="dateRange")
+                        self.IP = InvalidParameter(value, self, -1, stringVal="dateRange")
                         return False
                 except ValueError:
-                    InvalidParameter(value, self, -1, stringVal="obsDate")
+                    self.IP = InvalidParameter(value, self, -1, stringVal="obsDate")
                     return False
 
         if years[0] > years[1]:
-            InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
+            self.IP = InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
             return False
         elif years[0] == years[1]:
             if months[0] > months[1]:
-                InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
+                self.IP = InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
                 return False
             elif months[0] == months[1]:
                 if days[0] >= days[1]:
-                    InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
+                    self.IP = InvalidParameter(self.startingDate, self, -1, stringVal="logicalDate")
                     return False
         
         for coordArray, value, coordType in [(self.latitude.split(":"),self.latitude, "lat"), 
                                   (self.longitude.split(":"),self.longitude, "long")]:
             if(len(coordArray) != 3):
-                InvalidParameter(value, self, -1, stringVal="coordTime")
+                self.IP = InvalidParameter(value, self, -1, stringVal="coordTime")
                 return False
             else:
                 try:
@@ -2064,23 +2073,23 @@ class EphemerisFrame(wx.Frame):
                     if coordType == "lat":
                         self.latitude = str(deg) + ":" + str(minutes) + ":" + str(sec)
                         if abs(deg) > 90.0 or minutes >= 60 or minutes < 0.0 or sec >= 60 or sec < 0.0:
-                            InvalidParameter(value, self, -1, stringVal="coordRange")
+                            self.IP = InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                     elif coordType == "long":
                         self.longitude = str(deg) + ":" + str(minutes) + ":" + str(sec)
                         if abs(deg) > 180.0 or minutes >= 60 or minutes < 0.0 or sec >= 60 or sec < 0.0:
-                            InvalidParameter(value, self, -1, stringVal="coordRange")
+                            self.IP = InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                     if abs(deg) == 90 and coordType == "lat":
                         if minutes != 0 or sec != 0:
-                            InvalidParameter(value, self, -1, stringVal="coordRange")
+                            self.IP = InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                     elif abs(deg) == 180 and coordType == "long":
                         if minutes != 0 or sec != 0:
-                            InvalidParameter(value, self, -1, stringVal="coordRange")
+                            self.IP = InvalidParameter(value, self, -1, stringVal="coordRange")
                             return False
                 except ValueError:
-                    InvalidParameter(value, self, -1, stringVal="coordTime")
+                    self.IP = InvalidParameter(value, self, -1, stringVal="coordTime")
                     return False
         try:
             tempString = "elevation"
@@ -2098,7 +2107,7 @@ class EphemerisFrame(wx.Frame):
             stripElevation = self.lowerElevation.split(":")
 
             if len(stripElevation) != 3:
-                InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
+                self.IP = InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
                 return False
 
             temp6 = int(stripElevation[0])
@@ -2106,45 +2115,45 @@ class EphemerisFrame(wx.Frame):
             temp8 = int(stripElevation[2])
             
             if temp6 < 0.0 or temp6 > 90 or temp7 >= 60 or temp7 < 0.0 or temp8 >= 60 or temp8 < 0.0:
-                InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
+                self.IP = InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
                 return False
             elif temp6 == 90:
                 if temp7 != 0 or temp8 != 0:
-                    InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
+                    self.IP = InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
                     return False
               
             self.lowerElevation = stripElevation[0].strip() + ":" + stripElevation[1].strip() + ":" +\
                                   stripElevation[2].strip()
             
             if temp1 < 0:
-                InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue="elevation")
+                self.IP = InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue="elevation")
                 return False
             
             elif temp2 < 0:
-                InvalidParameter(self.temperature, self, -1, stringVal="tempElevNum", secondValue="temperature")
+                self.IP = InvalidParameter(self.temperature, self, -1, stringVal="tempElevNum", secondValue="temperature")
                 return False
             
             elif temp4 < 0:
-                InvalidParameter(self.lowerLimit, self, -1, stringVal="tempElevNum", secondValue="depth lower limit")
+                self.IP = InvalidParameter(self.lowerLimit, self, -1, stringVal="tempElevNum", secondValue="depth lower limit")
                 return False
 
         except ValueError:
             if tempString == "temperature":
-                InvalidParameter(self.temperature, self, -1, stringVal="tempElevNum", secondValue=tempString)
+                self.IP = InvalidParameter(self.temperature, self, -1, stringVal="tempElevNum", secondValue=tempString)
             elif tempString == "apparent magnitude upper limit":
-                InvalidParameter(self.upperLimit, self, -1, stringVal="tempElevNum", secondValue=tempString)
+                self.IP = InvalidParameter(self.upperLimit, self, -1, stringVal="tempElevNum", secondValue=tempString)
             elif tempString == "depth lower limit":
-                InvalidParameter(self.lowerLimit, self, -1, stringVal="tempElevNum", secondValue=tempString)
+                self.IP = InvalidParameter(self.lowerLimit, self, -1, stringVal="tempElevNum", secondValue=tempString)
             elif tempString == "lower elevation limit":
-                InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
+                self.IP = InvalidParameter(self.lowerElevation, self, -1, stringVal="lowerElevation")
             else:
-                InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue=tempString)
+                self.IP = InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue=tempString)
             return False
         
         if all(self.twilight != temp for temp in ["Civil Twilight (-6"u"\u00b0"")",
                                          "Nautical Twilight (-12"u"\u00b0"")",
                                          "Astronomical Twilight (-18"u"\u00b0"")"]):
-            InvalidParameter(self.twilight, self, -1, stringVal="twilight")
+            self.IP = InvalidParameter(self.twilight, self, -1, stringVal="twilight")
             return False
                 
         return True
@@ -2374,6 +2383,7 @@ class FittingFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.messageFrame = False
+        self.IP = wx.Frame
         
         self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
         self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", saveType=wx.FD_SAVE)
@@ -2502,7 +2512,7 @@ class FittingFrame(wx.Frame):
             tempSaveLoc = self.saveLocation.GetValue()
             if not os.path.isdir(tempSaveLoc.rpartition(str(os.sep))[0]) or \
             not len(tempSaveLoc) > (len(tempSaveLoc[:tempSaveLoc.rfind(os.sep)]) + 1):
-                InvalidParameter(tempSaveLoc, self, -1, stringVal="output", secondValue="results output file")
+                self.IP = InvalidParameter(tempSaveLoc, self, -1, stringVal="output", secondValue="results output file")
             else:
                 try:
                     self.pathText = self.pklPathTxt.GetValue()
@@ -2511,7 +2521,7 @@ class FittingFrame(wx.Frame):
                         MCMCFrame(self, -1)
                         self.loadMCMC = True
                 except AttributeError:
-                    InvalidParameter("", self, -1, stringVal="oldPKL") 
+                    self.IP = InvalidParameter("", self, -1, stringVal="oldPKL") 
 
     def validityCheck(self):
         
@@ -2524,13 +2534,13 @@ class FittingFrame(wx.Frame):
         if pathName != "":
             if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
-                    InvalidParameter(pathName, self, -1, stringVal="path")
+                    self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
                     return False
             else:
-                InvalidParameter(pathName, self, -1, stringVal="path")
+                self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
                 return False 
         else:
-            InvalidParameter(pathName, self, -1, stringVal="path")
+            self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
             return False
         return True
     
@@ -2581,6 +2591,7 @@ class LoadOldPklFrame(wx.Frame):
         self.parent = parent
         self.loadGraphFrame = False
         self.messageFrame = False
+        self.IP = wx.Frame
         self.data = ""
         
         self.box = AddLCB(self.panel,-1, parent2 = self, buttonLabel="Browse\t (Ctrl-O)",
@@ -2736,7 +2747,7 @@ class LoadOldPklFrame(wx.Frame):
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
             except AttributeError:
-                InvalidParameter("", self, -1, stringVal="oldPKL") 
+                self.IP = InvalidParameter("", self, -1, stringVal="oldPKL") 
         
         dlg.Destroy()
 
@@ -2915,15 +2926,15 @@ class LoadOldPklFrame(wx.Frame):
             if pathName.lower().endswith(".pkl"):
                 if os.path.isfile(pathName) == False:
                     if throwException:
-                        InvalidParameter(pathName, self, -1, stringVal="path")
+                        self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
                     return False
             else:
                 if throwException:
-                    InvalidParameter(pathName, self, -1, stringVal="path")
+                    self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
                 return False 
         else:
             if throwException:
-                InvalidParameter(pathName, self, -1, stringVal="path")
+                self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
             return False
         return True
 
@@ -2942,19 +2953,19 @@ class LoadOldPklFrame(wx.Frame):
         '''
         
         if len(self.apertureRadii) == 0:
-            InvalidParameter(str(self.apertureRadii), self, -1, stringVal="radiusListError")
+            self.IP = InvalidParameter(str(self.apertureRadii), self, -1, stringVal="radiusListError")
             return False
         elif self.radiusList.GetValue() == "":
-            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
+            self.IP = InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         try:
             self.tempNum = np.where(self.epsilonCheck(self.apertureRadii,float(self.radiusList.GetValue())))
             if len(self.tempNum[0]) == 0:
                 tempString = self.radiusList.GetValue() + " was not found in " + str(self.apertureRadii)
-                InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
+                self.IP = InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
                 return False
         except ValueError:
-            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
+            self.IP = InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         return True
     
@@ -2985,7 +2996,7 @@ class LoadOldPklFrame(wx.Frame):
                     self.radiusList.Append(string)
                 self.radiusList.SetValue(radiiString[0])
             except AttributeError:
-                InvalidParameter("", self, -1, stringVal="oldPKL") 
+                self.IP = InvalidParameter("", self, -1, stringVal="oldPKL") 
 
     def epsilonCheck(self,a,b):
         
@@ -3436,20 +3447,20 @@ class LeastSquaresFitFrame(wx.Frame):
 
     def update(self,event):
         if self.box1.boxList[1].GetValue() == '':
-            InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, stringVal="planet")
+            self.IP = InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, stringVal="planet")
         else:
             self.planet = self.box1.boxList[1].GetValue()
             [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
             if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
-                InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, stringVal="planet")
+                self.IP = InvalidParameter(self.box1.boxList[1].GetValue(), None,-1, stringVal="planet")
             else:
                 self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
                 self.box.userParams['a/Rs'].SetValue(str(AOverRs))
                 self.box.userParams['per'].SetValue(str(per))
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box.userParams['ecc'].SetValue(str(ecc))
-                InvalidParameter("",None,-1, stringVal="params")
+                self.IP = InvalidParameter("",None,-1, stringVal="params")
 
     def create_menu(self):
     
@@ -3492,6 +3503,7 @@ class MCMCFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent
         self.messageFrame = False
+        self.IP = wx.Frame
         self.pT = self.parent.pathText
         self.saveLoc = self.parent.saveLocation.GetValue()
         self.data = self.parent.data
@@ -3667,17 +3679,17 @@ class MCMCFrame(wx.Frame):
         '''
         
         if self.radiusList.GetValue() == "":
-            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
+            self.IP = InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         try:
             condition = self.epsilonCheck(self.data.apertureRadii,float(self.radiusList.GetValue()))
             self.tempNum = np.array(self.data.apertureRadii)[condition]
             if len(self.tempNum) == 0:
                 tempString = self.radiusList.GetValue() + " was not found in " + str(self.data.apertureRadii)
-                InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
+                self.IP = InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
                 return False
         except ValueError:
-            InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
+            self.IP = InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
             return False
         return True
 
@@ -3694,20 +3706,20 @@ class MCMCFrame(wx.Frame):
         '''
                 
         if self.LCB.boxList[1].GetValue() == '':
-            InvalidParameter(self.LCB.boxList[1].GetValue(), self,-1, stringVal="planet")
+            self.IP = InvalidParameter(self.LCB.boxList[1].GetValue(), self,-1, stringVal="planet")
         else:
             self.planet = self.LCB.boxList[1].GetValue()
             [RpOverRs,AOverRs,per,inc,ecc] = returnSystemParams.transiterParams(self.planet)
             
             if RpOverRs == -1 or AOverRs == -1 or per == -1 or inc == -1 or ecc == -1:
-                InvalidParameter(self.LCB.boxList[1].GetValue(), self,-1, stringVal="planet")
+                self.IP = InvalidParameter(self.LCB.boxList[1].GetValue(), self,-1, stringVal="planet")
             else:
                 self.box.userParams['Rp/Rs'].SetValue(str(RpOverRs))
                 self.box.userParams['a/Rs'].SetValue(str(AOverRs))
                 self.box3.userParams['per'].SetValue(str(per))
                 self.box.userParams['inc'].SetValue(str(inc))
                 self.box3.userParams['ecc'].SetValue(str(ecc))
-                InvalidParameter("",self,-1, stringVal="params")
+                self.IP = InvalidParameter("",self,-1, stringVal="params")
 
     def epsilonCheck(self,a,b):
         
@@ -3960,6 +3972,7 @@ class AddLCB(wx.Panel):
         sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
         self.parent = parent2
         self.messageFrame = False
+        self.IP = wx.Frame
         self.boxList = {}
         self.buttonList = {}
         sizer0 = wx.FlexGridSizer(rows=rowNum, cols=colNum, vgap=vNum, hgap=hNum)
@@ -4074,7 +4087,7 @@ class AddLCB(wx.Panel):
                         self.parent.radiusList.Append(string)
                     self.parent.radiusList.SetValue(radiiString[0])
             except AttributeError:
-                InvalidParameter("", self, -1, stringVal="oldPKL") 
+                self.IP = InvalidParameter("", self, -1, stringVal="oldPKL") 
             
         dlg.Destroy()
 
@@ -4093,6 +4106,7 @@ class ScanParamsBox(wx.Panel):
         
         wx.Panel.__init__(self,parent,objectID)
         self.messageFrame = False
+        self.IP = wx.Frame
         box1 = wx.StaticBox(self, -1, "Descriptive information")
         sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
         self.userinfo = {}
@@ -4142,17 +4156,17 @@ class ScanParamsBox(wx.Panel):
         '''
         
         if self.userinfo['bin'].GetValue() == '':
-            InvalidParameter(self.userinfo['bin'].GetValue(), self, -1, secondValue=str(self.max))
+            self.IP = InvalidParameter(self.userinfo['bin'].GetValue(), self, -1, secondValue=str(self.max))
             return False
         else:
             try:
                 self.var = int(self.userinfo['bin'].GetValue())
             except ValueError:
-                InvalidParameter(self.userinfo['bin'].GetValue(), self, -1, secondValue=str(self.max))
+                self.IP = InvalidParameter(self.userinfo['bin'].GetValue(), self, -1, secondValue=str(self.max))
                 return False
              
             if int(self.userinfo['bin'].GetValue()) <= 4 or int(self.userinfo['bin'].GetValue()) > self.max:
-                InvalidParameter(self.userinfo['bin'].GetValue(), self,-1, secondValue=str(self.max))
+                self.IP = InvalidParameter(self.userinfo['bin'].GetValue(), self,-1, secondValue=str(self.max))
                 return False
             else:
                 return True
@@ -4492,6 +4506,17 @@ class InvalidParameter(wx.Frame):
         self.parent.ds9Open = False
 
     def fitError(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
         self.parent.loadFitError = False
 
     def create_menu(self):
@@ -4584,48 +4609,48 @@ def checkParams(self, tupleList):
     
     for (number,string) in tupleList:
         if number == '':
-            InvalidParameter(number, self,-1, stringVal=string)
+            self.IP = InvalidParameter(number, self,-1, stringVal=string)
             return False
         else:
             try:
                 if string !="limbdark":
                     self.tmp = float(number)
             except ValueError:
-                InvalidParameter(number, self,-1, stringVal=string)
+                self.IP = InvalidParameter(number, self,-1, stringVal=string)
                 return False
             if string == "Rp/Rs":
                 if float(number)>1 or float(number)<0:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "a/Rs":
                 if float(number) <= 1:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "per":
                 if float(number) < 0:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "inc":
                 if float(number) < 0 or float(number) > 90:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "t0":
                 if float(number) < 0:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "ecc":
                 if float(number) < 0 or float(number) > 1:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "pericenter":
                 if float(number) < 0:
-                    InvalidParameter(number, self,-1, stringVal=string)
+                    self.IP = InvalidParameter(number, self,-1, stringVal=string)
                     return False
             if string == "limbdark":
                 if (number != "False"):
                     if (number != "linear"):
                         if(number != "quadratic"):
-                            InvalidParameter(number,self,-1,stringVal=string)
+                            self.IP = InvalidParameter(number,self,-1,stringVal=string)
                             return False
             if string == 'gamma1':
                 self.tempGamma1 = number
@@ -4634,32 +4659,32 @@ def checkParams(self, tupleList):
             if string == "saveiteration":
                 self.tempSaveIteration = float(number)
                 if float(number) < 5:
-                    InvalidParameter(number,self,-1,stringVal=string)
+                    self.IP = InvalidParameter(number,self,-1,stringVal=string)
                     return False
             if string == "number":
                 self.tempNumber = float(number)
                 if float(number) < 10:
-                    InvalidParameter(number,self,-1,stringVal=string)
+                    self.IP = InvalidParameter(number,self,-1,stringVal=string)
                     return False
             if string == "acceptance":
                 if float(number) <= 0:
-                    InvalidParameter(number,self,-1,stringVal=string)
+                    self.IP = InvalidParameter(number,self,-1,stringVal=string)
                     return False
             if string == "burnfrac":
                 if float(number) > 1 or float(number) <= 0:
-                    InvalidParameter(number,self,-1,stringVal=string)
+                    self.IP = InvalidParameter(number,self,-1,stringVal=string)
                     return False
     
     if(self.tempNumber != -1) and (self.tempSaveIteration != -1):
         if (self.tempNumber % self.tempSaveIteration) != 0:
             tempString = str(self.tempSaveIteration)+" < "+str(self.tempNumber)
-            InvalidParameter(tempString,self,-1,stringVal="mod")
+            self.IP = InvalidParameter(tempString,self,-1,stringVal="mod")
             return False
     
     self.totalGamma = float(self.tempGamma1) + float(self.tempGamma2)
     self.totalString = str(self.totalGamma)
     if self.totalGamma > 1:
-        InvalidParameter(self.totalString, self,-1, stringVal="gamma")
+        self.IP = InvalidParameter(self.totalString, self,-1, stringVal="gamma")
         return False
 
     return True
@@ -4667,7 +4692,23 @@ def checkParams(self, tupleList):
 ###################
 #This Runs The GUI#
 ###################
+def main():
+    
+    '''
+    This allows oscaarGUI to be imported without
+    automatically opening the frame every time.
+    '''
 
-app = wx.App(False)
-OscaarFrame()
-app.MainLoop()
+    pass
+
+if __name__ == "oscaar.oscaarGUI" or __name__ == "__main__":
+    
+    '''
+    If oscaarGUI is imported through oscaar, or if it is run
+    as a standalone program, the frame will open.
+    '''
+    
+    app = wx.App(False)
+    OscaarFrame(parent=None, objectID=-1)
+    app.MainLoop()
+    main()
