@@ -545,13 +545,13 @@ class dataBank:
                 name = inline[0].strip()
                 value = str(inline[1].strip())
                 list = [("Path to Master-Flat Frame", "flatPath"),
-                        ("Path to regions file", "regPaths"),
+                        ("Path to Regions File", "regPaths"),
                         ("Ingress", "ingress"), ("Egress", "egress"),
                         ("Radius", "apertureRadius"), ("Tracking Zoom", "trackingZoom"),
                         ("CCD Gain", "ccdGain"), ("Plot Tracking", "trackPlots"),
                         ("Plot Photometry", "photPlots"), ("Smoothing Constant", "smoothConst"),
                         ("Output Path","outputPath"), ("Path to Dark Frames", "darksPath"),
-                        ("Path to data images", "imagesPaths"), ("Exposure Time Keyword", "timeKeyword")]
+                        ("Path to Data Images", "imagesPaths"), ("Exposure Time Keyword", "timeKeyword")]
                 
                 for string,save in list:
                     if string == name:
