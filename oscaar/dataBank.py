@@ -899,71 +899,71 @@ class dataBank:
             savestring += '%s:\t%s\t +%s / -%s \n' % (labels[i],self.MCMC_bestp[i],self.MCMC_uncertainties[i][0],self.MCMC_uncertainties[i][1])
         return savestring
 
-    def plotMCMC(self):
-        bestp = self.MCMC_bestp
-        allparams = self.MCMC_allparams
-        x = self.times
-        y = self.lightCurve
-        sigma_y = self.lightCurveError
-    
-        ##############################
-        # Prepare figures
-        fig = plt.figure()
-        ax1 = fig.add_subplot(331)
-        ax2 = fig.add_subplot(332)
-        ax3 = fig.add_subplot(333)
-        ax4 = fig.add_subplot(334)
-        ax5 = fig.add_subplot(335)
-        ax6 = fig.add_subplot(336)
-        ax7 = fig.add_subplot(337)
-        ax8 = fig.add_subplot(338)
-        ax9 = fig.add_subplot(339)
-        yfit = occult4params(x,bestp)
-        ax1.errorbar(x,y,yerr=sigma_y,fmt='o-')
-        ax1.plot(x,yfit,'r')
-        ax1.set_title("Fit with MCMC")
-
-        ##############################
-        # Plot traces and histograms of mcmc params
-        p = allparams[0,:]
-        ap = allparams[1,:]
-        i = allparams[2,:]
-        t0 = allparams[3,:]
-        abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
-        burnFraction = 0.20     ## "burn" or ignore the first 20% of the chains
-
-        ax2.plot(abscissa,p,'k.')
-        ax2.set_title('p trace')
-        ax2.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-
-        ax3.plot(abscissa,ap,'k.')
-        ax3.set_title('ap trace')
-        ax3.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-
-        ax4.plot(abscissa,i,'k.')
-        ax4.set_title('i trace')
-        ax4.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-
-        ax5.plot(abscissa,t0,'k.')
-        ax5.set_title('t0 trace')
-        ax5.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-
-        def histplot(parameter,axis,title,bestFitParameter):
-            postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
-            Nbins = 15              ## Plot histograms with 15 bins
-            n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
-            plus,minus = oscaar.mcmc.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
-            axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
-            axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')        
-            axis.set_title(title)
-        ## Plot the histograms
-        histplot(p,ax6,'p',bestp[0])
-        histplot(ap,ax7,'ap',bestp[1])
-        histplot(i,ax8,'i',bestp[2])
-        histplot(t0,ax9,'t0',bestp[3])
-
-        plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
-        plt.show()
+#     def plotMCMC(self):
+#         bestp = self.MCMC_bestp
+#         allparams = self.MCMC_allparams
+#         x = self.times
+#         y = self.lightCurve
+#         sigma_y = self.lightCurveError
+#     
+#         ##############################
+#         # Prepare figures
+#         fig = plt.figure()
+#         ax1 = fig.add_subplot(331)
+#         ax2 = fig.add_subplot(332)
+#         ax3 = fig.add_subplot(333)
+#         ax4 = fig.add_subplot(334)
+#         ax5 = fig.add_subplot(335)
+#         ax6 = fig.add_subplot(336)
+#         ax7 = fig.add_subplot(337)
+#         ax8 = fig.add_subplot(338)
+#         ax9 = fig.add_subplot(339)
+#         yfit = occult4params(x,bestp)
+#         ax1.errorbar(x,y,yerr=sigma_y,fmt='o-')
+#         ax1.plot(x,yfit,'r')
+#         ax1.set_title("Fit with MCMC")
+# 
+#         ##############################
+#         # Plot traces and histograms of mcmc params
+#         p = allparams[0,:]
+#         ap = allparams[1,:]
+#         i = allparams[2,:]
+#         t0 = allparams[3,:]
+#         abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
+#         burnFraction = 0.20     ## "burn" or ignore the first 20% of the chains
+# 
+#         ax2.plot(abscissa,p,'k.')
+#         ax2.set_title('p trace')
+#         ax2.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+# 
+#         ax3.plot(abscissa,ap,'k.')
+#         ax3.set_title('ap trace')
+#         ax3.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+# 
+#         ax4.plot(abscissa,i,'k.')
+#         ax4.set_title('i trace')
+#         ax4.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+# 
+#         ax5.plot(abscissa,t0,'k.')
+#         ax5.set_title('t0 trace')
+#         ax5.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
+# 
+#         def histplot(parameter,axis,title,bestFitParameter):
+#             postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
+#             Nbins = 15              ## Plot histograms with 15 bins
+#             n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
+#             plus,minus = oscaar.fitting.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+#             axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
+#             axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')        
+#             axis.set_title(title)
+#         ## Plot the histograms
+#         histplot(p,ax6,'p',bestp[0])
+#         histplot(ap,ax7,'ap',bestp[1])
+#         histplot(i,ax8,'i',bestp[2])
+#         histplot(t0,ax9,'t0',bestp[3])
+# 
+#         plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
+#         plt.show()
 
     def plotLightCurve_multirad(self,pointsPerBin=10):
         for apertureRadiusIndex in range(len(self.apertureRadii)):

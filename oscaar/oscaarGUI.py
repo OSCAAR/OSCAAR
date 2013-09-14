@@ -20,18 +20,19 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 
 APP_EXIT = 1
 
+
 class OscaarFrame(wx.Frame):
-    
+
     '''
-    This class is the main frame of the OSCAAR GUI.    
+    This class is the main frame of the OSCAAR GUI.
     '''
-    
+
     def __init__(self, parent, objectID):
-        
+
         '''
         This method defines the initialization of this class.
         '''
-        
+
         self.aboutOpen = False
         self.loadOldPklOpen = False
         self.loadFittingOpen = False
@@ -49,163 +50,228 @@ class OscaarFrame(wx.Frame):
         self.ccdGain = "1.0"
         self.exposureTime = "JD"
         self.switchTimes = 0
-        
+
         self.title = "OSCAAR"
-        wx.Frame.__init__(self,None,-1, self.title)
+        wx.Frame.__init__(self, None, -1, self.title)
         self.panel = wx.Panel(self)
-                
+
         if sys.platform == "win32":
             self.fontType = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
-        else: 
+        else:
             self.fontType = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
-        
+
         self.static_bitmap = wx.StaticBitmap(self.panel)
-        self.logo = wx.Image(os.path.join(os.path.dirname(__file__),'images','logo4.png'), wx.BITMAP_TYPE_ANY)
+        self.logo = wx.Image(os.path.join(os.path.dirname(__file__), 'images',
+                                          'logo4.png'), wx.BITMAP_TYPE_ANY)
         self.bitmap = wx.BitmapFromImage(self.logo)
         self.static_bitmap.SetBitmap(self.bitmap)
-        
-        self.paths = AddLCB(self.panel, -1, name="mainGUI", rowNum=5, vNum=15, hNum=5, font=self.fontType)
+
+        self.paths = AddLCB(self.panel, -1, name="mainGUI", rowNum=5, vNum=15,
+                            hNum=5, font=self.fontType)
         self.topBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.topBox.Add(self.paths, border = 5, flag = wx.ALL)
+        self.topBox.Add(self.paths, border=5, flag=wx.ALL)
 
-        tupleList = [('zoom',"Track Zoom: ",'Enter a number for the zoom here.','15'),
-                     ('radius',"Aperture Radius: ", 'Enter a decimal for the radius here.','4.5'),
-                     ('smoothing',"Smoothing Constant: ", 'Enter an integer for smoothing here.','3')]
-        
-        self.leftBox = ParameterBox(self.panel, -1, tupleList, rows=5, cols=2, vNum=10, hNum=10, font=self.fontType)    
-        
-        tupleList = [('ingress',"Ingress, UT (YYYY/MM/DD)", "Enter a date in the correct format here.","YYYY/MM/DD"),
-                     ('egress',"Egress, UT (YYYY/MM/DD)", "Enter a date in the correct format here.","YYYY/MM/DD"),
-                     ('rbTrackPlot',"Tracking Plots: ","On", "Off"),
-                     ('rbPhotPlot',"Photometry Plots: ","On", "Off"),
-                     ('rbFitAfterPhot',"Fit After Photometry ","On","Off")]
+        tupleList = [('zoom', "Track Zoom: ",
+                      'Enter a number for the zoom here.', '15'),
+                     ('radius', "Aperture Radius: ",
+                      'Enter a decimal for the radius here.', '4.5'),
+                     ('smoothing', "Smoothing Constant: ",
+                      'Enter an integer for smoothing here.', '3')]
 
-        self.radioBox = ParameterBox(self.panel, -1, tupleList, rows=5, cols=3, vNum=10, hNum=10, font=self.fontType)
-        
+        self.leftBox = ParameterBox(self.panel, -1, tupleList, rows=5, cols=2,
+                                    vNum=10, hNum=10, font=self.fontType)
+
+        tupleList = [('ingress', "Ingress, UT (YYYY/MM/DD)",
+                      "Enter a date in the correct format here.",
+                      "YYYY/MM/DD"),
+                     ('egress', "Egress, UT (YYYY/MM/DD)",
+                      "Enter a date in the correct format here.",
+                      "YYYY/MM/DD"),
+                     ('rbTrackPlot', "Tracking Plots: ", "On", "Off"),
+                     ('rbPhotPlot', "Photometry Plots: ", "On", "Off"),
+                     ('rbFitAfterPhot', "Fit After Photometry ", "On", "Off")]
+
+        self.radioBox = ParameterBox(self.panel, -1, tupleList, rows=5, cols=3,
+                                     vNum=10, hNum=10, font=self.fontType)
+
         self.sizer0 = wx.FlexGridSizer(rows=1, cols=4)
         self.buttonBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.buttonBox.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
+        self.buttonBox.Add(self.sizer0, 0, wx.ALIGN_CENTER | wx.ALL, 5)
         self.ephButton = wx.Button(self.panel, label="Ephemeris")
-        self.masterFlatButton = wx.Button(self.panel, label = "Master Flat Maker")
-        self.ds9Button = wx.Button(self.panel, label = "Open DS9")
-        self.runButton = wx.Button(self.panel, label = "Run")
-        self.observatoryButton = wx.Button(self.panel, label = "Extra Observatory Parameters")
-        
-        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadEphFrame, "ephemeris"), self.ephButton)
-        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadMasterFlat, "masterFlat"),
-                  self.masterFlatButton)
-        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.ds9Open, "ds9"), self.ds9Button)
-        self.Bind(wx.EVT_BUTTON, self.runOscaar, self.runButton)
-        self.Bind(wx.EVT_BUTTON, lambda evt: self.singularExistance(evt, self.loadObservatoryFrame, "observatory"),
+        self.masterFlatButton = wx.Button(self.panel,
+                                          label="Master Flat Maker")
+        self.ds9Button = wx.Button(self.panel, label="Open DS9")
+        self.runButton = wx.Button(self.panel, label="Run")
+        self.observatoryButton = wx.Button(self.panel, label="Extra " + \
+                                           "Observatory Parameters")
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt: self.singularExistance(evt,
+                                                     self.loadObservatoryFrame,
+                                                     "observatory"),
                   self.observatoryButton)
-        self.sizer0.Add(self.ephButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.masterFlatButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.ds9Button,0,wx.ALIGN_CENTER|wx.ALL,5)
-        self.sizer0.Add(self.runButton,0,wx.ALIGN_CENTER|wx.ALL,5)
-        
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt: self.singularExistance(evt, self.loadEphFrame,
+                                                     "ephemeris"),
+                  self.ephButton)
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt: self.singularExistance(evt, self.loadMasterFlat,
+                                                     "masterFlat"),
+                  self.masterFlatButton)
+        self.Bind(wx.EVT_BUTTON,
+                  lambda evt: self.singularExistance(evt, self.ds9Open,
+                                                     "ds9"),
+                  self.ds9Button)
+        self.Bind(wx.EVT_BUTTON, self.runOscaar, self.runButton)
+        self.sizer0.Add(self.ephButton, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        self.sizer0.Add(self.masterFlatButton, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        self.sizer0.Add(self.ds9Button, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        self.sizer0.Add(self.runButton, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+
         self.rightBox = wx.BoxSizer(wx.VERTICAL)
-        self.rightBox.Add(self.radioBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        self.rightBox.Add(self.buttonBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.rightBox.Add(self.radioBox, 0, flag=wx.ALIGN_CENTER | wx.ALL,
+                          border=5)
+        self.rightBox.Add(self.buttonBox, 0, flag=wx.ALIGN_CENTER | wx.ALL,
+                          border=5)
         self.leftBox2 = wx.BoxSizer(wx.VERTICAL)
-        self.leftBox2.Add(self.leftBox, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
-        self.leftBox2.Add(self.observatoryButton, 0, flag = wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.leftBox2.Add(self.leftBox, 0, flag=wx.ALIGN_CENTER | wx.ALL,
+                          border=5)
+        self.leftBox2.Add(self.observatoryButton, 0, flag=wx.ALIGN_CENTER |
+                          wx.ALL, border=5)
 
         self.bottomBox = wx.BoxSizer(wx.HORIZONTAL)
-        self.bottomBox.Add(self.leftBox2, 0, flag = wx.ALIGN_CENTER)
-        self.bottomBox.Add(self.rightBox, 0, flag = wx.ALIGN_CENTER|wx.ALL, border =5)
-        
+        self.bottomBox.Add(self.leftBox2, 0, flag=wx.ALIGN_CENTER)
+        self.bottomBox.Add(self.rightBox, 0, flag=wx.ALIGN_CENTER | wx.ALL,
+                           border=5)
+
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.vbox.Add(self.static_bitmap,0,flag = wx.ALIGN_LEFT)
-        self.vbox.Add(self.topBox, 0, flag = wx.ALIGN_CENTER)
-        self.vbox.Add(self.bottomBox, 0, flag = wx.CENTER | wx.ALL, border = 5)
+        self.vbox.Add(self.static_bitmap, 0, flag=wx.ALIGN_LEFT)
+        self.vbox.Add(self.topBox, 0, flag=wx.ALIGN_CENTER)
+        self.vbox.Add(self.bottomBox, 0, flag=wx.CENTER | wx.ALL, border=5)
         self.create_menu()
         self.CreateStatusBar()
         self.vbox.AddSpacer(10)
         self.panel.SetSizer(self.vbox)
         self.vbox.Fit(self)
-        
+
         self.setDefaults()
-        
-        iconloc = os.path.join(os.path.dirname(__file__),'images','logo4noText.ico')
+
+        iconloc = os.path.join(os.path.dirname(__file__), 'images',
+                               'logo4noText.ico')
         icon1 = wx.Icon(iconloc, wx.BITMAP_TYPE_ICO)
-        self.SetIcon(icon1)       
-        
+        self.SetIcon(icon1)
+
         self.Center()
         self.Show()
-        
+
     def create_menu(self):
-        
+
         '''
         This method creates the menu bars that are at the top of the main GUI.
-        
+
         Notes
         -----
-        This method has no input or return parameters. It will simply be used as self.create_menu()
-        when in the initialization method for an OscaarFrame instance.
+        This method has no input or return parameters. It will simply be used
+         as self.create_menu() when in the initialization method for an
+         OscaarFrame instance.
         '''
-    
+
         menubar = wx.MenuBar()
-        
+
         menu_file = wx.Menu()
-        m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q", "Quit this application.")
+        m_quit = menu_file.Append(wx.ID_EXIT, "Quit\tCtrl+Q",
+                                  "Quit this application.")
         self.Bind(wx.EVT_MENU, self.on_exit, m_quit)
-        
+
         menu_help = wx.Menu()
-        m_help = menu_help.Append(wx.ID_HELP, "Help\tCtrl+H", "More Information about how to use this application.")
-        self.Bind(wx.EVT_MENU, lambda evt: self.openLink(evt, 
-                  "https://github.com/OSCAAR/OSCAAR/tree/master/docs/documentationInProgress"),
+        m_help = menu_help.Append(wx.ID_HELP, "Help\tCtrl+H",
+                                  "More Information about how to use this" + \
+                                  " application.")
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.openLink(evt,
+                                            "https://github.com/OSCAAR/" + \
+                                            "OSCAAR/tree/master/docs/" + \
+                                            "documentationInProgress"),
                   m_help)
-        
+
         menu_oscaar = wx.Menu()
-        m_ttp = menu_oscaar.Append(-1, "Transit Time Predictions", 
-                                      "Transit time predictions from the Czech Astronomical Society.")
+        m_ttp = menu_oscaar.Append(-1, "Transit Time Predictions",
+                                   "Transit time predictions from the " + \
+                                   "Czech Astronomical Society.")
         m_about = menu_oscaar.Append(-1, "About", "Contributors of OSCAAR.")
-        m_loadOld = menu_oscaar.Append(-1, "Load old output\tCtrl+L", "Load an old output file for further analysis.")
-        m_loadFitting = menu_oscaar.Append(-1, "Fitting Routines\tCtrl-F", 
-                                              "Different fitting methods for analysis of an old .pkl file.")
-        m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets", 
-                                            "Add extra regions files to specific referenced images.")
-        
-        self.Bind(wx.EVT_MENU, lambda evt: self.openLink(evt, "http://var2.astro.cz/ETD/predictions.php"), m_ttp)
-        self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.aboutOpen, "about"), m_about)
-        self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.loadOldPklOpen, "loadOld"), m_loadOld)
-        self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.loadFittingOpen, "loadFitting"), m_loadFitting)
-        self.Bind(wx.EVT_MENU, lambda evt: self.singularExistance(evt, self.extraRegionsOpen, "extra"), m_extraRegions)
+        m_loadOld = menu_oscaar.Append(-1, "Load old output\tCtrl+L",
+                                       "Load an old output file for " + \
+                                       "further analysis.")
+        m_loadFitting = menu_oscaar.Append(-1, "Fitting Routines\tCtrl-F",
+                                           "Different fitting methods for " + \
+                                           "analysis of an old .pkl file.")
+        m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets",
+                                            "Add extra regions files to " + \
+                                            "specific referenced images.")
+
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.openLink(evt,
+                                            "http://var2.astro.cz/ETD/" + \
+                                            "predictions.php"),
+                  m_ttp)
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.singularExistance(evt, self.aboutOpen,
+                                                     "about"),
+                  m_about)
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.singularExistance(evt, self.loadOldPklOpen,
+                                                     "loadOld"),
+                  m_loadOld)
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.singularExistance(evt, self.loadFittingOpen,
+                                                     "loadFitting"),
+                  m_loadFitting)
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.singularExistance(evt,
+                                                     self.extraRegionsOpen,
+                                                     "extra"),
+                  m_extraRegions)
         menubar.Append(menu_file, "File")
         menubar.Append(menu_help, "Help")
         menubar.Append(menu_oscaar, "Oscaar")
-        self.SetMenuBar(menubar)       
+        self.SetMenuBar(menubar)
 
     def runOscaar(self, event):
-        
+
         '''
-        This method will activate when the run button on the main GUI is pressed. It executes
-        the differentialPhotometry.py script.
-        
+        This method will activate when the run button on the main GUI is
+         pressed. It executes the differentialPhotometry.py script.
+
         Parameters
         ----------
         event : wx.EVT_*
-            A wxPython event that allows the activation of this method. The * represents a wild card value.
-        
+            A wxPython event that allows the activation of this method. The *
+             represents a wild card value.
+
         Notes
         -----
-        There is nothing to return for this method. Upon completion a window will open with the light curve
-        that was produced from the data and input parameters.
+        There is nothing to return for this method. Upon completion a window
+         will open with the light curve that was produced from the data and
+         input parameters.
         '''
-        
-        self.values = {}        
-        invalidDarkFrames = self.checkFileInputs(self.paths.boxList[1].GetValue(), saveNum=1)
+
+        self.values = {}
+        invalidDarkFrames = self.checkFileInputs(self.paths.boxList[1].
+                                                 GetValue(), saveNum=1)
         masterFlat = self.paths.boxList[2].GetValue().strip()
-        invalidDataImages = self.checkFileInputs(self.paths.boxList[3].GetValue(), saveNum=3)
+        invalidDataImages = self.checkFileInputs(self.paths.boxList[3].
+                                                 GetValue(), saveNum=3)
         regionsFile = self.paths.boxList[4].GetValue().strip()
         self.outputFile = self.paths.boxList[5].GetValue().strip()
         self.values["radius"] = self.leftBox.userParams["radius"].GetValue()
         self.radiusError = "radius"
-        
+
         if invalidDarkFrames != "":
-            self.IP = InvalidParameter(invalidDarkFrames, self, -1, stringVal="fits", secondValue="the path to Dark Frames")
-        elif os.path.isfile(masterFlat) != True or (masterFlat.lower().endswith(".fit") != True and \
-             masterFlat.lower().endswith(".fits") != True) :
+            self.IP = InvalidParameter(invalidDarkFrames, self, -1,
+                                       stringVal="fits",
+                                       secondValue="the path to Dark Frames")
+        elif os.path.isfile(masterFlat) != True or \
+        (masterFlat.lower().endswith(".fit") != True and \
+         masterFlat.lower().endswith(".fits") != True):
             tempString = masterFlat
             if len(masterFlat.split(",")) > 1:
                 tempString = ""
@@ -214,20 +280,33 @@ class OscaarFrame(wx.Frame):
                         tempString += ","
                     else:
                         tempString += "\n" + string.strip()
-            self.IP = InvalidParameter(tempString, self, -1, stringVal="master", secondValue="path to the Master Flat")
+            self.IP = InvalidParameter(tempString, self, -1,
+                                       stringVal="master",
+                                       secondValue="path to the Master Flat")
         elif invalidDataImages != "":
-            self.IP = InvalidParameter(invalidDataImages, self, -1, stringVal="fits", secondValue="the path to Data Images")
-        elif self.checkRegionsBox(regionsFile) == False:  
+            self.IP = InvalidParameter(invalidDataImages, self, -1,
+                                       stringVal="fits",
+                                       secondValue="the path to Data Images")
+        elif self.checkRegionsBox(regionsFile) == False:
             pass
         elif not os.path.isdir(self.outputFile.rpartition(str(os.sep))[0]) or \
-             not len(self.outputFile) > (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
-            self.IP = InvalidParameter(self.outputFile, self, -1, stringVal="output", secondValue="output file")
+             not len(self.outputFile) > \
+             (len(self.outputFile[:self.outputFile.rfind(os.sep)]) + 1):
+            self.IP = InvalidParameter(self.outputFile, self, -1,
+                                       stringVal="output",
+                                       secondValue="output file")
         elif self.checkAperture(self.values["radius"]) != True:
-            self.IP = InvalidParameter(self.leftBox.userParams["radius"].GetValue(), self, -1, stringVal=self.radiusError)
-        elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].GetValue(),
-                                   self.radioBox.userParams['egress1'].GetValue(),
-                                   self.radioBox.userParams['ingress'].GetValue(),
-                                   self.radioBox.userParams['egress'].GetValue()) == True:
+            self.IP = InvalidParameter(self.leftBox.userParams["radius"].
+                                       GetValue(), self, -1,
+                                       stringVal=self.radiusError)
+        elif self.timeAndDateCheck(self.radioBox.userParams['ingress1'].
+                                   GetValue(),
+                                   self.radioBox.userParams['egress1'].
+                                   GetValue(),
+                                   self.radioBox.userParams['ingress'].
+                                   GetValue(),
+                                   self.radioBox.userParams['egress'].
+                                   GetValue()) == True:
             try:
                 tempList = ["smoothing", "zoom"]
                 for string in tempList:
@@ -3803,61 +3882,57 @@ class ParameterBox(wx.Panel):
     '''
     This is a general method that is used throughout the GUI to create an interactive box
     with multiple text controls for user input.
+    
+    Parameters
+    ----------
+    parent : window
+        The parent window that this box will be associated with.
+    
+    objectID : int
+        The identity number of the object.
+    
+    tupleList : array
+        An array of tuples for the different text controls desired. The tuple must be four strings.
+    
+    name : string, optional
+        The name of the box for the current set of parameters. It is displayed in the upper left hand corner.
+    
+    rows : int, optional
+        The number of rows for the box.
+        
+    cols : int, optional
+        The number of columns for the box.
+    
+    vNum : int, optional
+        The vertical displacement between each text control.
+    
+    hNum : int, optional
+        The horizontal displacement between each text control.
+    
+    font : wx.font(), optional
+        The type of style you would like the text to be displayed as.
+    
+    secondButton : bool, optional
+        If a radio button is created by this class, the first value of the radio button will be selected
+        since the default value is false. IF this variable is true however, the second value of the radio
+        button is selected.
+
+    Notes
+    -----
+    The list that is given as a parameter must be an array of tuples. The format for these tuples is 
+    (string, string, string, string). The first string will be the keyword (widget) to select that specific 
+    text box to work with in the code. The second string is the name of the parameter that will appear in the GUI.  
+    The third string will be the tooltip that is seen if the user hovers over the box. The fourth string is 
+    the default value for that parameter.
+    
+    If however, the widget name begins with 'rb', a radio button will be created. In this scenario, the second
+    string will be the name of the parameter, with the 3rd and 4th strings being the values of the two radio
+    buttons that will be created.
     '''
     
     def __init__(self, parent, objectID, tupleList, name="", rows=1, cols=10, vNum=0, hNum=0, font=wx.NORMAL_FONT, 
                  secondButton=False):
-        
-        '''
-        This initializes a box with different specifications depending on what the user requires.
-        
-        Parameters
-        ----------
-        parent : window
-            The parent window that this box will be associated with.
-        
-        objectID : int
-            The identity number of the object.
-        
-        tupleList : array
-            An array of tuples for the different text controls desired. The tuple must be four strings.
-        
-        name : string, optional
-            The name of the box for the current set of parameters. It is displayed in the upper left hand corner.
-        
-        rows : int, optional
-            The number of rows for the box.
-            
-        cols : int, optional
-            The number of columns for the box.
-        
-        vNum : int, optional
-            The vertical displacement between each text control.
-        
-        hNum : int, optional
-            The horizontal displacement between each text control.
-        
-        font : wx.font(), optional
-            The type of style you would like the text to be displayed as.
-        
-        secondButton : bool, optional
-            If a radio button is created by this class, the first value of the radio button will be selected
-            since the default value is false. IF this variable is true however, the second value of the radio
-            button is selected.
-
-        Notes
-        -----
-        The list that is given as a parameter must be an array of tuples. The format for these tuples is 
-        (string, string, string, string). The first string will be the keyword (widget) to select that specific 
-        text box to work with in the code. The second string is the name of the parameter that will appear in the GUI.  
-        The third string will be the tooltip that is seen if the user hovers over the box. The fourth string is 
-        the default value for that parameter.
-        
-        If however, the widget name begins with 'rb', a radio button will be created. In this scenario, the second
-        string will be the name of the parameter, with the 3rd and 4th strings being the values of the two radio
-        buttons that will be created.
-        '''
-           
+                   
         wx.Panel.__init__(self,parent,objectID)
         box1 = wx.StaticBox(self, -1, name)
         sizer = wx.StaticBoxSizer(box1, wx.VERTICAL)
@@ -3906,65 +3981,61 @@ class AddLCB(wx.Panel):
     '''
     This creates the set of a label, control box, and button. Usually used to let a user
     browse and select a file.
+    
+    Parameters
+    ----------
+    parent : window
+        The parent panel that this box will be associated with.
+    
+    objectID : int
+        The identity number of the object.
+        
+    parent2 : window, optional
+        Usually the parent is the panel that the LCB gets created in. If however, there is a need
+        to use the actual parent frame, a second window is allowed to be linked.
+    
+    name : string, optional
+        The name of the label for the static box. If the name is 'mainGUI' or 'planet' a different set gets
+        created.
+    
+    buttonLabel : string, optional
+        The name of the button that is created.
+    
+    multFiles : bool, optional
+        If true, when browsing for files the user can select multiple ones. If false, only one file is
+        allowed to be selected.
+    
+    rowNum : int, optional
+        The number of rows for the box.
+        
+    colNum : int, optional
+        The number of columns for the box.
+    
+    vNum : int, optional
+        The vertical displacement between each text control.
+    
+    hNum : int, optional
+        The horizontal displacement between each text control.
+    
+    font : wx.font(), optional
+        The type of style you would like the text to be displayed as.
+        
+    updateRadii : bool, optional
+        If true, this method will update the available aperture radii list for the drop down menu in the 
+        parent frame.
+    
+    boxName : string, optional
+        The name of the box for the current LCB set. It is displayed in the upper left hand corner. 
+    
+    height : int, optional
+        The height of the control box.
+    
+    saveType : wx.FD_*, optional
+        The style of the box that will appear. The * represents a wild card value for different types.
     '''
-
+    
     def __init__(self, parent, objectID, parent2=None, name='', buttonLabel="Browse", multFiles=False, rowNum=1, colNum=3,
                  vNum=0, hNum=0, font=wx.NORMAL_FONT, updateRadii=False, boxName="", height=20, saveType=wx.FD_OPEN):
-        
-        '''
-        This initializes the box for the LCB set.
-        
-        Parameters
-        ----------
-        parent : window
-            The parent panel that this box will be associated with.
-        
-        objectID : int
-            The identity number of the object.
-            
-        parent2 : window, optional
-            Usually the parent is the panel that the LCB gets created in. If however, there is a need
-            to use the actual parent frame, a second window is allowed to be linked.
-        
-        name : string, optional
-            The name of the label for the static box. If the name is 'mainGUI' or 'planet' a different set gets
-            created.
-        
-        buttonLabel : string, optional
-            The name of the button that is created.
-        
-        multFiles : bool, optional
-            If true, when browsing for files the user can select multiple ones. If false, only one file is
-            allowed to be selected.
-        
-        rowNum : int, optional
-            The number of rows for the box.
-            
-        colNum : int, optional
-            The number of columns for the box.
-        
-        vNum : int, optional
-            The vertical displacement between each text control.
-        
-        hNum : int, optional
-            The horizontal displacement between each text control.
-        
-        font : wx.font(), optional
-            The type of style you would like the text to be displayed as.
-            
-        updateRadii : bool, optional
-            If true, this method will update the available aperture radii list for the drop down menu in the 
-            parent frame.
-        
-        boxName : string, optional
-            The name of the box for the current LCB set. It is displayed in the upper left hand corner. 
-        
-        height : int, optional
-            The height of the control box.
-        
-        saveType : wx.FD_*, optional
-            The style of the box that will appear. The * represents a wild card value for different types.
-        '''
         
         wx.Panel.__init__(self,parent,objectID)
         box1 = wx.StaticBox(self, -1, boxName)

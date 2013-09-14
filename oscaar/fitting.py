@@ -401,22 +401,22 @@ def get_uncertainties(param,bestFitParameter):
 	minus = np.sqrt(np.sum((lowerHalf - bestFitParameter)**2)/(len(lowerHalf)-1))
 	return [plus,minus]
 
-def histplot(parameter,axis,title,bestFitParameter):
-	"""
-	Plot a histogram with 50 bins displaying the parameter chain
-	frequencies for the chain `parameter` with best fit value
-	`bestFitParameter`. Name the figure after the parameter `title`
-	and plot it to the axis `axis`. 
-	
-	"""
-	postburn = parameter[burnFraction*len(parameter):len(parameter)]	## Burn beginning of chain
-	Nbins = 50			  ## Plot histograms with 15 bins
-	n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white',histtype='stepfilled')  ## Generate histogram
-	plus,minus = get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
-	axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')	## Plot vertical lines representing uncertainties
-	axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')
-	axis.set_ylim([0,np.max(n)])		
-	axis.set_title(title)
+# def histplot(parameter,axis,title,bestFitParameter):
+# 	"""
+# 	Plot a histogram with 50 bins displaying the parameter chain
+# 	frequencies for the chain `parameter` with best fit value
+# 	`bestFitParameter`. Name the figure after the parameter `title`
+# 	and plot it to the axis `axis`. 
+# 	
+# 	"""
+# 	postburn = parameter[burnFraction*len(parameter):len(parameter)]	## Burn beginning of chain
+# 	Nbins = 50			  ## Plot histograms with 15 bins
+# 	n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white',histtype='stepfilled')  ## Generate histogram
+# 	plus,minus = get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
+# 	axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')	## Plot vertical lines representing uncertainties
+# 	axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')
+# 	axis.set_ylim([0,np.max(n)])		
+# 	axis.set_title(title)
 
 def updatePKL(bestp,allparams,acceptanceRate,pklPath,uncertainties):
 	"""
