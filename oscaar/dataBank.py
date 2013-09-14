@@ -899,6 +899,27 @@ class dataBank:
             savestring += '%s:\t%s\t +%s / -%s \n' % (labels[i],self.MCMC_bestp[i],self.MCMC_uncertainties[i][0],self.MCMC_uncertainties[i][1])
         return savestring
 
+    def czechETDstring(self,apertureRadiusIndex):
+        """
+        Returns a string containing the tab delimited light curve data for submission 
+        to the *Czech Astronomical Society's Exoplanet Transit Database*, for submission
+        here: http://var2.astro.cz/ETD/protocol.php
+        
+        Parameters
+        ----------
+        apertureRadiusIndex : int
+            Index of the aperture radius from which to use for the light curve fluxes
+            and errors. 
+        """
+
+        N_measurements = len(self.lightCurves[apertureRadiusIndex])
+        outputString = ''
+        for i in xrange(N_measurements):
+            outputString += '\t'.join(map(str,[self.times[i],self.lightCurves[apertureRadiusIndex][i],\
+                                       self.lightCurveErrors[apertureRadiusIndex][i]]))
+            outputString += '\n'
+        return outputString
+        
 #     def plotMCMC(self):
 #         bestp = self.MCMC_bestp
 #         allparams = self.MCMC_allparams
