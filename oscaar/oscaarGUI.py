@@ -1949,18 +1949,18 @@ class EphemerisFrame(wx.Frame):
         tupleList = [("latitude","Latitude (deg:min:sec): ","","00:00:00"),
                      ("longitude","Longitude (deg:min:sec): ","","00:00:00"),
                      ("elevation","Observatory Elevation (m): ","","0.0"),
-                     ("temperature","Temperature ("u"\u00b0""C): ","","0.0"),
+                     ("temperature","Temperature ("+u"\u00b0"+"C): ","","0.0"),
                      ("lowerElevation","Lower Elevation Limit (deg:min:sec): ","","00:00:00")]
         self.leftBox2 = ParameterBox(self.panel, -1, tupleList, rows=5, cols=2, vNum = 5, hNum = 15, font =self.fontType)
         
         self.twilightChoices = {}
-        self.twilightChoices["Civil Twilight (-6"u"\u00b0"+")"] = "-6"
-        self.twilightChoices["Nautical Twilight (-12"u"\u00b0"+")"] = "-12"
-        self.twilightChoices["Astronomical Twilight (-18"u"\u00b0"")"] = "-18"
+        self.twilightChoices["Civil Twilight (-6"+u"\u00b0"+")"] = "-6"
+        self.twilightChoices["Nautical Twilight (-12"+u"\u00b0"+")"] = "-12"
+        self.twilightChoices["Astronomical Twilight (-18"+u"\u00b0"+")"] = "-18"
         
         self.twilightLabel = wx.StaticText(self.panel, -1, "Select Twilight Type: ")
         self.twilightLabel.SetFont(self.fontType)
-        self.twilightList = wx.ComboBox(self.panel, value = "Civil Twilight (-6"u"\u00b0"+")", 
+        self.twilightList = wx.ComboBox(self.panel, value = "Civil Twilight (-6"+u"\u00b0"+")", 
                                         choices = sorted(self.twilightChoices.keys()))
         
         self.dropBox2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -2229,9 +2229,9 @@ class EphemerisFrame(wx.Frame):
                 self.IP = InvalidParameter(self.elevation, self, -1, stringVal="tempElevNum", secondValue=tempString)
             return False
         
-        if all(self.twilight != temp for temp in ["Civil Twilight (-6"u"\u00b0"")",
-                                         "Nautical Twilight (-12"u"\u00b0"")",
-                                         "Astronomical Twilight (-18"u"\u00b0"")"]):
+        if all(self.twilight != temp for temp in ["Civil Twilight (-6"+u"\u00b0"+")",
+                                         "Nautical Twilight (-12"+u"\u00b0"+")",
+                                         "Astronomical Twilight (-18"+u"\u00b0"+")"]):
             self.IP = InvalidParameter(self.twilight, self, -1, stringVal="twilight")
             return False
                 
