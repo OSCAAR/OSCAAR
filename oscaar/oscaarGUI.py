@@ -992,11 +992,14 @@ class OscaarFrame(wx.Frame):
                               "master").read()
         mostRecentCommit = re.search('href="/OSCAAR/OSCAAR/commit/[a-z0-9]*', 
                                   str(url)).group(0).rpartition("/")[2]
-        currentCommit = oscaar.__sha__
-        if mostRecentCommit == currentCommit:
-            self.IP = InvalidParameter("", self, -1, stringVal="upToDate")
-        else:
-            self.IP = InvalidParameter("", self, -1, stringVal="newCommit")
+        try:
+            currentCommit = oscaar.__sha__
+            if mostRecentCommit == currentCommit:
+                self.IP = InvalidParameter("", self, -1, stringVal="upToDate")
+            else:
+                self.IP = InvalidParameter("", self, -1, stringVal="newCommit")
+        except AttributeError:
+            self.IP = InvalidParameter("", self, -1, stringVal="installAgain")
 
     def openLink(self, event, string):
         
@@ -4579,6 +4582,10 @@ class InvalidParameter(wx.Frame):
                                           "ion that you have is out of date. " \
                                           "Please visit our github page and " \
                                           "retrieve the latest commit.")
+            elif stringVal == "installAgain":
+                self.Title = "Error"
+                self.text = wx.StaticText(self.panel, -1, "There seems to be an outdated __init__ file. Please"\
+                                          " reinstall OSCAAR to use this update function.")
             else:
                 self.text = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + message)
             
