@@ -38,6 +38,7 @@ class OscaarFrame(wx.Frame):
         self.aboutOpen = False
         self.loadOldPklOpen = False
         self.loadFittingOpen = False
+        self.etdOpen = False
         self.loadMasterFlat = False
         self.overWrite = False
         self.ds9Open = False
@@ -196,10 +197,6 @@ class OscaarFrame(wx.Frame):
                   m_help)
 
         menu_oscaar = wx.Menu()
-        m_ttp = menu_oscaar.Append(-1, "Transit Time Predictions",
-                                   "Transit time predictions from the " + \
-                                   "Czech Astronomical Society.")
-        m_about = menu_oscaar.Append(-1, "About", "Contributors of OSCAAR.")
         m_loadOld = menu_oscaar.Append(-1, "Load old output\tCtrl+L",
                                        "Load an old output file for " + \
                                        "further analysis.")
@@ -209,16 +206,6 @@ class OscaarFrame(wx.Frame):
         m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets",
                                             "Add extra regions files to " + \
                                             "specific referenced images.")
-
-        self.Bind(wx.EVT_MENU,
-                  lambda evt: self.openLink(evt,
-                                            "http://var2.astro.cz/ETD/" + \
-                                            "predictions.php"),
-                  m_ttp)
-        self.Bind(wx.EVT_MENU,
-                  lambda evt: self.singularExistance(evt, self.aboutOpen,
-                                                     "about"),
-                  m_about)
         self.Bind(wx.EVT_MENU,
                   lambda evt: self.singularExistance(evt, self.loadOldPklOpen,
                                                      "loadOld"),
@@ -232,17 +219,43 @@ class OscaarFrame(wx.Frame):
                                                      self.extraRegionsOpen,
                                                      "extra"),
                   m_extraRegions)
-
+        
+        menu_czech = wx.Menu()
+        m_etd = menu_czech.Append(-1, "Czech ETD Format", "Take a .pkl file " \
+                                   "and convert the data to a format that is " \
+                                   "accepted by the Czech Astronomical " \
+                                   "Society's exoplanet transit database.")
+        m_ttp = menu_czech.Append(-1, "Transit Time Predictions",
+                                   "Transit time predictions from the " + \
+                                   "Czech Astronomical Society.")
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.openLink(evt,
+                                            "http://var2.astro.cz/ETD/" + \
+                                            "predictions.php"),
+                  m_ttp)
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.singularExistance(evt, self.etdOpen, "etd"),
+                  m_etd)
+                
         menu_update = wx.Menu()
         m_update = menu_update.Append(-1, "Check For Updates", "Check to see" \
                                       "if you have the latest commit for " \
                                       "this version of oscaar.")
         self.Bind(wx.EVT_MENU, self.checkSHA, m_update)
         
+        menu_about = wx.Menu()
+        m_about = menu_about.Append(-1, "About", "Contributors of OSCAAR.")
+        self.Bind(wx.EVT_MENU,
+                  lambda evt: self.singularExistance(evt, self.aboutOpen,
+                                                     "about"),
+                  m_about)
+        
         menubar.Append(menu_file, "File")
-        menubar.Append(menu_help, "Help")
         menubar.Append(menu_oscaar, "Oscaar")
+        menubar.Append(menu_czech, "Czech ETD")
         menubar.Append(menu_update, "Update")
+        menubar.Append(menu_help, "Help")
+        menubar.Append(menu_about, "About")
         self.SetMenuBar(menubar)
 
     def runOscaar(self, event):
@@ -905,14 +918,13 @@ class OscaarFrame(wx.Frame):
                 MasterFlatFrame(self, -1)
                 self.loadMasterFlat = True
             elif name == "ephemeris":
-                    EphemerisFrame(self, -1)
-                    self.loadEphFrame = True
+                EphemerisFrame(self, -1)
+                self.loadEphFrame = True
             elif name == "ds9":
                 if sys.platform == "win32":
                     errorType = WindowsError
                 else:
                     errorType = OSError
-                
                 try:
                     subprocess.Popen([os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),
                                                    'extras','ds9',sys.platform,'ds9')])
@@ -932,7 +944,9 @@ class OscaarFrame(wx.Frame):
                 else:
                     ObservatoryFrame(self, -1)
                     self.loadObservatoryFrame = True
-                
+            elif name == "etd":
+                ETDFrame(self, -1)
+                self.etdOpen = True
                     
     def parseTime(self, date, time, text, filename, name=""):
         
@@ -988,6 +1002,26 @@ class OscaarFrame(wx.Frame):
                 self.loadFittingOpen = True
     
     def checkSHA(self, event):
+        
+        '''
+        This method checks the secure hash algorithm that is saved when 
+        oscaar is installed in __init__.py against the one online for the 
+        latest commit.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * 
+            represents a wild card value.
+        
+        Notes
+        -----
+        There is no return. If both the sha's are equal, then the latest 
+        version of oscaar is installed, and a pop up message explains so. If 
+        they are not equal, a message pops up to tell the user to download 
+        the latest commit.
+        '''
+        
         url = urllib2.urlopen("https://github.com/OSCAAR/OSCAAR/commits/" \
                               "master").read()
         mostRecentCommit = re.search('href="/OSCAAR/OSCAAR/commit/[a-z0-9]*', 
@@ -2491,15 +2525,13 @@ class FittingFrame(wx.Frame):
         self.box = AddLCB(self.panel,-1,name="Path to Output File: ")
         self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", saveType=wx.FD_SAVE)
         self.vbox2= wx.BoxSizer(wx.VERTICAL)
-        self.vbox2.Add(self.box, border=5, flag=wx.ALL)
+        self.vbox2.Add(self.box, flag=wx.ALIGN_CENTER | wx.TOP)
         self.vbox2.Add(self.box2, border=5, flag=wx.ALL)
         self.box.boxList[1].SetValue(self.path)
         
         self.plotMCMCButton = wx.Button(self.panel,label="MCMC Fit", size = (130,25))
         self.Bind(wx.EVT_BUTTON, self.plotMCMC, self.plotMCMCButton)
         self.sizer0 = wx.FlexGridSizer(rows=2, cols=4)
-        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox2.Add(self.sizer0,0, wx.ALIGN_CENTER|wx.ALL,5)
         self.sizer0.Add(self.plotMCMCButton,0,wx.ALIGN_CENTER|wx.ALL,5)
         
         self.pklPathTxt = self.box.boxList[1]
@@ -2508,7 +2540,7 @@ class FittingFrame(wx.Frame):
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox.Add(self.vbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
-        self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.sizer0, 0, flag=wx.ALIGN_CENTER | wx.TOP)
         
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
         self.vbox.AddSpacer(10)
@@ -2532,12 +2564,12 @@ class FittingFrame(wx.Frame):
         self.menubar = wx.MenuBar()
     
         menu_file = wx.Menu()
-        m_browse = menu_file.Append(-1,"Browse","Browse for .pkl file.")
+        m_browse = menu_file.Append(-1,"Browse","Browse for a .pkl file to use.")
         self.Bind(wx.EVT_MENU, lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,
                                                                    False,wx.FD_OPEN),m_browse)
         m_browse2 = menu_file.Append(-1, "Browse2", "Browse a save location for the results.")
         self.Bind(wx.EVT_MENU, lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.saveLocation,
-                                                                   False,wx.FD_OPEN),m_browse2)
+                                                                   False,wx.FD_SAVE),m_browse2)
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
@@ -2674,6 +2706,349 @@ class FittingFrame(wx.Frame):
         
         self.parent.loadFittingOpen = False
 
+class ETDFrame(wx.Frame):
+    
+    '''
+    This frame converts the data from a .pkl into the correct format in a text
+    file that can be accepted by the Czech exoplanet transit database.
+    '''
+    
+    def __init__(self, parent, objectID):
+        
+        '''
+        This method defines the initialization of this class.
+        '''
+        
+        self.title = "ETD Conversion"
+        wx.Frame.__init__(self, parent, objectID, self.title)
+        
+        self.panel = wx.Panel(self)
+        self.parent = parent
+        self.messageFrame = False
+        self.data = ""
+        
+        self.box = AddLCB(self.panel,-1, parent2 = self, name="Path to Output File: ", updateRadii = True)    
+        self.box2 = AddLCB(self.panel, -1, name="Results Output Path (.txt): ", saveType=wx.FD_SAVE)
+        
+        self.apertureRadii = []
+        self.apertureRadiusIndex = 0
+        self.radiusLabel = wx.StaticText(self.panel, -1, 'Select Aperture Radius: ')
+        self.radiusList = wx.ComboBox(self.panel, value = "", choices = "", size = (100, wx.DefaultSize.GetHeight()))
+        self.radiusList.Bind(wx.EVT_COMBOBOX, self.radiusIndexUpdate)    
+         
+        self.updateRadiiButton = wx.Button(self.panel, label = "Update Radii List")
+        self.Bind(wx.EVT_BUTTON, self.updateRadiiList, self.updateRadiiButton)
+        
+        self.dropBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.dropBox.Add(self.radiusLabel, 0, flag = wx.ALIGN_CENTER | wx.LEFT, border = 10)
+        self.dropBox.Add(self.radiusList, 0, flag = wx.ALIGN_CENTER)
+        
+        self.convertToETDButton = wx.Button(self.panel,label = 'Convert to ETD Format') 
+
+        self.Bind(wx.EVT_BUTTON, self.convertToETD, self.convertToETDButton)
+        
+        self.sizer0 = wx.FlexGridSizer(rows=2, cols=3)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox.Add(self.sizer0, 0, wx.ALIGN_CENTER | wx.ALL, border = 5)
+        self.hbox.Add(self.updateRadiiButton, 0, wx.ALIGN_CENTER |wx. ALL, border = 5)
+        self.hbox.Add(self.dropBox, 0, flag=wx.ALIGN_CENTER | wx.ALL, border=10)
+
+        self.sizer0.Add(self.convertToETDButton,0,wx.ALIGN_CENTER|wx.ALL,5)
+         
+        self.pklPathTxt = self.box.boxList[1]
+        self.saveLocation = self.box2.boxList[1]
+        self.create_menu()
+
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(self.box, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        self.vbox.Add(self.box2, 0, flag=wx.ALIGN_CENTER | wx.ALL, border=5)
+        self.vbox.Add(self.hbox, 0, flag=wx.ALIGN_CENTER | wx.TOP)
+        
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
+        self.vbox.AddSpacer(10)
+        self.panel.SetSizer(self.vbox)
+        self.CreateStatusBar()
+        self.vbox.Fit(self)
+        self.Center()
+        self.Show()
+
+    def create_menu(self):
+        
+        '''
+        This method creates the menu bars that are at the top of the ETDFrame.
+        
+        Notes
+        -----
+        This method has no input or return parameters. It will simply be used as self.create_menu()
+        when in the initialization method for an instance of this frame.
+        '''
+    
+        self.menubar = wx.MenuBar()
+    
+        menu_file = wx.Menu()
+        m_browse = menu_file.Append(-1,"Browse","Browse for a .pkl file to use.")
+        self.Bind(wx.EVT_MENU, lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.pklPathTxt,False,
+                                                                   wx.FD_OPEN),m_browse)
+        m_browse2 = menu_file.Append(-1, "Browse2", "Browse a save location for the results.")
+        self.Bind(wx.EVT_MENU, lambda event: self.browseButtonEvent(event,'Choose Path to Output File',self.saveLocation,
+                                                                   False,wx.FD_SAVE),m_browse2)
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "Exit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_exit, m_exit)
+    
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
+    def browseButtonEvent(self, event, message, textControl, fileDialog, saveDialog):
+        
+        '''
+        This method defines the `browse` function for selecting a file on any OS.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        
+        message : string
+            The message that tells the user what to choose.
+            
+        textControl : wx.TextCtrl
+            The box in the frame that will be refreshed with the files that are chosen by the user.
+            
+        fileDialog : bool
+            If true, the style is wx.FD_MULTIPLE, otherwise it is the same as the `saveDialog`.
+            
+        saveDialog : wx.FD_*
+            The style of the box that will appear. The * represents a wild card value for different types.
+        '''
+        
+        if not fileDialog:
+            dlg = wx.FileDialog(self, message = message, style = saveDialog)
+        else: 
+            dlg = wx.FileDialog(self, message = message,  style = wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            if saveDialog == wx.SAVE:
+                filenames = [dlg.GetPath()]
+            else:
+                filenames = dlg.GetPaths()
+            textControl.Clear()
+            for i in range(0,len(filenames)):
+                if i != len(filenames)-1:
+                    textControl.WriteText(filenames[i] + ',')
+                else:
+                    textControl.WriteText(filenames[i])
+
+        if self.validityCheck(throwException = False): 
+            try:    
+                self.radiusList.Clear()
+                self.data = IO.load(self.box.boxList[1].GetValue())
+                self.apertureRadii = np.empty_like(self.data.apertureRadii)
+                self.apertureRadii[:] = self.data.apertureRadii
+                radiiString = [str(x) for x in self.data.apertureRadii]
+                for string in radiiString:
+                    self.radiusList.Append(string)
+                self.radiusList.SetValue(radiiString[0])
+            except AttributeError:
+                self.IP = InvalidParameter("", self, -1, stringVal="oldPKL") 
+        
+        dlg.Destroy()
+    
+    def convertToETD(self, event):
+
+        '''
+        This method uses the czechETDstring method from the databank.py class
+        to convert the data into the appropriate format.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+
+        if self.validityCheck() and self.radiusCheck():
+            tempSaveLoc = self.saveLocation.GetValue()
+            if not os.path.isdir(tempSaveLoc.rpartition(str(os.sep))[0]) or \
+            not len(tempSaveLoc) > (len(tempSaveLoc[:tempSaveLoc.rfind(os.sep)]) + 1):
+                self.IP = InvalidParameter(tempSaveLoc, self, -1, stringVal="output", secondValue="results output file")
+            else:
+                if not tempSaveLoc.lower().endswith(".txt"):
+                    tempSaveLoc += ".txt"
+                openFile = open(tempSaveLoc, 'w')
+                openFile.write(self.data.czechETDstring(self.apertureRadiusIndex))
+                openFile.close()
+                self.IP = InvalidParameter("", self, -1, stringVal="successfulConversion")
+
+    def validityCheck(self, throwException=True):
+
+        '''
+        This method checks to make sure that the entered .pkl file is valid and can
+        be used.
+        
+        Parameters
+        ----------
+        throwException : bool, optional
+            If true there will be a pop up frame that will explain the reason for why
+            the selected file cannot be used if it is invalid. If false, no error message
+            will pop up when an invalid file is selected.
+        
+        Returns
+        -------
+        literal : bool
+            False if the selected file is invalid, true otherwise.
+        '''
+        
+        pathName = self.pklPathTxt.GetValue()
+        if pathName != "":
+            if pathName.lower().endswith(".pkl"):
+                if os.path.isfile(pathName) == False:
+                    if throwException:
+                        self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
+                    return False
+            else:
+                if throwException:
+                    self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
+                return False 
+        else:
+            if throwException:
+                self.IP = InvalidParameter(pathName, self, -1, stringVal="path")
+            return False
+        return True
+
+    def radiusCheck(self):
+        
+        '''
+        This method checks to make sure that if the user enters an aperture radius that they
+        would like to plot, that it is a valid number in the list of saved aperture radii for
+        the selected file.
+        
+        Returns
+        -------
+        literal : bool
+            False if the aperture radius selected is not a number or not in the approved list,
+            true otherwise.
+        '''
+        
+        if len(self.apertureRadii) == 0:
+            self.IP = InvalidParameter(str(self.apertureRadii), self, -1, stringVal="radiusListError", secondValue="etdError")
+            return False
+        elif self.radiusList.GetValue() == "":
+            self.IP = InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
+            return False
+        try:
+            self.tempNum = np.where(self.epsilonCheck(self.apertureRadii,float(self.radiusList.GetValue())))
+            if len(self.tempNum[0]) == 0:
+                tempString = self.radiusList.GetValue() + " was not found in " + str(self.apertureRadii)
+                self.IP = InvalidParameter(tempString, self, -1, stringVal="radiusListError2")
+                return False
+        except ValueError:
+            self.IP = InvalidParameter(self.radiusList.GetValue(), self, -1, stringVal="radiusError")
+            return False
+        return True
+    
+    def updateRadiiList(self, event):
+        
+        '''
+        This method will manually update the drop down menu for the available aperture radii that can
+        be chosen from the .pkl file.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+             
+        Notes
+        -----
+        On successful completion, a list of available radii should be shown in the drop down menu of the frame.
+        '''
+        
+        if self.validityCheck():
+            try:
+                self.radiusList.Clear()
+                self.data = IO.load(self.box.boxList[1].GetValue())
+                self.apertureRadii = np.empty_like(self.data.apertureRadii)
+                self.apertureRadii[:] = self.data.apertureRadii
+                radiiString = [str(x) for x in self.data.apertureRadii]
+                for string in radiiString:
+                    self.radiusList.Append(string)
+                self.radiusList.SetValue(radiiString[0])
+            except AttributeError:
+                self.IP = InvalidParameter("", self, -1, stringVal="oldPKL") 
+
+    def epsilonCheck(self,a,b):
+        
+        ''' 
+        This method checks that two numbers are within machine precision of each other
+        because otherwise we get machine precision difference errors when mixing
+        single and double precision NumPy floats and pure Python built-in float types.
+        
+        Parameters
+        ----------
+        a : array
+            An array of float type numbers to check through.
+        
+        b : float
+            The number that is being checked for in the array.
+        
+        Returns
+        -------
+        literal : array
+            This is an array of booleans.
+            
+        Notes
+        -----
+        There a boolean literals of true in the return array if any number in `a` is within machine precision
+        of `b`.
+        
+        Examples
+        --------
+        Inputs: `a` = [0, 1.0, 2.0, 3.0, 4.0], `b` = 3.0
+        Return: [False, False, False, True, False]
+        '''
+        
+        return np.abs(a-b) < np.finfo(np.float32).eps
+
+    def radiusIndexUpdate(self, event):
+        
+        '''
+        This method updates the current index in the list of available radii that this frame will use to plot different
+        things. It does this by calling self.epsiloCheck to get an array of booleans. Afterwards, it selects the location
+        of the boolean 'True' and marks that as the new index.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.        
+        '''
+        
+        self.apertureRadiusIndex = np.where(self.epsilonCheck(self.apertureRadii, float(self.radiusList.GetValue())))[0][0]
+        
+    def on_exit(self, event):
+        
+        '''
+        This method defines the action quit from the menu. It closes the frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.Destroy()
+    
+    def onDestroy(self, event):
+        
+        '''
+        Whenever this frame is closed, this secondary method updates a variable in the parent
+        class to make sure that it knows there is no active instance of this frame.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.parent.etdOpen = False        
+        
 class LoadOldPklFrame(wx.Frame):
     
     '''
@@ -3008,6 +3383,7 @@ class LoadOldPklFrame(wx.Frame):
                 self.loadGraphFrame = True
             
     def validityCheck(self, throwException=True):
+
         '''
         This method checks to make sure that the entered .pkl file is valid and can
         be used.
@@ -3024,6 +3400,7 @@ class LoadOldPklFrame(wx.Frame):
         literal : bool
             False if the selected file is invalid, true otherwise.
         '''
+
         pathName = self.pklPathTxt.GetValue()
         if pathName != "":
             if pathName.lower().endswith(".pkl"):
@@ -4489,8 +4866,12 @@ class InvalidParameter(wx.Frame):
             elif stringVal == "radiusError":
                 self.string = "The radius you entered was empty or not a number. Please enter a valid number."
             elif stringVal == "radiusListError":
-                self.string = "The plotting methods rely on the aperture radii list from the .pkl file. You\n" + \
-                              "must update the radii list to continue."
+                if secondValue == "etdError":
+                    self.string = "The conversion method here depends on the aperture radii list from the .pkl file. You\n" + \
+                                  "must update the radii list to continue."
+                else:
+                    self.string = "The plotting methods rely on the aperture radii list from the .pkl file. You\n" + \
+                                  "must update the radii list to continue."
             elif stringVal == "radiusListError2":
                 self.string = "The radius you entered was not in the aperture radii list for this .pkl file.\n" + \
                               "Please pick a radius from the approved radii in the drop down menu."
@@ -4586,6 +4967,9 @@ class InvalidParameter(wx.Frame):
                 self.Title = "Error"
                 self.text = wx.StaticText(self.panel, -1, "There seems to be an outdated __init__ file. Please"\
                                           " reinstall OSCAAR to use this update function.")
+            elif stringVal == "successfulConversion":
+                self.Title = "Conversion Completed"
+                self.text = wx.StaticText(self.panel, -1, "A file that the Czech ETD will accept has been created!")
             else:
                 self.text = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + message)
             
