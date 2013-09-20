@@ -1,9 +1,11 @@
 import os
+import re
 import sys
 import wx
 import IO
 import shutil
 import oscaar
+import urllib2
 import zipfile
 import datetime
 import subprocess
@@ -230,9 +232,17 @@ class OscaarFrame(wx.Frame):
                                                      self.extraRegionsOpen,
                                                      "extra"),
                   m_extraRegions)
+
+        menu_update = wx.Menu()
+        m_update = menu_update.Append(-1, "Check For Updates", "Check to see" \
+                                      "if you have the latest commit for " \
+                                      "this version of oscaar.")
+        self.Bind(wx.EVT_MENU, self.checkSHA, m_update)
+        
         menubar.Append(menu_file, "File")
         menubar.Append(menu_help, "Help")
         menubar.Append(menu_oscaar, "Oscaar")
+        menubar.Append(menu_update, "Update")
         self.SetMenuBar(menubar)
 
     def runOscaar(self, event):
@@ -976,6 +986,17 @@ class OscaarFrame(wx.Frame):
             else:
                 FittingFrame(self, -1, self.outputFile)
                 self.loadFittingOpen = True
+    
+    def checkSHA(self, event):
+        url = urllib2.urlopen("https://github.com/OSCAAR/OSCAAR/commits/" \
+                              "master").read()
+        mostRecentCommit = re.search('href="/OSCAAR/OSCAAR/commit/[a-z0-9]*', 
+                                  str(url)).group(0).rpartition("/")[2]
+        currentCommit = oscaar.__sha__
+        if mostRecentCommit == currentCommit:
+            self.IP = InvalidParameter("", self, -1, stringVal="upToDate")
+        else:
+            self.IP = InvalidParameter("", self, -1, stringVal="newCommit")
 
     def openLink(self, event, string):
         
@@ -4547,6 +4568,17 @@ class InvalidParameter(wx.Frame):
             elif stringVal == "setExists":
                 self.text = wx.StaticText(self.panel, -1, "The set you are trying to add is already there! " + \
                                           "Please add a different set.")
+            elif stringVal == "upToDate":
+                self.Title = "Up To Date"
+                self.text = wx.StaticText(self.panel, -1, "The version of " \
+                                          "OSCAAR that you have is currently " \
+                                          "up to date!")
+            elif stringVal == "newCommit":
+                self.Title = "New Commit Available!"
+                self.text = wx.StaticText(self.panel, -1, "The current vers" \
+                                          "ion that you have is out of date. " \
+                                          "Please visit our github page and " \
+                                          "retrieve the latest commit.")
             else:
                 self.text = wx.StaticText(self.panel, -1, self.string +"\nThe following is invalid: " + message)
             
@@ -4763,8 +4795,10 @@ def checkParams(self, tupleList):
 ###################
 #This Runs The GUI#
 ###################
+
+
 def main():
-    
+
     '''
     This allows oscaarGUI to be imported without
     automatically opening the frame every time.
@@ -4773,12 +4807,12 @@ def main():
     pass
 
 if __name__ == "oscaar.oscaarGUI" or __name__ == "__main__":
-    
+
     '''
     If oscaarGUI is imported through oscaar, or if it is run
     as a standalone program, the frame will open.
     '''
-    
+
     app = wx.App(False)
     OscaarFrame(parent=None, objectID=-1)
     app.MainLoop()
