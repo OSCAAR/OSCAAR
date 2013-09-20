@@ -115,7 +115,18 @@ def to_do_at_exit():
     if not hasattr(sys, 'real_prefix'):
         #import subprocess
         #subprocess.check_call(['python', 'registration.py'])
+        import re
+        import urllib2
+        url = urllib2.urlopen("https://github.com/OSCAAR/OSCAAR/commits/" \
+                              "master").read()
+        sha = re.search('href="/OSCAAR/OSCAAR/commit/[a-z0-9]*"', 
+                        str(url)).group(0).rpartition("/")[2]
+        with open(os.path.join(os.path.dirname(oscaar.__file__),'__init__.py'),
+                  "a") as myfile:
+            myfile.write("\n__sha__ = \"%s" % sha)
+        
         from oscaar import registration
+        
 """ Set function to be executed at exit of code (when script is finished) """
 atexit.register(to_do_at_exit)
     
