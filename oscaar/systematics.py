@@ -5,26 +5,26 @@ from matplotlib import pyplot as plt
 def meanDarkFrame(darksPath):
     '''
     Returns the mean dark frame calculated from each dark frame in `darksPath`
-    
+
     Parameters
     ----------
     darksPath : list of strings
         Paths to the dark frames
-        
+            
     Returns
     -------
         The mean of the dark frames in `darksPath`
-    
+
     '''
-    #darksPath = glob(darksPath)
-    [dim1, dim2] = np.shape(pyfits.open(darksPath[0])[0].data)
-    ## Create N-dimensional array for N dark frames, where the first 
-    ##    two dimensions are the dimensions of the first image
-    darks = np.zeros([len(darksPath),dim1,dim2])
-    ## Return mean of all darks
-    for i in range(0,len(darksPath)):
-        darks[i,:,:] = pyfits.open(darksPath[i])[0].data
-    return np.mean(darks,axis=0)
+    
+    sumOfDarks = np.zeros_like(pyfits.getdata(darksPath[0]))
+    
+    N_exposures = len(darksPath)
+    for i in xrange(N_exposures):
+        sumOfDarks += pyfits.getdata(darksPath[i])
+    meanOfDarks = sumOfDarks/len(darksPath)
+
+    return meanOfDarks
 
 def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
     '''Make a master flat by taking a mean of a group of flat fields
