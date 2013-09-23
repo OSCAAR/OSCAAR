@@ -1022,20 +1022,23 @@ class OscaarFrame(wx.Frame):
         the latest commit.
         '''
         
-        url = urllib2.urlopen("https://github.com/OSCAAR/OSCAAR/commits/" \
-                              "master").read()
-        mostRecentCommit = re.search('href="/OSCAAR/OSCAAR/commit/[a-z0-9]*', 
-                                  str(url)).group(0).rpartition("/")[2]
-        try:
-            currentCommit = oscaar.__sha__
-            if mostRecentCommit == currentCommit:
-                self.IP = InvalidParameter("", self, -1, stringVal="upToDate")
-            else:
-                self.IP = InvalidParameter("", self, -1, stringVal="newCommit")
-        except AttributeError:
-            self.IP = InvalidParameter("", self, -1, stringVal="installAgain")
+        try: 
+            url = urllib2.urlopen("https://github.com/OSCAAR/OSCAAR/commits/" \
+                                  "master").read()
+            mostRecentCommit = re.search('href="/OSCAAR/OSCAAR/commit/[a-z0-9]*', 
+                                      str(url)).group(0).rpartition("/")[2]
+            try:
+                currentCommit = oscaar.__sha__
+                if mostRecentCommit == currentCommit:
+                    self.IP = InvalidParameter("", self, -1, stringVal="upToDate")
+                else:
+                    self.IP = InvalidParameter("", self, -1, stringVal="newCommit")
+            except AttributeError:
+                self.IP = InvalidParameter("", self, -1, stringVal="installAgain")
+            
         except urllib2.URLError:
-            self.IP = InvalidParameter("", self, -1, stringVal="installAgain")
+            self.IP = InvalidParameter("", self, -1, stringVal="noInternetConnection")
+
 
     def openLink(self, event, string):
         
@@ -4979,7 +4982,7 @@ class InvalidParameter(wx.Frame):
                 self.Title = "Error"
                 self.text = wx.StaticText(self.panel, -1, "An internet"\
                             " connection is needed to access this function, "\
-                            "no connection is detected. Please check your "\
+                            "no connection is detected.\n\nPlease check your "\
                             "connection and try again.")
             
             elif stringVal == "successfulConversion":
