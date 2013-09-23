@@ -1034,6 +1034,8 @@ class OscaarFrame(wx.Frame):
                 self.IP = InvalidParameter("", self, -1, stringVal="newCommit")
         except AttributeError:
             self.IP = InvalidParameter("", self, -1, stringVal="installAgain")
+        except urllib2.URLError:
+            self.IP = InvalidParameter("", self, -1, stringVal="installAgain")
 
     def openLink(self, event, string):
         
@@ -4956,17 +4958,30 @@ class InvalidParameter(wx.Frame):
                 self.Title = "Up To Date"
                 self.text = wx.StaticText(self.panel, -1, "The version of " \
                                           "OSCAAR that you have is currently " \
-                                          "up to date!")
+                                          "up to date!\n\nYour version is from "\
+                                          "commit: \n" + oscaar.__sha__ )
             elif stringVal == "newCommit":
                 self.Title = "New Commit Available!"
                 self.text = wx.StaticText(self.panel, -1, "The current vers" \
                                           "ion that you have is out of date. " \
-                                          "Please visit our github page and " \
-                                          "retrieve the latest commit.")
+                                          "Please visit our GitHub page at "\
+                                          "\n http://www.github.com/OSCAAR/"\
+                                          "OSCAAR\nand retrieve the latest "\
+                                          "commit.\n\nYour version is from "\
+                                          "commit: \n" + oscaar.__sha__)
             elif stringVal == "installAgain":
                 self.Title = "Error"
                 self.text = wx.StaticText(self.panel, -1, "There seems to be an outdated __init__ file. Please"\
+
                                           " reinstall OSCAAR to use this update function.")
+
+            elif stringVal == "noInternetConnection":
+                self.Title = "Error"
+                self.text = wx.StaticText(self.panel, -1, "An internet"\
+                            " connection is needed to access this function, "\
+                            "no connection is detected. Please check your "\
+                            "connection and try again.")
+            
             elif stringVal == "successfulConversion":
                 self.Title = "Conversion Completed"
                 self.text = wx.StaticText(self.panel, -1, "A file that the Czech ETD will accept has been created!")
