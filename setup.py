@@ -141,7 +141,7 @@ def del_dir(dirname):
 def setup_package():
     create_manifest()
     list = ['Numpy>=1.6','Scipy>=0.1','pyfits>=3.1','pyephem>=3.7',\
-         'matplotlib==1.2.1']
+         'matplotlib>=1.2.1']
     setup(
         name = "OSCAAR",
         version = "2.0beta",
