@@ -206,6 +206,10 @@ class OscaarFrame(wx.Frame):
         m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets",
                                             "Add extra regions files to " + \
                                             "specific referenced images.")
+        m_preprocessedImages = menu_oscaar.Append(-1, "Pre-processed Images",
+                                                  "Use data images that are " +
+                                                  "already corrected for flat" +
+                                                  " fielding and dark frames.")
         self.Bind(wx.EVT_MENU,
                   lambda evt: self.singularExistance(evt, self.loadOldPklOpen,
                                                      "loadOld"),
@@ -219,6 +223,7 @@ class OscaarFrame(wx.Frame):
                                                      self.extraRegionsOpen,
                                                      "extra"),
                   m_extraRegions)
+        #self.Bind(wx.EVT_MENU, self.preprocessedImages, m_preprocessedImages)
         
         menu_czech = wx.Menu()
         m_etd = menu_czech.Append(-1, "Czech ETD Format", "Take a .pkl file " \
@@ -292,9 +297,10 @@ class OscaarFrame(wx.Frame):
             self.IP = InvalidParameter(invalidDarkFrames, self, -1,
                                        stringVal="fits",
                                        secondValue="the path to Dark Frames")
-        elif os.path.isfile(masterFlat) != True or \
+        elif  masterFlat != "/?~-\"precorrected\"-~?\\" and \
+        (os.path.isfile(masterFlat) != True or \
         (masterFlat.lower().endswith(".fit") != True and \
-         masterFlat.lower().endswith(".fits") != True):
+         masterFlat.lower().endswith(".fits") != True)):
             tempString = masterFlat
             if len(masterFlat.split(",")) > 1:
                 tempString = ""
@@ -694,6 +700,9 @@ class OscaarFrame(wx.Frame):
         setValueString = ""
         array2 = []
         smallArray = ""
+        if array == "/?~-\"precorrected\"-~?\\":
+            return errorString
+        
         for element in array.split(","):
             element = element.strip()
             if element.lower().endswith(os.sep):
@@ -1039,7 +1048,10 @@ class OscaarFrame(wx.Frame):
         except urllib2.URLError:
             self.IP = InvalidParameter("", self, -1, stringVal="noInternetConnection")
 
-
+    def preprocessedImages(self, event):
+        self.paths.boxList[1].SetValue("/?~-\"precorrected\"-~?\\")
+        self.paths.boxList[2].SetValue("/?~-\"precorrected\"-~?\\")
+        
     def openLink(self, event, string):
         
         '''
