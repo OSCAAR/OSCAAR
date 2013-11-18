@@ -54,9 +54,11 @@ class dataBank:
             self.convertToJD = mathMethods.ut2jdSplitAtT
         if not hasattr(sys, 'real_prefix'):
             assert len(self.imagesPaths) > 1, 'Must have at least two data images'
-        if self.flatPath != '':
+        if self.flatPath != '' and self.flatPath != "/?~-\"precorrected\"-~?\\":
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
+        elif self.flatPath == "/?~-\"precorrected\"-~?\\":
+            self.masterFlat = np.ones_like(pyfits.getdata(self.imagesPaths[0]))
         else:
             if not hasattr(sys, 'real_prefix'):
                 print 'Using an isotropic ("placebo") master-flat (array of ones)'
@@ -193,7 +195,7 @@ class dataBank:
     def getPaths(self):
         '''Return the paths to the raw images to be used'''
         return self.imagesPaths
-    
+            
     def getFluxes(self,star):
         '''
         Return list of fluxes for the star with key ``star``

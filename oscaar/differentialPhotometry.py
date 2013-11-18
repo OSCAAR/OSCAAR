@@ -32,7 +32,7 @@ outputPath = data.outputPath
 N_exposures = len(data.getPaths())
 
 # Prepare systematic corrections: dark frame, flat field
-meanDarkFrame = systematics.meanDarkFrame(data.darksPath)
+meanDarkFrame = systematics.meanDarkFrame(data.darksPath) 
 masterFlat = data.masterFlat
 
 # Tell oscaar what figure settings to use

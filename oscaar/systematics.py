@@ -4,7 +4,9 @@ from matplotlib import pyplot as plt
 
 def meanDarkFrame(darksPath):
     '''
-    Returns the mean dark frame calculated from each dark frame in `darksPath`
+    Returns the mean dark frame calculated from each dark frame in `darksPath`. If
+    there is only one file present in `darksPath`, use the dimensions of that image
+    to produce a dummy dark frame. 
 
     Parameters
     ----------
@@ -16,15 +18,18 @@ def meanDarkFrame(darksPath):
         The mean of the dark frames in `darksPath`
 
     '''
-    
-    sumOfDarks = np.zeros_like(pyfits.getdata(darksPath[0]))
-    
-    N_exposures = len(darksPath)
-    for i in xrange(N_exposures):
-        sumOfDarks += pyfits.getdata(darksPath[i])
-    meanOfDarks = sumOfDarks/len(darksPath)
+    if len(darksPath) == 1:
+        dummyDark = np.zeros_like(pyfits.getdata(darksPath[0]))
+        return dummyDark
 
-    return meanOfDarks
+    else: 
+        sumOfDarks = np.zeros_like(pyfits.getdata(darksPath[0]))
+        
+        N_exposures = len(darksPath)
+        for i in xrange(N_exposures):
+            sumOfDarks += pyfits.getdata(darksPath[i])
+        meanOfDarks = sumOfDarks/len(darksPath)
+        return meanOfDarks
 
 def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
     '''Make a master flat by taking a mean of a group of flat fields
@@ -43,6 +48,7 @@ def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
     plots : bool
         Plot the master flat on completion when plots=True
     '''
+
     ## Create zero array with the dimensions of the first image for the flat field
     [dim1, dim2] = np.shape(pyfits.open(flatImagesPath[0])[0].data)
     flatSum = np.zeros([dim1, dim2])

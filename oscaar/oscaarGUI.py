@@ -223,7 +223,7 @@ class OscaarFrame(wx.Frame):
                                                      self.extraRegionsOpen,
                                                      "extra"),
                   m_extraRegions)
-        #self.Bind(wx.EVT_MENU, self.preprocessedImages, m_preprocessedImages)
+        self.Bind(wx.EVT_MENU, self.preprocessedImages, m_preprocessedImages)
         
         menu_czech = wx.Menu()
         m_etd = menu_czech.Append(-1, "Czech ETD Format", "Take a .pkl file " \
@@ -286,6 +286,7 @@ class OscaarFrame(wx.Frame):
         invalidDarkFrames = self.checkFileInputs(self.paths.boxList[1].
                                                  GetValue(), saveNum=1)
         masterFlat = self.paths.boxList[2].GetValue().strip()
+        darkFrames = self.paths.boxList[1].GetValue().strip()
         invalidDataImages = self.checkFileInputs(self.paths.boxList[3].
                                                  GetValue(), saveNum=3)
         regionsFile = self.paths.boxList[4].GetValue().strip()
@@ -342,15 +343,25 @@ class OscaarFrame(wx.Frame):
                     self.values[string] = int(self.leftBox.userParams[string].GetValue())
                     self.leftBox.userParams[string].SetValue(str(self.values[string]))
 
-                self.paths.boxList[2].SetValue(masterFlat)
+                if darkFrames == "/?~-\"precorrected\"-~?\\":
+                    # If we want to use the dummy dark frame, feed in the first data
+                    # image in the `darkFrames` path, and the systematics.meanDarkFrame()
+                    # method will recognize that only one image was entered and generate a
+                    # dummy dark frame (array of zeros) with the dimensions of the image
+                    # entered (the first data image).
+                    dataImagesStr = self.paths.boxList[3].GetValue()
+                    darkFrames = dataImagesStr.split(',')[0]
+                #self.paths.boxList[2].SetValue(masterFlat) # Don't show the substituted value
                 self.paths.boxList[5].SetValue(self.outputFile)
                 
                 # This code here writes all the parameters to the init.par file.
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
-                init.write("Path to Dark Frames: " + self.paths.boxList[1].GetValue() + "\n")
+                #init.write("Path to Dark Frames: " + self.paths.boxList[1].GetValue() + "\n")
+                init.write("Path to Dark Frames: " + darkFrames + "\n")
                 init.write("Path to Data Images: " + self.paths.boxList[3].GetValue() + "\n")
-                init.write("Path to Master-Flat Frame: " + self.paths.boxList[2].GetValue() + "\n")
+                #init.write("Path to Master-Flat Frame: " + self.paths.boxList[2].GetValue() + "\n")
+                init.write("Path to Master-Flat Frame: " + masterFlat + "\n")
                 init.write("Path to Regions File: " + self.paths.boxList[4].GetValue() + "\n")
                 if not self.paths.boxList[5].GetValue().lower().endswith(".pkl"):
                     init.write("Output Path: " + self.paths.boxList[5].GetValue() + ".pkl\n")
