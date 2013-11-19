@@ -18,18 +18,13 @@ def meanDarkFrame(darksPath):
         The mean of the dark frames in `darksPath`
 
     '''
-    if len(darksPath) == 1:
-        dummyDark = np.zeros_like(pyfits.getdata(darksPath[0]))
-        return dummyDark
-
-    else: 
-        sumOfDarks = np.zeros_like(pyfits.getdata(darksPath[0]))
-        
-        N_exposures = len(darksPath)
-        for i in xrange(N_exposures):
-            sumOfDarks += pyfits.getdata(darksPath[i])
-        meanOfDarks = sumOfDarks/len(darksPath)
-        return meanOfDarks
+    sumOfDarks = np.zeros_like(pyfits.getdata(darksPath[0]))
+    
+    N_exposures = len(darksPath)
+    for i in xrange(N_exposures):
+        sumOfDarks += pyfits.getdata(darksPath[i])
+    meanOfDarks = sumOfDarks/len(darksPath)
+    return meanOfDarks
 
 def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots=False):
     '''Make a master flat by taking a mean of a group of flat fields
@@ -82,7 +77,7 @@ def standardFlatMaker(flatImagesPath,flatDarkImagesPath,masterFlatSavePath,plots
 
     ## Write out a FITS file
     #np.save(masterFlatSavePath+'.npy',masterFlat)
-    if masterFlatSavePath.endswith('.fits') or masterFlatSavePath.endswith('.fit'):
+    if masterFlatSavePath.lower().endswith('.fits') or masterFlatSavePath.lower().endswith('.fit'):
         pyfits.writeto(masterFlatSavePath,masterFlat)
     else: 
         pyfits.writeto(masterFlatSavePath+'.fits',masterFlat)

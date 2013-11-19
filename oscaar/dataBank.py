@@ -13,6 +13,7 @@ import re
 import oscaar
 import mathMethods
 import sys
+import systematics
 oscaarpath = os.path.dirname(os.path.abspath(oscaar.__file__))
 oscaarpathplus = os.path.join(oscaarpath,'extras')
 
@@ -49,21 +50,21 @@ class dataBank:
         self.timeKeyword = self.dict["timeKeyword"]
         
         if self.timeKeyword == 'JD': 
+            # Since we're trying to convert to JD, use a dummy lambda function
             self.convertToJD = lambda x: x
         elif self.timeKeyword == 'DATE-OBS':
             self.convertToJD = mathMethods.ut2jdSplitAtT
+        #if not hasattr(sys, 'real_prefix'):
+        #    assert len(self.imagesPaths) > 1, 'Must have at least two data images'
+
         if not hasattr(sys, 'real_prefix'):
-            assert len(self.imagesPaths) > 1, 'Must have at least two data images'
-        if self.flatPath != '' and self.flatPath != "/?~-\"precorrected\"-~?\\":
+            self.masterFlat = np.ones_like(pyfits.getdata(self.imagesPaths[0]))
+        elif self.flatPath != '':
             self.masterFlat = pyfits.getdata(self.flatPath)
             self.masterFlatPath = self.flatPath
-        elif self.flatPath == "/?~-\"precorrected\"-~?\\":
+        elif self.flatPath == '':
             self.masterFlat = np.ones_like(pyfits.getdata(self.imagesPaths[0]))
-        else:
-            if not hasattr(sys, 'real_prefix'):
-                print 'Using an isotropic ("placebo") master-flat (array of ones)'
-                dim1,dim2 = np.shape(pyfits.getdata(self.imagesPaths[0]))
-                self.masterFlat = np.ones([dim1,dim2])
+                
         self.allStarsDict = {}
         
         self.regionsFileList, self.regionsFITSrefsList = self.parseRawRegionsList(self.rawRegionsList)
@@ -86,7 +87,13 @@ class dataBank:
     def getDict(self):
         '''Return dictionary of all star data called ``allStarsDict`.'''
         return self.allStarsDict
-    
+
+    def getMeanDarkFrame(self):
+        if self.darksPath == "":
+            return np.zeros_like(pyfits.getdata(self.imagesPaths[0]))
+        else: 
+            return systematics.meanDarkFrame(self.darksPath)
+
     def centroidInitialGuess(self,expNumber,star):
         '''
         Gets called for each exposure. If called on the first exposure, it will return
@@ -561,7 +568,7 @@ class dataBank:
                         if name == "Smoothing Constant" or name == "Tracking Zoom" or name == "CCD Gain":
                             self.dict[save] = float(value)
                         elif name == "Ingress" or name == "Egress":
-                            self.dict[save] = oscaar.mathMethods.ut2jd(value)
+                            self.dict[save] = mathMethods.ut2jd(value)
                         elif name == "Plot Photometry" or name == "Plot Tracking":
                             if value == "on":
                                 self.dict[save] = True
