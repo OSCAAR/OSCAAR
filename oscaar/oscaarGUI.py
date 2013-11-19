@@ -50,6 +50,7 @@ class OscaarFrame(wx.Frame):
         self.extraRegionsOpen = False
         self.programmersEdit = False
         self.loadObservatoryFrame = False
+        self.preprocessedImagesFrame = False
         self.ccdGain = "1.0"
         self.exposureTime = "JD"
         self.switchTimes = 0
@@ -206,10 +207,7 @@ class OscaarFrame(wx.Frame):
         m_extraRegions = menu_oscaar.Append(-1, "Extra Regions File Sets",
                                             "Add extra regions files to " + \
                                             "specific referenced images.")
-        m_preprocessedImages = menu_oscaar.Append(-1, "Pre-processed Images",
-                                                  "Use data images that are " +
-                                                  "already corrected for flat" +
-                                                  " fielding and dark frames.")
+
         self.Bind(wx.EVT_MENU,
                   lambda evt: self.singularExistance(evt, self.loadOldPklOpen,
                                                      "loadOld"),
@@ -223,7 +221,6 @@ class OscaarFrame(wx.Frame):
                                                      self.extraRegionsOpen,
                                                      "extra"),
                   m_extraRegions)
-        self.Bind(wx.EVT_MENU, self.preprocessedImages, m_preprocessedImages)
         
         menu_czech = wx.Menu()
         m_etd = menu_czech.Append(-1, "Czech ETD Format", "Take a .pkl file " \
@@ -286,7 +283,6 @@ class OscaarFrame(wx.Frame):
         invalidDarkFrames = self.checkFileInputs(self.paths.boxList[1].
                                                  GetValue(), saveNum=1)
         masterFlat = self.paths.boxList[2].GetValue().strip()
-        darkFrames = self.paths.boxList[1].GetValue().strip()
         invalidDataImages = self.checkFileInputs(self.paths.boxList[3].
                                                  GetValue(), saveNum=3)
         regionsFile = self.paths.boxList[4].GetValue().strip()
@@ -298,8 +294,7 @@ class OscaarFrame(wx.Frame):
             self.IP = InvalidParameter(invalidDarkFrames, self, -1,
                                        stringVal="fits",
                                        secondValue="the path to Dark Frames")
-        elif  masterFlat != "/?~-\"precorrected\"-~?\\" and \
-        (os.path.isfile(masterFlat) != True or \
+        elif  masterFlat != "" and (os.path.isfile(masterFlat) != True or \
         (masterFlat.lower().endswith(".fit") != True and \
          masterFlat.lower().endswith(".fits") != True)):
             tempString = masterFlat
@@ -343,24 +338,14 @@ class OscaarFrame(wx.Frame):
                     self.values[string] = int(self.leftBox.userParams[string].GetValue())
                     self.leftBox.userParams[string].SetValue(str(self.values[string]))
 
-                if darkFrames == "/?~-\"precorrected\"-~?\\":
-                    # If we want to use the dummy dark frame, feed in the first data
-                    # image in the `darkFrames` path, and the systematics.meanDarkFrame()
-                    # method will recognize that only one image was entered and generate a
-                    # dummy dark frame (array of zeros) with the dimensions of the image
-                    # entered (the first data image).
-                    dataImagesStr = self.paths.boxList[3].GetValue()
-                    darkFrames = dataImagesStr.split(',')[0]
-                #self.paths.boxList[2].SetValue(masterFlat) # Don't show the substituted value
+                self.paths.boxList[2].SetValue(masterFlat)
                 self.paths.boxList[5].SetValue(self.outputFile)
                 
                 # This code here writes all the parameters to the init.par file.
                 
                 init = open(os.path.join(os.path.dirname(__file__),'init.par'), 'w')
-                #init.write("Path to Dark Frames: " + self.paths.boxList[1].GetValue() + "\n")
-                init.write("Path to Dark Frames: " + darkFrames + "\n")
+                init.write("Path to Dark Frames: " + self.paths.boxList[1].GetValue() + "\n")
                 init.write("Path to Data Images: " + self.paths.boxList[3].GetValue() + "\n")
-                #init.write("Path to Master-Flat Frame: " + self.paths.boxList[2].GetValue() + "\n")
                 init.write("Path to Master-Flat Frame: " + masterFlat + "\n")
                 init.write("Path to Regions File: " + self.paths.boxList[4].GetValue() + "\n")
                 if not self.paths.boxList[5].GetValue().lower().endswith(".pkl"):
@@ -388,16 +373,24 @@ class OscaarFrame(wx.Frame):
                 init.write("Exposure Time Keyword: " + self.exposureTime + "\n")
                 init.close()
                 if self.loadFittingOpen == False:
-                    if os.path.isfile(self.outputFile) or os.path.isfile(self.outputFile + '.pkl'):
+                    if self.preprocessedImagesFrame == False and \
+                    self.overWrite == False and \
+                    (self.paths.boxList[1].GetValue() == "" or \
+                    self.paths.boxList[2].GetValue() == ""):
+                        OverWrite(self, -1, "Preprocessed Images Check", "", "PreprocessedImages")
+                        self.preprocessedImagesFrame = True
+                    elif self.preprocessedImagesFrame == False and \
+                    (os.path.isfile(self.outputFile) or \
+                     os.path.isfile(self.outputFile + '.pkl')):
                         if self.overWrite == False:
                             OverWrite(self, -1, "Overwrite Output File", self.outputFile, "Output File")
                             self.overWrite = True
-                    else:
+                    elif self.preprocessedImagesFrame == False and \
+                    self.overWrite == False:
                         diffPhotCall = "from oscaar import differentialPhotometry"
                         subprocess.check_call(['python','-c',diffPhotCall])
                         if self.radioBox.userParams["rbFitAfterPhot"].GetValue() == True:
                             wx.CallAfter(self.createFrame)
-
                 else:
                     if self.loadFitError == False:
                         self.IP = InvalidParameter("", self, -1, stringVal="fitOpen")
@@ -711,7 +704,7 @@ class OscaarFrame(wx.Frame):
         setValueString = ""
         array2 = []
         smallArray = ""
-        if array == "/?~-\"precorrected\"-~?\\":
+        if array.strip() == "":
             return errorString
         
         for element in array.split(","):
@@ -1059,10 +1052,6 @@ class OscaarFrame(wx.Frame):
         except urllib2.URLError:
             self.IP = InvalidParameter("", self, -1, stringVal="noInternetConnection")
 
-    def preprocessedImages(self, event):
-        self.paths.boxList[1].SetValue("/?~-\"precorrected\"-~?\\")
-        self.paths.boxList[2].SetValue("/?~-\"precorrected\"-~?\\")
-        
     def openLink(self, event, string):
         
         '''
@@ -1852,7 +1841,6 @@ class AboutFrame(wx.Frame):
         
         self.parent.aboutOpen = False
 
-
 class OverWrite(wx.Frame): 
     
     '''
@@ -1860,7 +1848,7 @@ class OverWrite(wx.Frame):
     on the user's response, different methods are activated.
     '''
      
-    def __init__(self, parent, objectID, title, path, check):
+    def __init__(self, parent, objectID, title, path, option):
 
         '''
         This method defines the initialization of this class.
@@ -1870,14 +1858,25 @@ class OverWrite(wx.Frame):
         self.panel = wx.Panel(self)
         self.parent = parent     
         self.path = path
-        self.text = wx.StaticText(self.panel, -1, "Are you sure you want to overwrite\n" + self.path + "?")
+        if path == "":
+            self.text = wx.StaticText(self.panel, -1, 
+                                      "It seems as though you have left " +
+                                      "either the path to Dark Frames or the " +
+                                      "path to the Master Flat empty.\nAre " + 
+                                      "you indeed using preprocessed Data " + 
+                                      "Images and wish to continue without " + 
+                                      "specifying these parameters?")
+        else:
+            self.text = wx.StaticText(self.panel, -1, "Are you sure you want to overwrite\n" + self.path + "?")
         self.yesButton = wx.Button(self.panel, label = "Yes")
         self.noButton = wx.Button(self.panel,label = "No")
         self.SetFocus()
-        if check == "MasterFlat":
+        if option == "MasterFlat":
             self.Bind(wx.EVT_BUTTON, self.onMasterFlat, self.yesButton)
-        elif check == "Output File":
+        elif option == "Output File":
             self.Bind(wx.EVT_BUTTON, self.onOutputFile, self.yesButton)
+        elif option == "PreprocessedImages":
+            self.Bind(wx.EVT_BUTTON, self.onPreprocessedImages, self.yesButton)
         self.Bind(wx.EVT_BUTTON, self.onNO, self.noButton)
         
         self.sizer0 = wx.FlexGridSizer(rows=2, cols=1) 
@@ -1936,7 +1935,32 @@ class OverWrite(wx.Frame):
         subprocess.check_call(['python','-c',diffPhotCall])
         if self.parent.radioBox.userParams["rbFitAfterPhot"].GetValue() == True:
             wx.CallAfter(self.parent.createFrame)
-
+    
+    def onPreprocessedImages(self, event):
+        
+        '''
+        This method is to remind the user that they are trying to run the
+        differential photometry script without any dark frames or a master flat
+        and make sure they want to continue.
+        
+        Parameters
+        ----------
+        event : wx.EVT_*
+            A wxPython event that allows the activation of this method. The * represents a wild card value.
+        '''
+        
+        self.Destroy()
+        self.parent.preprocessedImagesFrame = False
+        if os.path.isfile(self.parent.outputFile) or os.path.isfile(self.parent.outputFile + '.pkl'):
+            if self.parent.overWrite == False:
+                OverWrite(self.parent, -1, "Overwrite Output File", self.parent.outputFile, "Output File")
+                self.parent.overWrite = True
+        else:
+            diffPhotCall = "from oscaar import differentialPhotometry"
+            subprocess.check_call(['python','-c',diffPhotCall])
+            if self.parent.radioBox.userParams["rbFitAfterPhot"].GetValue() == True:
+                wx.CallAfter(self.parent.createFrame)
+        
     def onNO(self, event):
         
         '''
@@ -1950,7 +1974,10 @@ class OverWrite(wx.Frame):
             A wxPython event that allows the activation of this method. The * represents a wild card value.
         '''
         
-        self.parent.overWrite = False    
+        if self.path == "":
+            self.parent.preprocessedImagesFrame = False
+        else:
+            self.parent.overWrite = False    
         self.Destroy()
         
     def doNothing(self,event):
@@ -1965,7 +1992,10 @@ class OverWrite(wx.Frame):
             A wxPython event that allows the activation of this method. The * represents a wild card value.
         '''
         
-        self.parent.overWrite = False
+        if self.path == "":
+            self.parent.preprocessedImagesFrame = False
+        else:
+            self.parent.overWrite = False
         pass
 
 
