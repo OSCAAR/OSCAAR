@@ -89,9 +89,10 @@ class dataBank:
         return self.allStarsDict
 
     def getMeanDarkFrame(self):
-        if self.darksPath == "":
+        if type(self.darksPath) == str and self.darksPath == "":
             return np.zeros_like(pyfits.getdata(self.imagesPaths[0]))
         else: 
+            # Else it will be a list of strings
             return systematics.meanDarkFrame(self.darksPath)
 
     def centroidInitialGuess(self,expNumber,star):
@@ -578,6 +579,8 @@ class dataBank:
                             value = inline[1].strip()
                             if len(glob(value)) > 0:
                                 self.dict[save] = np.sort(glob(value))
+                            elif value == "":
+                                self.dict[save] = ""
                             else:
                                 tempArr = []
                                 for path in str(inline[1]).split(','):
@@ -585,7 +588,7 @@ class dataBank:
                                     path = os.path.join(oscaarpathplus,os.path.abspath(path))
                                     tempArr.append(path)
                                 self.dict[save] = np.sort(tempArr)
-                                
+
                         elif name == "Radius":
                             if len(value.split(',')) == 3:
                                 ## If multiple aperture radii are requested by dictating the range, enumerate the range:
