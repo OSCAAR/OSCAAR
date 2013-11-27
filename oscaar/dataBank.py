@@ -1,6 +1,6 @@
-'''oscaar v2.0 
+'''oscaar v2.0
     Module for differential photometry
-    Developed by Brett Morris, 2011-2013 & minor modifications by Luuk Visser 
+    Developed by Brett Morris, 2011-2013 & minor modifications by Luuk Visser
     '''
 import numpy as np
 import pyfits
@@ -19,22 +19,28 @@ oscaarpathplus = os.path.join(oscaarpath,'extras')
 
 class dataBank:
     '''
-    Methods for easily storing and accessing information from the entire 
+    Methods for easily storing and accessing information from the entire
     differential photometry process with OSCAAR.
-    
+
     Core Developer: Brett Morris
     '''
-    def __init__(self):
+    def __init__(self, initParFilePath=None):
         """
-        Get the inital guesses for the initial centroids of the stars from the DS9 regions file, 
-        create dictionaries in which to store all of the data collected for each star, and for each 
-        aperture radius. Allocate the memory for these arrays wherever possible. Parse the init.par 
+        Get the inital guesses for the initial centroids of the stars from the DS9 regions file,
+        create dictionaries in which to store all of the data collected for each star, and for each
+        aperture radius. Allocate the memory for these arrays wherever possible. Parse the init.par
         file to grab the paths and initial parameters for the run.
+
+        Parameters
+        ----------
+        initParFilePath : str
+            Optional full path to the init.par file to use for the data
+
         """
 
         self.dict = {}
-        self.parseInit()
-        
+        self.parseInit(initParFilePath)
+
         self.flatPath = self.dict["flatPath"]
         self.rawRegionsList = self.dict["regPaths"]
         self.ingress = self.dict["ingress"]
@@ -48,8 +54,8 @@ class dataBank:
         self.darksPath = self.dict["darksPath"]
         self.imagesPaths = self.dict["imagesPaths"]
         self.timeKeyword = self.dict["timeKeyword"]
-        
-        if self.timeKeyword == 'JD': 
+
+        if self.timeKeyword == 'JD':
             # Since we're trying to convert to JD, use a dummy lambda function
             self.convertToJD = lambda x: x
         elif self.timeKeyword == 'DATE-OBS':
@@ -64,9 +70,9 @@ class dataBank:
             self.masterFlatPath = self.flatPath
         elif self.flatPath == '':
             self.masterFlat = np.ones_like(pyfits.getdata(self.imagesPaths[0]))
-                
+
         self.allStarsDict = {}
-        
+
         self.regionsFileList, self.regionsFITSrefsList = self.parseRawRegionsList(self.rawRegionsList)
         init_x_list,init_y_list = self.parseRegionsFile(self.regionsFileList[0])
         zeroArray = np.zeros_like(self.imagesPaths,dtype=np.float32)
@@ -75,7 +81,7 @@ class dataBank:
         self.targetKey = '000'
 
         Nradii = len(self.apertureRadii)
-        
+
         for i in range(0,len(init_x_list)):
 
             self.allStarsDict[str(i).zfill(3)] = {'x-pos':np.copy(zeroArray), 'y-pos':np.copy(zeroArray),\
@@ -83,7 +89,8 @@ class dataBank:
                 'scaledFlux':[np.copy(zeroArray) for j in range(Nradii)], 'scaledError':[np.copy(zeroArray) for j in range(Nradii)], 'chisq':np.zeros_like(self.apertureRadii)}
             self.allStarsDict[str(i).zfill(3)]['x-pos'][0] = init_x_list[i]
             self.allStarsDict[str(i).zfill(3)]['y-pos'][0] = init_y_list[i]
-            self.keys.append(str(i).zfill(3))   
+            self.keys.append(str(i).zfill(3))
+
     def getDict(self):
         '''Return dictionary of all star data called ``allStarsDict`.'''
         return self.allStarsDict
@@ -91,7 +98,7 @@ class dataBank:
     def getMeanDarkFrame(self):
         if type(self.darksPath) == str and self.darksPath == "":
             return np.zeros_like(pyfits.getdata(self.imagesPaths[0]))
-        else: 
+        else:
             # Else it will be a list of strings
             return systematics.meanDarkFrame(self.darksPath)
 
@@ -102,9 +109,9 @@ class dataBank:
         and only one regions file has been submitted, it will return the previous centroid
         as the initial guess for subsequent exposures. If multiple regions files have been
         submitted, it will return the initial guesses in those regions files when the image path
-        with index ``expNumber`` is equivalent to the path stored for that regions file's 
+        with index ``expNumber`` is equivalent to the path stored for that regions file's
         "Reference FITS image".
-        
+
         Parameters
         ----------
         expNumber : int
@@ -113,34 +120,34 @@ class dataBank:
         star : str
             The key from ``allStarsDict`` that corresponds to the star for which you'd
             like a centroid initial guess.
-    
+
         Returns
         -------
         est_x : float
             Estimated centroid position of the star ``star`` along the *x*-axis of pixels for
             exposure index ``expNumber``
-        
+
         est_y : float
             Estimated centroid position of the star ``star`` along the *y*-axis of pixels for
             exposure index ``expNumber``
         '''
         if expNumber == 0:
-            est_x = self.allStarsDict[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the 
+            est_x = self.allStarsDict[star]['x-pos'][0]  ## Use DS9 regions file's estimate for the
             est_y = self.allStarsDict[star]['y-pos'][0]  ##    stellar centroid for the first exposure
         elif self.imagesPaths[expNumber] in self.regionsFITSrefsList:
             refIndex = self.regionsFITSrefsList.index(self.imagesPaths[expNumber])
             init_x_list, init_y_list = self.parseRegionsFile(self.regionsFileList[refIndex])
             est_x = init_x_list[int(star)]
             est_y = init_y_list[int(star)]
-        else: 
+        else:
             est_x = self.allStarsDict[star]['x-pos'][expNumber-1]    ## All other exposures use the
             est_y = self.allStarsDict[star]['y-pos'][expNumber-1]    ##    previous exposure centroid as estimate
         return est_x, est_y
-    
+
     def storeCentroid(self,star,exposureNumber,xCentroid,yCentroid):
         '''
 		Store the centroid data collected by `trackSmooth`
-        
+
 		Parameters
 		----------
 		star : string
@@ -156,23 +163,23 @@ class dataBank:
 			*y*-centroid of the star
         '''
         self.allStarsDict[star]['x-pos'][exposureNumber] = xCentroid
-        self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid   
-    
+        self.allStarsDict[star]['y-pos'][exposureNumber] = yCentroid
+
     def storeFlux(self,star,exposureNumber,rawFlux,rawError):
         '''
 		Store the flux and error data collected by `phot`
-        
+
         Parameters
         ----------
         star : string
             Key for the star from the ``allStarsDict`` dictionary
-        
+
         exposureNumber : int
             Index of exposure being considered
-        
+
         rawFlux : float
             flux measured, to be stored
-        
+
         rawError : float
             flux uncertainty measured, to be stored
         '''
@@ -186,45 +193,45 @@ class dataBank:
         ----------
         star : str
             Key for the star from the `allStarsDict` dictionary
-        
+
         exposureNumber : int
             Index of exposure being considered
-        
+
         rawFluxes : list of floats
             flux measured, to be stored
-        
+
         rawErrors : list of floats
             photon noise measured, to be stored
         '''
         for apertureRadiusIndex in range(len(self.apertureRadii)):
             self.allStarsDict[star]['rawFlux'][apertureRadiusIndex][exposureNumber] = rawFluxes[apertureRadiusIndex]
             self.allStarsDict[star]['rawError'][apertureRadiusIndex][exposureNumber] = rawErrors[apertureRadiusIndex]
-    
+
     def getPaths(self):
         '''Return the paths to the raw images to be used'''
         return self.imagesPaths
-            
+
     def getFluxes(self,star):
         '''
         Return list of fluxes for the star with key ``star``
-        
+
         Parameters
         ----------
         star : str
             Key for the star from the ``allStarsDict`` dictionary
-        
+
         Returns
 		-------
         fluxes : list
             List of fluxes for each aperture radius
         '''
         return self.allStarsDict[star]['rawFlux']
-    
+
     def getErrors(self,star):
         '''Return the errors for one star, where the star parameter is the key for the
             star of interest.'''
         return self.allStarsDict[star]['rawError']
-    
+
     def storeTime(self,expNumber):
         '''
         Store the time in JD from the FITS header.
@@ -236,19 +243,19 @@ class dataBank:
         '''
         #try:
         timeStamp = pyfits.getheader(self.getPaths()[expNumber])[self.timeKeyword]
-        #except KeyError: 
+        #except KeyError:
         #    print 'Input Error: The Exposure Time Keyword indicated in observatory.par is not a valid key: ',self.timeKeyword
-        #finally: 
+        #finally:
         self.times[expNumber] = self.convertToJD(timeStamp)
-    
+
     def getTimes(self):
         '''Return all times collected with dataBank.storeTime()'''
         return self.times
-    
+
     def getFlag(self,star):
         '''Return the flag for the star with key `star` '''
         return self.allStarsDict[star]['flag']
-    
+
     def getAllFlags(self):
         '''Return flags for all stars'''
         flags = []
@@ -256,16 +263,16 @@ class dataBank:
             flags.append(self.allStarsDict[star]['flag'])
         self.flags = flags
         return flags
-    
+
     def setFlag(self,star,setting):
-        '''Set flag for star with key <star> to <setting> where 
+        '''Set flag for star with key <star> to <setting> where
             setting is a Boolean'''
         self.allStarsDict[star]['flag'] = setting
-    
+
     def getKeys(self):
         '''Return the keys for all of the stars'''
         return self.keys
-    
+
     def scaleFluxes(self):
         '''
         When all fluxes have been collected, run this to re-scale the fluxes of each
@@ -280,12 +287,12 @@ class dataBank:
                 self.allStarsDict[star]['scaledFlux'] = self.allStarsDict[star]['rawFlux']
                 self.allStarsDict[star]['scaledError'] = self.allStarsDict[star]['rawError']
 
-    
+
     def getFluxes_multirad(self,star,apertureRadiusIndex):
         '''Return the fluxes for one star, where the star parameter is the key for the
             star of interest.'''
         return self.allStarsDict[star]['rawFlux'][apertureRadiusIndex]
-    
+
     def getErrors_multirad(self,star,apertureRadiusIndex):
         '''Return the errors for one star, where the star parameter is the key for the
             star of interest.'''
@@ -297,7 +304,7 @@ class dataBank:
             comparison star to the flux of the target star. Do the same transformation on the errors.
             '''
         for star in self.allStarsDict:
-            for apertureRadiusIndex in range(len(self.apertureRadii)):    
+            for apertureRadiusIndex in range(len(self.apertureRadii)):
                 if star != self.targetKey:
                     print self.getFluxes_multirad(star,apertureRadiusIndex)[0]
                     self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex], m = mathMethods.regressionScale(self.getFluxes_multirad(star,apertureRadiusIndex),self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getTimes(),self.ingress,self.egress,returncoeffs=True)
@@ -306,32 +313,32 @@ class dataBank:
                 if star == self.targetKey:    ## (Keep the target star the same)
                     self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex] = self.allStarsDict[star]['rawFlux'][apertureRadiusIndex]
                     self.allStarsDict[star]['scaledError'][apertureRadiusIndex] = self.allStarsDict[star]['rawError'][apertureRadiusIndex]
-    
-    
+
+
     def getScaledFluxes(self,star):
-        '''Return the scaled fluxes for one star, where the star parameter is the 
+        '''Return the scaled fluxes for one star, where the star parameter is the
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledFlux'])
-    
+
     def getScaledErrors(self,star):
-        '''Return the scaled fluxes for one star, where the star parameter is the 
+        '''Return the scaled fluxes for one star, where the star parameter is the
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledError'])
 
     def getScaledFluxes_multirad(self,star,apertureRadiusIndex):
-        '''Return the scaled fluxes for star and one aperture, where the star parameter is the 
+        '''Return the scaled fluxes for star and one aperture, where the star parameter is the
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex])
-    
+
     def getScaledErrors_multirad(self,star,apertureRadiusIndex):
-        '''Return the scaled errors for star and one aperture, where the star parameter is the 
+        '''Return the scaled errors for star and one aperture, where the star parameter is the
             key for the star of interest.'''
         return np.array(self.allStarsDict[star]['scaledError'][apertureRadiusIndex])
-    
+
     def calcChiSq(self):
         """
         Calculate the :math:`$\chi^2$` for the fluxes of each comparison star and the fluxes of the target star. This
-        metric can be used to suggest which comparison stars have similar overall trends to the target star. 
+        metric can be used to suggest which comparison stars have similar overall trends to the target star.
         """
         for star in self.allStarsDict:
             self.allStarsDict[star]['chisq'] = mathMethods.chiSquared(self.getFluxes(self.targetKey),self.getFluxes(star))
@@ -345,7 +352,7 @@ class dataBank:
     def calcChiSq_multirad(self,apertureRadiusIndex):
         """
         Calculate the :math:`$\chi^2$` for the fluxes of each comparison star and the fluxes of the target star. This
-        metric can be used to suggest which comparison stars have similar overall trends to the target star. 
+        metric can be used to suggest which comparison stars have similar overall trends to the target star.
         """
         for star in self.allStarsDict:
             print self.getFluxes_multirad(self.targetKey,apertureRadiusIndex),self.getFluxes_multirad(star,apertureRadiusIndex)
@@ -362,16 +369,16 @@ class dataBank:
         Take the regression-weighted mean of some of the comparison stars
         to produce one comparison star flux to compare to the target to
         produce a light curve.
-        
+
         The comparison stars used are those whose :math:`$\chi^2$`s calculated by
         `calcChiSq()` are less than :math:`$2\sigma$` away from the other :math:`$\chi^2$`s.
         This condition removes outlier comparison stars, which can be caused by intrinsic
-        variability, tracking inaccuracies, or other effects. 
+        variability, tracking inaccuracies, or other effects.
         """
         self.meanComparisonStars = []
         self.meanComparisonStarErrors = []
         self.comparisonStarWeights = []
-        
+
         for apertureRadiusIndex in range(len(self.apertureRadii)):
             ## Check whether chi-squared has been calculated already. If not, compute it.
             chisq = []
@@ -381,7 +388,7 @@ class dataBank:
             if (chisq==0).all(): self.calcChiSq_multirad(apertureRadiusIndex)
             ## Begin regression technique
             numCompStars =  len(self.allStarsDict) - 1
-            targetFullLength = len(self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex))    
+            targetFullLength = len(self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex))
             print "Aperture rad:", apertureRadiusIndex
             print "Target raw flux:",self.getFluxes_multirad(self.targetKey,apertureRadiusIndex)
             print "Target scaled flux:",self.getScaledFluxes_multirad(self.targetKey,apertureRadiusIndex)
@@ -404,57 +411,57 @@ class dataBank:
                     compStarKeys.append(int(star))
                     columnCounter += 1
             initP = np.zeros([numCompStars])+ 1./numCompStars
-            def errfunc(p,target): 
+            def errfunc(p,target):
                 if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target ## Find only positive coefficients
             #return np.dot(p,compStarsOOT.T) - target
-            
+
             bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
             print '\nBest fit regression coefficients:',bestFitP
             print 'Default weight:',1./numCompStars
-            
+
             self.comparisonStarWeights_i = np.vstack([compStarKeys,bestFitP])
             self.meanComparisonStar = np.dot(bestFitP,compStars.T)
             self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
             self.meanComparisonStars.append(self.meanComparisonStar)
             self.meanComparisonStarErrors.append(self.meanComparisonStarError)
-            self.comparisonStarWeights.append(self.comparisonStarWeights_i)      
+            self.comparisonStarWeights.append(self.comparisonStarWeights_i)
         return self.meanComparisonStars, self.meanComparisonStarErrors
-   
+
     def getAllChiSq(self):
         """
         Return :math:`$\chi^2$`s for all stars
         """
         return self.chisq
-    
+
     def outOfTransit(self):
         """
         Boolean array where `True` are the times in `getTimes()` that are
         before ingress or after egress.
-        
+
         Returns
         -------
             List of bools
-        
+
         """
         return (self.getTimes() < self.ingress) + (self.getTimes() > self.egress)
-    
+
     def calcMeanComparison(self,ccdGain=1):
         """
         Take the regression-weighted mean of some of the comparison stars
         to produce one comparison star flux to compare to the target to
         produce a light curve.
-        
+
         The comparison stars used are those whose chi-squareds calculated by
         self.calcChiSq() are less than 2*sigma away from the other chi-squareds.
         This condition removes outliers.
         """
-        
+
         ## Check whether chi-squared has been calculated already. If not, compute it.
         chisq = []
         for star in self.allStarsDict: chisq.append(self.allStarsDict[star]['chisq'])
         chisq = np.array(chisq)
         if all(chisq == 0): self.calcChiSq()
-        
+
         ## Begin regression technique
         numCompStars =  len(self.allStarsDict) - 1
         targetFullLength = len(self.getScaledFluxes(self.targetKey))
@@ -476,53 +483,53 @@ class dataBank:
                 compStarKeys.append(int(star))
                 columnCounter += 1
         initP = np.zeros([numCompStars])+ 1./numCompStars
-        def errfunc(p,target): 
+        def errfunc(p,target):
             if all(p >=0.0): return np.dot(p,compStarsOOT.T) - target ## Find only positive coefficients
         #return np.dot(p,compStarsOOT.T) - target
-        
+
         bestFitP = optimize.leastsq(errfunc,initP[:],args=(target.astype(np.float64)),maxfev=10000000,epsfcn=np.finfo(np.float32).eps)[0]
         print '\nBest fit regression coefficients:',bestFitP
         print 'Default weight:',1./numCompStars
-        
+
         self.comparisonStarWeights = np.vstack([compStarKeys,bestFitP])
         self.meanComparisonStar = np.dot(bestFitP,compStars.T)
         self.meanComparisonStarError = np.sqrt(np.dot(bestFitP**2,compErrors.T**2))
-        return self.meanComparisonStar, self.meanComparisonStarError  
+        return self.meanComparisonStar, self.meanComparisonStarError
 
 
     def computeLightCurve(self,meanComparisonStar,meanComparisonStarError):
         '''
         Divide the target star flux by the mean comparison star to yield a light curve,
         save the light curve into the dataBank object.
-        
+
         INPUTS: meanComparisonStar - The fluxes of the (one) mean comparison star
-        
-        RETURNS: self.lightCurve - The target star divided by the mean comparison 
+
+        RETURNS: self.lightCurve - The target star divided by the mean comparison
         star, i.e., the light curve.
         '''
         self.lightCurve = self.getFluxes(self.targetKey)/meanComparisonStar
         self.lightCurveError = np.sqrt(self.lightCurve**2 * ( (self.getErrors(self.targetKey)/self.getFluxes(self.targetKey))**2 + (meanComparisonStarError/meanComparisonStar)**2 ))
         return self.lightCurve, self.lightCurveError
-    
+
     def computeLightCurve_multirad(self,meanComparisonStars,meanComparisonStarErrors):
         '''
         Divide the target star flux by the mean comparison star to yield a light curve,
         save the light curve into the `dataBank` object.
-        
+
         Parameters
         ----------
         meanComparisonStar : list
             The fluxes of the (one) mean comparison star
-        
+
         Returns
         -------
-        self.lightCurves: 
-            The fluxes of the target star divided by the fluxes of the mean comparison 
+        self.lightCurves:
+            The fluxes of the target star divided by the fluxes of the mean comparison
             star, i.e., the light curve
-            
+
         self.lightCurveErrors:
             The propagated errors on each relative flux in `self.lightCurves`
-            
+
         '''
         self.lightCurves = []
         self.lightCurveErrors = []
@@ -536,19 +543,38 @@ class dataBank:
     def getPhotonNoise(self):
         '''
         Calculate photon noise using the lightCurve and the meanComparisonStar
-        
+
         RETURNS: self.photonNoise - The estimated photon noise limit
         '''
         self.photonNoise = self.lightCurve*self.meanComparisonStarError
         return self.photonNoise
-    
-    def parseInit(self):
+
+    def parseInit(self, initParFilePath=None):
         """
         Parses `init.par`, a plain text file that contains all of the running parameters
-        that control the `differentialPhotometry.py` script. `init.par` is written by 
-        the OSCAAR GUI or can be edited directly by the user. 
-        """       
-        init = open(os.path.join(os.path.dirname(os.path.abspath(oscaar.__file__)),'init.par'), 'r').read().splitlines()
+        that control the `differentialPhotometry.py` script. `init.par` is written by
+        the OSCAAR GUI or can be edited directly by the user.
+
+        Parameters
+        ----------
+        initParFilePath : str
+            Optional full path to the init.par file to use for the data
+
+
+        """
+        from os import path
+
+        if initParFilePath is None:
+            init = open(os.path.join(
+                os.path.dirname(os.path.abspath(oscaar.__file__)),
+                'init.par'), 'r').read().splitlines()
+        else:
+            if path.exists(initParFilePath):
+                init = open(initParFilePath, 'r').read().splitlines()
+            else:
+                raise ValueError, (
+                    "PAR file {0} cannot be found.".format(initParFilePath))
+
         for line in init:
             if len(line.split()) > 1:
                 inline = line.split(':', 1)
@@ -562,7 +588,7 @@ class dataBank:
                         ("Plot Photometry", "photPlots"), ("Smoothing Constant", "smoothConst"),
                         ("Output Path","outputPath"), ("Path to Dark Frames", "darksPath"),
                         ("Path to Data Images", "imagesPaths"), ("Exposure Time Keyword", "timeKeyword")]
-                
+
                 for string,save in list:
                     if string == name:
                         #if name == "Smoothing Constant" or name == "Radius" or name == "Tracking Zoom" or name == "CCD Gain":
@@ -593,10 +619,10 @@ class dataBank:
                             if len(value.split(',')) == 3:
                                 ## If multiple aperture radii are requested by dictating the range, enumerate the range:
                                 apertureRadiusMin, apertureRadiusMax, apertureRadiusStep = map(float,value.split(','))
-                                
+
                                 if (apertureRadiusMax-apertureRadiusMin) % apertureRadiusStep == 0:
                                     apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax+apertureRadiusStep, apertureRadiusStep)
-                                else: 
+                                else:
                                     apertureRadii = np.arange(apertureRadiusMin, apertureRadiusMax, apertureRadiusStep)
 
                                 self.dict[save] = apertureRadii
@@ -604,7 +630,7 @@ class dataBank:
                                 ## If only one aperture radius is requested, make a list with only that one element
                                 self.dict[save] = [float(value)]
                             else:
-                                self.dict[save] = [float(i) for i in value.split(',')]                                    
+                                self.dict[save] = [float(i) for i in value.split(',')]
 
                         elif name == "Output Path":
                             self.outputPath = os.path.join(oscaarpathplus,os.path.abspath(value))
@@ -614,19 +640,19 @@ class dataBank:
     def parseRegionsFile(self,regPath):
         """
         Parses the regions files (.REG) created by DS9. These files are written in plain text, where
-        each circuluar region's centroid and radius are logged in the form "circle(`x-centroid`,`y-centroid`,`radius`)". 
+        each circuluar region's centroid and radius are logged in the form "circle(`x-centroid`,`y-centroid`,`radius`)".
         This method uses regular expressions to parse out the centroids.
-        
+
         Parameters
         ----------
         regPath : string
             Path to the regions file to read
-            
+
         Returns
         -------
         init_x_list : list
             Initial estimates for the x-centroids
-        
+
         init_y_list : list
             Initial estimates for the y-centroids
         """
@@ -642,8 +668,8 @@ class dataBank:
 
     def parseRawRegionsList(self,rawRegionsList):
         """
-        Split up the `rawRegionsList`, which should be in the format: 
-    
+        Split up the `rawRegionsList`, which should be in the format:
+
         <first regions file>,<reference FITS file for the first regs file>;<second> regions file>,
         <reference FITS file for the first regs file>;....
 
@@ -651,7 +677,7 @@ class dataBank:
         """
         regionsFiles = []
         refFITSFiles = []
-        
+
         for pair in rawRegionsList.split(';'):
             if len(pair.split(",")) == 2:
                 regionsFile, refFITSFile = pair.split(',')
@@ -659,8 +685,8 @@ class dataBank:
                 refFITSFiles.append(refFITSFile)
 
         return regionsFiles, refFITSFiles
-        
-    
+
+
     def plot(self,pointsPerBin=10):
         """
         Produce a plot of the light curve, show it. Over-plot 10-point median binning
@@ -676,14 +702,14 @@ class dataBank:
         meanComparisonStar, meanComparisonStarError = self.calcMeanComparison(ccdGain = self.ccdGain)
         lightCurve, lightCurveErr = self.computeLightCurve(meanComparisonStar, meanComparisonStarError)
         binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(times,lightCurve,pointsPerBin)
-        
+
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
         axis = fig.add_subplot(111)
         def format_coord(x, y):
             '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-        axis.format_coord = format_coord 
+        axis.format_coord = format_coord
         axis.errorbar(times,lightCurve,yerr=lightCurveErr,fmt='k.',ecolor='gray')
         axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
@@ -693,31 +719,31 @@ class dataBank:
         axis.set_ylabel('Relative Flux')
         plt.ioff()
         plt.show()
-    
+
     def plotLightCurve(self,pointsPerBin=10,apertureRadiusIndex=0):
         """
         Produce a plot of the light curve, show it. Over-plot 10-point median binning
         of the light curve.
-        
+
         Parameters
         ----------
         pointsPerBin : int, optional (default=10)
             Integer number of points to accumulate per bin.
-            
+
         apertureRadiusIndex : int, optional (default=0)
             Index of the aperture radius list corresponding to the aperture radius
-            from which to produce the plot. 
-            
+            from which to produce the plot.
+
         """
         binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(self.times,self.lightCurves[apertureRadiusIndex],pointsPerBin)
-        
+
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
         axis = fig.add_subplot(111)
         def format_coord(x, y):
             '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-        axis.format_coord = format_coord 
+        axis.format_coord = format_coord
         axis.errorbar(self.times,self.lightCurves[apertureRadiusIndex],yerr=self.lightCurveErrors[apertureRadiusIndex],fmt='k.',ecolor='gray')
         axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
         axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
@@ -727,21 +753,21 @@ class dataBank:
         axis.set_ylabel('Relative Flux')
         plt.ioff()
         plt.show()
-    
+
     def plotRawFluxes(self,apertureRadiusIndex=0,pointsPerBin=10):
         """
-        Plot all raw flux time series for a particular aperture radius, 
-        for each comparison star. 
-        
+        Plot all raw flux time series for a particular aperture radius,
+        for each comparison star.
+
         Parameters
         ----------
         pointsPerBin : int, optional (default=10)
             Integer number of points to accumulate per bin.
-            
+
         apertureRadiusIndex : int, optional (default=0)
             Index of the aperture radius list corresponding to the aperture radius
-            from which to produce the plot. 
-            
+            from which to produce the plot.
+
         """
         plt.ion()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
@@ -750,10 +776,10 @@ class dataBank:
         def format_coord(x, y):
             '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-        axis.format_coord = format_coord 
+        axis.format_coord = format_coord
         for star in self.allStarsDict:
             axis.errorbar(self.times,self.allStarsDict[star]['rawFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['rawError'][apertureRadiusIndex],fmt='o')
-        
+
         axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
         axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
         axis.set_title(('Raw fluxes for aperture radius %s' % self.apertureRadii[apertureRadiusIndex]))
@@ -761,22 +787,22 @@ class dataBank:
         axis.set_ylabel('Counts')
         plt.ioff()
         plt.show()
-    
-    
+
+
     def plotScaledFluxes(self,apertureRadiusIndex=0,pointsPerBin=10):
         """
-        Plot all scaled flux time series for a particular aperture radius, 
-        for each comparison star. 
-        
+        Plot all scaled flux time series for a particular aperture radius,
+        for each comparison star.
+
         Parameters
         ----------
         pointsPerBin : int, optional (default=10)
             Integer number of points to accumulate per bin.
-            
+
         apertureRadiusIndex : int, optional (default=0)
             Index of the aperture radius list corresponding to the aperture radius
-            from which to produce the plot. 
-            
+            from which to produce the plot.
+
         """
         plt.ion()
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
@@ -785,10 +811,10 @@ class dataBank:
         def format_coord(x, y):
             '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-        axis.format_coord = format_coord 
+        axis.format_coord = format_coord
         for star in self.allStarsDict:
             axis.errorbar(self.times,self.allStarsDict[star]['scaledFlux'][apertureRadiusIndex],yerr=self.allStarsDict[star]['scaledError'][apertureRadiusIndex],fmt='o')
-        
+
         axis.axvline(ymin=0,ymax=1,x=self.ingress,color='k',ls=':')
         axis.axvline(ymin=0,ymax=1,x=self.egress,color='k',ls=':')
         axis.set_title(('Scaled fluxes for aperture radius: %s' % self.apertureRadii[apertureRadiusIndex]))
@@ -799,50 +825,50 @@ class dataBank:
 
     def plotCentroidsTrace(self,pointsPerBin=10):
         """
-        Plot all centroid positions for a particular aperture radius, 
+        Plot all centroid positions for a particular aperture radius,
         for each comparison star. The plot will be in (`x`,`y`) coordinates
         to visualize the physical image drift (this is not a plot as a function
         of time).
-        
+
         Parameters
         ----------
         pointsPerBin : int, optional (default=10)
             Integer number of points to accumulate per bin.
-            
+
         apertureRadiusIndex : int, optional (default=0)
             Index of the aperture radius list corresponding to the aperture radius
-            from which to produce the plot. 
-            
+            from which to produce the plot.
+
         """
-        
+
         fig = plt.figure(num=None, figsize=(10, 8), facecolor='w',edgecolor='k')
         fig.canvas.set_window_title('OSCAAR')
         axis = fig.add_subplot(111)
         def format_coord(x, y):
             '''Function to give data value on mouse over plot.'''
             return 'JD=%1.5f, Flux=%1.4f' % (x, y)
-        axis.format_coord = format_coord 
+        axis.format_coord = format_coord
         for star in self.allStarsDict:
             axis.plot(self.allStarsDict[star]['y-pos'],self.allStarsDict[star]['x-pos'])
-        
+
         axis.set_title('Tracing Stellar Centroids')
         axis.set_xlabel('X')
         axis.set_ylabel('Y')
         plt.ioff()
         plt.show()
-    
+
     def plotComparisonWeightings(self, apertureRadiusIndex=0):
         """
         Plot histograms visualizing the relative weightings of the comparison
-        stars used to produce the "mean comparison star", from which the 
-        light curve is calculated. 
-                
+        stars used to produce the "mean comparison star", from which the
+        light curve is calculated.
+
         Parameters
         ----------
         apertureRadiusIndex : int, optional (default=0)
             Index of the aperture radius list corresponding to the aperture radius
-            from which to produce the plot. 
-            
+            from which to produce the plot.
+
         """
         plt.ion()
         weights = self.comparisonStarWeights[apertureRadiusIndex]
@@ -867,29 +893,29 @@ class dataBank:
 
     def updateMCMC(self,bestp,allparams,acceptanceRate,dataBankPath,uncertainties):
         """
-        Assigns variables within the dataBank object for the results of an MCMC run. 
-        
+        Assigns variables within the dataBank object for the results of an MCMC run.
+
         Parameters
         ----------
         bestp : list
             Best-fit parameters from the MCMC run. The list elements correspond to [<ratio of planetary radius
             to stellar radius>,<ratio of semi-major axis to stellar radius>,<inclination>,<mid-transit time>].
-            
+
         allparams : 2D matrix
             This matrix represents the many "states", "trails" or "links in the chain" that are accepted and saved
-            throughout the Metropolis-Hastings process in the MCMC scripts. From allparams we can calculate the 
+            throughout the Metropolis-Hastings process in the MCMC scripts. From allparams we can calculate the
             uncertainties on each best-fit parameter.
-            
+
         acceptanceRate : float
             The final acceptance rate achieved by the chain; the ratio of the number of accepted states and the
             number of states attempted
-            
+
         dataBankPath : string
             Path to the dataBank object pickle (aka "OSCAAR pkl") to update
-        
+
         uncertainties : list of lists
             :math:`$\pm 1\sigma$` uncertainties on each of the best-fit parameters in `bestp`
-        
+
         """
         self.MCMC_bestp = bestp
         self.MCMC_allparams = allparams
@@ -902,7 +928,7 @@ class dataBank:
         Returns
         -------
         savestring : string
-            A string formatted for human-readable results from the MCMC process, with 
+            A string formatted for human-readable results from the MCMC process, with
             the best-fit parameters and the :math:`$\pm 1\sigma$` uncertainties
         """
         savestring = 'MCMC Best Fit Parameters And One-Sigma Uncertainties\n----------------------------------------------------\n\n'
@@ -913,15 +939,15 @@ class dataBank:
 
     def czechETDstring(self,apertureRadiusIndex):
         """
-        Returns a string containing the tab delimited light curve data for submission 
+        Returns a string containing the tab delimited light curve data for submission
         to the *Czech Astronomical Society's Exoplanet Transit Database*, for submission
         here: http://var2.astro.cz/ETD/protocol.php
-        
+
         Parameters
         ----------
         apertureRadiusIndex : int
             Index of the aperture radius from which to use for the light curve fluxes
-            and errors. 
+            and errors.
         """
 
         N_measurements = len(self.lightCurves[apertureRadiusIndex])
@@ -931,14 +957,14 @@ class dataBank:
                                        self.lightCurveErrors[apertureRadiusIndex][i]]))
             outputString += '\n'
         return outputString
-        
+
 #     def plotMCMC(self):
 #         bestp = self.MCMC_bestp
 #         allparams = self.MCMC_allparams
 #         x = self.times
 #         y = self.lightCurve
 #         sigma_y = self.lightCurveError
-#     
+#
 #         ##############################
 #         # Prepare figures
 #         fig = plt.figure()
@@ -955,7 +981,7 @@ class dataBank:
 #         ax1.errorbar(x,y,yerr=sigma_y,fmt='o-')
 #         ax1.plot(x,yfit,'r')
 #         ax1.set_title("Fit with MCMC")
-# 
+#
 #         ##############################
 #         # Plot traces and histograms of mcmc params
 #         p = allparams[0,:]
@@ -964,43 +990,43 @@ class dataBank:
 #         t0 = allparams[3,:]
 #         abscissa = np.arange(len(allparams[0,:]))   ## Make x-axis for trace plots
 #         burnFraction = 0.20     ## "burn" or ignore the first 20% of the chains
-# 
+#
 #         ax2.plot(abscissa,p,'k.')
 #         ax2.set_title('p trace')
 #         ax2.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-# 
+#
 #         ax3.plot(abscissa,ap,'k.')
 #         ax3.set_title('ap trace')
 #         ax3.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-# 
+#
 #         ax4.plot(abscissa,i,'k.')
 #         ax4.set_title('i trace')
 #         ax4.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-# 
+#
 #         ax5.plot(abscissa,t0,'k.')
 #         ax5.set_title('t0 trace')
 #         ax5.axvline(ymin=0,ymax=1,x=burnFraction*len(abscissa),linestyle=':')
-# 
+#
 #         def histplot(parameter,axis,title,bestFitParameter):
 #             postburn = parameter[burnFraction*len(parameter):len(parameter)]    ## Burn beginning of chain
 #             Nbins = 15              ## Plot histograms with 15 bins
 #             n, bins, patches = axis.hist(postburn, Nbins, normed=0, facecolor='white')  ## Generate histogram
 #             plus,minus = oscaar.fitting.get_uncertainties(postburn,bestFitParameter)   ## Calculate uncertainties on best fit parameter
 #             axis.axvline(ymin=0,ymax=1,x=bestFitParameter+plus,ls=':',color='r')    ## Plot vertical lines representing uncertainties
-#             axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')        
+#             axis.axvline(ymin=0,ymax=1,x=bestFitParameter-minus,ls=':',color='r')
 #             axis.set_title(title)
 #         ## Plot the histograms
 #         histplot(p,ax6,'p',bestp[0])
 #         histplot(ap,ax7,'ap',bestp[1])
 #         histplot(i,ax8,'i',bestp[2])
 #         histplot(t0,ax9,'t0',bestp[3])
-# 
+#
 #         plt.savefig("mcmc_results.png",bbox_inches='tight')     ## Save plot
 #         plt.show()
 
     def plotLightCurve_multirad(self,pointsPerBin=10):
         for apertureRadiusIndex in range(len(self.apertureRadii)):
-            
+
             meanTimeInt = int(np.rint(np.mean(self.times)))
             offsetTimes = self.times - meanTimeInt
             binnedTime, binnedFlux, binnedStd = mathMethods.medianBin(offsetTimes,self.lightCurves[apertureRadiusIndex],pointsPerBin)
@@ -1010,7 +1036,7 @@ class dataBank:
             def format_coord(x, y):
                 '''Function to give data value on mouse over plot.'''
                 return 'JD=%1.5f, Flux=%1.4f' % (meanTimeInt+x, y)
-            axis.format_coord = format_coord 
+            axis.format_coord = format_coord
             axis.errorbar(offsetTimes,self.lightCurves[apertureRadiusIndex],yerr=self.lightCurveErrors[apertureRadiusIndex],fmt='k.',ecolor='gray')
             axis.errorbar(binnedTime, binnedFlux, yerr=binnedStd, fmt='rs-', linewidth=2)
             axis.axvline(ymin=0,ymax=1,x=self.ingress-meanTimeInt,color='k',ls=':')
