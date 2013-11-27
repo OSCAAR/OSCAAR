@@ -1860,12 +1860,13 @@ class OverWrite(wx.Frame):
         self.path = path
         if path == "":
             self.text = wx.StaticText(self.panel, -1, 
-                                      "It seems as though you have left " +
+                                      "Are you using precorrected images?\n\nYou have left " +
                                       "either the path to Dark Frames or the " +
-                                      "path to the Master Flat empty.\nAre " + 
-                                      "you indeed using preprocessed Data " + 
-                                      "Images and wish to continue without " + 
-                                      "specifying these parameters?")
+                                      "Path to the Master Flat empty.\nIf you are " +
+                                      "using pre-processed Data Images, press "+
+                                      "Yes and OSCAAR will run without \ndark " +
+                                      "and flat corrections. If you need to enter "+
+                                      "these exposures, press No to return.")
         else:
             self.text = wx.StaticText(self.panel, -1, "Are you sure you want to overwrite\n" + self.path + "?")
         self.yesButton = wx.Button(self.panel, label = "Yes")
