@@ -562,15 +562,14 @@ class dataBank:
 
 
         """
-        from os import path
 
         if initParFilePath is None:
             init = open(os.path.join(
                 os.path.dirname(os.path.abspath(oscaar.__file__)),
                 'init.par'), 'r').read().splitlines()
         else:
-            if path.exists(initParFilePath):
-                init = open(initParFilePath, 'r').read().splitlines()
+            if os.path.exists(initParFilePath):
+                init = open(os.path.abspath(initParFilePath), 'r').read().splitlines()
             else:
                 raise ValueError, (
                     "PAR file {0} cannot be found.".format(initParFilePath))
