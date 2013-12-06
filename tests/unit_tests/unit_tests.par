@@ -1,0 +1,14 @@
+Path to Dark Frames: ../../oscaar/testFiles/simulatedImg-000d.fits, ../../oscaar/testFiles/simulatedImg-001d.fits, ../../oscaar/testFiles/simulatedImg-002d.fits
+Path to Data Images: ../../oscaar/testFiles/simulatedImg-000r.fits, ../../oscaar/testFiles/simulatedImg-001r.fits, ../../oscaar/testFiles/simulatedImg-002r.fits, ../../oscaar/testFiles/simulatedImg-003r.fits, ../../oscaar/testFiles/simulatedImg-004r.fits, ../../oscaar/testFiles/simulatedImg-005r.fits
+Path to Master-Flat Frame: ../../oscaar/testFiles/masterFlat.fits
+Path to Regions File: ../../oscaar/testFiles/myReg.reg, ../../oscaar/testFiles/stars.reg
+Output Path: ./unit_test_results.pkl
+Ingress: 2013-01-01 ; 10:06:30
+Egress: 2013-01-01 ; 11:02:35
+Plot Tracking: off
+Plot Photometry: off
+Smoothing Constant: 3
+Radius: 4.5
+Tracking Zoom: 15
+CCD Gain: 1.0
+Exposure Time Keyword: JD
