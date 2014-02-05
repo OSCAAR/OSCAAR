@@ -175,5 +175,5 @@ def medianBin(time, flux, medianWidth):
         fluxInBin = flux[i*medianWidth:(i+1)*medianWidth+1]
         binnedTime[i] = np.median(time[i*medianWidth:(i+1)*medianWidth+1])
         binnedFlux[i] = np.median(fluxInBin)
-        binnedStd[i] = np.std(fluxInBin)
+        binnedStd[i] = np.std(fluxInBin)/np.sqrt(len(fluxInBin))
     return binnedTime, binnedFlux, binnedStd
