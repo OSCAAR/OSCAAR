@@ -704,7 +704,7 @@ class OscaarFrame(wx.Frame):
         setValueString = ""
         array2 = []
         smallArray = ""
-        if array.strip() == "":
+        if array.strip() == "" and saveNum != 3:
             return errorString
         
         for element in array.split(","):

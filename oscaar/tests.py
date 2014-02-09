@@ -60,15 +60,6 @@ class Test(unittest.TestCase):
         # Dark Frames Error Messages
 
         self.of.messageFrame = False
-        tempIP = InvalidParameter('No Values Entered', empty(None, -1), -1,
-                                  stringVal='fits',
-                                  secondValue='the path to Dark Frames')
-        self.of.runOscaar(wx.EVT_BUTTON)
-        self.assertTrue(self.of.IP.string == tempIP.string
-                        and self.of.IP.text.GetLabel()
-                        == tempIP.text.GetLabel())
-
-        self.of.messageFrame = False
         string = IL.rpartition(os.sep)[0].rpartition(os.sep)[0]
         string += os.sep
         invalidString = "\n" + string + "*.fit,\n" + string + "*.fits"
@@ -95,13 +86,6 @@ class Test(unittest.TestCase):
         self.of.paths.boxList[1].SetValue(IL + "simulatedImg-???d.fits")
 
         # Master Flat Error Messages
-
-        self.of.messageFrame = False
-        tempIP = InvalidParameter('', empty(None, -1), -1, stringVal='master',
-                                  secondValue='path to the Master Flat')
-        self.of.runOscaar(wx.EVT_BUTTON)
-        self.assertEqual(self.of.IP.string, tempIP.string)
-        self.assertEqual(self.of.IP.text.GetLabel(), tempIP.text.GetLabel())
 
         self.of.messageFrame = False
         self.of.paths.boxList[2].SetValue(IL + "stars.reg")
@@ -316,12 +300,6 @@ class Test(unittest.TestCase):
             (10000, 'number'),
             ]
         self.failUnless(checkParams(self, tupleList))
-
-
-#         print self.of.IP.string
-#         print tempIP.string
-#         print self.of.IP.text.GetLabel()
-#         print tempIP.text.GetLabel()
 
 class empty(wx.Frame):
 
