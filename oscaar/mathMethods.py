@@ -5,6 +5,8 @@ Module for differential photometry
 Developed by Brett Morris, 2011-2013
 """
 
+import math
+
 import numpy as np
 from numpy import linalg as LA
 
@@ -167,13 +169,13 @@ def medianBin(time, flux, medianWidth):
         deviation of the points within each bin
     """
 
-    numberBins = len(time)/medianWidth
+    numberBins = int(math.ceil(len(time)/float(medianWidth)))
     binnedTime = np.arange(numberBins, dtype=float)
     binnedFlux = np.arange(numberBins, dtype=float)
     binnedStd = np.arange(numberBins, dtype=float)
-    for i in range(0, numberBins):
-        fluxInBin = flux[i*medianWidth:(i+1)*medianWidth+1]
-        binnedTime[i] = np.median(time[i*medianWidth:(i+1)*medianWidth+1])
+    for i in range(numberBins):
+        fluxInBin = flux[i*medianWidth:(i+1)*medianWidth]
+        binnedTime[i] = np.median(time[i*medianWidth:(i+1)*medianWidth])
         binnedFlux[i] = np.median(fluxInBin)
         binnedStd[i] = np.std(fluxInBin)/np.sqrt(len(fluxInBin))
     return binnedTime, binnedFlux, binnedStd
