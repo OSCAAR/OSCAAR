@@ -10,7 +10,7 @@ import atexit
 import urllib2
 
 def internet_on():
-    refURL = 'http://74.125.228.100' ## One Google IP address (bypass DNS lookup)
+    refURL = 'http://www.google.com'
     try:
         response=urllib2.urlopen(refURL,timeout=1)
         return True
