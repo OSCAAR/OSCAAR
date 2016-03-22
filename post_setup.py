@@ -30,12 +30,12 @@ def download_ds9():
 
     
     if sysplf == 'darwin':
-        url = "http://hea-www.harvard.edu/RD/ds9/download/darwinsnowleopard/ds9.darwinsnowleopard.7.2.tar.gz"
+        url = "http://ds9.si.edu/download/darwinelcapitan/ds9.darwinelcapitan.7.4.tar.gz"
     elif sysplf == 'linux2':
        # url = "http://hea-www.harvard.edu/RD/ds9/download/linux/ds9.linux.7.2.tar.gz" This 32-bit download seems problematic
-       url = 'http://hea-www.harvard.edu/RD/ds9/download/linux64/ds9.linux64.7.2.tar.gz'
+       url = 'http://hea-www.harvard.edu/RD/ds9/download/linux64/ds9.linux64.7.4.tar.gz'
     elif sysplf == 'win32':
-        url = "http://hea-www.harvard.edu/RD/ds9/download/windows/SAOImage%20DS9%207.2%20Install.exe"
+        url = "http://ds9.si.edu/download/windows/SAOImage%20DS9%207.2.1%20Install.exe"
     
     file_name = url.split('/')[-1]
     u = urllib2.urlopen(url)
